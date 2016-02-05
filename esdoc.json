@@ -1,0 +1,21 @@
+{
+  "source": "./src",
+  "destination": "./esdoc",
+  "test": {
+    "type": "mocha",
+    "source": "./test"
+  },
+  "plugins": [
+    {
+      "name": "esdoc-importpath-plugin",
+      "option": {
+        "replaces": [
+          {"from": "^src", "to": "lib"}
+        ]
+      }
+    },
+    {
+      "name": "esdoc-es7-plugin"
+    }
+  ]
+}

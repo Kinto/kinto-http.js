@@ -1,0 +1,7 @@
+/.venv
+/dist
+/lib
+/npm-debug.log
+/coverage
+/esdoc
+/node_modules
