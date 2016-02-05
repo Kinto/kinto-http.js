@@ -6,28 +6,11 @@ import { quote, unquote, partition } from "./utils.js";
 import HTTP from "./http.js";
 
 
-const RECORD_FIELDS_TO_CLEAN = ["_status", "last_modified"];
 /**
  * Currently supported protocol version.
  * @type {String}
  */
 export const SUPPORTED_PROTOCOL_VERSION = "v1";
-
-/**
- * Cleans a record object, excluding passed keys.
- *
- * @param  {Object} record        The record object.
- * @param  {Array}  excludeFields The list of keys to exclude.
- * @return {Object}               A clean copy of source record object.
- */
-export function cleanRecord(record, excludeFields=RECORD_FIELDS_TO_CLEAN) {
-  return Object.keys(record).reduce((acc, key) => {
-    if (excludeFields.indexOf(key) === -1) {
-      acc[key] = record[key];
-    }
-    return acc;
-  }, {});
-}
 
 /**
  * High level HTTP client for the Kinto API.
@@ -229,18 +212,16 @@ export default class KintoApi {
    * @return {Object}         The request body object.
    */
   _buildRecordBatchRequest(record, path, safe) {
-    // XXX: kinto-api.js shouldn't know about _status which kinto.js persistence
-    // related.
-    const isDeletion = record._status === "deleted";
-    const method = isDeletion ? "DELETE" : "PUT";
-    // XXX: kinto-api.js shouldn't know about how to clean a record
-    const body = isDeletion ? undefined : {data: cleanRecord(record)};
+    const method = record.deleted ? "DELETE" : "PUT";
+    // Prepare the record body to send with any last_modified property dropped
+    const cleanedRecord = Object.assign({}, record, {last_modified: undefined});
+    const body = record.deleted ? undefined : {data: cleanedRecord};
     const headers = {};
     if (safe) {
       if (record.last_modified) {
         // Safe replace.
         headers["If-Match"] = quote(record.last_modified);
-      } else if (!isDeletion) {
+      } else if (!record.deleted) {
         // Safe creation.
         headers["If-None-Match"] = "*";
       }

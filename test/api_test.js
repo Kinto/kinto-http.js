@@ -6,7 +6,7 @@ import sinon from "sinon";
 import { EventEmitter } from "events";
 import { quote } from "../src/utils";
 import { fakeServerResponse } from "./test_utils.js";
-import Api, { SUPPORTED_PROTOCOL_VERSION as SPV, cleanRecord } from "../src";
+import Api, { SUPPORTED_PROTOCOL_VERSION as SPV } from "../src";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -309,7 +309,7 @@ describe("Api", () => {
     const operations = [
       {id: 1, title: "foo", last_modified: 42},
       {id: 2, title: "bar"},
-      {id: 3, title: "baz", _status: "deleted"},
+      {id: 3, title: "baz", deleted: true},
     ];
 
     beforeEach(() => {
@@ -646,16 +646,6 @@ describe("Api", () => {
         return api.batch("blog", "articles", moreOperations)
           .then(res => res.published)
           .should.become([1, 2, 3, 4]);
-      });
-    });
-  });
-
-  describe("Helpers", () => {
-    /** @test {cleanRecord} */
-    describe("#cleanRecord", () => {
-      it("should clean record data", () => {
-        expect(cleanRecord({title: "foo", _status: "foo"}))
-          .eql({title: "foo"});
       });
     });
   });
