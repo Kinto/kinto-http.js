@@ -1,6 +1,7 @@
 "use strict";
 
 import "isomorphic-fetch";
+import { EventEmitter } from "events";
 
 import { quote, unquote, partition } from "./utils.js";
 import HTTP from "./http.js";
@@ -52,10 +53,7 @@ export default class KintoApi {
      * The even emitter instance.
      * @type {EventEmitter}
      */
-    if (!events) {
-      throw new Error("No events handler provided");
-    }
-    this.events = events;
+    this.events = events || new EventEmitter();
 
     /**
      * The HTTP instance.

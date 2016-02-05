@@ -75,10 +75,14 @@ describe("Api", () => {
         .eql(requestMode);
     });
 
-    it("should complain if an events handler is not provided", () => {
-      expect(() => {
-        new Api(`http://test/${SPV}`);
-      }).to.Throw(Error,/No events handler provided/);
+    it("should create an event emitter if none is provided", () => {
+      expect(new Api(`http://test/${SPV}`).events)
+        .to.be.an.instanceOf(EventEmitter);
+    });
+
+    it("should expose provided event emitter when provided", () => {
+      const events = new EventEmitter();
+      expect(new Api(`http://test/${SPV}`, events).events).eql(events);
     });
   });
 
