@@ -1,5 +1,5 @@
 {
-  "name": "kinto-api.js",
+  "name": "kinto-client",
   "version": "0.1.0",
   "description": "JavaScript HTTP client for the Kinto API.",
   "main": "lib/index.js",
