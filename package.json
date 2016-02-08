@@ -6,9 +6,9 @@
   "scripts": {
     "build": "babel -d lib/ src/",
     "dist": "mkdir -p dist && rm -f dist/*.* && npm run dist-dev && npm run dist-prod && npm run dist-noshim",
-    "dist-dev": "browserify -s KintoApi -d -e src/index.js -o dist/kinto-api.js-$npm_package_version.js -t [ babelify --sourceMapRelative . ]",
-    "dist-noshim": "browserify -s KintoApi -g uglifyify --ignore isomorphic-fetch --ignore babel-polyfill -e src/index.js -o dist/kinto-api.js-$npm_package_version.noshim.js -t [ babelify --sourceMapRelative . ]",
-    "dist-prod": "browserify -s KintoApi -g uglifyify -e src/index.js -o dist/kinto-api.js-$npm_package_version.min.js -t [ babelify --sourceMapRelative . ]",
+    "dist-dev": "browserify -s KintoApi -d -e src/index.js -o dist/kinto-client-$npm_package_version.js -t [ babelify --sourceMapRelative . ]",
+    "dist-noshim": "browserify -s KintoApi -g uglifyify --ignore isomorphic-fetch --ignore babel-polyfill -e src/index.js -o dist/kinto-client-$npm_package_version.noshim.js -t [ babelify --sourceMapRelative . ]",
+    "dist-prod": "browserify -s KintoApi -g uglifyify -e src/index.js -o dist/kinto-client-$npm_package_version.min.js -t [ babelify --sourceMapRelative . ]",
     "report-coverage": "npm run test-cover && ./node_modules/coveralls/bin/coveralls.js < ./coverage/lcov.info",
     "tdd": "babel-node node_modules/.bin/_mocha --watch 'test/**/*_test.js'",
     "test": "npm run lint && npm run test-nocover",
@@ -19,7 +19,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kinto/kinto-api.js.git"
+    "url": "git+https://github.com/Kinto/kinto-client.git"
   },
   "keywords": [
     "kinto",
@@ -30,9 +30,9 @@
   "author": "Mozilla <storage-team@mozilla.com>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Kinto/kinto-api.js/issues"
+    "url": "https://github.com/Kinto/kinto-client/issues"
   },
-  "homepage": "https://github.com/Kinto/kinto-api.js#readme",
+  "homepage": "https://github.com/Kinto/kinto-client#readme",
   "dependencies": {
     "isomorphic-fetch": "^2.2.1"
   },
