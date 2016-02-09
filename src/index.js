@@ -21,14 +21,15 @@ export default class KintoApi {
    * Constructor.
    *
    * Options:
-   * - {Object} headers      The key-value headers to pass to each request.
-   * - {String} requestMode  The HTTP request mode.
+   * - {EventEmitter} events      The events handler. If none provided an
+   *                              `EventEmitter` instance will be created.
+   * - {Object}       headers     The key-value headers to pass to each request.
+   * - {String}       requestMode The HTTP request mode (from ES6 fetch spec).
    *
-   * @param  {String}       remote  The remote URL.
-   * @param  {EventEmitter} events  The events handler
-   * @param  {Object}       options The options object.
+   * @param  {String} remote  The remote URL.
+   * @param  {Object} options The options object.
    */
-  constructor(remote, events, options={}) {
+  constructor(remote, options={}) {
     if (typeof(remote) !== "string" || !remote.length) {
       throw new Error("Invalid remote URL: " + remote);
     }
@@ -50,10 +51,11 @@ export default class KintoApi {
      */
     this.serverSettings = null;
     /**
-     * The even emitter instance.
+     * The event emitter instance. Should comply with the `EventEmitter`
+     * interface.
      * @type {EventEmitter}
      */
-    this.events = events || new EventEmitter();
+    this.events = options.events || new EventEmitter();
 
     /**
      * The HTTP instance.
