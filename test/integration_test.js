@@ -4,6 +4,8 @@ import btoa from "btoa";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
+import { v4 as uuid4 } from "uuid";
+
 import Api from "../src";
 import { EventEmitter } from "events";
 import KintoServer from "./server_utils";
@@ -46,6 +48,28 @@ describe("Integration tests", () => {
         return api.fetchServerSettings()
           .then(_ => api.serverSettings)
           .should.eventually.have.property("batch_max_requests").eql(25);
+      });
+    });
+
+    describe("Get records", function() {
+      const fixtures = [
+        {id: uuid4(), title: "art1"},
+        {id: uuid4(), title: "art2"},
+        {id: uuid4(), title: "art3"},
+      ];
+
+      beforeEach(() => api.batch("default", "blog", fixtures));
+
+      it("should return every records", () => {
+        return api.getRecords("default", "blog")
+          .then((res) => res.data.map((r) => r.title))
+          .should.eventually.become(["art3", "art2", "art1"]);
+      });
+
+      it("should order records by field", () => {
+        return api.getRecords("default", "blog", {sort: "title"})
+          .then((res) => res.data.map((r) => r.title))
+          .should.eventually.become(["art1", "art2", "art3"]);
       });
     });
   });

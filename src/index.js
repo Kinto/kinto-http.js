@@ -323,4 +323,28 @@ export default class KintoApi {
           .then(res => this._processBatchResponses(results, records, res));
       });
   }
+
+  /**
+   * Get every records from server.
+   *
+   * Options:
+   * - {Object}  headers  Headers to attach to main and all subrequests.
+   * - {String}  sort     Sort field (prefixed with `-` for descending).
+   *
+   * @param  {String} bucketName  The bucket name.
+   * @param  {String} collName    The collection name.
+   * @param  {Object} options     The options object.
+   * @return {Promise<{Object}, Error>}
+   *
+   * > Because of bug on server, order of record is not predictible.
+   * > It is forced in default options here.
+   * > https://github.com/Kinto/kinto/issues/434
+   */
+  getRecords(bucketName, collName, options={headers: {}, sort: "-last_modified"}) {
+    const path = this.endpoints().records(bucketName, collName);
+    const headers = Object.assign({}, this.optionHeaders, options.headers);
+    const querystring = `?_sort=${options.sort}`;
+    return this.http.request(path + querystring, {headers})
+      .then((res) => res.json);
+  }
 }
