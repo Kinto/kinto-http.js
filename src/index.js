@@ -3,9 +3,11 @@
 import "isomorphic-fetch";
 import { EventEmitter } from "events";
 
-import { quote, unquote, partition } from "./utils.js";
+import { quote, unquote, partition, pMap } from "./utils.js";
 import HTTP from "./http.js";
-
+import endpoint from "./endpoint";
+import * as requests from "./requests";
+import { createBatch, aggregate } from "./batch";
 
 /**
  * Currently supported protocol version.
@@ -120,28 +122,6 @@ export default class KintoApi {
   }
 
   /**
-   * Retrieves available server enpoints.
-   *
-   * Options:
-   * - {Boolean} fullUrl: Retrieve a fully qualified URL (default: true).
-   *
-   * @param  {Object} options Options object.
-   * @return {String}
-   */
-  endpoints(options={fullUrl: true}) {
-    const root = options.fullUrl ? this.remote : `/${this.version}`;
-    const urls = {
-      root:                   () => `${root}/`,
-      batch:                  () => `${root}/batch`,
-      bucket:           (bucket) => `${root}/buckets/${bucket}`,
-      collection: (bucket, coll) => `${urls.bucket(bucket)}/collections/${coll}`,
-      records:    (bucket, coll) => `${urls.collection(bucket, coll)}/records`,
-      record: (bucket, coll, id) => `${urls.records(bucket, coll)}/${id}`,
-    };
-    return urls;
-  }
-
-  /**
    * Retrieves Kinto server settings.
    *
    * @return {Promise}
@@ -150,7 +130,7 @@ export default class KintoApi {
     if (this.serverSettings) {
       return Promise.resolve(this.serverSettings);
     }
-    return this.http.request(this.endpoints().root())
+    return this.execute({path: endpoint("root")})
       .then(res => {
         this.serverSettings = res.json.settings;
         return this.serverSettings;
@@ -166,9 +146,9 @@ export default class KintoApi {
    * @return {Promise}
    */
   fetchChangesSince(bucketName, collName, options={lastModified: null, headers: {}}) {
-    const recordsUrl = this.endpoints().records(bucketName, collName);
+    const recordsUrl = endpoint("records", bucketName, collName);
     let queryString = "";
-    const headers = Object.assign({}, this.optionHeaders, options.headers);
+    const headers = {...this.optionHeaders, ...options.headers};
 
     if (options.lastModified) {
       queryString = "?_since=" + options.lastModified;
@@ -176,7 +156,7 @@ export default class KintoApi {
     }
 
     return this.fetchServerSettings()
-      .then(_ => this.http.request(recordsUrl + queryString, {headers}))
+      .then(_ => this.execute({path: recordsUrl + queryString, headers}))
       .then(res => {
         // If HTTP 304, nothing has changed
         if (res.status === 304) {
@@ -204,124 +184,89 @@ export default class KintoApi {
   }
 
   /**
-   * Builds an individual record batch request body.
+   * Process batch requests, chunking them according to the batch_max_requests
+   * server setting when needed.
    *
-   * @param  {Object}  record The record object.
-   * @param  {String}  path   The record endpoint URL.
-   * @param  {Boolean} safe   Safe update?
-   * @return {Object}         The request body object.
-   */
-  _buildRecordBatchRequest(record, path, safe) {
-    const method = record.deleted ? "DELETE" : "PUT";
-    // Prepare the record body to send with any last_modified property dropped
-    const cleanedRecord = Object.assign({}, record, {last_modified: undefined});
-    const body = record.deleted ? undefined : {data: cleanedRecord};
-    const headers = {};
-    if (safe) {
-      if (record.last_modified) {
-        // Safe replace.
-        headers["If-Match"] = quote(record.last_modified);
-      } else if (!record.deleted) {
-        // Safe creation.
-        headers["If-None-Match"] = "*";
-      }
-    }
-    return {method, headers, path, body};
-  }
-
-  /**
-   * Process a batch request response.
-   *
-   * @param  {Object}  results          The results object.
-   * @param  {Array}   records          The initial records list.
-   * @param  {Object}  response         The response HTTP object.
+   * @param  {Array}  requests The list of batch subrequests to perform.
+   * @param  {Object} options  The options object.
    * @return {Promise}
    */
-  _processBatchResponses(results, records, response) {
-    // Handle individual batch subrequests responses
-    response.json.responses.forEach((response, index) => {
-      // TODO: handle 409 when unicity rule is violated (ex. POST with
-      // existing id, unique field, etc.)
-      if (response.status && response.status >= 200 && response.status < 400) {
-        results.published.push(response.body.data);
-      } else if (response.status === 404) {
-        results.skipped.push(records[index]);
-      } else if (response.status === 412) {
-        results.conflicts.push({
-          type: "outgoing",
-          local: records[index],
-          remote: response.body.details && response.body.details.existing || null
-        });
-      } else {
-        results.errors.push({
-          path: response.path,
-          sent: records[index],
-          error: response.body
-        });
-      }
-    });
-    return results;
-  }
-
-  /**
-   * Sends batch update requests to the remote server.
-   *
-   * Options:
-   * - {Object}  headers  Headers to attach to main and all subrequests.
-   * - {Boolean} safe     Safe update (default: `true`)
-   *
-   * @param  {String} bucketName  The bucket name.
-   * @param  {String} collName    The collection name.
-   * @param  {Array}  records     The list of record updates to send.
-   * @param  {Object} options     The options object.
-   * @return {Promise}
-   */
-  batch(bucketName, collName, records, options={headers: {}}) {
-    const safe = options.safe || true;
-    const headers = Object.assign({}, this.optionHeaders, options.headers);
-    const results = {
-      errors:    [],
-      published: [],
-      conflicts: [],
-      skipped:   []
-    };
-    if (!records.length) {
-      return Promise.resolve(results);
+  _batchRequests(requests, options = {}) {
+    const headers = {...this.optionHeaders, ...options.headers};
+    if (!requests.length) {
+      return Promise.resolve([]);
     }
     return this.fetchServerSettings()
       .then(serverSettings => {
-        // Kinto 1.6.1 possibly exposes multiple setting prefixes
-        const maxRequests = serverSettings["batch_max_requests"] ||
-                            serverSettings["cliquet.batch_max_requests"];
-        if (maxRequests && records.length > maxRequests) {
-          return Promise.all(partition(records, maxRequests).map(chunk => {
-            return this.batch(bucketName, collName, chunk, options);
-          }))
-            .then(batchResults => {
-              // Assemble responses of chunked batch results into one single
-              // result object
-              return batchResults.reduce((acc, batchResult) => {
-                Object.keys(batchResult).forEach(key => {
-                  acc[key] = results[key].concat(batchResult[key]);
-                });
-                return acc;
-              }, results);
-            });
+        const maxRequests = serverSettings["batch_max_requests"];
+        if (maxRequests && requests.length > maxRequests) {
+          const chunks = partition(requests, maxRequests);
+          return pMap(chunks, chunk => this._batchRequests(chunk, options));
         }
-        return this.http.request(this.endpoints().batch(), {
+        return this.execute({
+          path: endpoint("batch"),
           method: "POST",
           headers: headers,
-          body: JSON.stringify({
+          body: {
             defaults: {headers},
-            requests: records.map(record => {
-              const path = this.endpoints({full: false})
-                .record(bucketName, collName, record.id);
-              return this._buildRecordBatchRequest(record, path, safe);
-            })
-          })
+            requests: requests
+          }
         })
-          .then(res => this._processBatchResponses(results, records, res));
+          // we only care about the responses
+          .then(res => res.json.responses);
       });
+  }
+
+  /**
+   * Sends batch requests to the remote server.
+   *
+   * Options:
+   * - {Object}  headers   Headers to attach to main and all subrequests.
+   * - {Boolean} safe      Safe update (default: `false`).
+   * - {Boolean} bucket    Generic bucket to use (default: `"default"`).
+   * - {Boolean} aggregate Produces an aggregated result object
+   *   (default: `false`).
+   *
+   * @param  {Array}  requests The list of requests to batch execute.
+   * @param  {Object} options  The options object.
+   * @return {Promise}
+   */
+  batch(fn, options={}) {
+    const { safe, bucket, headers } = {
+      safe: false,
+      bucket: "default",
+      headers: {},
+      ...options
+    };
+    const batch = createBatch({
+      safe,
+      bucket,
+      headers: {
+        ...this.optionHeaders,
+        ...headers
+      }
+    });
+    fn(batch);
+    return this._batchRequests(batch.requests, options)
+      .then((responses) => {
+        if (options.aggregate) {
+          return aggregate(responses, batch.requests);
+        }
+        return responses;
+      });
+  }
+
+  /**
+   * Executes an atomic request request.
+   *
+   * @param  {Object} request The request object.
+   * @return {Promise<Object, Error>}
+   */
+  execute(request) {
+    return this.http.request(this.remote + request.path, {
+      ...request,
+      body: JSON.stringify(request.body)
+    });
   }
 
   /**
@@ -332,24 +277,13 @@ export default class KintoApi {
    *
    * @param  {String} bucketName The bucket name.
    * @param  {Object} options    The options object.
-   * @return {Promise<{Object}, Error>}
+   * @return {Object}
    */
   createBucket(bucketName, options={}) {
-    options = Object.assign({
-      headers: {},
-      permissions: {},
-    }, options);
-    const headers = Object.assign({}, this.optionHeaders, options.headers);
-    const path = this.endpoints().bucket(bucketName);
-    return this.http.request(path, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify({
-        // XXX We can't pass the data option just yet, see Kinto/kinto/issues/239
-        permissions: options.permissions
-      })
-    })
-      .then((res) => res.json);
+    return this.execute(requests.createBucket(bucketName, {
+      ...options,
+      headers: {...this.optionHeaders, ...options.headers},
+    })).then(res => res.json);
   }
 
   /**
@@ -361,26 +295,13 @@ export default class KintoApi {
    *
    * @param  {String} collName The collection name.
    * @param  {Object} options  The options object.
-   * @return {Promise<{Object}, Error>}
+   * @return {Object}
    */
   createCollection(collName, options={}) {
-    options = Object.assign({
-      headers: {},
-      bucket: "default",
-      permissions: {},
-      data: {},
-    }, options);
-    const headers = Object.assign({}, this.optionHeaders, options.headers);
-    const path = this.endpoints().collection(options.bucket, collName);
-    return this.http.request(path, {
-      method: "PUT",
-      headers,
-      body: JSON.stringify({
-        data: options.data,
-        permissions: options.permissions
-      })
-    })
-      .then((res) => res.json);
+    return this.execute(requests.createCollection(collName, {
+      ...options,
+      headers: {...this.optionHeaders, ...options.headers},
+    })).then(res => res.json);
   }
 
   /**
@@ -401,15 +322,32 @@ export default class KintoApi {
    * > https://github.com/Kinto/kinto/issues/434
    */
   getRecords(collName, options={}) {
-    options = Object.assign({
+    const { bucket, sort, headers } = {
       bucket: "default",
+      sort: "-last_modified",
       headers: {},
-      sort: "-last_modified"
-    }, options);
-    const path = this.endpoints().records(options.bucket, collName);
-    const headers = Object.assign({}, this.optionHeaders, options.headers);
-    const querystring = `?_sort=${options.sort}`;
-    return this.http.request(path + querystring, {headers})
-      .then((res) => res.json);
+      ...options
+    };
+    const path = endpoint("records", bucket, collName);
+    const querystring = `?_sort=${sort}`;
+    return this.execute({
+      path: path + querystring,
+      headers: {...this.optionHeaders, headers},
+    }).then(res => res.json);
+  }
+
+  /**
+   * Creates a record in a given collection.
+   *
+   * @param  {String} collName The collection name.
+   * @param  {Object} record   The record object.
+   * @param  {Object} options  The options object.
+   * @return {Object}
+   */
+  createRecord(collName, record, options={}) {
+    return this.execute(requests.createRecord(collName, record, {
+      headers: {...this.optionHeaders, ...options.headers},
+      ...options
+    })).then(res => res.json);
   }
 }

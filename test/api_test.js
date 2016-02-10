@@ -105,79 +105,6 @@ describe("Api", () => {
     });
   });
 
-  /** @test {Api#endpoints} */
-  describe("#endpoints", () => {
-    describe("full URL", () => {
-      let endpoints;
-
-      beforeEach(() => endpoints = api.endpoints({fullUrl: true}));
-
-      it("should provide root endpoint", () => {
-        expect(endpoints.root()).eql(`${FAKE_SERVER_URL}/`);
-      });
-
-      it("should provide batch endpoint", () => {
-        expect(endpoints.batch())
-          .eql(`http://fake-server/${SPV}/batch`);
-      });
-
-      it("should provide bucket endpoint", () => {
-        expect(endpoints.bucket("foo"))
-          .eql(`http://fake-server/${SPV}/buckets/foo`);
-      });
-
-      it("should provide collection endpoint", () => {
-        expect(endpoints.collection("foo", "bar"))
-          .eql(`http://fake-server/${SPV}/buckets/foo/collections/bar`);
-      });
-
-      it("should provide records endpoint", () => {
-        expect(endpoints.records("foo", "bar"))
-          .eql(`http://fake-server/${SPV}/buckets/foo/collections/bar/records`);
-      });
-
-      it("should provide record endpoint", () => {
-        expect(endpoints.record("foo", "bar", 42))
-          .eql(`http://fake-server/${SPV}/buckets/foo/collections/bar/records/42`);
-      });
-    });
-
-    describe("absolute URL", () => {
-      let endpoints;
-
-      beforeEach(() => endpoints = api.endpoints({fullUrl: false}));
-
-      it("should provide root endpoint", () => {
-        expect(endpoints.root()).eql(`/${SPV}/`);
-      });
-
-      it("should provide batch endpoint", () => {
-        expect(endpoints.batch())
-          .eql(`/${SPV}/batch`);
-      });
-
-      it("should provide bucket endpoint", () => {
-        expect(endpoints.bucket("foo"))
-          .eql(`/${SPV}/buckets/foo`);
-      });
-
-      it("should provide collection endpoint", () => {
-        expect(endpoints.collection("foo", "bar"))
-          .eql(`/${SPV}/buckets/foo/collections/bar`);
-      });
-
-      it("should provide records endpoint", () => {
-        expect(endpoints.records("foo", "bar", 42))
-          .eql(`/${SPV}/buckets/foo/collections/bar/records`);
-      });
-
-      it("should provide record endpoint", () => {
-        expect(endpoints.record("foo", "bar", 42))
-          .eql(`/${SPV}/buckets/foo/collections/bar/records/42`);
-      });
-    });
-  });
-
   /** @test {Api#fetchServerSettings} */
   describe("#fetchServerSettings", () => {
     it("should retrieve server settings on first request made", () => {
@@ -310,17 +237,19 @@ describe("Api", () => {
 
   /** @test {Api#batch} */
   describe("#batch", () => {
-    const operations = [
-      {id: 1, title: "foo", last_modified: 42},
-      {id: 2, title: "bar"},
-      {id: 3, title: "baz", deleted: true},
-    ];
-
     beforeEach(() => {
       sandbox.stub(api, "fetchServerSettings").returns(Promise.resolve({
-        "cliquet.batch_max_requests": 3
+        "batch_max_requests": 3
       }));
     });
+
+    function executeBatch(fixtures, options) {
+      return api.batch(batch => {
+        for (const article of fixtures) {
+          batch.createRecord("blog", article);
+        }
+      }, options);
+    }
 
     describe("server request", () => {
       let requestBody, requestHeaders;
@@ -332,22 +261,32 @@ describe("Api", () => {
       });
 
       it("should ensure server settings are fetched", () => {
-        return api.batch("blog", "articles", [{}])
+        return api.batch(batch => batch.createCollection("foo"))
           .then(_ => sinon.assert.calledOnce(api.fetchServerSettings));
       });
 
-      describe("empty changes", () => {
+      describe("empty request list", () => {
         it("should not perform request on empty operation list", () => {
-          api.batch("blog", "articles", []);
+          api.batch(batch => {});
 
           sinon.assert.notCalled(fetch);
         });
       });
 
-      describe("non-empty changes", () => {
+      describe("non-empty request list", () => {
+        const fixtures = [
+          {title: "art1"},
+          {title: "art2"},
+          {title: "art3"},
+        ];
+
         beforeEach(() => {
           api.optionHeaders = {Authorization: "Basic plop"};
-          return api.batch("blog", "articles", operations, {headers: {Foo: "Bar"}})
+          return api.batch(batch => {
+            for (const article of fixtures) {
+              batch.createRecord("blog", article);
+            }
+          }, {headers: {Foo: "Bar"}})
             .then(_ => {
               const request = fetch.firstCall.args[1];
               requestHeaders = request.headers;
@@ -373,187 +312,129 @@ describe("Api", () => {
         it("should batch the expected number of requests", () => {
           expect(requestBody.requests.length).eql(3);
         });
-
-        it("should map create & update requests", () => {
-          expect(requestBody.requests[0]).eql({
-            body: {
-              data: { id: 1, title: "foo" },
-            },
-            headers: { "If-Match": quote(42) },
-            method: "PUT",
-            path: `/${SPV}/buckets/blog/collections/articles/records/1`,
-          });
-        });
-
-        it("should map batch delete requests for non-synced records", () => {
-          expect(requestBody.requests[2]).eql({
-            headers: {},
-            method: "DELETE",
-            path: `/${SPV}/buckets/blog/collections/articles/records/3`,
-          });
-        });
-
-        it("should map batch update requests for synced records", () => {
-          expect(requestBody.requests[0]).eql({
-            path: `/${SPV}/buckets/blog/collections/articles/records/1`,
-            method: "PUT",
-            headers: { "If-Match": quote(42) },
-            body: {
-              data: { id: 1, title: "foo" },
-            }
-          });
-        });
-
-        it("should map create requests for non-synced records", () => {
-          expect(requestBody.requests[1]).eql({
-            path: `/${SPV}/buckets/blog/collections/articles/records/2`,
-            method: "PUT",
-            headers: {
-              "If-None-Match": "*"
-            },
-            body: {
-              data: { id: 2, title: "bar" },
-            }
-          });
-        });
       });
 
-      describe("safe mode", () => {
-        let requests;
+      describe("Safe mode", () => {
+        const fixtures = [
+          {title: "art1"},
+          {title: "art2", last_modified: 42},
+        ];
 
-        beforeEach(() => {
-          return api.batch("blog", "articles", operations)
+        it("should forward the safe option to resulting requests", () => {
+          return api.batch(batch => {
+            for (const article of fixtures) {
+              batch.createRecord("blog", article);
+            }
+          }, {safe: true})
             .then(_ => {
-              requests = JSON.parse(fetch.getCall(0).args[1].body).requests;
+              const {requests} = JSON.parse(fetch.firstCall.args[1].body);
+              expect(requests.map(r => r.headers))
+                .eql([
+                  {"If-None-Match": "*"},
+                  {"If-Match": quote(42)},
+                ]);
             });
-        });
-
-        it("should send If-Match headers", () => {
-          expect(requests[0].headers).eql({"If-Match": quote(42)});
         });
       });
     });
 
     describe("server response", () => {
-      describe("success", () => {
-        const published = [{ id: 1, title: "art1" }, { id: 2, title: "art2" }];
+      const fixtures = [
+        { id: 1, title: "art1" },
+        { id: 2, title: "art2" },
+      ];
 
-        it("should reject on HTTP 400", () => {
-          sandbox.stub(root, "fetch").returns(fakeServerResponse(400, {
-            error: true,
-            errno: 117,
-            message: "http 400"
-          }));
+      it("should reject on HTTP 400", () => {
+        sandbox.stub(root, "fetch").returns(fakeServerResponse(400, {
+          error: true,
+          errno: 117,
+          message: "http 400"
+        }));
 
-          return api.batch("blog", "articles", published)
-            .should.eventually.be.rejectedWith(Error, /HTTP 400/);
-        });
+        return executeBatch(fixtures)
+          .should.eventually.be.rejectedWith(Error, /HTTP 400/);
+      });
 
-        it("should reject on HTTP error status code", () => {
-          sandbox.stub(root, "fetch").returns(fakeServerResponse(500, {
-            error: true,
-            message: "http 500"
-          }));
+      it("should reject on HTTP error status code", () => {
+        sandbox.stub(root, "fetch").returns(fakeServerResponse(500, {
+          error: true,
+          message: "http 500"
+        }));
 
-          return api.batch("blog", "articles", published)
-            .should.eventually.be.rejectedWith(Error, /HTTP 500/);
-        });
+        return executeBatch(fixtures)
+          .should.eventually.be.rejectedWith(Error, /HTTP 500/);
+      });
 
-        it("should expose succesfully published results", () => {
-          sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
-            responses: [
-              { status: 201,
-                path: `/${SPV}/buckets/blog/collections/articles/records`,
-                body: { data: published[0]}},
-              { status: 201,
-                path: `/${SPV}/buckets/blog/collections/articles/records`,
-                body: { data: published[1]}},
-            ]
-          }));
+      it("should expose succesful subrequest responses", () => {
+        const responses = [
+          { status: 201,
+            path: `/${SPV}/buckets/blog/collections/articles/records`,
+            body: { data: fixtures[0]}},
+          { status: 201,
+            path: `/${SPV}/buckets/blog/collections/articles/records`,
+            body: { data: fixtures[1]}},
+        ];
+        sandbox.stub(root, "fetch")
+          .returns(fakeServerResponse(200, {responses}));
 
-          return api.batch("blog", "articles", published)
-            .should.eventually.become({
-              conflicts: [],
-              errors:    [],
-              skipped:   [],
-              published: published
-            });
-        });
+        return executeBatch(fixtures)
+          .should.eventually.become(responses);
+      });
 
-        it("should resolve with skipped missing records", () => {
-          const missingRemotely = published[0];
-          sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
-            responses: [
-              { status: 404,
-                path: `/${SPV}/buckets/blog/collections/articles/records/1`,
-                body: missingRemotely},
-            ]
-          }));
+      it("should expose failing subrequest responses", () => {
+        const missingRemotely = fixtures[0];
+        const responses = [
+          {
+            status: 404,
+            path: `/${SPV}/buckets/blog/collections/articles/records/1`,
+            body: missingRemotely
+          },
+        ];
+        sandbox.stub(root, "fetch")
+          .returns(fakeServerResponse(200, {responses}));
 
-          return api.batch("blog", "articles", published)
-            .should.eventually.become({
-              conflicts: [],
-              skipped:   [missingRemotely],
-              errors:    [],
-              published: []
-            });
-        });
+        return executeBatch(fixtures)
+          .should.eventually.become(responses);
+      });
 
-        it("should resolve with encountered HTTP errors", () => {
-          sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
-            responses: [
-              { status: 500,
-                path: `/${SPV}/buckets/blog/collections/articles/records/1`,
-                body: { 500: true }},
-            ]
-          }));
+      it("should resolve with encountered HTTP 500", () => {
+        const responses =  [
+          {
+            status: 500,
+            path: `/${SPV}/buckets/blog/collections/articles/records/1`,
+            body: { 500: true }
+          },
+        ];
+        sandbox.stub(root, "fetch")
+          .returns(fakeServerResponse(200, {responses}));
 
-          return api.batch("blog", "articles", published)
-            .should.eventually.become({
-              conflicts: [],
-              skipped:   [],
-              errors:    [
-                {
-                  path: `/${SPV}/buckets/blog/collections/articles/records/1`,
-                  sent: published[0],
-                  error: { 500: true },
-                }
-              ],
-              published: []
-            });
-        });
+        return executeBatch(fixtures)
+          .should.eventually.become(responses);
+      });
 
-        it("should expose encountered conflicts", () => {
-          sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
-            responses: [
-              { status: 412,
-                path: `/${SPV}/buckets/blog/collections/articles/records/1`,
-                body: {
-                  details: {
-                    existing: {title: "foo"}
-                  }
-                }},
-            ]
-          }));
+      it("should expose encountered HTTP 412", () => {
+        const responses = [
+          {
+            status: 412,
+            path: `/${SPV}/buckets/blog/collections/articles/records/1`,
+            body: {
+              details: {
+                existing: {title: "foo"}
+              }
+            }
+          },
+        ];
+        sandbox.stub(root, "fetch")
+          .returns(fakeServerResponse(200, {responses}));
 
-          return api.batch("blog", "articles", published)
-            .should.eventually.become({
-              conflicts: [{
-                type: "outgoing",
-                local: published[0],
-                remote: {title: "foo"}
-              }],
-              skipped:   [],
-              errors:    [],
-              published: [],
-            });
-        });
+        return executeBatch(fixtures)
+          .should.eventually.become(responses);
       });
     });
 
     describe("Chunked requests", () => {
       // 4 operations, one more than the test limit which is 3
-      const moreOperations = [
+      const fixtures = [
         {id: 1, title: "foo"},
         {id: 2, title: "bar"},
         {id: 3, title: "baz"},
@@ -574,19 +455,19 @@ describe("Api", () => {
               {status: 200, body: {data: 4}},
             ]
           }));
-        return api.batch("blog", "articles", moreOperations)
-          .then(res => res.published)
+        return executeBatch(fixtures)
+          .then(res => res.map(response => response.body.data))
           .should.become([1, 2, 3, 4]);
       });
 
       it("should not chunk batch requests if setting is falsy", () => {
         api.fetchServerSettings.returns(Promise.resolve({
-          "cliquet.batch_max_requests": null
+          "batch_max_requests": null
         }));
         sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
           responses: []
         }));
-        return api.batch("blog", "articles", moreOperations)
+        return executeBatch(fixtures)
           .then(_ => sinon.assert.calledOnce(fetch));
       });
 
@@ -604,25 +485,9 @@ describe("Api", () => {
               {status: 412, body: {details: {existing: {id: 4}}}},
             ]
           }));
-        return api.batch("blog", "articles", moreOperations)
-          .then(res => res.conflicts)
-          .should.become([{
-            type: "outgoing",
-            local:  {id: 1, title: "foo"},
-            remote: {id: 1}
-          }, {
-            type: "outgoing",
-            local:  {id: 2, title: "bar"},
-            remote: {id: 2}
-          }, {
-            type: "outgoing",
-            local:  {id: 3, title: "baz"},
-            remote: null
-          }, {
-            type: "outgoing",
-            local:  {id: 4, title: "qux"},
-            remote: {id: 4}
-          }]);
+        return executeBatch(fixtures)
+          .then(res => res.map(response => response.status))
+          .should.become([412, 412, 412, 412]);
       });
 
       it("should chunk batch requests concurrently", () => {
@@ -647,9 +512,67 @@ describe("Api", () => {
               }));
             }, 5);
           }));
-        return api.batch("blog", "articles", moreOperations)
-          .then(res => res.published)
+        return executeBatch(fixtures)
+          .then(res => res.map(response => response.body.data))
           .should.become([1, 2, 3, 4]);
+      });
+    });
+
+    describe("Aggregate mode", () => {
+      const fixtures = [
+        {title: "art1"},
+        {title: "art2"},
+        {title: "art3"},
+        {title: "art4"},
+      ];
+
+      it("should resolve with an aggregated result object", () => {
+        const responses = [];
+        sandbox.stub(root, "fetch")
+          .returns(fakeServerResponse(200, {responses}));
+        const batchModule = require("../src/batch");
+        const aggregate = sandbox.stub(batchModule, "aggregate");
+
+        return executeBatch(fixtures, {aggregate: true})
+          .then(_ => {
+            sinon.assert.calledWith(aggregate, responses);
+          });
+      });
+    });
+  });
+
+  describe("#createRecord()", () => {
+    beforeEach(() => {
+      sandbox.stub(api, "execute").returns(Promise.resolve());
+    });
+
+    it("should execute expected request", () => {
+      api.createRecord("foo", {title: "bar"});
+
+      sinon.assert.calledWithExactly(api.execute, {
+        body: {
+          data: {title: "bar"},
+          permissions: {}
+        },
+        headers: {},
+        method: "POST",
+        path: "/buckets/default/collections/foo/records",
+      });
+    });
+
+    it("should accept a safe option", () => {
+      api.createRecord("foo", {title: "bar"}, {safe: true});
+
+      sinon.assert.calledWithExactly(api.execute, {
+        body: {
+          data: {title: "bar"},
+          permissions: {}
+        },
+        headers: {
+          "If-None-Match": "*"
+        },
+        method: "POST",
+        path: "/buckets/default/collections/foo/records",
       });
     });
   });

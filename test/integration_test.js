@@ -4,7 +4,6 @@ import btoa from "btoa";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
-import { v4 as uuid4 } from "uuid";
 
 import Api from "../src";
 import { EventEmitter } from "events";
@@ -77,8 +76,7 @@ describe("Integration tests", () => {
             permissions: {
               read: ["github:n1k0"]
             }
-          })
-            .then(res => result = res);
+          }).then(res => result = res);
         });
 
         it("should create a bucket having a list of write permissions", () => {
@@ -114,8 +112,7 @@ describe("Integration tests", () => {
             permissions: {
               read: ["github:n1k0"]
             }
-          })
-            .then(res => result = res);
+          }).then(res => result = res);
         });
 
         it("should create a collection having a list of write permissions", () => {
@@ -128,8 +125,7 @@ describe("Integration tests", () => {
         beforeEach(() => {
           return api.createCollection("blog", {
             data: {foo: "bar"}
-          })
-            .then(res => result = res);
+          }).then(res => result = res);
         });
 
         it("should create a collection having the expected data attached", () => {
@@ -139,15 +135,112 @@ describe("Integration tests", () => {
       });
     });
 
+    describe("#batch", () => {
+      describe("No chunked requests", () => {
+        it("should allow batching operations", () => {
+          return api.batch(batch => {
+            batch.createBucket("custom");
+            batch.createCollection("blog");
+            batch.createRecord("blog", {title: "art1"});
+            batch.createRecord("blog", {title: "art2"});
+          }, {bucket: "custom"})
+            .then(_ => api.getRecords("blog", {bucket: "custom"}))
+            .then(res => res.data.map(x => x.title))
+            .should.become(["art2", "art1"]);
+        });
+      });
+
+      describe("Chunked requests", () => {
+        it("should allow batching by chunks", () => {
+          return api.batch(batch => {
+            batch.createBucket("custom");
+            batch.createCollection("blog", {bucket: "custom"});
+            for (let i=1; i<=27; i++) {
+              batch.createRecord("blog", {title: "art" + i}, {bucket: "custom"});
+            }
+          })
+            // .then(res => console.log(res))
+            .then(_ => api.getRecords("blog", {bucket: "custom"}))
+            .then(res => res.data)
+            .should.eventually.have.length.of(27);
+        });
+      });
+
+      describe("aggregate option", () => {
+        describe("Succesful publication", () => {
+          describe("No chunking", () => {
+            let results;
+
+            beforeEach(() => {
+              return api.batch(batch => {
+                batch.createBucket("custom");
+                batch.createCollection("blog", {bucket: "custom"});
+                batch.createRecord("blog", {title: "art1"}, {bucket: "custom"});
+                batch.createRecord("blog", {title: "art2"}, {bucket: "custom"});
+              }, {aggregate: true})
+                .then(_results => results = _results);
+            });
+
+            it("should return an aggregated result object", () => {
+              expect(results).to.include.keys([
+                "errors",
+                "conflicts",
+                "published",
+                "skipped"
+              ]);
+            });
+
+            it("should contain the list of succesful publications", () => {
+              expect(results.published.map(body => body.data))
+                .to.have.length.of(4);
+            });
+          });
+
+          describe("Chunked response", () => {
+            let results;
+
+            beforeEach(() => {
+              return api.batch(batch => {
+                for (let i=1; i<=26; i++) {
+                  batch.createRecord("blog", {title: "art" + i});
+                }
+              }, {aggregate: true})
+                .then(_results => results = _results);
+            });
+
+            it("should return an aggregated result object", () => {
+              expect(results).to.include.keys([
+                "errors",
+                "conflicts",
+                "published",
+                "skipped"
+              ]);
+            });
+
+            it("should contain the list of succesful publications", () => {
+              expect(results.published).to.have.length.of(26);
+            });
+          });
+        });
+      });
+    });
+
     describe("#getRecords", function() {
       const fixtures = [
-        {id: uuid4(), title: "art1"},
-        {id: uuid4(), title: "art2"},
-        {id: uuid4(), title: "art3"},
+        {title: "art1"},
+        {title: "art2"},
+        {title: "art3"},
       ];
 
       describe("Default bucket", () => {
-        beforeEach(() => api.batch("default", "blog", fixtures));
+        beforeEach(() => {
+          return api.batch(batch => {
+            // note: collections are automatically created on default bucket
+            for (const record of fixtures) {
+              batch.createRecord("blog", record);
+            }
+          });
+        });
 
         it("should return every records", () => {
           return api.getRecords("blog")
@@ -164,9 +257,13 @@ describe("Integration tests", () => {
 
       describe("Custom bucket", () => {
         beforeEach(() => {
-          return api.createBucket("custom")
-          .then(api.createCollection("blog", {bucket: "custom"}))
-          .then(_ => api.batch("custom", "blog", fixtures));
+          return api.batch(batch => {
+            batch.createBucket("custom");
+            batch.createCollection("blog", {bucket: "custom"});
+            for (const record of fixtures) {
+              batch.createRecord("blog", record, {bucket: "custom"});
+            }
+          });
         });
 
         it("should accept a custom bucket option", () => {
