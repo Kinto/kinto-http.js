@@ -325,13 +325,73 @@ export default class KintoApi {
   }
 
   /**
+   * Creates a new bucket.
+   *
+   * Options:
+   * - {Object} headers: The headers to attach to the HTTP request.
+   *
+   * @param  {String} bucketName The bucket name.
+   * @param  {Object} options    The options object.
+   * @return {Promise<{Object}, Error>}
+   */
+  createBucket(bucketName, options={}) {
+    options = Object.assign({
+      headers: {},
+      permissions: {},
+    }, options);
+    const headers = Object.assign({}, this.optionHeaders, options.headers);
+    const path = this.endpoints().bucket(bucketName);
+    return this.http.request(path, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify({
+        // XXX We can't pass the data option just yet, see Kinto/kinto/issues/239
+        permissions: options.permissions
+      })
+    })
+      .then((res) => res.json);
+  }
+
+  /**
+   * Creates a new collection.
+   *
+   * Options:
+   * - {String} bucket:  The bucket to create the collection within.
+   * - {Object} headers: The headers to attach to the HTTP request.
+   *
+   * @param  {String} collName The collection name.
+   * @param  {Object} options  The options object.
+   * @return {Promise<{Object}, Error>}
+   */
+  createCollection(collName, options={}) {
+    options = Object.assign({
+      headers: {},
+      bucket: "default",
+      permissions: {},
+      data: {},
+    }, options);
+    const headers = Object.assign({}, this.optionHeaders, options.headers);
+    const path = this.endpoints().collection(options.bucket, collName);
+    return this.http.request(path, {
+      method: "PUT",
+      headers,
+      body: JSON.stringify({
+        data: options.data,
+        permissions: options.permissions
+      })
+    })
+      .then((res) => res.json);
+  }
+
+  /**
    * Get every records from server.
    *
    * Options:
+   *
+   * - {String}  bucket   The bucket name.
    * - {Object}  headers  Headers to attach to main and all subrequests.
    * - {String}  sort     Sort field (prefixed with `-` for descending).
    *
-   * @param  {String} bucketName  The bucket name.
    * @param  {String} collName    The collection name.
    * @param  {Object} options     The options object.
    * @return {Promise<{Object}, Error>}
@@ -340,8 +400,13 @@ export default class KintoApi {
    * > It is forced in default options here.
    * > https://github.com/Kinto/kinto/issues/434
    */
-  getRecords(bucketName, collName, options={headers: {}, sort: "-last_modified"}) {
-    const path = this.endpoints().records(bucketName, collName);
+  getRecords(collName, options={}) {
+    options = Object.assign({
+      bucket: "default",
+      headers: {},
+      sort: "-last_modified"
+    }, options);
+    const path = this.endpoints().records(options.bucket, collName);
     const headers = Object.assign({}, this.optionHeaders, options.headers);
     const querystring = `?_sort=${options.sort}`;
     return this.http.request(path + querystring, {headers})

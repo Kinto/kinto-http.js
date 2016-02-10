@@ -51,25 +51,129 @@ describe("Integration tests", () => {
       });
     });
 
-    describe("Get records", function() {
+    describe("#createBucket", () => {
+      let result;
+
+      describe("Default options", () => {
+        beforeEach(() => {
+          return api.createBucket("foo")
+            .then(res => result = res);
+        });
+
+        it("should create a bucket with the passed id", () => {
+          expect(result).to.have.property("data")
+                        .to.have.property("id").eql("foo");
+        });
+
+        it("should create a bucket having a list of write permissions", () => {
+          expect(result).to.have.property("permissions")
+                        .to.have.property("write").to.be.a("array");
+        });
+      });
+
+      describe("permissions option", () => {
+        beforeEach(() => {
+          return api.createBucket("foo", {
+            permissions: {
+              read: ["github:n1k0"]
+            }
+          })
+            .then(res => result = res);
+        });
+
+        it("should create a bucket having a list of write permissions", () => {
+          expect(result).to.have.property("permissions")
+                        .to.have.property("read").to.eql(["github:n1k0"]);
+        });
+      });
+    });
+
+    describe("#createCollection", () => {
+      let result;
+
+      describe("Default options", () => {
+        beforeEach(() => {
+          return api.createCollection("blog")
+            .then(res => result = res);
+        });
+
+        it("should create a collection with the passed id", () => {
+          expect(result).to.have.property("data")
+                        .to.have.property("id").eql("blog");
+        });
+
+        it("should create a collection having a list of write permissions", () => {
+          expect(result).to.have.property("permissions")
+                        .to.have.property("write").to.be.a("array");
+        });
+      });
+
+      describe("permissions option", () => {
+        beforeEach(() => {
+          return api.createCollection("blog", {
+            permissions: {
+              read: ["github:n1k0"]
+            }
+          })
+            .then(res => result = res);
+        });
+
+        it("should create a collection having a list of write permissions", () => {
+          expect(result).to.have.property("permissions")
+                        .to.have.property("read").to.eql(["github:n1k0"]);
+        });
+      });
+
+      describe("data option", () => {
+        beforeEach(() => {
+          return api.createCollection("blog", {
+            data: {foo: "bar"}
+          })
+            .then(res => result = res);
+        });
+
+        it("should create a collection having the expected data attached", () => {
+          expect(result).to.have.property("data")
+                        .to.have.property("foo").eql("bar");
+        });
+      });
+    });
+
+    describe("#getRecords", function() {
       const fixtures = [
         {id: uuid4(), title: "art1"},
         {id: uuid4(), title: "art2"},
         {id: uuid4(), title: "art3"},
       ];
 
-      beforeEach(() => api.batch("default", "blog", fixtures));
+      describe("Default bucket", () => {
+        beforeEach(() => api.batch("default", "blog", fixtures));
 
-      it("should return every records", () => {
-        return api.getRecords("default", "blog")
-          .then((res) => res.data.map((r) => r.title))
-          .should.eventually.become(["art3", "art2", "art1"]);
+        it("should return every records", () => {
+          return api.getRecords("blog")
+            .then((res) => res.data.map((r) => r.title))
+            .should.eventually.become(["art3", "art2", "art1"]);
+        });
+
+        it("should order records by field", () => {
+          return api.getRecords("blog", {sort: "title"})
+            .then((res) => res.data.map((r) => r.title))
+            .should.eventually.become(["art1", "art2", "art3"]);
+        });
       });
 
-      it("should order records by field", () => {
-        return api.getRecords("default", "blog", {sort: "title"})
-          .then((res) => res.data.map((r) => r.title))
-          .should.eventually.become(["art1", "art2", "art3"]);
+      describe("Custom bucket", () => {
+        beforeEach(() => {
+          return api.createBucket("custom")
+          .then(api.createCollection("blog", {bucket: "custom"}))
+          .then(_ => api.batch("custom", "blog", fixtures));
+        });
+
+        it("should accept a custom bucket option", () => {
+          return api.getRecords("blog", {bucket: "custom"})
+            .then((res) => res.data.map((r) => r.title))
+            .should.eventually.become(["art3", "art2", "art1"]);
+        });
       });
     });
   });
