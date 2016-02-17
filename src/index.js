@@ -40,6 +40,7 @@ export default class KintoApi {
     }
     this._backoffReleaseTime = null;
     this.remote = remote;
+    this.defaultBucket = options.bucket || "default";
 
     // public properties
     /**
@@ -234,7 +235,7 @@ export default class KintoApi {
   batch(fn, options={}) {
     const { safe, bucket, headers } = {
       safe: false,
-      bucket: "default",
+      bucket: this.defaultBucket,
       headers: {},
       ...options
     };
@@ -281,8 +282,8 @@ export default class KintoApi {
    */
   createBucket(bucketName, options={}) {
     return this.execute(requests.createBucket(bucketName, {
-      ...options,
       headers: {...this.optionHeaders, ...options.headers},
+      ...options,
     })).then(res => res.json);
   }
 
@@ -298,9 +299,14 @@ export default class KintoApi {
    * @return {Object}
    */
   createCollection(collName, options={}) {
+    const { bucket, headers } = {
+      bucket: this.defaultBucket,
+      headers: {},
+    };
     return this.execute(requests.createCollection(collName, {
+      bucket,
+      headers: {...this.optionHeaders, ...headers},
       ...options,
-      headers: {...this.optionHeaders, ...options.headers},
     })).then(res => res.json);
   }
 
@@ -323,7 +329,7 @@ export default class KintoApi {
    */
   getRecords(collName, options={}) {
     const { bucket, sort, headers } = {
-      bucket: "default",
+      bucket: this.defaultBucket,
       sort: "-last_modified",
       headers: {},
       ...options
@@ -332,7 +338,7 @@ export default class KintoApi {
     const querystring = `?_sort=${sort}`;
     return this.execute({
       path: path + querystring,
-      headers: {...this.optionHeaders, headers},
+      headers: {...this.optionHeaders, ...headers},
     }).then(res => res.json);
   }
 
@@ -345,8 +351,14 @@ export default class KintoApi {
    * @return {Object}
    */
   createRecord(collName, record, options={}) {
+    const { bucket, headers } = {
+      bucket: this.defaultBucket,
+      headers: {},
+      ...options
+    };
     return this.execute(requests.createRecord(collName, record, {
-      headers: {...this.optionHeaders, ...options.headers},
+      bucket,
+      headers: {...this.optionHeaders, ...headers},
       ...options
     })).then(res => res.json);
   }

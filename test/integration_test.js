@@ -22,12 +22,16 @@ describe("Integration tests", () => {
 
   after(() => server.killAll());
 
+  function createClient(options={}) {
+    return new Api(TEST_KINTO_SERVER, options);
+  }
+
   beforeEach(function() {
     this.timeout(12500);
 
     sandbox = sinon.sandbox.create();
     const events = new EventEmitter();
-    api = new Api(TEST_KINTO_SERVER, {
+    api = createClient({
       events,
       headers: {Authorization: "Basic " + btoa("user:pass")}
     });
@@ -131,6 +135,15 @@ describe("Integration tests", () => {
         it("should create a collection having the expected data attached", () => {
           expect(result).to.have.property("data")
                         .to.have.property("foo").eql("bar");
+        });
+      });
+
+      describe("bucket option", () => {
+        it("should respect the bucket option", () => {
+          return api.createBucket("custom")
+            .then(() => api.createCollection("blog", {bucket: "custom"}))
+            .should.eventually.have.property("data")
+                   .to.have.property("id").eql("blog");
         });
       });
     });
