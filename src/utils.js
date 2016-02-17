@@ -39,3 +39,21 @@ export function partition(array, n) {
   }, []);
 }
 
+/**
+ * Maps a list to promises using the provided mapping function, executes them
+ * sequentially then returns a Promise resolving with ordered results obtained.
+ * Think of this as a sequential Promise.all.
+ *
+ * @param  {Array}    list The list to map.
+ * @param  {Function} fn   The mapping function.
+ * @return {Promise}
+ */
+export function pMap(list, fn) {
+  let results = [];
+  return list.reduce((promise, entry) => {
+    return promise.then(() => {
+      return Promise.resolve(fn(entry))
+        .then(result => results = results.concat(result));
+    });
+  }, Promise.resolve()).then(() => results);
+}
