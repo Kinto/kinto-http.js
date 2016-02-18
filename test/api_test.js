@@ -599,7 +599,7 @@ describe("Api", () => {
 
       sinon.assert.calledWithExactly(requests.createCollection, {
         bucket: "default",
-        headers: {}
+        headers: {},
       });
     });
 
@@ -628,6 +628,41 @@ describe("Api", () => {
 
       sinon.assert.calledWithMatch(requests.createCollection, {
         bucket: "myblog"
+      });
+    });
+  });
+
+  describe("#getCollection()", () => {
+    beforeEach(() => {
+      sandbox.stub(api, "execute").returns(Promise.resolve());
+    });
+
+    it("should execute expected request", () => {
+      api.getCollection();
+
+      sinon.assert.calledWithMatch(api.execute, {
+        bucket: "default",
+        headers: {}
+      });
+    });
+
+    it("should use instance default bucket option", () => {
+      api.defaultBucket = "custom";
+
+      api.getCollection();
+
+      sinon.assert.calledWithMatch(api.execute, {
+        bucket: "custom"
+      });
+    });
+
+    it("should allow overriding the default instance bucket option", () => {
+      api.defaultBucket = "custom";
+
+      api.getCollection("foo", {bucket: "myblog"});
+
+      sinon.assert.calledWithMatch(api.execute, {
+        path: "/buckets/myblog/collections/foo"
       });
     });
   });
