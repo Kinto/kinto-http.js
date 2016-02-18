@@ -95,24 +95,24 @@ describe("Integration tests", () => {
 
       describe("Default options", () => {
         beforeEach(() => {
-          return api.createCollection("blog")
+          return api.createCollection()
             .then(res => result = res);
         });
 
         it("should create a collection with the passed id", () => {
           expect(result).to.have.property("data")
-                        .to.have.property("id").eql("blog");
+                        .to.have.property("id").to.have.length.of(8);
         });
 
         it("should create a collection having a list of write permissions", () => {
           expect(result).to.have.property("permissions")
-                        .to.have.property("write").to.be.a("array");
+                        .to.have.property("write").be.a("array");
         });
       });
 
       describe("permissions option", () => {
         beforeEach(() => {
-          return api.createCollection("blog", {
+          return api.createCollection({
             permissions: {
               read: ["github:n1k0"]
             }
@@ -127,7 +127,7 @@ describe("Integration tests", () => {
 
       describe("data option", () => {
         beforeEach(() => {
-          return api.createCollection("blog", {
+          return api.createCollection({
             data: {foo: "bar"}
           }).then(res => result = res);
         });
@@ -141,9 +141,9 @@ describe("Integration tests", () => {
       describe("bucket option", () => {
         it("should respect the bucket option", () => {
           return api.createBucket("custom")
-            .then(() => api.createCollection("blog", {bucket: "custom"}))
+            .then(() => api.createCollection({bucket: "custom"}))
             .should.eventually.have.property("data")
-                   .to.have.property("id").eql("blog");
+                   .to.have.property("id").to.have.length.of(8);
         });
       });
     });
@@ -197,7 +197,7 @@ describe("Integration tests", () => {
         it("should allow batching operations", () => {
           return api.batch(batch => {
             batch.createBucket("custom");
-            batch.createCollection("blog");
+            batch.createCollection({id: "blog"});
             batch.createRecord("blog", {title: "art1"});
             batch.createRecord("blog", {title: "art2"});
           }, {bucket: "custom"})
@@ -211,7 +211,7 @@ describe("Integration tests", () => {
         it("should allow batching by chunks", () => {
           return api.batch(batch => {
             batch.createBucket("custom");
-            batch.createCollection("blog", {bucket: "custom"});
+            batch.createCollection({id: "blog", bucket: "custom"});
             for (let i=1; i<=27; i++) {
               batch.createRecord("blog", {title: "art" + i}, {bucket: "custom"});
             }
@@ -231,7 +231,7 @@ describe("Integration tests", () => {
             beforeEach(() => {
               return api.batch(batch => {
                 batch.createBucket("custom");
-                batch.createCollection("blog", {bucket: "custom"});
+                batch.createCollection({id: "blog", bucket: "custom"});
                 batch.createRecord("blog", {title: "art1"}, {bucket: "custom"});
                 batch.createRecord("blog", {title: "art2"}, {bucket: "custom"});
               }, {aggregate: true})
@@ -316,7 +316,7 @@ describe("Integration tests", () => {
         beforeEach(() => {
           return api.batch(batch => {
             batch.createBucket("custom");
-            batch.createCollection("blog", {bucket: "custom"});
+            batch.createCollection({id: "blog", bucket: "custom"});
             for (const record of fixtures) {
               batch.createRecord("blog", record, {bucket: "custom"});
             }

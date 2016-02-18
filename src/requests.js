@@ -49,11 +49,8 @@ export function createBucket(bucketName, options = {}) {
   });
 }
 
-export function createCollection(collName, options = {}) {
-  if (!collName) {
-    throw new Error("A collection name is required.");
-  }
-  const { bucket, headers, permissions, data, safe } = {
+export function createCollection(options = {}) {
+  const { bucket, headers, permissions, data, safe, id } = {
     safe: false,
     headers: {},
     permissions: {},
@@ -61,9 +58,11 @@ export function createCollection(collName, options = {}) {
     data: {},
     ...options
   };
+  const path = options.id ? endpoint("collection", bucket, id) :
+                            endpoint("collections", bucket);
   return handleCacheHeaders(safe, {
-    method: "PUT",
-    path: endpoint("collection", bucket, collName),
+    method: options.id ? "PUT" : "POST",
+    path,
     headers,
     body: {data, permissions}
   });

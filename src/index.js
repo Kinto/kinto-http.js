@@ -291,19 +291,19 @@ export default class KintoApi {
    * Creates a new collection.
    *
    * Options:
-   * - {String} bucket:  The bucket to create the collection within.
-   * - {Object} headers: The headers to attach to the HTTP request.
+   * - {String} bucket:   The bucket to create the collection within.
+   * - {Object} id:       The collection id.
+   * - {Object} headers:  The headers to attach to the HTTP request.
    *
-   * @param  {String} collName The collection name.
    * @param  {Object} options  The options object.
    * @return {Object}
    */
-  createCollection(collName, options={}) {
+  createCollection(options={}) {
     const { bucket, headers } = {
       bucket: this.defaultBucket,
       headers: {},
     };
-    return this.execute(requests.createCollection(collName, {
+    return this.execute(requests.createCollection({
       bucket,
       headers: {...this.optionHeaders, ...headers},
       ...options,

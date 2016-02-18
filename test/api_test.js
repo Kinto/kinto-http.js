@@ -267,7 +267,7 @@ describe("Api", () => {
       });
 
       it("should ensure server settings are fetched", () => {
-        return api.batch(batch => batch.createCollection("foo"))
+        return api.batch(batch => batch.createCollection())
           .then(_ => sinon.assert.calledOnce(api.fetchServerSettings));
       });
 
@@ -595,18 +595,18 @@ describe("Api", () => {
     });
 
     it("should execute expected request", () => {
-      api.createCollection("foo");
+      api.createCollection();
 
-      sinon.assert.calledWithExactly(requests.createCollection, "foo", {
+      sinon.assert.calledWithExactly(requests.createCollection, {
         bucket: "default",
         headers: {}
       });
     });
 
     it("should accept a safe option", () => {
-      api.createCollection("foo", {safe: true});
+      api.createCollection({safe: true});
 
-      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
+      sinon.assert.calledWithMatch(requests.createCollection, {
         safe: true
       });
     });
@@ -614,9 +614,9 @@ describe("Api", () => {
     it("should use instance default bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.createCollection("foo");
+      api.createCollection();
 
-      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
+      sinon.assert.calledWithMatch(requests.createCollection, {
         bucket: "custom"
       });
     });
@@ -624,9 +624,9 @@ describe("Api", () => {
     it("should allow overriding the default instance bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.createCollection("foo", {bucket: "myblog"});
+      api.createCollection({bucket: "myblog"});
 
-      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
+      sinon.assert.calledWithMatch(requests.createCollection, {
         bucket: "myblog"
       });
     });

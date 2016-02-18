@@ -40,13 +40,8 @@ describe("requests module", () => {
   });
 
   describe("createCollection()", () => {
-    it("should throw if collName is missing", () => {
-      expect(() => requests.createCollection())
-        .to.Throw(Error, /required/);
-    });
-
-    it("should return a collection creation request", () => {
-      expect(requests.createCollection("foo")).eql({
+    it("should return a collection creation request when an id is provided", () => {
+      expect(requests.createCollection({id: "foo"})).eql({
         body: {
           permissions: {},
           data: {}
@@ -57,19 +52,31 @@ describe("requests module", () => {
       });
     });
 
+    it("should return a collection creation request when no id is provided", () => {
+      expect(requests.createCollection()).eql({
+        body: {
+          permissions: {},
+          data: {}
+        },
+        headers: {},
+        method: "POST",
+        path: "/buckets/default/collections",
+      });
+    });
+
     it("should accept a bucket option", () => {
-      expect(requests.createCollection("foo", {bucket: "custom"}))
+      expect(requests.createCollection({id: "foo", bucket: "custom"}))
         .to.have.property("path").eql("/buckets/custom/collections/foo");
     });
 
     it("should accept a headers option", () => {
-      expect(requests.createCollection("foo", {headers: {Foo: "Bar"}}))
+      expect(requests.createCollection({id: "foo", headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     it("should accept a permissions option", () => {
       const permissions = {read: ["github:n1k0"]};
-      expect(requests.createCollection("foo", {permissions}))
+      expect(requests.createCollection({id: "foo", permissions}))
         .to.have.property("body")
         .to.have.property("permissions").eql(permissions);
     });
