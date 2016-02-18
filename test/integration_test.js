@@ -148,6 +148,50 @@ describe("Integration tests", () => {
       });
     });
 
+    describe("#createRecord", () => {
+      it("should create a record", () => {
+        return api.createRecord("blog", {title: "foo"})
+          .then(_ => api.getRecords("blog"))
+          .then(({data}) => {
+            expect(data[0].title).eql("foo");
+          });
+      });
+
+      describe("In batch", () => {
+        it("should create a record", () => {
+          return api.batch(batch => batch.createRecord("blog", {title: "foo"}))
+            .then(_ => api.getRecords("blog"))
+            .then(({data}) => {
+              expect(data[0].title).eql("foo");
+            });
+        });
+      });
+    });
+
+    describe("#updateRecord", () => {
+      it("should update an existing record", () => {
+        return api.createRecord("blog", {title: "foo"})
+          .then(({data}) => api.updateRecord("blog", {id: data.id, title: "bar"}))
+          .then(_ => api.getRecords("blog"))
+          .then(({data}) => {
+            expect(data[0].title).eql("bar");
+          });
+      });
+
+      describe("In batch", () => {
+        it("should update an existing record", () => {
+          return api.createRecord("blog", {title: "foo"})
+            .then(({data}) => api.batch(batch => {
+              return batch.updateRecord("blog", {id: data.id, title: "bar"});
+            }))
+            .then(_ => api.getRecords("blog"))
+            .then(({data}) => {
+              expect(data[0].title).eql("bar");
+            });
+        });
+      });
+    });
+
     describe("#batch", () => {
       describe("No chunked requests", () => {
         it("should allow batching operations", () => {

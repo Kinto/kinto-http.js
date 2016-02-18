@@ -7,6 +7,7 @@ import { EventEmitter } from "events";
 import { quote } from "../src/utils";
 import { fakeServerResponse } from "./test_utils.js";
 import Api, { SUPPORTED_PROTOCOL_VERSION as SPV } from "../src";
+import * as requests from "../src/requests";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -546,6 +547,20 @@ describe("Api", () => {
     });
   });
 
+  describe("#getRecords()", () => {
+    beforeEach(() => {
+      sandbox.stub(api, "execute").returns(Promise.resolve());
+    });
+
+    it("should execute expected request", () => {
+      api.getRecords("foo");
+
+      sinon.assert.calledWithMatch(api.execute, {
+        path: "/buckets/default/collections/foo/records?_sort=-last_modified",
+      });
+    });
+  });
+
   describe("#createBucket", () => {
     beforeEach(() => {
       sandbox.stub(api, "execute").returns(Promise.resolve());
@@ -575,28 +590,24 @@ describe("Api", () => {
 
   describe("#createCollection()", () => {
     beforeEach(() => {
+      sandbox.stub(requests, "createCollection");
       sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
     it("should execute expected request", () => {
       api.createCollection("foo");
 
-      sinon.assert.calledWithExactly(api.execute, {
-        body: {
-          data: {},
-          permissions: {}
-        },
-        headers: {},
-        method: "PUT",
-        path: "/buckets/default/collections/foo",
+      sinon.assert.calledWithExactly(requests.createCollection, "foo", {
+        bucket: "default",
+        headers: {}
       });
     });
 
     it("should accept a safe option", () => {
       api.createCollection("foo", {safe: true});
 
-      sinon.assert.calledWithMatch(api.execute, {
-        headers: {"If-None-Match": "*"}
+      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
+        safe: true
       });
     });
 
@@ -605,8 +616,8 @@ describe("Api", () => {
 
       api.createCollection("foo");
 
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets/custom/collections/foo",
+      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
+        bucket: "custom"
       });
     });
 
@@ -615,56 +626,100 @@ describe("Api", () => {
 
       api.createCollection("foo", {bucket: "myblog"});
 
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets/myblog/collections/foo",
+      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
+        bucket: "myblog"
       });
     });
   });
 
   describe("#createRecord()", () => {
+    const record = {title: "bar"};
+
     beforeEach(() => {
+      sandbox.stub(requests, "createRecord");
       sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
     it("should execute expected request", () => {
-      api.createRecord("foo", {title: "bar"});
+      api.createRecord("foo", record);
 
-      sinon.assert.calledWithExactly(api.execute, {
-        body: {
-          data: {title: "bar"},
-          permissions: {}
-        },
-        headers: {},
-        method: "POST",
-        path: "/buckets/default/collections/foo/records",
+      sinon.assert.calledWithExactly(requests.createRecord, "foo", record, {
+        bucket: "default",
+        headers: {}
       });
     });
 
     it("should accept a safe option", () => {
-      api.createRecord("foo", {title: "bar"}, {safe: true});
+      api.createRecord("foo", record, {safe: true});
 
-      sinon.assert.calledWithMatch(api.execute, {
-        headers: {"If-None-Match": "*"}
+      sinon.assert.calledWithMatch(requests.createRecord, "foo", record, {
+        safe: true
       });
     });
 
     it("should use instance default bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.createRecord("foo", {title: "bar"});
+      api.createRecord("foo", record);
 
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets/custom/collections/foo/records",
+      sinon.assert.calledWithMatch(requests.createRecord, "foo", record, {
+        bucket: "custom"
       });
     });
 
     it("should allow overriding the default instance bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.createRecord("foo", {title: "bar"}, {bucket: "myblog"});
+      api.createRecord("foo", record, {bucket: "myblog"});
 
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets/myblog/collections/foo/records",
+      sinon.assert.calledWithMatch(requests.createRecord, "foo", record, {
+        bucket: "myblog"
+      });
+    });
+  });
+
+  describe("#updateRecord()", () => {
+    const record = {id: 1, title: "bar"};
+
+    beforeEach(() => {
+      sandbox.stub(requests, "updateRecord");
+      sandbox.stub(api, "execute").returns(Promise.resolve());
+    });
+
+    it("should execute expected request", () => {
+      api.updateRecord("foo", record);
+
+      sinon.assert.calledWithExactly(requests.updateRecord, "foo", record, {
+        bucket: "default",
+        headers: {}
+      });
+    });
+
+    it("should accept a safe option", () => {
+      api.updateRecord("foo", record, {safe: true});
+
+      sinon.assert.calledWithMatch(requests.updateRecord, "foo", record, {
+        safe: true
+      });
+    });
+
+    it("should use instance default bucket option", () => {
+      api.defaultBucket = "custom";
+
+      api.updateRecord("foo", record);
+
+      sinon.assert.calledWithMatch(requests.updateRecord, "foo", record, {
+        bucket: "custom"
+      });
+    });
+
+    it("should allow overriding the default instance bucket option", () => {
+      api.defaultBucket = "custom";
+
+      api.updateRecord("foo", record, {bucket: "myblog"});
+
+      sinon.assert.calledWithMatch(requests.updateRecord, "foo", record, {
+        bucket: "myblog"
       });
     });
   });

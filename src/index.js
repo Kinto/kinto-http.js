@@ -362,4 +362,25 @@ export default class KintoApi {
       ...options
     })).then(res => res.json);
   }
+
+  /**
+   * Updates a record in a given collection.
+   *
+   * @param  {String} collName The collection name.
+   * @param  {Object} record   The record object.
+   * @param  {Object} options  The options object.
+   * @return {Object}
+   */
+  updateRecord(collName, record, options={}) {
+    const { bucket, headers } = {
+      bucket: this.defaultBucket,
+      headers: {},
+      ...options
+    };
+    return this.execute(requests.updateRecord(collName, record, {
+      bucket,
+      headers: {...this.optionHeaders, ...headers},
+      ...options
+    })).then(res => res.json);
+  }
 }
