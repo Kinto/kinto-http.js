@@ -1,6 +1,7 @@
 /**
  * Returns the specified string with double quotes.
  *
+ * @private
  * @param  {String} str  A string to quote.
  * @return {String}
  */
@@ -11,6 +12,7 @@ export function quote(str) {
 /**
  * Trim double quotes from specified string.
  *
+ * @private
  * @param  {String} str  A string to unquote.
  * @return {String}
  */
@@ -21,6 +23,7 @@ export function unquote(str) {
 /**
  * Chunks an array into n pieces.
  *
+ * @private
  * @param  {Array}  array
  * @param  {Number} n
  * @return {Array}
@@ -44,6 +47,7 @@ export function partition(array, n) {
  * sequentially then returns a Promise resolving with ordered results obtained.
  * Think of this as a sequential Promise.all.
  *
+ * @private
  * @param  {Array}    list The list to map.
  * @param  {Function} fn   The mapping function.
  * @return {Promise}

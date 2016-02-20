@@ -4,6 +4,7 @@ import ERROR_CODES from "./errors.js";
 
 /**
  * Enhanced HTTP client for the Kinto protocol.
+ * @private
  */
 export default class HTTP {
   /**

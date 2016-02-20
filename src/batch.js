@@ -4,6 +4,7 @@ import * as requests from "./requests";
 /**
  * Call a request function extending its options argument with the provided one.
  *
+ * @private
  * @param  {Function} requestFn The function.
  * @param  {Array}    args      The function arguments.
  * @param  {Object}   options   The options object.
@@ -33,6 +34,7 @@ function callWithOptions(requestFn, args, options) {
  * - {Boolean} safe:    Safe modifications (default: `false`).
  * - {Boolean} bucket:  Generic bucket to use (default: `"default"`).
  *
+ * @private
  * @param  {Object} options The options object.
  * @return {Object}
  */
@@ -63,6 +65,7 @@ export function createBatch(options={}) {
 /**
  * Exports batch responses as a result object.
  *
+ * @private
  * @param  {Array} responses The batch subrequest responses.
  * @param  {Array} requests  The initial issued requests.
  * @return {Object}

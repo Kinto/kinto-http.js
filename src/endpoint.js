@@ -1,3 +1,7 @@
+/**
+ * Endpoints templates.
+ * @type {Object}
+ */
 const ENDPOINTS = {
   root:                   () => `/`,
   batch:                  () => `/batch`,
@@ -12,8 +16,9 @@ const ENDPOINTS = {
 /**
  * Retrieves a server enpoint by its name.
  *
- * @param  {String}  name The endpoint name.
- * @param  {...args}      The endpoint parameters.
+ * @private
+ * @param  {String}    name The endpoint name.
+ * @param  {...string} args The endpoint parameters.
  * @return {String}
  */
 export default function endpoint(name, ...args) {
