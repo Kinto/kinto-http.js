@@ -2,12 +2,18 @@ import endpoint from "./endpoint";
 import { quote } from "./utils.js";
 
 
+/**
+ * @private
+ */
 function getLastModified(request) {
   return request.body &&
          "data" in request.body &&
          request.body.data.last_modified;
 }
 
+/**
+ * @private
+ */
 function handleCacheHeaders(safe, request) {
   if (!safe) {
     return request;
@@ -28,6 +34,9 @@ function handleCacheHeaders(safe, request) {
   };
 }
 
+/**
+ * @private
+ */
 export function createBucket(bucketName, options = {}) {
   if (!bucketName) {
     throw new Error("A bucket name is required.");
@@ -51,6 +60,9 @@ export function createBucket(bucketName, options = {}) {
   });
 }
 
+/**
+ * @private
+ */
 export function createCollection(options = {}) {
   const { bucket, headers, permissions, data, safe, id } = {
     safe: false,
@@ -70,6 +82,9 @@ export function createCollection(options = {}) {
   });
 }
 
+/**
+ * @private
+ */
 export function createRecord(collName, record, options = {}) {
   if (!collName) {
     throw new Error("A collection name is required.");
@@ -92,6 +107,9 @@ export function createRecord(collName, record, options = {}) {
   });
 }
 
+/**
+ * @private
+ */
 export function updateRecord(collName, record, options = {}) {
   if (!collName) {
     throw new Error("A collection name is required.");

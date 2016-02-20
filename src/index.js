@@ -17,21 +17,29 @@ export const SUPPORTED_PROTOCOL_VERSION = "v1";
 
 /**
  * High level HTTP client for the Kinto API.
+ *
+ * @example
+ * const client = new KintoApi("https://kinto.dev.mozaws.net/v1");
+ * client.createRecord("my-blog", {title: "First article"})
+ *   .then(console.log.bind(console))
+ *   .catch(console.error.bind(console))
  */
 export default class KintoApi {
   /**
    * Constructor.
    *
-   * Options:
-   * - {EventEmitter} events      The events handler. If none provided an
-   *                              `EventEmitter` instance will be created.
-   * - {Object}       headers     The key-value headers to pass to each request.
-   * - {Boolean}      safe        Adds concurrency headers to every requests
-   *                              (default: `false`).
-   * - {String}       requestMode The HTTP request mode (from ES6 fetch spec).
-   *
    * @param  {String} remote  The remote URL.
-   * @param  {Object} options The options object.
+   * @param  {Object}  options The options object.
+   * @param  {Boolean} options.safe        Adds concurrency headers to every
+   * requests (default: `false`).
+   * @param  {EventEmitter} options.events The events handler. If none provided
+   * an `EventEmitter` instance will be created.
+   * @param  {Object}  options.headers     The key-value headers to pass to each
+   * request (default: `{}`).
+   * @param  {String}  options.bucket      The default bucket to use (default:
+   * `"default"`)
+   * @param  {String}  options.requestMode The HTTP request mode (from ES6 fetch
+   * spec).
    */
   constructor(remote, options={}) {
     if (typeof(remote) !== "string" || !remote.length) {
@@ -41,11 +49,23 @@ export default class KintoApi {
       remote = remote.slice(0, -1);
     }
     this._backoffReleaseTime = null;
-    this.remote = remote;
-    this.defaultBucket = options.bucket || "default";
-    this.defaultSafe = !!options.safe;
 
     // public properties
+    /**
+     * The remote server base URL.
+     * @type {String}
+     */
+    this.remote = remote;
+    /**
+     * The default bucket name to use.
+     * @type {String}
+     */
+    this.defaultBucket = options.bucket || "default";
+    /**
+     * The default safe setting value.
+     * @type {Boolean}
+     */
+    this.defaultSafe = !!options.safe;
     /**
      * The optional generic headers.
      * @type {Object}
@@ -80,6 +100,9 @@ export default class KintoApi {
     return this._remote;
   }
 
+  /**
+   * @ignore
+   */
   set remote(url) {
     let version;
     try {
@@ -106,7 +129,7 @@ export default class KintoApi {
    * Backoff remaining time, in milliseconds. Defaults to zero if no backoff is
    * ongoing.
    *
-   * @return {Number}
+   * @type {Number}
    */
   get backoff() {
     const currentTime = new Date().getTime();
@@ -135,6 +158,9 @@ export default class KintoApi {
    * @private
    * @param  {Object} options The request options.
    * @return {Object}
+   * @property {Boolean} safe    The resulting safe option.
+   * @property {String}  bucket  The resulting bucket name option.
+   * @property {Object}  headers The extended headers object option.
    */
   _getRequestOptions(options={}) {
     return {
@@ -149,7 +175,7 @@ export default class KintoApi {
   /**
    * Retrieves Kinto server settings.
    *
-   * @return {Promise}
+   * @return {Promise<Object, Error>}
    */
   fetchServerSettings() {
     if (this.serverSettings) {
@@ -168,6 +194,9 @@ export default class KintoApi {
    * @param  {String} bucketName  The bucket name.
    * @param  {String} collName    The collection name.
    * @param  {Object} options     The options object.
+   * @param  {Boolean} options.safe    The safe option.
+   * @param  {String}  options.bucket  The bucket name option.
+   * @param  {Object}  options.headers The headers object option.
    * @return {Promise}
    */
   fetchChangesSince(bucketName, collName, options={lastModified: null, headers: {}}) {
@@ -214,7 +243,7 @@ export default class KintoApi {
    *
    * @param  {Array}  requests The list of batch subrequests to perform.
    * @param  {Object} options  The options object.
-   * @return {Promise<{Object}, Error>}
+   * @return {Promise<Object, Error>}
    */
   _batchRequests(requests, options = {}) {
     const headers = {...this.optionHeaders, ...options.headers};
@@ -245,16 +274,23 @@ export default class KintoApi {
   /**
    * Sends batch requests to the remote server.
    *
-   * Options:
-   * - {Object}  headers   Headers to attach to main and all subrequests.
-   * - {Boolean} safe      Safe update (default: `false`).
-   * - {Boolean} bucket    Generic bucket to use (default: `"default"`).
-   * - {Boolean} aggregate Produces an aggregated result object
-   *   (default: `false`).
-   *
-   * @param  {Array}  requests The list of requests to batch execute.
-   * @param  {Object} options  The options object.
-   * @return {Promise<{Object}, Error>}
+   * @param  {Function} fn      The function to use for describing batch ops.
+   * @param  {Object}   options The options object.
+   * @param  {Boolean}  options.safe      The safe option.
+   * @param  {String}   options.bucket    The bucket name option.
+   * @param  {Object}   options.headers   The headers object option.
+   * @param  {Boolean}  options.aggregate Produces an aggregated result object
+   * (default: `false`).
+   * @return {Promise<Object, Error>}
+   * @example
+   * const client = new KintoApi("https://kinto.dev.mozaws.net/v1");
+   * client.batch(batch => {
+   *   batch.createBucket("blog");
+   *   batch.createCollection("posts");
+   *   batch.createRecord("posts", {title: "My first post"});
+   * })
+   *   .then(console.log.bind(console))
+   *   .catch(console.error.bind(console));
    */
   batch(fn, options={}) {
     const batch = createBatch(this._getRequestOptions(options));
@@ -269,8 +305,9 @@ export default class KintoApi {
   }
 
   /**
-   * Executes an atomic request request.
+   * Executes an atomic request.
    *
+   * @private
    * @param  {Object} request The request object.
    * @return {Promise<Object, Error>}
    */
@@ -282,14 +319,13 @@ export default class KintoApi {
   }
 
   /**
-   * Creates a new bucket.
+   * Creates a new bucket on the server.
    *
-   * Options:
-   * - {Object} headers: The headers to attach to the HTTP request.
-   *
-   * @param  {String} bucketName The bucket name.
-   * @param  {Object} options    The options object.
-   * @return {Promise<{Object}, Error>}
+   * @param  {String}   bucketName      The bucket name.
+   * @param  {Object}   options         The options object.
+   * @param  {Boolean}  options.safe    The safe option.
+   * @param  {Object}   options.headers The headers object option.
+   * @return {Promise<Object, Error>}
    */
   createBucket(bucketName, options={}) {
     const reqOptions = this._getRequestOptions(options);
@@ -298,15 +334,15 @@ export default class KintoApi {
   }
 
   /**
-   * Creates a new collection.
+   * Creates a new collection on the server.
    *
-   * Options:
-   * - {String} bucket:   The bucket to create the collection within.
-   * - {Object} id:       The collection id.
-   * - {Object} headers:  The headers to attach to the HTTP request.
-   *
-   * @param  {Object} options  The options object.
-   * @return {Promise<{Object}, Error>}
+   * @param  {Object}   options         The options object.
+   * @param  {Boolean}  options.safe    The safe option.
+   * @param  {String}   options.bucket  The bucket name option.
+   * @param  {Object}   options.headers The headers object option.
+   * @param  {String}   options.id      The collection name to create; if not
+   * provided, a random id will be generated by the server.
+   * @return {Promise<Object, Error>}
    */
   createCollection(options={}) {
     const reqOptions = this._getRequestOptions(options);
@@ -317,9 +353,11 @@ export default class KintoApi {
   /**
    * Retrieves information for a given collection.
    *
-   * @param  {String} id      The collection name.
-   * @param  {Object} options The options object.
-   * @return {Promise<{Object}, Error>}
+   * @param  {String}   id              The collection name.
+   * @param  {Object}   options         The options object.
+   * @param  {String}   options.bucket  The bucket name option.
+   * @param  {Object}   options.headers The headers object option.
+   * @return {Promise<Object, Error>}
    */
   getCollection(id, options={}) {
     const { bucket, headers } = {
@@ -335,21 +373,19 @@ export default class KintoApi {
   }
 
   /**
-   * Get every records from server.
+   * Get a list of records for a given collection from the server.
    *
-   * Options:
+   * Note: Because of a bug on the server, the order of records is not
+   * predictible, so it's forced in the default options here.
+   * See https://github.com/Kinto/kinto/issues/434
    *
-   * - {String}  bucket   The bucket name.
-   * - {Object}  headers  Headers to attach to main and all subrequests.
-   * - {String}  sort     Sort field (prefixed with `-` for descending).
-   *
-   * @param  {String} collName    The collection name.
-   * @param  {Object} options     The options object.
-   * @return {Promise<{Object}, Error>}
-   *
-   * > Because of bug on server, order of record is not predictible.
-   * > It is forced in default options here.
-   * > https://github.com/Kinto/kinto/issues/434
+   * @param  {String}   collName        The collection name.
+   * @param  {Object}   options         The options object.
+   * @param  {String}   options.bucket  The bucket name option.
+   * @param  {Object}   options.headers The headers object option.
+   * @param  {String}   options.sort    The sort field (prefixed with `-` for
+   * descending)
+   * @return {Promise<Object, Error>}
    */
   getRecords(collName, options={}) {
     const { bucket, sort, headers } = {
@@ -369,10 +405,13 @@ export default class KintoApi {
   /**
    * Creates a record in a given collection.
    *
-   * @param  {String} collName The collection name.
-   * @param  {Object} record   The record object.
-   * @param  {Object} options  The options object.
-   * @return {Promise<{Object}, Error>}
+   * @param  {String}   collName        The collection name.
+   * @param  {Object}   record          The record object.
+   * @param  {Object}   options         The options object.
+   * @param  {Boolean}  options.safe    The safe option.
+   * @param  {String}   options.bucket  The bucket name option.
+   * @param  {Object}   options.headers The headers object option.
+   * @return {Promise<Object, Error>}
    */
   createRecord(collName, record, options={}) {
     const reqOptions = this._getRequestOptions(options);
@@ -383,10 +422,13 @@ export default class KintoApi {
   /**
    * Updates a record in a given collection.
    *
-   * @param  {String} collName The collection name.
-   * @param  {Object} record   The record object.
-   * @param  {Object} options  The options object.
-   * @return {Promise<{Object}, Error>}
+   * @param  {String}   collName        The collection name.
+   * @param  {Object}   record          The record object.
+   * @param  {Object}   options         The options object.
+   * @param  {Boolean}  options.safe    The safe option.
+   * @param  {String}   options.bucket  The bucket name option.
+   * @param  {Object}   options.headers The headers object option.
+   * @return {Promise<Object, Error>}
    */
   updateRecord(collName, record, options={}) {
     const reqOptions = this._getRequestOptions(options);
@@ -394,5 +436,3 @@ export default class KintoApi {
       .then(res => res.json);
   }
 }
-
-
