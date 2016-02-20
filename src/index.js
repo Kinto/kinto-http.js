@@ -190,7 +190,7 @@ export default class KintoApi {
    *
    * @param  {Array}  requests The list of batch subrequests to perform.
    * @param  {Object} options  The options object.
-   * @return {Promise}
+   * @return {Promise<{Object}, Error>}
    */
   _batchRequests(requests, options = {}) {
     const headers = {...this.optionHeaders, ...options.headers};
@@ -230,7 +230,7 @@ export default class KintoApi {
    *
    * @param  {Array}  requests The list of requests to batch execute.
    * @param  {Object} options  The options object.
-   * @return {Promise}
+   * @return {Promise<{Object}, Error>}
    */
   batch(fn, options={}) {
     const { safe, bucket, headers } = {
@@ -278,7 +278,7 @@ export default class KintoApi {
    *
    * @param  {String} bucketName The bucket name.
    * @param  {Object} options    The options object.
-   * @return {Object}
+   * @return {Promise<{Object}, Error>}
    */
   createBucket(bucketName, options={}) {
     return this.execute(requests.createBucket(bucketName, {
@@ -296,18 +296,34 @@ export default class KintoApi {
    * - {Object} headers:  The headers to attach to the HTTP request.
    *
    * @param  {Object} options  The options object.
-   * @return {Object}
+   * @return {Promise<{Object}, Error>}
    */
   createCollection(options={}) {
+    return this.execute(requests.createCollection({
+      ...options,
+      bucket: options.bucket || this.defaultBucket,
+      headers: {...this.optionHeaders, ...options.headers},
+    })).then(res => res.json);
+  }
+
+  /**
+   * Retrieves information for a given collection.
+   *
+   * @param  {String} id      The collection name.
+   * @param  {Object} options The options object.
+   * @return {Promise<{Object}, Error>}
+   */
+  getCollection(id, options={}) {
     const { bucket, headers } = {
       bucket: this.defaultBucket,
       headers: {},
+      ...options
     };
-    return this.execute(requests.createCollection({
+    return this.execute({
+      path: endpoint("collection", bucket, id),
       bucket,
-      headers: {...this.optionHeaders, ...headers},
-      ...options,
-    })).then(res => res.json);
+      headers: {...this.optionHeaders, ...headers}
+    }).then(res => res.json);
   }
 
   /**
@@ -348,7 +364,7 @@ export default class KintoApi {
    * @param  {String} collName The collection name.
    * @param  {Object} record   The record object.
    * @param  {Object} options  The options object.
-   * @return {Object}
+   * @return {Promise<{Object}, Error>}
    */
   createRecord(collName, record, options={}) {
     const { bucket, headers } = {
@@ -369,7 +385,7 @@ export default class KintoApi {
    * @param  {String} collName The collection name.
    * @param  {Object} record   The record object.
    * @param  {Object} options  The options object.
-   * @return {Object}
+   * @return {Promise<{Object}, Error>}
    */
   updateRecord(collName, record, options={}) {
     const { bucket, headers } = {

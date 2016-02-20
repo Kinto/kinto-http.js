@@ -148,6 +148,34 @@ describe("Integration tests", () => {
       });
     });
 
+    describe("#getCollection", () => {
+      let collectionData;
+
+      beforeEach(() => {
+        return api.createCollection({id: "foo"})
+          .then(_ => api.getCollection("foo"))
+          .then(res => collectionData = res);
+      });
+
+      it("should retrieve collection id", () => {
+        expect(collectionData)
+          .to.have.property("data")
+          .to.have.property("id").eql("foo");
+      });
+
+      it("should retrieve collection last_modified", () => {
+        expect(collectionData)
+          .to.have.property("data")
+          .to.have.property("last_modified").gt(0);
+      });
+
+      it("should retrieve collection permissions", () => {
+        expect(collectionData)
+          .to.have.property("permissions")
+          .to.have.property("write").to.be.an("array");
+      });
+    });
+
     describe("#createRecord", () => {
       it("should create a record", () => {
         return api.createRecord("blog", {title: "foo"})
