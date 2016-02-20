@@ -6,7 +6,7 @@ import sinon from "sinon";
 import { EventEmitter } from "events";
 import { quote } from "../src/utils";
 import { fakeServerResponse } from "./test_utils.js";
-import Api, { SUPPORTED_PROTOCOL_VERSION as SPV } from "../src";
+import KintoClient, { SUPPORTED_PROTOCOL_VERSION as SPV } from "../src";
 import * as requests from "../src/requests";
 
 chai.use(chaiAsPromised);
@@ -16,89 +16,90 @@ chai.config.includeStack = true;
 const root = typeof window === "object" ? window : global;
 const FAKE_SERVER_URL = "http://fake-server/v1";
 
-/** @test {Api} */
-describe("Api", () => {
+/** @test {KintoClient} */
+describe("KintoClient", () => {
   let sandbox, api, events;
 
   beforeEach(() => {
     sandbox = sinon.sandbox.create();
     events = new EventEmitter();
-    api = new Api(FAKE_SERVER_URL, {events});
+    api = new KintoClient(FAKE_SERVER_URL, {events});
   });
 
   afterEach(() => {
     sandbox.restore();
   });
 
-  /** @test {Api#constructor} */
+  /** @test {KintoClient#constructor} */
   describe("#constructor", () => {
     const sampleRemote = `http://test/${SPV}`;
 
     it("should check that `remote` is a string", () => {
-      expect(() => new Api(42, {events}))
+      expect(() => new KintoClient(42, {events}))
         .to.Throw(Error, /Invalid remote URL/);
     });
 
     it("should validate `remote` arg value", () => {
-      expect(() => new Api("http://nope"))
+      expect(() => new KintoClient("http://nope"))
         .to.Throw(Error, /The remote URL must contain the version/);
     });
 
     it("should strip any trailing slash", () => {
-      expect(new Api(sampleRemote).remote).eql(sampleRemote);
+      expect(new KintoClient(sampleRemote).remote).eql(sampleRemote);
     });
 
     it("should expose a passed events instance option", () => {
-      expect(new Api(sampleRemote, {events}).events).to.eql(events);
+      expect(new KintoClient(sampleRemote, {events}).events).to.eql(events);
     });
 
     it("should propagate its events property to child dependencies", () => {
-      const api = new Api(sampleRemote, {events});
+      const api = new KintoClient(sampleRemote, {events});
       expect(api.http.events).eql(api.events);
     });
 
     it("should assign version value", () => {
-      expect(new Api(sampleRemote).version).eql(SPV);
-      expect(new Api(sampleRemote).version).eql(SPV);
+      expect(new KintoClient(sampleRemote).version).eql(SPV);
+      expect(new KintoClient(sampleRemote).version).eql(SPV);
     });
 
     it("should accept a headers option", () => {
-      expect(new Api(sampleRemote, {headers: {Foo: "Bar"}}).optionHeaders)
+      expect(new KintoClient(sampleRemote, {headers: {Foo: "Bar"}}).optionHeaders)
         .eql({Foo: "Bar"});
     });
 
     it("should validate protocol version", () => {
-      expect(() => new Api(`http://test/v999`))
+      expect(() => new KintoClient(`http://test/v999`))
         .to.Throw(Error, /^Unsupported protocol version/);
     });
 
     it("should propagate the requestMode option to the child HTTP instance", () => {
       const requestMode = "no-cors";
-      expect(new Api(sampleRemote, {requestMode}).http.requestMode)
+      expect(new KintoClient(sampleRemote, {requestMode}).http.requestMode)
         .eql(requestMode);
     });
 
     it("should create an event emitter if none is provided", () => {
-      expect(new Api(sampleRemote).events)
+      expect(new KintoClient(sampleRemote).events)
         .to.be.an.instanceOf(EventEmitter);
     });
 
     it("should expose provided event emitter as a property", () => {
       const events = new EventEmitter();
-      expect(new Api(sampleRemote, {events}).events).eql(events);
+      expect(new KintoClient(sampleRemote, {events}).events).eql(events);
     });
 
     it("should accept a bucket option", () => {
-      const api = new Api(sampleRemote, {bucket: "custom"});
+      const api = new KintoClient(sampleRemote, {bucket: "custom"});
       expect(api.defaultBucket).eql("custom");
     });
 
     it("should accept a safe option", () => {
-      const api = new Api(sampleRemote, {safe: true});
+      const api = new KintoClient(sampleRemote, {safe: true});
       expect(api.defaultSafe).eql(true);
     });
   });
 
+  /** @test {KintoClient#backoff} */
   describe("get backoff()", () => {
     it("should provide the remaining backoff time in ms if any", () => {
       // Make Date#getTime always returning 1000000, for predictability
@@ -118,7 +119,7 @@ describe("Api", () => {
     });
   });
 
-  /** @test {Api#fetchServerSettings} */
+  /** @test {KintoClient#fetchServerSettings} */
   describe("#fetchServerSettings", () => {
     it("should retrieve server settings on first request made", () => {
       sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
@@ -145,7 +146,7 @@ describe("Api", () => {
     });
   });
 
-  /** @test {Api#fetchChangesSince} */
+  /** @test {KintoClient#fetchChangesSince} */
   describe("#fetchChangesSince", () => {
     it("should fetch server settings", () => {
       sandbox.stub(api, "fetchServerSettings")
@@ -248,7 +249,7 @@ describe("Api", () => {
     });
   });
 
-  /** @test {Api#batch} */
+  /** @test {KintoClient#batch} */
   describe("#batch", () => {
     beforeEach(() => {
       sandbox.stub(api, "fetchServerSettings").returns(Promise.resolve({
@@ -554,6 +555,7 @@ describe("Api", () => {
     });
   });
 
+  /** @test {KintoClient#getRecords} */
   describe("#getRecords()", () => {
     beforeEach(() => {
       sandbox.stub(api, "execute").returns(Promise.resolve());
@@ -568,6 +570,7 @@ describe("Api", () => {
     });
   });
 
+  /** @test {KintoClient#createBucket} */
   describe("#createBucket", () => {
     beforeEach(() => {
       sandbox.stub(requests, "createBucket");
@@ -602,6 +605,7 @@ describe("Api", () => {
     });
   });
 
+  /** @test {KintoClient#createCollection} */
   describe("#createCollection()", () => {
     beforeEach(() => {
       sandbox.stub(requests, "createCollection");
@@ -657,6 +661,7 @@ describe("Api", () => {
     });
   });
 
+  /** @test {KintoClient#getCollection} */
   describe("#getCollection()", () => {
     beforeEach(() => {
       sandbox.stub(api, "execute").returns(Promise.resolve());
@@ -692,6 +697,7 @@ describe("Api", () => {
     });
   });
 
+  /** @test {KintoClient#createRecord} */
   describe("#createRecord()", () => {
     const record = {title: "bar"};
 
@@ -749,6 +755,7 @@ describe("Api", () => {
     });
   });
 
+  /** @test {KintoClient#updateRecord} */
   describe("#updateRecord()", () => {
     const record = {id: 1, title: "bar"};
 

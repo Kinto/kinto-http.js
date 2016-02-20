@@ -19,12 +19,12 @@ export const SUPPORTED_PROTOCOL_VERSION = "v1";
  * High level HTTP client for the Kinto API.
  *
  * @example
- * const client = new KintoApi("https://kinto.dev.mozaws.net/v1");
+ * const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
  * client.createRecord("my-blog", {title: "First article"})
  *   .then(console.log.bind(console))
  *   .catch(console.error.bind(console))
  */
-export default class KintoApi {
+export default class KintoClient {
   /**
    * Constructor.
    *
@@ -283,7 +283,7 @@ export default class KintoApi {
    * (default: `false`).
    * @return {Promise<Object, Error>}
    * @example
-   * const client = new KintoApi("https://kinto.dev.mozaws.net/v1");
+   * const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
    * client.batch(batch => {
    *   batch.createBucket("blog");
    *   batch.createCollection("posts");
