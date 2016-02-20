@@ -32,6 +32,8 @@ describe("Api", () => {
 
   /** @test {Api#constructor} */
   describe("#constructor", () => {
+    const sampleRemote = `http://test/${SPV}`;
+
     it("should check that `remote` is a string", () => {
       expect(() => new Api(42, {events}))
         .to.Throw(Error, /Invalid remote URL/);
@@ -43,25 +45,25 @@ describe("Api", () => {
     });
 
     it("should strip any trailing slash", () => {
-      expect(new Api(`http://test/${SPV}/`).remote).eql(`http://test/${SPV}`);
+      expect(new Api(sampleRemote).remote).eql(sampleRemote);
     });
 
     it("should expose a passed events instance option", () => {
-      expect(new Api(`http://test/${SPV}`, {events}).events).to.eql(events);
+      expect(new Api(sampleRemote, {events}).events).to.eql(events);
     });
 
     it("should propagate its events property to child dependencies", () => {
-      const api = new Api(`http://test/${SPV}`, {events});
+      const api = new Api(sampleRemote, {events});
       expect(api.http.events).eql(api.events);
     });
 
     it("should assign version value", () => {
-      expect(new Api(`http://test/${SPV}`).version).eql(SPV);
-      expect(new Api(`http://test/${SPV}/`).version).eql(SPV);
+      expect(new Api(sampleRemote).version).eql(SPV);
+      expect(new Api(sampleRemote).version).eql(SPV);
     });
 
     it("should accept a headers option", () => {
-      expect(new Api(`http://test/${SPV}`, {headers: {Foo: "Bar"}}).optionHeaders)
+      expect(new Api(sampleRemote, {headers: {Foo: "Bar"}}).optionHeaders)
         .eql({Foo: "Bar"});
     });
 
@@ -72,23 +74,28 @@ describe("Api", () => {
 
     it("should propagate the requestMode option to the child HTTP instance", () => {
       const requestMode = "no-cors";
-      expect(new Api(`http://test/${SPV}`, {requestMode}).http.requestMode)
+      expect(new Api(sampleRemote, {requestMode}).http.requestMode)
         .eql(requestMode);
     });
 
     it("should create an event emitter if none is provided", () => {
-      expect(new Api(`http://test/${SPV}`).events)
+      expect(new Api(sampleRemote).events)
         .to.be.an.instanceOf(EventEmitter);
     });
 
     it("should expose provided event emitter as a property", () => {
       const events = new EventEmitter();
-      expect(new Api(`http://test/${SPV}`, {events}).events).eql(events);
+      expect(new Api(sampleRemote, {events}).events).eql(events);
     });
 
     it("should accept a bucket option", () => {
-      const api = new Api(`http://test/${SPV}`, {bucket: "custom"});
+      const api = new Api(sampleRemote, {bucket: "custom"});
       expect(api.defaultBucket).eql("custom");
+    });
+
+    it("should accept a safe option", () => {
+      const api = new Api(sampleRemote, {safe: true});
+      expect(api.defaultSafe).eql(true);
     });
   });
 
@@ -563,27 +570,34 @@ describe("Api", () => {
 
   describe("#createBucket", () => {
     beforeEach(() => {
+      sandbox.stub(requests, "createBucket");
       sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
     it("should execute expected request", () => {
       api.createBucket("foo");
 
-      sinon.assert.calledWithExactly(api.execute, {
-        body: {
-          permissions: {}
-        },
+      sinon.assert.calledWithMatch(requests.createBucket, "foo", {
         headers: {},
-        method: "PUT",
-        path: "/buckets/foo",
+        safe: false,
       });
     });
 
     it("should accept a safe option", () => {
       api.createBucket("foo", {safe: true});
 
-      sinon.assert.calledWithMatch(api.execute, {
-        headers: {"If-None-Match": "*"}
+      sinon.assert.calledWithMatch(requests.createBucket, "foo", {
+        safe: true
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      api.optionHeaders = {Foo: "Bar"};
+
+      api.createBucket("foo", {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.createBucket, "foo", {
+        headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
   });
@@ -600,6 +614,7 @@ describe("Api", () => {
       sinon.assert.calledWithExactly(requests.createCollection, {
         bucket: "default",
         headers: {},
+        safe: false,
       });
     });
 
@@ -628,6 +643,16 @@ describe("Api", () => {
 
       sinon.assert.calledWithMatch(requests.createCollection, {
         bucket: "myblog"
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      api.optionHeaders = {Foo: "Bar"};
+
+      api.createCollection({headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.createCollection, {
+        headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
   });
@@ -680,7 +705,8 @@ describe("Api", () => {
 
       sinon.assert.calledWithExactly(requests.createRecord, "foo", record, {
         bucket: "default",
-        headers: {}
+        headers: {},
+        safe: false,
       });
     });
 
@@ -711,6 +737,16 @@ describe("Api", () => {
         bucket: "myblog"
       });
     });
+
+    it("should extend request headers with optional ones", () => {
+      api.optionHeaders = {Foo: "Bar"};
+
+      api.createRecord("foo", record, {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.createRecord, "foo", record, {
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
+    });
   });
 
   describe("#updateRecord()", () => {
@@ -726,7 +762,8 @@ describe("Api", () => {
 
       sinon.assert.calledWithExactly(requests.updateRecord, "foo", record, {
         bucket: "default",
-        headers: {}
+        headers: {},
+        safe: false,
       });
     });
 
@@ -755,6 +792,16 @@ describe("Api", () => {
 
       sinon.assert.calledWithMatch(requests.updateRecord, "foo", record, {
         bucket: "myblog"
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      api.optionHeaders = {Foo: "Bar"};
+
+      api.updateRecord("foo", record, {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.updateRecord, "foo", record, {
+        headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
   });

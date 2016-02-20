@@ -32,6 +32,8 @@ export function createBucket(bucketName, options = {}) {
   if (!bucketName) {
     throw new Error("A bucket name is required.");
   }
+  // Note that we simply ignore any "bucket" option passed here, as the one
+  // we're interested in is the one provided as a required argument.
   const { headers, permissions, safe } = {
     safe: false,
     headers: {},
