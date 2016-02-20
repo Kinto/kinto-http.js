@@ -37,7 +37,6 @@
     "isomorphic-fetch": "^2.2.1"
   },
   "devDependencies": {
-    "babel": "^6.3.26",
     "babel-cli": "^6.4.5",
     "babel-core": "^6.3.26",
     "babel-eslint": "^5.0.0-beta6",
