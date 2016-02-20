@@ -433,4 +433,48 @@ describe("Integration tests", () => {
       });
     });
   });
+
+  describe.only("Chainable API", () => {
+    before(() => server.start());
+
+    after(() => server.stop());
+
+    describe(".collection()", () => {
+      let coll;
+
+      beforeEach(() => {
+        return server.flush()
+          .then(_ => {
+            coll = api.bucket("default").collection("plop");
+          });
+      });
+
+      describe(".getPermissions()", () => {
+        it("should retrieve permissions", () => {
+          return coll.getPermissions()
+            .should.eventually.have.property("write")
+            .to.have.length.of(1);
+        });
+      });
+
+      describe(".create()", () => {
+        it("should create a record", () => {
+          return coll
+            .createRecord({title: "foo"})
+            .should.eventually.have.property("data")
+                .to.have.property("title").eql("foo");
+        });
+      });
+
+      describe(".list()", () => {
+        it("should list records", () => {
+          return coll
+            .createRecord({title: "foo"})
+            .then(_ => coll.list())
+            .then(records => records.map(record => record.title))
+            .should.become(["foo"]);
+        });
+      });
+    });
+  });
 });

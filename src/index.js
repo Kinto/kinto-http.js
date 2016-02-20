@@ -8,6 +8,8 @@ import HTTP from "./http.js";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
 import { createBatch, aggregate } from "./batch";
+import { Bucket } from "./chain";
+
 
 /**
  * Currently supported protocol version.
@@ -147,6 +149,10 @@ export default class KintoClient {
     this.events.on("backoff", backoffMs => {
       this._backoffReleaseTime = backoffMs;
     });
+  }
+
+  bucket(name) {
+    return new Bucket(this, name);
   }
 
   /**
