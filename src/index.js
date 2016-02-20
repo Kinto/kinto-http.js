@@ -26,6 +26,8 @@ export default class KintoApi {
    * - {EventEmitter} events      The events handler. If none provided an
    *                              `EventEmitter` instance will be created.
    * - {Object}       headers     The key-value headers to pass to each request.
+   * - {Boolean}      safe        Adds concurrency headers to every requests
+   *                              (default: `false`).
    * - {String}       requestMode The HTTP request mode (from ES6 fetch spec).
    *
    * @param  {String} remote  The remote URL.
@@ -41,6 +43,7 @@ export default class KintoApi {
     this._backoffReleaseTime = null;
     this.remote = remote;
     this.defaultBucket = options.bucket || "default";
+    this.defaultSafe = !!options.safe;
 
     // public properties
     /**
@@ -115,11 +118,32 @@ export default class KintoApi {
 
   /**
    * Registers HTTP events.
+   * @private
    */
   _registerHTTPEvents() {
     this.events.on("backoff", backoffMs => {
       this._backoffReleaseTime = backoffMs;
     });
+  }
+
+  /**
+   * Generates a request options object, deeply merging the client configured
+   * defaults with the ones provided as argument.
+   *
+   * Note: Headers won't be overriden but merged with instance default ones.
+   *
+   * @private
+   * @param  {Object} options The request options.
+   * @return {Object}
+   */
+  _getRequestOptions(options={}) {
+    return {
+      safe: this.defaultSafe,
+      bucket: this.defaultBucket,
+      ...options,
+      // Note: headers should never be overriden but extended
+      headers: {...this.optionHeaders, ...options.headers},
+    };
   }
 
   /**
@@ -233,20 +257,7 @@ export default class KintoApi {
    * @return {Promise<{Object}, Error>}
    */
   batch(fn, options={}) {
-    const { safe, bucket, headers } = {
-      safe: false,
-      bucket: this.defaultBucket,
-      headers: {},
-      ...options
-    };
-    const batch = createBatch({
-      safe,
-      bucket,
-      headers: {
-        ...this.optionHeaders,
-        ...headers
-      }
-    });
+    const batch = createBatch(this._getRequestOptions(options));
     fn(batch);
     return this._batchRequests(batch.requests, options)
       .then((responses) => {
@@ -281,10 +292,9 @@ export default class KintoApi {
    * @return {Promise<{Object}, Error>}
    */
   createBucket(bucketName, options={}) {
-    return this.execute(requests.createBucket(bucketName, {
-      headers: {...this.optionHeaders, ...options.headers},
-      ...options,
-    })).then(res => res.json);
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(requests.createBucket(bucketName, reqOptions))
+      .then(res => res.json);
   }
 
   /**
@@ -299,11 +309,9 @@ export default class KintoApi {
    * @return {Promise<{Object}, Error>}
    */
   createCollection(options={}) {
-    return this.execute(requests.createCollection({
-      ...options,
-      bucket: options.bucket || this.defaultBucket,
-      headers: {...this.optionHeaders, ...options.headers},
-    })).then(res => res.json);
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(requests.createCollection(reqOptions))
+      .then(res => res.json);
   }
 
   /**
@@ -367,16 +375,9 @@ export default class KintoApi {
    * @return {Promise<{Object}, Error>}
    */
   createRecord(collName, record, options={}) {
-    const { bucket, headers } = {
-      bucket: this.defaultBucket,
-      headers: {},
-      ...options
-    };
-    return this.execute(requests.createRecord(collName, record, {
-      bucket,
-      headers: {...this.optionHeaders, ...headers},
-      ...options
-    })).then(res => res.json);
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(requests.createRecord(collName, record, reqOptions))
+      .then(res => res.json);
   }
 
   /**
@@ -388,15 +389,10 @@ export default class KintoApi {
    * @return {Promise<{Object}, Error>}
    */
   updateRecord(collName, record, options={}) {
-    const { bucket, headers } = {
-      bucket: this.defaultBucket,
-      headers: {},
-      ...options
-    };
-    return this.execute(requests.updateRecord(collName, record, {
-      bucket,
-      headers: {...this.optionHeaders, ...headers},
-      ...options
-    })).then(res => res.json);
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(requests.updateRecord(collName, record, reqOptions))
+      .then(res => res.json);
   }
 }
+
+
