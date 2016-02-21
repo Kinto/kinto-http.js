@@ -175,6 +175,51 @@ describe("Integration tests", () => {
       });
     });
 
+    describe("#getBucket", () => {
+      describe("Default bucket", () => {
+        let result;
+
+        beforeEach(() => {
+          return api.getBucket("default").then(res => result = res);
+        });
+
+        it("should retrieve the bucket internal uuid", () => {
+          expect(result.data).to.have.property("id").to.have.length.of(36);
+        });
+
+        it("should retrieve bucket last_modified value", () => {
+          expect(result.data).to.have.property("last_modified").to.be.gt(1);
+        });
+
+        it("should have permissions exposed", () => {
+          expect(result).to.have.property("permissions")
+            .to.have.property("write").to.have.length.of(1);
+        });
+      });
+
+      describe("Custom bucket", () => {
+        let result;
+
+        beforeEach(() => {
+          return api.createBucket("buck")
+            .then(_ => api.getBucket("buck").then(res => result = res));
+        });
+
+        it("should retrieve the bucket identifier", () => {
+          expect(result.data).to.have.property("id").eql("buck");
+        });
+
+        it("should retrieve bucket last_modified value", () => {
+          expect(result.data).to.have.property("last_modified").to.be.gt(1);
+        });
+
+        it("should have permissions exposed", () => {
+          expect(result).to.have.property("permissions")
+            .to.have.property("write").to.have.length.of(1);
+        });
+      });
+    });
+
     describe("#getCollection", () => {
       let collectionData;
 
@@ -484,6 +529,12 @@ describe("Integration tests", () => {
           return bucket.getCollections()
             .then(colls => colls.map(coll => coll.id))
             .should.become(["b1", "b2"]);
+        });
+      });
+
+      describe.skip(".getPermissions", () => {
+        it("description", () => {
+          // body...
         });
       });
     });

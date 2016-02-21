@@ -99,7 +99,6 @@ export class Collection {
   }
 
   batch(fn, options) {
-    // XXX bind with collection name as first arg
     return this.client.batch(fn, {
       ...options,
       collection: this.name,
