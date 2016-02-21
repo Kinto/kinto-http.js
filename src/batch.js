@@ -50,7 +50,7 @@ export function createBatch(options={}) {
   for (const method in requests) {
     batch[method] = function(...args) {
       const reqOptions = {safe, bucket, headers, collection};
-      const reqArgs = collection && /Record$/.test(method) ?
+      const reqArgs = collection && method.endsWith("Record") ?
                       [collection].concat(args) : args;
       const request = callWithOptions(requests[method], reqArgs, reqOptions);
       batch.requests.push({
