@@ -117,6 +117,31 @@ export function updateCollection(id, metas, options = {}) {
 /**
  * @private
  */
+export function updateBucket(id, metas, options = {}) {
+  if (!id) {
+    throw new Error("A bucket id is required.");
+  }
+  if (typeof metas !== "object") {
+    throw new Error("A metas object is required.");
+  }
+  const { headers, permissions, safe } = {
+    ...requestDefaults,
+    ...options
+  };
+  return handleCacheHeaders(safe, {
+    method: "PUT",
+    path: endpoint("bucket", id),
+    headers,
+    body: {
+      data: metas,
+      permissions
+    }
+  });
+}
+
+/**
+ * @private
+ */
 export function createRecord(collName, record, options = {}) {
   if (!collName) {
     throw new Error("A collection name is required.");

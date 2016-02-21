@@ -133,6 +133,43 @@ describe("requests module", () => {
     });
   });
 
+  describe("updateBucket()", () => {
+    it("should require a bucket id", () => {
+      expect(() => requests.updateBucket())
+        .to.Throw(Error, /required/);
+    });
+
+    it("should return a bucket update request", () => {
+      expect(requests.updateBucket("foo", {})).eql({
+        body: {
+          permissions: {},
+          data: {}
+        },
+        headers: {},
+        method: "PUT",
+        path: "/buckets/foo",
+      });
+    });
+
+    it("should accept a headers option", () => {
+      expect(requests.updateBucket("foo", {}, {headers: {Foo: "Bar"}}))
+        .to.have.property("headers").eql({Foo: "Bar"});
+    });
+
+    it("should accept a permissions option", () => {
+      const permissions = {read: ["github:n1k0"]};
+      expect(requests.updateBucket("foo", {}, {permissions}))
+        .to.have.property("body")
+        .to.have.property("permissions").eql(permissions);
+    });
+
+    it("should handle metas", () => {
+      expect(requests.updateBucket("foo", {a: 1}))
+        .to.have.property("body")
+        .to.have.property("data").eql({a: 1});
+    });
+  });
+
   describe("createRecord()", () => {
     const record = {title: "foo"};
 

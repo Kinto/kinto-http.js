@@ -807,6 +807,82 @@ describe("KintoClient", () => {
     });
   });
 
+  /** @test {KintoClient#getBucket} */
+  describe("#getBucket()", () => {
+    beforeEach(() => {
+      sandbox.stub(api, "execute").returns(Promise.resolve());
+    });
+
+    it("should execute expected request", () => {
+      api.getBucket("foo");
+
+      sinon.assert.calledWithMatch(api.execute, {
+        path: "/buckets/foo",
+      });
+    });
+  });
+
+  /** @test {KintoClient#updateBucket} */
+  describe("#updateBucket", () => {
+    beforeEach(() => {
+      sandbox.stub(requests, "updateBucket");
+      sandbox.stub(api, "execute").returns(Promise.resolve());
+    });
+
+    it("should execute expected request", () => {
+      api.updateBucket("foo", {});
+
+      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {}, {
+        headers: {},
+        safe: false,
+      });
+    });
+
+    it("should accept a safe option", () => {
+      api.updateBucket("foo", {}, {safe: true});
+
+      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {}, {
+        safe: true
+      });
+    });
+
+    it("should use instance default bucket option", () => {
+      api.defaultBucket = "custom";
+
+      api.updateBucket("foo", {});
+
+      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {}, {
+        bucket: "custom"
+      });
+    });
+
+    it("should allow overriding the default instance bucket option", () => {
+      api.defaultBucket = "custom";
+
+      api.updateBucket("foo", {}, {bucket: "myblog"});
+
+      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {}, {
+        bucket: "myblog"
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      api.optionHeaders = {Foo: "Bar"};
+
+      api.updateBucket("foo", {}, {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {}, {
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
+    });
+
+    it("should send metas along the request", () => {
+      api.updateBucket("foo", {a: 1});
+
+      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {a: 1});
+    });
+  });
+
   /** @test {KintoClient#createRecord} */
   describe("#createRecord()", () => {
     const record = {title: "bar"};

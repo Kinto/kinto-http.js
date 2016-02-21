@@ -362,6 +362,26 @@ export default class KintoClient {
   }
 
   /**
+   * Updates a bucket on the server.
+   *
+   * Note: metadatas are not supported by the bucket endpoints on Kinto server,
+   * though that is planned, hence a future-proof API here.
+   *
+   * @param  {String}  bucketName          The bucket name.
+   * @param  {Object}  metas               The metadata object.
+   * @param  {Object}  options             The options object.
+   * @param  {Boolean} options.safe        The safe option.
+   * @param  {Object}  options.headers     The headers object option.
+   * @param  {Object}  options.permissions The permissions object.
+   * @return {Promise<Object, Error>}
+   */
+  updateBucket(bucketName, metas, options={}) {
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(requests.updateBucket(bucketName, metas, reqOptions))
+      .then(res => res.json);
+  }
+
+  /**
    * Retrieves the list of collections attached to a given bucket.
    *
    * @param  {String} bucketName      The bucket name.
