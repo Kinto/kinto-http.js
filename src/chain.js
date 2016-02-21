@@ -7,6 +7,10 @@ export class Bucket {
   collection(name) {
     return new Collection(this.client, this, name);
   }
+
+  getCollections() {
+    return this.client.getCollections(this.name);
+  }
 }
 
 export class Collection {

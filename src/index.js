@@ -346,6 +346,22 @@ export default class KintoClient {
   }
 
   /**
+   * Retrieves the list of collections attached to a given bucket.
+   *
+   * @param  {String} bucketName      The bucket name.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @return {Promise<String[], Error>}
+   */
+  getCollections(bucketName, options={}) {
+    return this.execute({
+      path: endpoint("collections", bucketName),
+      headers: {...this.optionHeaders, ...options.headers}
+    })
+      .then(res => res.json && res.json.data);
+  }
+
+  /**
    * Creates a new collection on the server.
    *
    * @param  {Object}   options         The options object.

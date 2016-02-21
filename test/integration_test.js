@@ -457,6 +457,28 @@ describe("Integration tests", () => {
 
     after(() => server.stop());
 
+    describe(".bucket()", () => {
+      let bucket;
+
+      beforeEach(() => {
+        return api.batch(batch => {
+          batch.createCollection({id: "b1"});
+          batch.createCollection({id: "b2"});
+        })
+          .then(_ => {
+            bucket = api.bucket("default");
+          });
+      });
+
+      describe(".getCollections()", () => {
+        it("should list existing collections", () => {
+          return bucket.getCollections()
+            .then(colls => colls.map(coll => coll.id))
+            .should.become(["b1", "b2"]);
+        });
+      });
+    });
+
     describe(".collection()", () => {
       let coll;
 
