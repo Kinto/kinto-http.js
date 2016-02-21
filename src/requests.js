@@ -88,19 +88,29 @@ export function createCollection(options = {}) {
 /**
  * @private
  */
-export function updateCollection(id, options = {}) {
+export function updateCollection(id, metas, options = {}) {
   if (!id) {
     throw new Error("A collection id is required.");
   }
-  const { bucket, headers, permissions, data, safe } = {
+  if (typeof metas !== "object") {
+    throw new Error("A metas object is required.");
+  }
+  const { bucket, headers, permissions, data, schema, safe } = {
     ...requestDefaults,
     ...options
   };
+  const requestData = {...data, ...metas};
+  if (options.schema) {
+    requestData.schema = schema;
+  }
   return handleCacheHeaders(safe, {
     method: "PUT",
     path: endpoint("collection", bucket, id),
     headers,
-    body: {data, permissions}
+    body: {
+      data: requestData,
+      permissions
+    }
   });
 }
 

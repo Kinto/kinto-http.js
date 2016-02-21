@@ -605,6 +605,7 @@ describe("KintoClient", () => {
     });
   });
 
+  /** @test {KintoClient#getCollections} */
   describe("#getCollections()", () => {
     const data = [
       {id: "c1", last_modified: 1},
@@ -695,15 +696,17 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#updateCollection} */
   describe("#updateCollection()", () => {
+    const metas = {sampleData: 1};
+
     beforeEach(() => {
       sandbox.stub(requests, "updateCollection");
       sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
     it("should execute expected request", () => {
-      api.updateCollection("plop");
+      api.updateCollection("plop", metas);
 
-      sinon.assert.calledWithExactly(requests.updateCollection, "plop", {
+      sinon.assert.calledWithExactly(requests.updateCollection, "plop", metas, {
         bucket: "default",
         headers: {},
         safe: false,
@@ -711,9 +714,9 @@ describe("KintoClient", () => {
     });
 
     it("should accept a safe option", () => {
-      api.updateCollection("plop", {safe: true});
+      api.updateCollection("plop", metas, {safe: true});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", {
+      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metas, {
         safe: true
       });
     });
@@ -721,9 +724,9 @@ describe("KintoClient", () => {
     it("should use instance default bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.updateCollection("plop");
+      api.updateCollection("plop", metas);
 
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", {
+      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metas, {
         bucket: "custom"
       });
     });
@@ -731,9 +734,9 @@ describe("KintoClient", () => {
     it("should allow overriding the default instance bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.updateCollection("plop", {bucket: "myblog"});
+      api.updateCollection("plop", metas, {bucket: "myblog"});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", {
+      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metas, {
         bucket: "myblog"
       });
     });
@@ -741,10 +744,30 @@ describe("KintoClient", () => {
     it("should extend request headers with optional ones", () => {
       api.optionHeaders = {Foo: "Bar"};
 
-      api.updateCollection("plop", {headers: {Baz: "Qux"}});
+      api.updateCollection("plop", metas, {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", {
+      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metas, {
         headers: {Foo: "Bar", Baz: "Qux"}
+      });
+    });
+
+    it("should accept a permissions option", () => {
+      const permissions = {permissions: {write: ["github:n1k0"]}};
+
+      api.updateCollection("plop", metas, {permissions});
+
+      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metas, {
+        permissions
+      });
+    });
+
+    it("should accept a schema option", () => {
+      const schema = {title: "boo"};
+
+      api.updateCollection("plop", metas, {schema});
+
+      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metas, {
+        schema
       });
     });
   });
@@ -756,21 +779,20 @@ describe("KintoClient", () => {
     });
 
     it("should execute expected request", () => {
-      api.getCollection();
+      api.getCollection("foo");
 
       sinon.assert.calledWithMatch(api.execute, {
-        bucket: "default",
-        headers: {}
+        path: "/buckets/default/collections/foo",
       });
     });
 
     it("should use instance default bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.getCollection();
+      api.getCollection("foo");
 
       sinon.assert.calledWithMatch(api.execute, {
-        bucket: "custom"
+        path: "/buckets/custom/collections/foo",
       });
     });
 

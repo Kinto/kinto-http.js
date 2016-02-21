@@ -91,7 +91,7 @@ describe("requests module", () => {
     });
 
     it("should return a collection update request", () => {
-      expect(requests.updateCollection("foo", {data: {schema}})).eql({
+      expect(requests.updateCollection("foo", {}, {schema})).eql({
         body: {
           permissions: {},
           data: {schema}
@@ -103,20 +103,33 @@ describe("requests module", () => {
     });
 
     it("should accept a bucket option", () => {
-      expect(requests.updateCollection("foo", {bucket: "custom"}))
+      expect(requests.updateCollection("foo", {}, {bucket: "custom"}))
         .to.have.property("path").eql("/buckets/custom/collections/foo");
     });
 
     it("should accept a headers option", () => {
-      expect(requests.updateCollection("foo", {headers: {Foo: "Bar"}}))
+      expect(requests.updateCollection("foo", {}, {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     it("should accept a permissions option", () => {
       const permissions = {read: ["github:n1k0"]};
-      expect(requests.updateCollection("foo", {permissions}))
+      expect(requests.updateCollection("foo", {}, {permissions}))
         .to.have.property("body")
         .to.have.property("permissions").eql(permissions);
+    });
+
+    it("should accept a schema option", () => {
+      expect(requests.updateCollection("foo", {}, {schema}))
+        .to.have.property("body")
+        .to.have.property("data")
+        .to.have.property("schema").eql(schema);
+    });
+
+    it("should handle metas", () => {
+      expect(requests.updateCollection("foo", {a: 1}))
+        .to.have.property("body")
+        .to.have.property("data").eql({a: 1});
     });
   });
 

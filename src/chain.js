@@ -26,7 +26,10 @@ export class Collection {
     if (this._permissions && !options.forceReload) {
       return Promise.resolve(this._permissions);
     }
-    return this.client.getCollection(this.name)
+    return this.client.getCollection(this.name, {
+      ...options,
+      bucket: this.bucket.name
+    })
       .then(res => {
         this._permissions = res.permissions;
         return this._permissions;
@@ -37,16 +40,21 @@ export class Collection {
     if (["read", "write"].indexOf(type) === -1) {
       throw new Error("Permissions type must be read or write.");
     }
-    return this.client.updateCollection(this.name, {
-      permissions: {[type]: permissions}
-    }, {...options, bucket: this.bucket.name});
+    return this.client.updateCollection(this.name, {}, {
+      ...options,
+      permissions: {[type]: permissions},
+      bucket: this.bucket.name
+    });
   }
 
   getSchema(options={forceReload: false}) {
     if (this._schema && !options.forceReload) {
       return Promise.resolve(this._schema);
     }
-    return this.client.getCollection(this.name)
+    return this.client.getCollection(this.name, {
+      ...options,
+      bucket: this.bucket.name
+    })
       .then(res => {
         this._schema = res.data && res.data.schema || null;
         return this._schema;
@@ -54,8 +62,9 @@ export class Collection {
   }
 
   setSchema(schema, options) {
-    return this.client.updateCollection(this.name, {data: {schema}}, {
+    return this.client.updateCollection(this.name, {}, {
       ...options,
+      schema,
       bucket: this.bucket.name
     });
   }

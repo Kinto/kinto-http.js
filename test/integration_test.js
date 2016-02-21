@@ -155,14 +155,23 @@ describe("Integration tests", () => {
           title: {type: "string"}
         }
       };
+      const metas = {isMeta: true};
 
-      beforeEach(() => api.createCollection("plop"));
+      beforeEach(() => {
+        return api.createCollection("plop")
+          .then(_ => api.updateCollection("plop", metas, {schema}));
+      });
 
-      it("should update a collection", () => {
-        return api.updateCollection("plop", {data: {schema}})
-          .then(_ => api.getCollection("plop"))
+      it("should update a collection schema", () => {
+        return api.getCollection("plop")
           .then(({data}) => data.schema)
           .should.become(schema);
+      });
+
+      it("should update a collection metas", () => {
+        return api.getCollection("plop")
+          .should.eventually.have.property("data")
+          .to.have.property("isMeta").eql(true);
       });
     });
 
@@ -482,112 +491,225 @@ describe("Integration tests", () => {
     describe(".collection()", () => {
       let coll;
 
-      beforeEach(() => {
-        return server.flush()
-          .then(_ => {
-            coll = api.bucket("default").collection("plop");
-          });
-      });
+      beforeEach(() => server.flush());
 
-      describe(".getPermissions()", () => {
-        it("should retrieve permissions", () => {
-          return coll.getPermissions()
-            .should.eventually.have.property("write")
-            .to.have.length.of(1);
-        });
-      });
-
-      describe(".setPermissions()", () => {
-        it("should set typed permissions", () => {
-          return coll.setPermissions("read", ["github:n1k0"])
-            .then(_ => coll.getPermissions())
-            .should.eventually.have.property("read")
-            .eql(["github:n1k0"]);
-        });
-      });
-
-      describe(".getSchema()", () => {
-        const schema = {
-          type: "object",
-          properties: {
-            title: {type: "string"}
-          }
-        };
-
+      describe("default bucket", () => {
         beforeEach(() => {
-          return api.updateCollection("plop", {data: {schema}});
+          coll = api.bucket("default").collection("plop");
         });
 
-        it("should retrieve collection schema", () => {
-          return coll.getSchema()
-            .should.become(schema);
+        describe(".getPermissions()", () => {
+          it("should retrieve permissions", () => {
+            return coll.getPermissions()
+              .should.eventually.have.property("write")
+              .to.have.length.of(1);
+          });
+        });
+
+        describe(".setPermissions()", () => {
+          it("should set typed permissions", () => {
+            return coll.setPermissions("read", ["github:n1k0"])
+              .then(_ => coll.getPermissions())
+              .should.eventually.have.property("read")
+              .eql(["github:n1k0"]);
+          });
+        });
+
+        describe(".getSchema()", () => {
+          const schema = {
+            type: "object",
+            properties: {
+              title: {type: "string"}
+            }
+          };
+
+          beforeEach(() => {
+            return api.updateCollection("plop", {}, {schema});
+          });
+
+          it("should retrieve collection schema", () => {
+            return coll.getSchema()
+              .should.become(schema);
+          });
+        });
+
+        describe(".setSchema()", () => {
+          const schema = {
+            type: "object",
+            properties: {
+              title: {type: "string"}
+            }
+          };
+
+          it("should set the collection schema", () => {
+            return coll.setSchema(schema)
+              .then(_ => coll.getSchema())
+              .should.become(schema);
+          });
+        });
+
+        describe(".createRecord()", () => {
+          it("should create a record", () => {
+            return coll
+              .createRecord({title: "foo"})
+              .should.eventually.have.property("data")
+                  .to.have.property("title").eql("foo");
+          });
+        });
+
+        describe(".updateRecord()", () => {
+          it("should update a record", () => {
+            return coll
+              .createRecord({title: "foo"})
+              .then(({data}) => coll.updateRecord({...data, title: "mod"}))
+              .then(_ => coll.list())
+              .then((records) => records[0].title)
+              .should.become("mod");
+          });
+        });
+
+        describe(".deleteRecord()", () => {
+          it("should delete a record", () => {
+            return coll
+              .createRecord({title: "foo"})
+              .then(({data}) => coll.deleteRecord(data.id))
+              .then(_ => coll.list())
+              .should.become([]);
+          });
+        });
+
+        describe(".list()", () => {
+          it("should list records", () => {
+            return coll
+              .createRecord({title: "foo"})
+              .then(_ => coll.list())
+              .then(records => records.map(record => record.title))
+              .should.become(["foo"]);
+          });
+        });
+
+        describe(".batch()", () => {
+          it("should allow batching operations in the current collection", () => {
+            return coll.batch(batch => {
+              batch.createRecord({title: "a"});
+              batch.createRecord({title: "b"});
+            })
+              .then(_ => coll.list({sort: "title"}))
+              .then(records => records.map(record => record.title))
+              .should.become(["a", "b"]);
+          });
         });
       });
 
-      describe(".setSchema()", () => {
-        const schema = {
-          type: "object",
-          properties: {
-            title: {type: "string"}
-          }
-        };
-
-        it("should set the collection schema", () => {
-          return coll.setSchema(schema)
-            .then(_ => coll.getSchema())
-            .should.become(schema);
+      describe("custom bucket", () => {
+        beforeEach(() => {
+          return api.createBucket("custom")
+            .then(_ => api.createCollection({id: "plop", bucket: "custom"}))
+            .then(_ => {
+              coll = api.bucket("custom").collection("plop");
+            });
         });
-      });
 
-      describe(".createRecord()", () => {
-        it("should create a record", () => {
-          return coll
-            .createRecord({title: "foo"})
-            .should.eventually.have.property("data")
-                .to.have.property("title").eql("foo");
+        describe(".getPermissions()", () => {
+          it("should retrieve permissions", () => {
+            return coll.getPermissions()
+              .should.eventually.have.property("write")
+              .to.have.length.of(1);
+          });
         });
-      });
 
-      describe(".updateRecord()", () => {
-        it("should update a record", () => {
-          return coll
-            .createRecord({title: "foo"})
-            .then(({data}) => coll.updateRecord({...data, title: "mod"}))
-            .then(_ => coll.list())
-            .then((records) => records[0].title)
-            .should.become("mod");
+        describe(".setPermissions()", () => {
+          it("should set typed permissions", () => {
+            return coll.setPermissions("read", ["github:n1k0"])
+              .then(_ => coll.getPermissions())
+              .should.eventually.have.property("read")
+              .eql(["github:n1k0"]);
+          });
         });
-      });
 
-      describe(".deleteRecord()", () => {
-        it("should delete a record", () => {
-          return coll
-            .createRecord({title: "foo"})
-            .then(({data}) => coll.deleteRecord(data.id))
-            .then(_ => coll.list())
-            .should.become([]);
+        describe(".getSchema()", () => {
+          const schema = {
+            type: "object",
+            properties: {
+              title: {type: "string"}
+            }
+          };
+
+          beforeEach(() => {
+            return api.updateCollection("plop", {}, {bucket: "custom", schema});
+          });
+
+          it("should retrieve collection schema", () => {
+            return coll.getSchema()
+              .should.become(schema);
+          });
         });
-      });
 
-      describe(".list()", () => {
-        it("should list records", () => {
-          return coll
-            .createRecord({title: "foo"})
-            .then(_ => coll.list())
-            .then(records => records.map(record => record.title))
-            .should.become(["foo"]);
+        describe(".setSchema()", () => {
+          const schema = {
+            type: "object",
+            properties: {
+              title: {type: "string"}
+            }
+          };
+
+          it("should set the collection schema", () => {
+            return coll.setSchema(schema)
+              .then(_ => coll.getSchema())
+              .should.become(schema);
+          });
         });
-      });
 
-      describe(".batch()", () => {
-        it("should allow batching operations in the current collection", () => {
-          return coll.batch(batch => {
-            batch.createRecord({title: "a"});
-            batch.createRecord({title: "b"});
-          })
-            .then(_ => coll.list({sort: "title"}))
-            .then(records => records.map(record => record.title))
-            .should.become(["a", "b"]);
+        describe(".createRecord()", () => {
+          it("should create a record", () => {
+            return coll
+              .createRecord({title: "foo"})
+              .should.eventually.have.property("data")
+                  .to.have.property("title").eql("foo");
+          });
+        });
+
+        describe(".updateRecord()", () => {
+          it("should update a record", () => {
+            return coll
+              .createRecord({title: "foo"})
+              .then(({data}) => coll.updateRecord({...data, title: "mod"}))
+              .then(_ => coll.list())
+              .then((records) => records[0].title)
+              .should.become("mod");
+          });
+        });
+
+        describe(".deleteRecord()", () => {
+          it("should delete a record", () => {
+            return coll
+              .createRecord({title: "foo"})
+              .then(({data}) => coll.deleteRecord(data.id))
+              .then(_ => coll.list())
+              .should.become([]);
+          });
+        });
+
+        describe(".list()", () => {
+          it("should list records", () => {
+            return coll
+              .createRecord({title: "foo"})
+              .then(_ => coll.list())
+              .then(records => records.map(record => record.title))
+              .should.become(["foo"]);
+          });
+        });
+
+        describe(".batch()", () => {
+          it("should allow batching operations in the current collection", () => {
+            return coll.batch(batch => {
+              batch.createRecord({title: "a"});
+              batch.createRecord({title: "b"});
+            })
+              .then(_ => coll.list({sort: "title"}))
+              .then(records => records.map(record => record.title))
+              .should.become(["a", "b"]);
+          });
         });
       });
     });
