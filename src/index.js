@@ -448,7 +448,7 @@ export default class KintoClient {
    * Updates a record in a given collection.
    *
    * @param  {String}   collName        The collection name.
-   * @param  {Object}   record          The record object.
+   * @param  {Object}   record          The updated record object.
    * @param  {Object}   options         The options object.
    * @param  {Boolean}  options.safe    The safe option.
    * @param  {String}   options.bucket  The bucket name option.
@@ -458,6 +458,25 @@ export default class KintoClient {
   updateRecord(collName, record, options={}) {
     const reqOptions = this._getRequestOptions(options);
     return this.execute(requests.updateRecord(collName, record, reqOptions))
+      .then(res => res.json);
+  }
+
+  /**
+   * Deletes a record in a given collection.
+   *
+   * @param  {String}   collName             The collection name.
+   * @param  {String}   id                   The record id to delete.
+   * @param  {Object}   options              The options object.
+   * @param  {Boolean}  options.safe         The safe option.
+   * @param  {String}   options.bucket       The bucket name option.
+   * @param  {Object}   options.headers      The headers object option.
+   * @param  {Object}   options.lastModified The last_modified value to use when
+   * the `safe` option is used.
+   * @return {Promise<Object, Error>}
+   */
+  deleteRecord(collName, id, options={}) {
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(requests.deleteRecord(collName, id, reqOptions))
       .then(res => res.json);
   }
 }

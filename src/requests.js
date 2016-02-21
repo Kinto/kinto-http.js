@@ -157,3 +157,29 @@ export function updateRecord(collName, record, options = {}) {
     }
   });
 }
+
+/**
+ * @private
+ */
+export function deleteRecord(collName, id, options = {}) {
+  if (!collName) {
+    throw new Error("A collection name is required.");
+  }
+  if (!id) {
+    throw new Error("A record id is required.");
+  }
+  const { bucket, headers, safe } = {
+    safe: false,
+    headers: {},
+    bucket: "default",
+    ...options
+  };
+  return handleCacheHeaders(safe, {
+    method: "DELETE",
+    path: endpoint("record", bucket, collName, id),
+    headers,
+    body: {
+      data: {last_modified: options.lastModified}
+    }
+  });
+}

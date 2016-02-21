@@ -537,6 +537,16 @@ describe("Integration tests", () => {
         });
       });
 
+      describe(".deleteRecord()", () => {
+        it("should delete a record", () => {
+          return coll
+            .createRecord({title: "foo"})
+            .then(({data}) => coll.deleteRecord(data.id))
+            .then(_ => coll.list())
+            .should.become([]);
+        });
+      });
+
       describe(".list()", () => {
         it("should list records", () => {
           return coll

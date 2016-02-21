@@ -212,14 +212,57 @@ describe("requests module", () => {
 
     describe("should add cache headers when the safe option is true", () => {
       it("for a record with no last_modified", () => {
-        expect(requests.createRecord("foo", record, {safe: true}))
+        expect(requests.updateRecord("foo", record, {safe: true}))
           .to.have.property("headers")
           .eql({"If-None-Match": "*"});
       });
 
       it("for a record with last_modified set", () => {
         const existingRecord = {...record, last_modified: 42};
-        expect(requests.createRecord("foo", existingRecord, {safe: true}))
+        expect(requests.updateRecord("foo", existingRecord, {safe: true}))
+          .to.have.property("headers")
+          .eql({"If-Match": "\"42\""});
+      });
+    });
+  });
+
+  describe("deleteRecord()", () => {
+    it("should throw if collName is missing", () => {
+      expect(() => requests.deleteRecord())
+        .to.Throw(Error, /required/);
+    });
+
+    it("should return a record creation request", () => {
+      expect(requests.deleteRecord("foo", 42)).eql({
+        body: {data: {last_modified: undefined}},
+        headers: {},
+        method: "DELETE",
+        path: "/buckets/default/collections/foo/records/42",
+      });
+    });
+
+    it("should accept a bucket option", () => {
+      expect(requests.deleteRecord("foo", 42, {bucket: "custom"}))
+        .to.have.property("path").eql("/buckets/custom/collections/foo/records/42");
+    });
+
+    it("should accept a headers option", () => {
+      expect(requests.deleteRecord("foo", 42, {headers: {Foo: "Bar"}}))
+        .to.have.property("headers").eql({Foo: "Bar"});
+    });
+
+    describe("should add cache headers when the safe option is true", () => {
+      it("for a record with no last_modified", () => {
+        expect(requests.deleteRecord("foo", 42, {safe: true}))
+          .to.have.property("headers")
+          .eql({"If-None-Match": "*"});
+      });
+
+      it("for a record with a last_modified option set", () => {
+        expect(requests.deleteRecord("foo", 1337, {
+          safe: true,
+          lastModified: 42
+        }))
           .to.have.property("headers")
           .eql({"If-Match": "\"42\""});
       });

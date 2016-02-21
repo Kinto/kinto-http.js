@@ -70,8 +70,11 @@ export class Collection {
     });
   }
 
-  deleteRecord(id) {
-
+  deleteRecord(id, options) {
+    return this.client.deleteRecord(this.name, id, {
+      ...options,
+      bucket: this.bucket.name
+    });
   }
 
   list(options) {

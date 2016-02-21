@@ -868,4 +868,60 @@ describe("KintoClient", () => {
       });
     });
   });
+
+  /** @test {KintoClient#deleteRecord} */
+  describe("#deleteRecord()", () => {
+    beforeEach(() => {
+      sandbox.stub(requests, "deleteRecord");
+      sandbox.stub(api, "execute").returns(Promise.resolve());
+    });
+
+    it("should execute expected request", () => {
+      api.deleteRecord("foo", 42);
+
+      sinon.assert.calledWithExactly(requests.deleteRecord, "foo", 42, {
+        bucket: "default",
+        headers: {},
+        safe: false,
+      });
+    });
+
+    it("should accept a safe option", () => {
+      api.deleteRecord("foo", 42, {safe: true});
+
+      sinon.assert.calledWithMatch(requests.deleteRecord, "foo", 42, {
+        safe: true
+      });
+    });
+
+    it("should use instance default bucket option", () => {
+      api.defaultBucket = "custom";
+
+      api.deleteRecord("foo", 42);
+
+      sinon.assert.calledWithMatch(requests.deleteRecord, "foo", 42, {
+        bucket: "custom"
+      });
+    });
+
+    it("should allow overriding the default instance bucket option", () => {
+      api.defaultBucket = "custom";
+
+      api.deleteRecord("foo", 42, {bucket: "myblog"});
+
+      sinon.assert.calledWithMatch(requests.deleteRecord, "foo", 42, {
+        bucket: "myblog"
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      api.optionHeaders = {Foo: "Bar"};
+
+      api.deleteRecord("foo", 42, {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.deleteRecord, "foo", 42, {
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
+    });
+  });
 });
