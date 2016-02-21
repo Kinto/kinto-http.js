@@ -385,6 +385,19 @@ export default class KintoClient {
   }
 
   /**
+   * Updates a collection.
+   *
+   * @param  {String} id      The collection id.
+   * @param  {Object} options The options object.
+   * @return {Promise<Object, Error>}
+   */
+  updateCollection(id, options={}) {
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(requests.updateCollection(id, reqOptions))
+      .then(res => res.json);
+  }
+
+  /**
    * Get a list of records for a given collection from the server.
    *
    * Note: Because of a bug on the server, the order of records is not

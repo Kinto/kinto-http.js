@@ -148,6 +148,24 @@ describe("Integration tests", () => {
       });
     });
 
+    describe("#updateCollection", () => {
+      const schema = {
+        type: "object",
+        properties: {
+          title: {type: "string"}
+        }
+      };
+
+      beforeEach(() => api.createCollection("plop"));
+
+      it("should update a collection", () => {
+        return api.updateCollection("plop", {data: {schema}})
+          .then(_ => api.getCollection("plop"))
+          .then(({data}) => data.schema)
+          .should.become(schema);
+      });
+    });
+
     describe("#getCollection", () => {
       let collectionData;
 
@@ -454,6 +472,30 @@ describe("Integration tests", () => {
           return coll.getPermissions()
             .should.eventually.have.property("write")
             .to.have.length.of(1);
+        });
+      });
+
+      describe(".getSchema()", () => {
+        const schema = {
+          type: "object",
+          properties: {
+            title: {type: "string"}
+          }
+        };
+
+        beforeEach(() => {
+          return api.updateCollection("plop", {data: {schema}});
+        });
+
+        it("should retrieve collection schema", () => {
+          return coll.getSchema()
+            .should.become(schema);
+        });
+      });
+
+      describe.skip(".setSchema()", () => {
+        it("description", () => {
+          // body...
         });
       });
 

@@ -85,6 +85,29 @@ export function createCollection(options = {}) {
 /**
  * @private
  */
+export function updateCollection(id, options = {}) {
+  if (!id) {
+    throw new Error("A collection id is required.");
+  }
+  const { bucket, headers, permissions, data, safe } = {
+    safe: false,
+    headers: {},
+    permissions: {},
+    bucket: "default",
+    data: {},
+    ...options
+  };
+  return handleCacheHeaders(safe, {
+    method: "PUT",
+    path: endpoint("collection", bucket, id),
+    headers,
+    body: {data, permissions}
+  });
+}
+
+/**
+ * @private
+ */
 export function createRecord(collName, record, options = {}) {
   if (!collName) {
     throw new Error("A collection name is required.");

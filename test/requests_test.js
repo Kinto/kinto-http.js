@@ -82,6 +82,44 @@ describe("requests module", () => {
     });
   });
 
+  describe("updateCollection()", () => {
+    const schema = {title: "foo schema"};
+
+    it("should require a collection id", () => {
+      expect(() => requests.updateCollection())
+        .to.Throw(Error, /required/);
+    });
+
+    it("should return a collection update request", () => {
+      expect(requests.updateCollection("foo", {data: {schema}})).eql({
+        body: {
+          permissions: {},
+          data: {schema}
+        },
+        headers: {},
+        method: "PUT",
+        path: "/buckets/default/collections/foo",
+      });
+    });
+
+    it("should accept a bucket option", () => {
+      expect(requests.updateCollection("foo", {bucket: "custom"}))
+        .to.have.property("path").eql("/buckets/custom/collections/foo");
+    });
+
+    it("should accept a headers option", () => {
+      expect(requests.updateCollection("foo", {headers: {Foo: "Bar"}}))
+        .to.have.property("headers").eql({Foo: "Bar"});
+    });
+
+    it("should accept a permissions option", () => {
+      const permissions = {read: ["github:n1k0"]};
+      expect(requests.updateCollection("foo", {permissions}))
+        .to.have.property("body")
+        .to.have.property("permissions").eql(permissions);
+    });
+  });
+
   describe("createRecord()", () => {
     const record = {title: "foo"};
 

@@ -15,6 +15,7 @@ export class Collection {
     this.bucket = bucket;
     this.name = name;
     this._permissions = null;
+    this._schema = null;
   }
 
   getPermissions(options={forceReload: false}) {
@@ -24,7 +25,7 @@ export class Collection {
     return this.client.getCollection(this.name)
       .then(res => {
         this._permissions = res.permissions;
-        return res.permissions;
+        return this._permissions;
       });
   }
 
@@ -32,8 +33,15 @@ export class Collection {
     //return this.client.updateCollection();
   }
 
-  getSchema() {
-    //
+  getSchema(options={forceReload: false}) {
+    if (this._schema && !options.forceReload) {
+      return Promise.resolve(this._schema);
+    }
+    return this.client.getCollection(this.name)
+      .then(res => {
+        this._schema = res.data && res.data.schema || null;
+        return this._schema;
+      });
   }
 
   setSchema() {
