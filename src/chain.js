@@ -23,6 +23,16 @@ export class Bucket {
         return this._permissions;
       });
   }
+
+  setPermissions(type, permissions, options) {
+    if (["read", "write"].indexOf(type) === -1) {
+      throw new Error("Permissions type must be read or write.");
+    }
+    return this.client.updateBucket(this.name, {}, {
+      ...options,
+      permissions: {[type]: permissions},
+    });
+  }
 }
 
 export class Collection {

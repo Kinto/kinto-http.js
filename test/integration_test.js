@@ -538,6 +538,14 @@ describe("Integration tests", () => {
             .should.eventually.have.property("write").to.have.length.of(1);
         });
       });
+
+      describe(".setPermissions", () => {
+        it("should set bucket permissions", () => {
+          return bucket.setPermissions("read", ["github:n1k0"])
+            .then(_ => bucket.getPermissions())
+            .should.eventually.have.property("read").eql(["github:n1k0"]);
+        });
+      });
     });
 
     describe(".collection()", () => {
