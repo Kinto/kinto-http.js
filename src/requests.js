@@ -3,6 +3,18 @@ import { quote } from "./utils.js";
 
 
 /**
+ * Request default options.
+ * @type {Object}
+ */
+const requestDefaults = {
+  safe: false,
+  headers: {},
+  bucket: "default",
+  permissions: {},
+  data: {},
+};
+
+/**
  * @private
  */
 function getLastModified(request) {
@@ -43,12 +55,7 @@ export function createBucket(bucketName, options = {}) {
   }
   // Note that we simply ignore any "bucket" option passed here, as the one
   // we're interested in is the one provided as a required argument.
-  const { headers, permissions, safe } = {
-    safe: false,
-    headers: {},
-    permissions: {},
-    ...options
-  };
+  const { headers, permissions, safe } = {...requestDefaults, ...options};
   return handleCacheHeaders(safe, {
     method: "PUT",
     path: endpoint("bucket", bucketName),
@@ -65,11 +72,7 @@ export function createBucket(bucketName, options = {}) {
  */
 export function createCollection(options = {}) {
   const { bucket, headers, permissions, data, safe, id } = {
-    safe: false,
-    headers: {},
-    permissions: {},
-    bucket: "default",
-    data: {},
+    ...requestDefaults,
     ...options
   };
   const path = options.id ? endpoint("collection", bucket, id) :
@@ -90,11 +93,7 @@ export function updateCollection(id, options = {}) {
     throw new Error("A collection id is required.");
   }
   const { bucket, headers, permissions, data, safe } = {
-    safe: false,
-    headers: {},
-    permissions: {},
-    bucket: "default",
-    data: {},
+    ...requestDefaults,
     ...options
   };
   return handleCacheHeaders(safe, {
@@ -113,10 +112,7 @@ export function createRecord(collName, record, options = {}) {
     throw new Error("A collection name is required.");
   }
   const { bucket, headers, permissions, safe } = {
-    safe: false,
-    headers: {},
-    bucket: "default",
-    permissions: {},
+    ...requestDefaults,
     ...options
   };
   return handleCacheHeaders(safe, {
@@ -137,16 +133,13 @@ export function updateRecord(collName, record, options = {}) {
   if (!collName) {
     throw new Error("A collection name is required.");
   }
-  const { bucket, headers, permissions, safe } = {
-    safe: false,
-    headers: {},
-    bucket: "default",
-    permissions: {},
-    ...options
-  };
   if (!record.id) {
     throw new Error("A record id is required.");
   }
+  const { bucket, headers, permissions, safe } = {
+    ...requestDefaults,
+    ...options
+  };
   return handleCacheHeaders(safe, {
     method: "PUT",
     path: endpoint("record", bucket, collName, record.id),
@@ -168,12 +161,7 @@ export function deleteRecord(collName, id, options = {}) {
   if (!id) {
     throw new Error("A record id is required.");
   }
-  const { bucket, headers, safe } = {
-    safe: false,
-    headers: {},
-    bucket: "default",
-    ...options
-  };
+  const { bucket, headers, safe } = {...requestDefaults, ...options};
   return handleCacheHeaders(safe, {
     method: "DELETE",
     path: endpoint("record", bucket, collName, id),
