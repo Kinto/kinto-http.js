@@ -29,8 +29,13 @@ export class Collection {
       });
   }
 
-  setPermissions(permissions) {
-    //return this.client.updateCollection();
+  setPermissions(type, permissions, options) {
+    if (["read", "write"].indexOf(type) === -1) {
+      throw new Error("Permissions type must be read or write.");
+    }
+    return this.client.updateCollection(this.name, {
+      permissions: {[type]: permissions}
+    }, {...options, bucket: this.bucket.name});
   }
 
   getSchema(options={forceReload: false}) {
@@ -44,8 +49,11 @@ export class Collection {
       });
   }
 
-  setSchema() {
-    //
+  setSchema(schema, options) {
+    return this.client.updateCollection(this.name, {data: {schema}}, {
+      ...options,
+      bucket: this.bucket.name
+    });
   }
 
   createRecord(record, options) {

@@ -475,6 +475,15 @@ describe("Integration tests", () => {
         });
       });
 
+      describe(".setPermissions()", () => {
+        it("should set typed permissions", () => {
+          return coll.setPermissions("read", ["github:n1k0"])
+            .then(_ => coll.getPermissions())
+            .should.eventually.have.property("read")
+            .eql(["github:n1k0"]);
+        });
+      });
+
       describe(".getSchema()", () => {
         const schema = {
           type: "object",
@@ -493,9 +502,18 @@ describe("Integration tests", () => {
         });
       });
 
-      describe.skip(".setSchema()", () => {
-        it("description", () => {
-          // body...
+      describe(".setSchema()", () => {
+        const schema = {
+          type: "object",
+          properties: {
+            title: {type: "string"}
+          }
+        };
+
+        it("should set the collection schema", () => {
+          return coll.setSchema(schema)
+            .then(_ => coll.getSchema())
+            .should.become(schema);
         });
       });
 
