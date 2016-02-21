@@ -41,11 +41,17 @@ export class Collection {
   }
 
   createRecord(record, options) {
-    return this.client.createRecord(this.name, record, {...options, bucket: this.bucket.name});
+    return this.client.createRecord(this.name, record, {
+      ...options,
+      bucket: this.bucket.name
+    });
   }
 
   updateRecord(record, options) {
-    return this.client.updateRecord(this.name, record, {...options, bucket: this.bucket.name});
+    return this.client.updateRecord(this.name, record, {
+      ...options,
+      bucket: this.bucket.name
+    });
   }
 
   deleteRecord(id) {
@@ -53,12 +59,19 @@ export class Collection {
   }
 
   list(options) {
-    return this.client.getRecords(this.name, {...options, bucket: this.bucket.name})
+    return this.client.getRecords(this.name, {
+      ...options,
+      bucket: this.bucket.name
+    })
       .then(res => res.data);
   }
 
   batch(fn, options) {
     // XXX bind with collection name as first arg
-    return this.client.batch(fn, {...options, bucket: this.bucket.name});
+    return this.client.batch(fn, {
+      ...options,
+      collection: this.name,
+      bucket: this.bucket.name
+    });
   }
 }

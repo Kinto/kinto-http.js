@@ -434,7 +434,7 @@ describe("Integration tests", () => {
     });
   });
 
-  describe.only("Chainable API", () => {
+  describe("Chainable API", () => {
     before(() => server.start());
 
     after(() => server.stop());
@@ -457,12 +457,23 @@ describe("Integration tests", () => {
         });
       });
 
-      describe(".create()", () => {
+      describe(".createRecord()", () => {
         it("should create a record", () => {
           return coll
             .createRecord({title: "foo"})
             .should.eventually.have.property("data")
                 .to.have.property("title").eql("foo");
+        });
+      });
+
+      describe(".updateRecord()", () => {
+        it("should update a record", () => {
+          return coll
+            .createRecord({title: "foo"})
+            .then(({data}) => coll.updateRecord({...data, title: "mod"}))
+            .then(_ => coll.list())
+            .then((records) => records[0].title)
+            .should.become("mod");
         });
       });
 
@@ -473,6 +484,18 @@ describe("Integration tests", () => {
             .then(_ => coll.list())
             .then(records => records.map(record => record.title))
             .should.become(["foo"]);
+        });
+      });
+
+      describe(".batch()", () => {
+        it("should allow batching operations in the current collection", () => {
+          return coll.batch(batch => {
+            batch.createRecord({title: "a"});
+            batch.createRecord({title: "b"});
+          })
+            .then(_ => coll.list({sort: "title"}))
+            .then(records => records.map(record => record.title))
+            .should.become(["a", "b"]);
         });
       });
     });

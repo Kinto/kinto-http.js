@@ -151,6 +151,12 @@ export default class KintoClient {
     });
   }
 
+  /**
+   * Retrieve a bucket oject to perform operations on it.
+   *
+   * @param  {String} name The bucket name.
+   * @return {Bucket}
+   */
   bucket(name) {
     return new Bucket(this, name);
   }

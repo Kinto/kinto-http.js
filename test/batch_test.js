@@ -28,6 +28,16 @@ describe("batch module", () => {
         }
         expect(batch.requests[0]).to.have.property("headers").eql({Foo: "Bar"});
       });
+
+      it("should support a collection option", () => {
+        batch = createBatch({collection: "plop"});
+        for (const article of fixtures) {
+          batch.createRecord(article);
+        }
+        expect(batch.requests[0])
+          .to.have.property("path")
+          .eql("/buckets/default/collections/plop/records");
+      });
     });
 
     describe("get requests()", () => {
