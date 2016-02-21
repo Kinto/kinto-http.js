@@ -2,6 +2,7 @@ export class Bucket {
   constructor(client, name) {
     this.client = client;
     this.name = name;
+    this._permissions = null;
   }
 
   collection(name) {
@@ -10,6 +11,17 @@ export class Bucket {
 
   getCollections() {
     return this.client.getCollections(this.name);
+  }
+
+  getPermissions(options={forceReload: false}) {
+    if (this._permissions && !options.forceReload) {
+      return Promise.resolve(this._permissions);
+    }
+    return this.client.getBucket(this.name, options)
+      .then(res => {
+        this._permissions = res.permissions;
+        return this._permissions;
+      });
   }
 }
 

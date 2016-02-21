@@ -532,9 +532,10 @@ describe("Integration tests", () => {
         });
       });
 
-      describe.skip(".getPermissions", () => {
-        it("description", () => {
-          // body...
+      describe(".getPermissions", () => {
+        it("should retrieve bucket permissions", () => {
+          return bucket.getPermissions()
+            .should.eventually.have.property("write").to.have.length.of(1);
         });
       });
     });
