@@ -461,6 +461,15 @@ describe("Integration tests", () => {
         });
       });
     });
+
+    describe("#getRecord()", () => {
+      it("should retrieve a record by its id", () => {
+        return api.createRecord("blog", {title: "blah"})
+          .then(res => api.getRecord("blog", res.data.id))
+          .should.eventually.have.property("data")
+                          .to.have.property("title").eql("blah");
+      });
+    });
   });
 
   describe("Flushed server", function() {

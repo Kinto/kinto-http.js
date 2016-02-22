@@ -490,6 +490,27 @@ export default class KintoClient {
   }
 
   /**
+   * Retrieve a record from a collection by its id.
+   *
+   * @param  {String}   collName        The collection name.
+   * @param  {Object}   options         The options object.
+   * @param  {String}   options.bucket  The bucket name option.
+   * @param  {Object}   options.headers The headers object option.
+   * @return {Promise<Object, Error>}
+   */
+  getRecord(collName, id, options={}) {
+    const { bucket, headers } = {
+      bucket: this.defaultBucket,
+      headers: {},
+      ...options
+    };
+    return this.execute({
+      path: endpoint("record", bucket, collName, id),
+      headers: {...this.optionHeaders, ...headers},
+    }).then(res => res.json);
+  }
+
+  /**
    * Get a list of records for a given collection from the server.
    *
    * Note: Because of a bug on the server, the order of records is not

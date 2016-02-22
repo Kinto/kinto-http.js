@@ -161,8 +161,6 @@ client.bucket("blog").collection("posts")
 
 ### Retrieving an existing record
 
-XXX To implement
-
 ```js
 client.bucket("blog").collection("posts")
   .getRecord("881e0707-f1b2-497b-99d0-b0d9aad49022");

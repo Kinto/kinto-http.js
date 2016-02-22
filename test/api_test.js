@@ -594,6 +594,21 @@ describe("KintoClient", () => {
     });
   });
 
+  /** @test {KintoClient#getRecord} */
+  describe("#getRecord()", () => {
+    beforeEach(() => {
+      sandbox.stub(api, "execute").returns(Promise.resolve());
+    });
+
+    it("should execute expected request", () => {
+      api.getRecord("foo", 42);
+
+      sinon.assert.calledWithMatch(api.execute, {
+        path: "/buckets/default/collections/foo/records/42",
+      });
+    });
+  });
+
   /** @test {KintoClient#createBucket} */
   describe("#createBucket", () => {
     beforeEach(() => {
