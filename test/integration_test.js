@@ -722,6 +722,15 @@ describe("Integration tests", () => {
           });
         });
 
+        describe(".getRecord()", () => {
+          it("should retrieve a record by its id", () => {
+            return coll.createRecord({title: "blah"})
+              .then(res => coll.getRecord(res.data.id))
+              .should.eventually.have.property("data")
+                             .to.have.property("title").eql("blah");
+          });
+        });
+
         describe(".list()", () => {
           it("should list records", () => {
             return coll
@@ -813,6 +822,22 @@ describe("Integration tests", () => {
           });
         });
 
+        describe(".getMetas()", () => {
+          it("should retrieve collection metadata", () => {
+            return coll.setMetas({isMeta: true})
+              .then(_ => coll.getMetas())
+              .should.eventually.have.property("isMeta").eql(true);
+          });
+        });
+
+        describe(".setMetas()", () => {
+          it("should set collection metadata", () => {
+            return coll.setMetas({isMeta: true})
+              .then(_ => coll.getMetas())
+              .should.eventually.have.property("isMeta").eql(true);
+          });
+        });
+
         describe(".updateRecord()", () => {
           it("should update a record", () => {
             return coll
@@ -831,6 +856,15 @@ describe("Integration tests", () => {
               .then(({data}) => coll.deleteRecord(data.id))
               .then(_ => coll.list())
               .should.become([]);
+          });
+        });
+
+        describe(".getRecord()", () => {
+          it("should retrieve a record by its id", () => {
+            return coll.createRecord({title: "blah"})
+              .then(res => coll.getRecord(res.data.id))
+              .should.eventually.have.property("data")
+                             .to.have.property("title").eql("blah");
           });
         });
 

@@ -138,6 +138,13 @@ export class Collection {
     });
   }
 
+  getRecord(id, options) {
+    return this.client.getRecord(this.name, id, {
+      ...options,
+      bucket: this.bucket.name
+    });
+  }
+
   list(options) {
     return this.client.getRecords(this.name, {
       ...options,
