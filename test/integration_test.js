@@ -109,6 +109,16 @@ describe("Integration tests", () => {
       });
     });
 
+    describe("#deleteBucket()", () => {
+      it("should delete a bucket", () => {
+        return api.createBucket("foo")
+          .then(_ => api.deleteBucket("foo"))
+          .then(_ => api.getBuckets())
+          .then(buckets => buckets.map(bucket => bucket.id))
+          .should.eventually.not.include("foo");
+      });
+    });
+
     describe("#createCollection", () => {
       let result;
 
@@ -849,15 +859,6 @@ describe("Integration tests", () => {
           });
         });
 
-        describe(".createRecord()", () => {
-          it("should create a record", () => {
-            return coll
-              .createRecord({title: "foo"})
-              .should.eventually.have.property("data")
-                  .to.have.property("title").eql("foo");
-          });
-        });
-
         describe(".getMetas()", () => {
           it("should retrieve collection metadata", () => {
             return coll.setMetas({isMeta: true})
@@ -871,6 +872,15 @@ describe("Integration tests", () => {
             return coll.setMetas({isMeta: true})
               .then(_ => coll.getMetas())
               .should.eventually.have.property("isMeta").eql(true);
+          });
+        });
+
+        describe(".createRecord()", () => {
+          it("should create a record", () => {
+            return coll
+              .createRecord({title: "foo"})
+              .should.eventually.have.property("data")
+                  .to.have.property("title").eql("foo");
           });
         });
 

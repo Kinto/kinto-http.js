@@ -71,6 +71,47 @@ export function createBucket(bucketName, options = {}) {
 /**
  * @private
  */
+export function updateBucket(id, metas, options = {}) {
+  if (!id) {
+    throw new Error("A bucket id is required.");
+  }
+  if (typeof metas !== "object") {
+    throw new Error("A metas object is required.");
+  }
+  const { headers, permissions, safe } = {
+    ...requestDefaults,
+    ...options
+  };
+  return handleCacheHeaders(safe, {
+    method: "PUT",
+    path: endpoint("bucket", id),
+    headers,
+    body: {
+      data: metas,
+      permissions
+    }
+  });
+}
+
+/**
+ * @private
+ */
+export function deleteBucket(id, options = {}) {
+  if (!id) {
+    throw new Error("A bucket id is required.");
+  }
+  const { headers, safe } = {...requestDefaults, ...options};
+  return handleCacheHeaders(safe, {
+    method: "DELETE",
+    path: endpoint("bucket", id),
+    headers,
+    body: {}
+  });
+}
+
+/**
+ * @private
+ */
 export function createCollection(options = {}) {
   const { bucket, headers, permissions, data, safe, id } = {
     ...requestDefaults,
@@ -128,31 +169,6 @@ export function deleteCollection(collName, options = {}) {
     path: endpoint("collection", bucket, collName),
     headers,
     body: {}
-  });
-}
-
-/**
- * @private
- */
-export function updateBucket(id, metas, options = {}) {
-  if (!id) {
-    throw new Error("A bucket id is required.");
-  }
-  if (typeof metas !== "object") {
-    throw new Error("A metas object is required.");
-  }
-  const { headers, permissions, safe } = {
-    ...requestDefaults,
-    ...options
-  };
-  return handleCacheHeaders(safe, {
-    method: "PUT",
-    path: endpoint("bucket", id),
-    headers,
-    body: {
-      data: metas,
-      permissions
-    }
   });
 }
 
