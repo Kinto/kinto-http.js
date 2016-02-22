@@ -12,6 +12,7 @@ const requestDefaults = {
   bucket: "default",
   permissions: {},
   data: {},
+  patch: false,
 };
 
 /**
@@ -95,7 +96,7 @@ export function updateCollection(id, metas, options = {}) {
   if (typeof metas !== "object") {
     throw new Error("A metas object is required.");
   }
-  const { bucket, headers, permissions, data, schema, safe } = {
+  const { bucket, headers, permissions, data, schema, safe, patch } = {
     ...requestDefaults,
     ...options
   };
@@ -104,7 +105,7 @@ export function updateCollection(id, metas, options = {}) {
     requestData.schema = schema;
   }
   return handleCacheHeaders(safe, {
-    method: "PUT",
+    method: patch ? "PATCH" : "PUT",
     path: endpoint("collection", bucket, id),
     headers,
     body: {
@@ -187,12 +188,12 @@ export function updateRecord(collName, record, options = {}) {
   if (!record.id) {
     throw new Error("A record id is required.");
   }
-  const { bucket, headers, permissions, safe } = {
+  const { bucket, headers, permissions, safe, patch } = {
     ...requestDefaults,
     ...options
   };
   return handleCacheHeaders(safe, {
-    method: "PUT",
+    method: patch ? "PATCH" : "PUT",
     path: endpoint("record", bucket, collName, record.id),
     headers,
     body: {

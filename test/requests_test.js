@@ -126,6 +126,11 @@ describe("requests module", () => {
         .to.have.property("schema").eql(schema);
     });
 
+    it("should accept a patch option", () => {
+      expect(requests.updateCollection("foo", {}, {schema, patch: true}))
+        .to.have.property("method").eql("PATCH");
+    });
+
     it("should handle metas", () => {
       expect(requests.updateCollection("foo", {a: 1}))
         .to.have.property("body")
@@ -279,6 +284,11 @@ describe("requests module", () => {
       expect(requests.updateRecord("foo", record, {permissions}))
         .to.have.property("body")
         .to.have.property("permissions").eql(permissions);
+    });
+
+    it("should accept a patch option", () => {
+      expect(requests.updateRecord("foo", record, {patch: true}))
+        .to.have.property("method").eql("PATCH");
     });
 
     describe("should add cache headers when the safe option is true", () => {

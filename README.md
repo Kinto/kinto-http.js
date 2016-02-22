@@ -25,8 +25,6 @@ const client = new KintoClient("https://kinto.dev.mozaws.net/v1/");
 
 ### Listing buckets
 
-XXX To implement
-
 ```js
 client.getBuckets();
 ```
@@ -77,8 +75,6 @@ client.bucket("blog").getCollections();
 
 ### Creating a collection
 
-XXX To implement
-
 Named collection:
 
 ```js
@@ -89,16 +85,6 @@ With a name generated automatically:
 
 ```js
 client.bucket("blog").createCollection();
-```
-
-### Updating a collection
-
-XXX To implement
-
-Named collection:
-
-```js
-client.bucket("blog").updateCollection("posts", {maxPerPage: 10});
 ```
 
 ### Deleting a collection
@@ -115,7 +101,7 @@ client.bucket("blog").deleteCollection("test");
 client.bucket("blog").collection("posts");
 ```
 
-### Defining the [JSON schema](http://json-schema.org/) for a collection
+### Setting the [JSON schema](http://json-schema.org/) for a collection
 
 ```js
 cons schema = {
@@ -150,6 +136,20 @@ Read permissions:
 ```js
 client.bucket("blog").collection("posts")
   .setPermissions("read", ["github:john", "github:bob"]);
+```
+
+### Getting collection metadata
+
+```js
+client.bucket("blog").collection("posts")
+  .getMetas();
+```
+
+### Setting collection metadata
+
+```js
+client.bucket("blog").collection("posts")
+  .setMetas({preferedAuthor: "@chucknorris"});
 ```
 
 ### Creating a new record

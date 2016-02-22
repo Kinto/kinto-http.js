@@ -157,21 +157,26 @@ describe("Integration tests", () => {
       };
       const metas = {isMeta: true};
 
-      beforeEach(() => {
-        return api.createCollection("plop")
-          .then(_ => api.updateCollection("plop", metas, {schema}));
-      });
-
       it("should update a collection schema", () => {
-        return api.getCollection("plop")
+        return api.updateCollection("plop", metas, {schema})
+          .then(_ => api.getCollection("plop"))
           .then(({data}) => data.schema)
           .should.become(schema);
       });
 
       it("should update a collection metas", () => {
-        return api.getCollection("plop")
+        return api.updateCollection("plop", metas, {schema})
+          .then(_ => api.getCollection("plop"))
           .should.eventually.have.property("data")
           .to.have.property("isMeta").eql(true);
+      });
+
+      it("should allow patching a collection", () => {
+        return api.updateCollection("plop", {}, {schema})
+          .then(_ => api.updateCollection("plop", metas, {patch: true}))
+          .then(_ => api.getCollection("plop"))
+          .then(({data}) => data.schema)
+          .should.become(schema);
       });
     });
 
@@ -290,6 +295,17 @@ describe("Integration tests", () => {
           .then(_ => api.getRecords("blog"))
           .then(({data}) => {
             expect(data[0].title).eql("bar");
+          });
+      });
+
+      it("should allow patching a record", () => {
+        return api.createRecord("blog", {title: "foo", blah: 42})
+          .then(({data}) => api.updateRecord("blog", {id: data.id, blah: 43},
+                                             {patch: true}))
+          .then(_ => api.getRecords("blog"))
+          .then(({data}) => {
+            expect(data[0].title).eql("foo");
+            expect(data[0].blah).eql(43);
           });
       });
 

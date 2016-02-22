@@ -745,6 +745,14 @@ describe("KintoClient", () => {
       });
     });
 
+    it("should accept a patch option", () => {
+      api.updateCollection("plop", metas, {patch: true});
+
+      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metas, {
+        patch: true
+      });
+    });
+
     it("should use instance default bucket option", () => {
       api.defaultBucket = "custom";
 
@@ -1045,6 +1053,14 @@ describe("KintoClient", () => {
 
       sinon.assert.calledWithMatch(requests.updateRecord, "foo", record, {
         safe: true
+      });
+    });
+
+    it("should accept a patch option", () => {
+      api.updateRecord("foo", record, {patch: true});
+
+      sinon.assert.calledWithMatch(requests.updateRecord, "foo", record, {
+        patch: true
       });
     });
 

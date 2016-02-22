@@ -480,6 +480,7 @@ export default class KintoClient {
    * @param  {Object}  options.headers     The headers object option.
    * @param  {Object}  options.permissions The permissions object.
    * @param  {Object}  options.schema      The JSONSchema object.
+   * @param  {Boolean} options.patch       Patch data instead of replacing them.
    * @return {Promise<Object, Error>}
    */
   updateCollection(id, metas, options={}) {
@@ -544,6 +545,7 @@ export default class KintoClient {
    * @param  {Boolean}  options.safe    The safe option.
    * @param  {String}   options.bucket  The bucket name option.
    * @param  {Object}   options.headers The headers object option.
+   * @param  {Object}   options.patch   Patch data instead of replacing them.
    * @return {Promise<Object, Error>}
    */
   updateRecord(collName, record, options={}) {
