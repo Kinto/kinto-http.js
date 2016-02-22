@@ -90,6 +90,25 @@ describe("Integration tests", () => {
       });
     });
 
+    describe("#updateBucket()", () => {
+      it("should update a bucket", () => {
+        return api.createBucket("foo")
+          .then(_ => api.updateBucket("foo", {}, {
+            permissions: {read: ["github:n1k0"]}
+          }))
+          .then(_ => api.getBucket("foo"))
+          .then(res => res.permissions.read)
+          .should.become(["github:n1k0"]);
+      });
+
+      it("should create the bucket if it doesn't exist yet", () => {
+        return api.updateBucket("foo", {})
+          .then(_ => api.getBuckets())
+          .then(buckets => buckets.map(bucket => bucket.id))
+          .should.eventually.include("foo");
+      });
+    });
+
     describe("#createCollection", () => {
       let result;
 
@@ -177,6 +196,14 @@ describe("Integration tests", () => {
           .then(_ => api.getCollection("plop"))
           .then(({data}) => data.schema)
           .should.become(schema);
+      });
+
+      it("should create a collection if it doesn't exist yet", () => {
+        return api.createBucket("blog")
+          .then(_ => api.updateCollection("posts", {}, {bucket: "blog"}))
+          .then(_ => api.getCollections("blog"))
+          .then(res => res.map(x => x.id))
+          .should.become(["posts"]);
       });
     });
 
@@ -307,6 +334,15 @@ describe("Integration tests", () => {
             expect(data[0].title).eql("foo");
             expect(data[0].blah).eql(43);
           });
+      });
+
+      it("should create the record if it doesn't exist yet", () => {
+        const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
+
+        return api.updateRecord("blog", {id, title: "blah"})
+          .then(res => api.getRecord("blog", res.data.id))
+          .should.eventually.have.property("data")
+                         .to.have.property("title").eql("blah");
       });
 
       describe("In batch", () => {
