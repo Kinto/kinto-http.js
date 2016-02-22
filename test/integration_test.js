@@ -667,6 +667,22 @@ describe("Integration tests", () => {
           });
         });
 
+        describe(".getMetas()", () => {
+          it("should retrieve collection metadata", () => {
+            return coll.setMetas({isMeta: true})
+              .then(_ => coll.getMetas())
+              .should.eventually.have.property("isMeta").eql(true);
+          });
+        });
+
+        describe(".setMetas()", () => {
+          it("should set collection metadata", () => {
+            return coll.setMetas({isMeta: true})
+              .then(_ => coll.getMetas())
+              .should.eventually.have.property("isMeta").eql(true);
+          });
+        });
+
         describe(".createRecord()", () => {
           it("should create a record", () => {
             return coll

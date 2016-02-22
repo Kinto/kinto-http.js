@@ -2,7 +2,6 @@ export class Bucket {
   constructor(client, name) {
     this.client = client;
     this.name = name;
-    this._permissions = null;
   }
 
   collection(name) {
@@ -36,15 +35,9 @@ export class Bucket {
     });
   }
 
-  getPermissions(options={forceReload: false}) {
-    if (this._permissions && !options.forceReload) {
-      return Promise.resolve(this._permissions);
-    }
+  getPermissions(options) {
     return this.client.getBucket(this.name, options)
-      .then(res => {
-        this._permissions = res.permissions;
-        return this._permissions;
-      });
+      .then(res => res.permissions);
   }
 
   setPermissions(type, permissions, options) {
@@ -63,23 +56,14 @@ export class Collection {
     this.client = client;
     this.bucket = bucket;
     this.name = name;
-    this._permissions = null;
-    this._schema = null;
-    this._metas = null;
   }
 
-  getPermissions(options={forceReload: false}) {
-    if (this._permissions && !options.forceReload) {
-      return Promise.resolve(this._permissions);
-    }
+  getPermissions(options) {
     return this.client.getCollection(this.name, {
       ...options,
       bucket: this.bucket.name
     })
-      .then(res => {
-        this._permissions = res.permissions;
-        return this._permissions;
-      });
+      .then(res => res.permissions);
   }
 
   setPermissions(type, permissions, options) {
@@ -93,24 +77,42 @@ export class Collection {
     });
   }
 
-  getSchema(options={forceReload: false}) {
-    if (this._schema && !options.forceReload) {
-      return Promise.resolve(this._schema);
-    }
+  getSchema(options) {
     return this.client.getCollection(this.name, {
       ...options,
       bucket: this.bucket.name
     })
-      .then(res => {
-        this._schema = res.data && res.data.schema || null;
-        return this._schema;
-      });
+      .then(res => res.data && res.data.schema || null);
   }
 
   setSchema(schema, options) {
     return this.client.updateCollection(this.name, {}, {
       ...options,
       schema,
+      bucket: this.bucket.name
+    });
+  }
+
+  getMetas(options) {
+    return this.client.getCollection(this.name, {
+      ...options,
+      bucket: this.bucket.name
+    })
+      .then(res => {
+        // XXX move this to utils
+        return Object.keys(res.data).reduce((acc, key) => {
+          if (key !== "schema") {
+            acc[key] = res.data[key];
+          }
+          return acc;
+        }, {});
+      });
+  }
+
+  setMetas(metas, options) {
+    return this.client.updateCollection(this.name, metas, {
+      ...options,
+      patch: true,
       bucket: this.bucket.name
     });
   }
