@@ -417,6 +417,21 @@ export default class KintoClient {
   }
 
   /**
+   * Deletes a collection from the server.
+   *
+   * @param  {Object}  options             The options object.
+   * @param  {Boolean} options.safe        The safe option.
+   * @param  {String}  options.bucket      The bucket name option.
+   * @param  {Object}  options.headers     The headers object option.
+   * @return {Promise<Object, Error>}
+   */
+  deleteCollection(collName, options={}) {
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(requests.deleteCollection(collName, reqOptions))
+      .then(res => res.json);
+  }
+
+  /**
    * Retrieves information for a given collection.
    *
    * @param  {String}   id              The collection name.

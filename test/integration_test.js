@@ -532,18 +532,46 @@ describe("Integration tests", () => {
         });
       });
 
-      describe(".getPermissions", () => {
+      describe(".getPermissions()", () => {
         it("should retrieve bucket permissions", () => {
           return bucket.getPermissions()
             .should.eventually.have.property("write").to.have.length.of(1);
         });
       });
 
-      describe(".setPermissions", () => {
+      describe(".setPermissions()", () => {
         it("should set bucket permissions", () => {
           return bucket.setPermissions("read", ["github:n1k0"])
             .then(_ => bucket.getPermissions())
             .should.eventually.have.property("read").eql(["github:n1k0"]);
+        });
+      });
+
+      describe(".createCollection()", () => {
+        it("should create a named collection", () => {
+          return bucket.createCollection("foo")
+            .then(_ => bucket.getCollections())
+            .then(colls => colls.map(coll => coll.id))
+            .should.eventually.include("foo");
+        });
+
+        it("should create an automatically named collection", () => {
+          let generated;
+
+          return bucket.createCollection()
+            .then(res => generated = res.data.id)
+            .then(_ => bucket.getCollections())
+            .then(c => expect(c.some(x => x.id === generated)).eql(true));
+        });
+      });
+
+      describe(".deleteCollection()", () => {
+        it("should delete a collection", () => {
+          return bucket.createCollection("foo")
+            .then(_ => bucket.deleteCollection("foo"))
+            .then(_ => bucket.getCollections())
+            .then(colls => colls.map(coll => coll.id))
+            .should.eventually.not.include("foo");
         });
       });
     });

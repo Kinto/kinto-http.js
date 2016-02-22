@@ -63,6 +63,12 @@ Read permissions:
 client.bucket("blog").setPermissions("read", ["github:john", "github:bob"]);
 ```
 
+### Deleting a bucket
+
+```js
+client.deleteBucket("testbucket");
+```
+
 ### Listing bucket collections
 
 ```js
@@ -93,6 +99,12 @@ Named collection:
 
 ```js
 client.bucket("blog").updateCollection("posts", {maxPerPage: 10});
+```
+
+### Deleting a collection
+
+```js
+client.bucket("blog").deleteCollection("test");
 ```
 
 ## Collections

@@ -13,6 +13,26 @@ export class Bucket {
     return this.client.getCollections(this.name);
   }
 
+  createCollection(...args) {
+    let createOptions = {bucket: this.name};
+    if (typeof args[0] === "string") {
+      createOptions.id = args[0];
+      if (typeof args[1] === "object") {
+        createOptions = {...args[1], ...createOptions};
+      }
+    } else {
+      createOptions = {...args[0], createOptions};
+    }
+    return this.client.createCollection(createOptions);
+  }
+
+  deleteCollection(id, options) {
+    return this.client.deleteCollection(id, {
+      ...options,
+      bucket: this.name
+    });
+  }
+
   getPermissions(options={forceReload: false}) {
     if (this._permissions && !options.forceReload) {
       return Promise.resolve(this._permissions);
@@ -42,6 +62,33 @@ export class Collection {
     this.name = name;
     this._permissions = null;
     this._schema = null;
+    this._metas = null;
+  }
+
+  getMetas(options={forceReload: false}) {
+    if (this._metas && !options.forceReload) {
+      return Promise.resolve(this._metas);
+    }
+    return this.client.getCollection(this.name, {
+      ...options,
+      bucket: this.bucket.name
+    })
+      .then(res => {
+        this._metas = Object.keys(res.data).reduce((acc, key) => {
+          if (key !== "schema") {
+            acc[key] = res.data[key];
+          }
+          return acc;
+        }, {});
+        return this._metas;
+      });
+  }
+
+  setMetas(metas, options) {
+    return this.client.patchCollection(this.name, metas, {
+      ...options,
+      bucket: this.bucket.name
+    });
   }
 
   getPermissions(options={forceReload: false}) {

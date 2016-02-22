@@ -117,6 +117,22 @@ export function updateCollection(id, metas, options = {}) {
 /**
  * @private
  */
+export function deleteCollection(collName, options = {}) {
+  const { bucket, headers, safe } = {
+    ...requestDefaults,
+    ...options
+  };
+  return handleCacheHeaders(safe, {
+    method: "DELETE",
+    path: endpoint("collection", bucket, collName),
+    headers,
+    body: {}
+  });
+}
+
+/**
+ * @private
+ */
 export function updateBucket(id, metas, options = {}) {
   if (!id) {
     throw new Error("A bucket id is required.");
