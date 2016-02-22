@@ -220,6 +220,21 @@ describe("Integration tests", () => {
       });
     });
 
+    describe("#getBuckets", () => {
+      beforeEach(() => {
+        return api.batch(batch => {
+          batch.createBucket("b1");
+          batch.createBucket("b2");
+        });
+      });
+
+      it("should retrieve the list of buckets", () => {
+        return api.getBuckets()
+          .then(buckets => buckets.map(bucket => bucket.id))
+          .should.become(["b1", "b2"]);
+      });
+    });
+
     describe("#getCollection", () => {
       let collectionData;
 

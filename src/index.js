@@ -331,6 +331,21 @@ export default class KintoClient {
   }
 
   /**
+   * Retrieves the list of buckets.
+   *
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @return {Promise<String[], Error>}
+   */
+  getBuckets(options={}) {
+    return this.execute({
+      path: endpoint("buckets"),
+      headers: {...this.optionHeaders, ...options.headers}
+    })
+      .then(res => res.json && res.json.data);
+  }
+
+  /**
    * Creates a new bucket on the server.
    *
    * @param  {String}   bucketName      The bucket name.
