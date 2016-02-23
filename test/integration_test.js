@@ -393,7 +393,6 @@ describe("Integration tests", () => {
               batch.createRecord("blog", {title: "art" + i}, {bucket: "custom"});
             }
           })
-            // .then(res => console.log(res))
             .then(_ => api.listRecords("blog", {bucket: "custom"}))
             .then(res => res.data)
             .should.eventually.have.length.of(27);
@@ -674,7 +673,6 @@ describe("Integration tests", () => {
             batch.createRecord("comments", {content: "plop"});
             batch.createRecord("comments", {content: "yo"});
           })
-            .then(res => console.log(res))
             .then(_ => bucket.collection("comments").listRecords())
             .then(comments => comments.map(comment => comment.content).sort())
             .should.become(["plop", "yo"]);
