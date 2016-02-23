@@ -49,10 +49,7 @@ export class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   listCollections(options) {
-    return this.client.listCollections(this.name, {
-      ...options,
-      bucket: this.name
-    });
+    return this.client.listCollections(this.name, options);
   }
 
   /**
