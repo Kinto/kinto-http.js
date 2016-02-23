@@ -497,6 +497,8 @@ Sample result:
 
 ```
 
+> Note: Records are listed by `last_modified` descending order.
+
 ### Batching operations
 
 This allows performing multiple operations in a single HTTP request.
