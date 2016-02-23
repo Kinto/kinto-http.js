@@ -30,16 +30,17 @@ function callWithOptions(requestFn, args, options) {
  * stacking them up in a `requests` properties.
  *
  * Options:
- * - {Object}  headers: The headers to attach to each subrequest.
- * - {Boolean} safe:    Safe modifications (default: `false`).
- * - {Boolean} bucket:  Generic bucket to use (default: `"default"`).
+ * - {Object}  headers    The headers to attach to each subrequest.
+ * - {Boolean} safe       Safe modifications (default: `false`).
+ * - {String}  bucket     Generic bucket to use (default: `"default"`).
+ * - {String}  collection Generic collection to use (default: `undefined`).
  *
  * @private
  * @param  {Object} options The options object.
  * @return {Object}
  */
 export function createBatch(options={}) {
-  const { safe, bucket, headers } = {
+  const { safe, bucket, headers, collection } = {
     safe: false,
     headers: {},
     bucket: "default",
@@ -48,8 +49,10 @@ export function createBatch(options={}) {
   const batch = {requests: []};
   for (const method in requests) {
     batch[method] = function(...args) {
-      const reqOptions = {safe, bucket, headers};
-      const request = callWithOptions(requests[method], args, reqOptions);
+      const reqOptions = {safe, bucket, headers, collection};
+      const reqArgs = collection && method.endsWith("Record") ?
+                      [collection].concat(args) : args;
+      const request = callWithOptions(requests[method], reqArgs, reqOptions);
       batch.requests.push({
         ...request,
         headers: {
