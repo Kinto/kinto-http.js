@@ -379,20 +379,20 @@ export default class KintoClient {
   /**
    * Updates a bucket on the server.
    *
-   * Note: metadatas are not supported by the bucket endpoints on Kinto server,
+   * Note: Metadata are not supported by the bucket endpoints on Kinto server,
    * though that is planned, hence a future-proof API here.
    *
    * @param  {String}  bucketName          The bucket name.
-   * @param  {Object}  metas               The metadata object.
+   * @param  {Object}  metadata            The metadata object.
    * @param  {Object}  options             The options object.
    * @param  {Boolean} options.safe        The safe option.
    * @param  {Object}  options.headers     The headers object option.
    * @param  {Object}  options.permissions The permissions object.
    * @return {Promise<Object, Error>}
    */
-  updateBucket(bucketName, metas, options={}) {
+  updateBucket(bucketName, metadata, options={}) {
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.updateBucket(bucketName, metas, reqOptions))
+    return this.execute(requests.updateBucket(bucketName, metadata, reqOptions))
       .then(res => res.json);
   }
 
@@ -486,8 +486,8 @@ export default class KintoClient {
   /**
    * Updates a collection.
    *
-   * @param  {String} id      The collection id.
-   * @param  {Object} metas   The metadata to update the collection with; this
+   * @param  {String} id         The collection id.
+   * @param  {Object} metadata   The metadata to update the collection with; this
    * can be anything but schema and permission, which are handled using
    * dedicated options.
    * @param  {Object}  options             The options object.
@@ -499,9 +499,9 @@ export default class KintoClient {
    * @param  {Boolean} options.patch       Patch data instead of replacing them.
    * @return {Promise<Object, Error>}
    */
-  updateCollection(id, metas, options={}) {
+  updateCollection(id, metadata, options={}) {
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.updateCollection(id, metas, reqOptions))
+    return this.execute(requests.updateCollection(id, metadata, reqOptions))
       .then(res => res.json);
   }
 

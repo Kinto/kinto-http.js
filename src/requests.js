@@ -71,12 +71,12 @@ export function createBucket(bucketName, options = {}) {
 /**
  * @private
  */
-export function updateBucket(id, metas, options = {}) {
+export function updateBucket(id, metadata, options = {}) {
   if (!id) {
     throw new Error("A bucket id is required.");
   }
-  if (typeof metas !== "object") {
-    throw new Error("A metas object is required.");
+  if (typeof metadata !== "object") {
+    throw new Error("A metadata object is required.");
   }
   const { headers, permissions, safe } = {
     ...requestDefaults,
@@ -87,7 +87,7 @@ export function updateBucket(id, metas, options = {}) {
     path: endpoint("bucket", id),
     headers,
     body: {
-      data: metas,
+      data: metadata,
       permissions
     }
   });
@@ -130,18 +130,18 @@ export function createCollection(options = {}) {
 /**
  * @private
  */
-export function updateCollection(id, metas, options = {}) {
+export function updateCollection(id, metadata, options = {}) {
   if (!id) {
     throw new Error("A collection id is required.");
   }
-  if (typeof metas !== "object") {
-    throw new Error("A metas object is required.");
+  if (typeof metadata !== "object") {
+    throw new Error("A metadata object is required.");
   }
   const { bucket, headers, permissions, data, schema, safe, patch } = {
     ...requestDefaults,
     ...options
   };
-  const requestData = {...data, ...metas};
+  const requestData = {...data, ...metadata};
   if (options.schema) {
     requestData.schema = schema;
   }

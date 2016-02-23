@@ -131,7 +131,7 @@ describe("requests module", () => {
         .to.have.property("method").eql("PATCH");
     });
 
-    it("should handle metas", () => {
+    it("should handle metadata", () => {
       expect(requests.updateCollection("foo", {a: 1}))
         .to.have.property("body")
         .to.have.property("data").eql({a: 1});
@@ -189,7 +189,7 @@ describe("requests module", () => {
         .to.have.property("permissions").eql(permissions);
     });
 
-    it("should handle metas", () => {
+    it("should handle metadata", () => {
       expect(requests.updateBucket("foo", {a: 1}))
         .to.have.property("body")
         .to.have.property("data").eql({a: 1});

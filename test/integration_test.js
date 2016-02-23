@@ -726,18 +726,18 @@ describe("Integration tests", () => {
           });
         });
 
-        describe(".getMetas()", () => {
+        describe(".getMetadata()", () => {
           it("should retrieve collection metadata", () => {
-            return coll.setMetas({isMeta: true})
-              .then(_ => coll.getMetas())
+            return coll.setMetadata({isMeta: true})
+              .then(_ => coll.getMetadata())
               .should.eventually.have.property("isMeta").eql(true);
           });
         });
 
-        describe(".setMetas()", () => {
+        describe(".setMetadata()", () => {
           it("should set collection metadata", () => {
-            return coll.setMetas({isMeta: true})
-              .then(_ => coll.getMetas())
+            return coll.setMetadata({isMeta: true})
+              .then(_ => coll.getMetadata())
               .should.eventually.have.property("isMeta").eql(true);
           });
         });
@@ -863,18 +863,18 @@ describe("Integration tests", () => {
           });
         });
 
-        describe(".getMetas()", () => {
+        describe(".getMetadata()", () => {
           it("should retrieve collection metadata", () => {
-            return coll.setMetas({isMeta: true})
-              .then(_ => coll.getMetas())
+            return coll.setMetadata({isMeta: true})
+              .then(_ => coll.getMetadata())
               .should.eventually.have.property("isMeta").eql(true);
           });
         });
 
-        describe(".setMetas()", () => {
+        describe(".setMetadata()", () => {
           it("should set collection metadata", () => {
-            return coll.setMetas({isMeta: true})
-              .then(_ => coll.getMetas())
+            return coll.setMetadata({isMeta: true})
+              .then(_ => coll.getMetadata())
               .should.eventually.have.property("isMeta").eql(true);
           });
         });

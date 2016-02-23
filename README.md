@@ -338,7 +338,7 @@ Sample result:
 
 ```js
 client.bucket("blog").collection("posts")
-  .setMetas({preferedAuthor: "@chucknorris"});
+  .setMetadata({preferedAuthor: "@chucknorris"});
 ```
 
 Sample result:
@@ -363,7 +363,7 @@ Sample result:
 ### Getting collection metadata
 
 ```js
-client.bucket("blog").collection("posts").getMetas();
+client.bucket("blog").collection("posts").getMetadata();
 ```
 
 Sample result:

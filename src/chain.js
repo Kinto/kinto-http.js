@@ -220,7 +220,7 @@ export class Collection {
    * @param  {Object} options The options object.
    * @return {Promise<Object, Error>}
    */
-  getMetas(options) {
+  getMetadata(options) {
     return this.getProperties(options)
       .then(res => {
         // XXX move this to utils
@@ -236,12 +236,12 @@ export class Collection {
   /**
    * Sets metadata for current collection.
    *
-   * @param  {Object} metas   The metadata object.
-   * @param  {Object} options The options object.
+   * @param  {Object} metadata The metadata object.
+   * @param  {Object} options  The options object.
    * @return {Promise<Object, Error>}
    */
-  setMetas(metas, options) {
-    return this.client.updateCollection(this.name, metas, {
+  setMetadata(metadata, options) {
+    return this.client.updateCollection(this.name, metadata, {
       ...options,
       patch: true,
       bucket: this.bucket.name
