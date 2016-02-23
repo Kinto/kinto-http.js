@@ -31,6 +31,17 @@ export class Bucket {
     return new Collection(this.client, this, name);
   }
 
+
+  /**
+   * Retrieves bucket properties.
+   *
+   * @param  {Object} options The options object.
+   * @return {Promise<Object, Error>}
+   */
+  getProperties(options) {
+    return this.client.getBucket(this.name, options);
+  }
+
   /**
    * Retrieves the list of collections in the current bucket.
    *
@@ -63,7 +74,7 @@ export class Bucket {
         createOptions = {...args[1], ...createOptions};
       }
     } else {
-      createOptions = {...args[0], createOptions};
+      createOptions = {...args[0], ...createOptions};
     }
     return this.client.createCollection(createOptions);
   }
@@ -89,25 +100,22 @@ export class Bucket {
    * @return {Promise<Object, Error>}
    */
   getPermissions(options) {
-    return this.client.getBucket(this.name, options)
+    return this.getProperties(options)
       .then(res => res.permissions);
   }
 
   /**
-   * Sets permissions for this bucket.
+   * Recplaces all existing bucket permissions with the ones provided.
    *
    * @param {String} type        The permissions type, "write" or "read".
-   * @param {Array}  permissions The list of permissions.
+   * @param {Object} permissions The permissions object.
    * @param {Object} options     The options object
    * @return {Promise<Object, Error>}
    */
-  setPermissions(type, permissions, options) {
-    if (["read", "write"].indexOf(type) === -1) {
-      throw new Error("Permissions type must be read or write.");
-    }
+  setPermissions(permissions, options) {
     return this.client.updateBucket(this.name, {}, {
       ...options,
-      permissions: {[type]: permissions},
+      permissions,
     });
   }
 }
@@ -141,34 +149,41 @@ export class Collection {
   }
 
   /**
+   * Retrieves collection properties.
+   *
+   * @param  {Object} options The options object.
+   * @return {Promise<Object, Error>}
+   */
+  getProperties(options) {
+    return this.client.getCollection(this.name, {
+      ...options,
+      bucket: this.bucket.name
+    });
+  }
+
+  /**
    * Retrieves the list of permissions for this collection.
    *
    * @param  {Object} options The options object.
    * @return {Promise<Object, Error>}
    */
   getPermissions(options) {
-    return this.client.getCollection(this.name, {
-      ...options,
-      bucket: this.bucket.name
-    })
+    return this.getProperties(options)
       .then(res => res.permissions);
   }
 
   /**
-   * Sets permissions for this collection.
+   * Replaces all existing collection permissions with the ones provided.
    *
    * @param {String} type        The permissions type, "write" or "read".
-   * @param {Array}  permissions The list of permissions.
+   * @param {Object} permissions The permissions object.
    * @param {Object} options     The options object
    * @return {Promise<Object, Error>}
    */
-  setPermissions(type, permissions, options) {
-    if (["read", "write"].indexOf(type) === -1) {
-      throw new Error("Permissions type must be read or write.");
-    }
+  setPermissions(permissions, options) {
     return this.client.updateCollection(this.name, {}, {
       ...options,
-      permissions: {[type]: permissions},
+      permissions,
       bucket: this.bucket.name
     });
   }
@@ -180,10 +195,7 @@ export class Collection {
    * @return {Promise<Object|null, Error>}
    */
   getSchema(options) {
-    return this.client.getCollection(this.name, {
-      ...options,
-      bucket: this.bucket.name
-    })
+    return this.getProperties(options)
       .then(res => res.data && res.data.schema || null);
   }
 
@@ -209,10 +221,7 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   getMetas(options) {
-    return this.client.getCollection(this.name, {
-      ...options,
-      bucket: this.bucket.name
-    })
+    return this.getProperties(options)
       .then(res => {
         // XXX move this to utils
         return Object.keys(res.data).reduce((acc, key) => {

@@ -18,7 +18,7 @@ Public CDN files:
 A client instance is created using the `KintoClient` constructor, passing it the remote Kinto server URL:
 
 ```js
-const client = new KintoClient("https://kinto.dev.mozaws.net/v1/");
+const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
 ```
 
 ## Buckets
@@ -90,10 +90,11 @@ Sample result:
 
 ### Setting bucket permissions
 
-#### Write permissions
-
 ```js
-client.bucket("blog").setPermissions("write", ["github:john", "github:bob"]);
+client.bucket("blog").setPermissions({
+  read: ["github:bob"],
+  write: ["github:john", "github:bob"]
+});
 ```
 
 Sample result:
@@ -105,6 +106,7 @@ Sample result:
     "id": "blog"
   },
   "permissions": {
+    "read": ["github:bob"],
     "write": [
       "github:bob",
       "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8",
@@ -114,31 +116,7 @@ Sample result:
 }
 ```
 
-#### Read permissions
-
-```js
-client.bucket("blog").setPermissions("read", ["github:john", "github:bob"]);
-```
-
-Sample result:
-
-```js
-{
-  "data": {
-    "last_modified": 1456182791199,
-    "id": "blog"
-  },
-  "permissions": {
-    "write": [
-      "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"
-    ],
-    "read": [
-      "github:bob",
-      "github:john"
-    ]
-  }
-}
-```
+> In the Kinto protocol, the current user is always added to the `write` permission.
 
 ### Deleting a bucket
 
@@ -332,7 +310,9 @@ Sample result:
 
 ```js
 client.bucket("blog").collection("posts")
-  .setPermissions("write", ["github:john", "github:bob"]);
+  read: ["github:bob"],
+  write: ["github:john", "github:bob"]
+});
 ```
 
 Sample result:
@@ -344,37 +324,11 @@ Sample result:
     "id": "posts"
   },
   "permissions": {
+    "read": ["github:bob"],
     "write": [
       "github:bob",
       "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8",
       "github:john"
-    ]
-  }
-}
-```
-
-#### Read permissions
-
-```js
-client.bucket("blog").collection("posts")
-  .setPermissions("read", ["github:john", "github:bob"]);
-```
-
-Sample result:
-
-```js
-{
-  "data": {
-    "last_modified": 1456183479264,
-    "id": "posts"
-  },
-  "permissions": {
-    "read": [
-      "github:bob",
-      "github:john"
-    ],
-    "write": [
-      "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"
     ]
   }
 }

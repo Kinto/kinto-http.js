@@ -597,16 +597,20 @@ describe("Integration tests", () => {
 
     after(() => server.stop());
 
+    beforeEach(() => server.flush());
+
     describe(".bucket()", () => {
       let bucket;
 
       beforeEach(() => {
-        return api.batch(batch => {
-          batch.createCollection({id: "b1"});
-          batch.createCollection({id: "b2"});
-        })
+        return api.createBucket("custom")
+          // XXX replace with bucket.batch() when it's implemented
+          .then(_ => api.batch(batch => {
+            batch.createCollection({id: "b1"});
+            batch.createCollection({id: "b2"});
+          }, {bucket: "custom"}))
           .then(_ => {
-            bucket = api.bucket("default");
+            bucket = api.bucket("custom");
           });
       });
 
@@ -618,18 +622,20 @@ describe("Integration tests", () => {
         });
       });
 
-      describe(".getPermissions()", () => {
-        it("should retrieve bucket permissions", () => {
-          return bucket.getPermissions()
-            .should.eventually.have.property("write").to.have.length.of(1);
+      describe(".permissions", () => {
+        describe(".getPermissions()", () => {
+          it("should retrieve bucket permissions", () => {
+            return bucket.getPermissions()
+              .should.eventually.have.property("write").to.have.length.of(1);
+          });
         });
-      });
 
-      describe(".setPermissions()", () => {
-        it("should set bucket permissions", () => {
-          return bucket.setPermissions("read", ["github:n1k0"])
-            .then(_ => bucket.getPermissions())
-            .should.eventually.have.property("read").eql(["github:n1k0"]);
+        describe(".setPermissions()", () => {
+          it("should set bucket permissions", () => {
+            return bucket.setPermissions({read: ["github:n1k0"]})
+              .then(_ => bucket.getPermissions())
+              .should.eventually.have.property("read").eql(["github:n1k0"]);
+          });
         });
       });
 
@@ -665,8 +671,6 @@ describe("Integration tests", () => {
     describe(".collection()", () => {
       let coll;
 
-      beforeEach(() => server.flush());
-
       describe("default bucket", () => {
         beforeEach(() => {
           coll = api.bucket("default").collection("plop");
@@ -682,7 +686,7 @@ describe("Integration tests", () => {
 
         describe(".setPermissions()", () => {
           it("should set typed permissions", () => {
-            return coll.setPermissions("read", ["github:n1k0"])
+            return coll.setPermissions({read: ["github:n1k0"]})
               .then(_ => coll.getPermissions())
               .should.eventually.have.property("read")
               .eql(["github:n1k0"]);
@@ -819,7 +823,7 @@ describe("Integration tests", () => {
 
         describe(".setPermissions()", () => {
           it("should set typed permissions", () => {
-            return coll.setPermissions("read", ["github:n1k0"])
+            return coll.setPermissions({read: ["github:n1k0"]})
               .then(_ => coll.getPermissions())
               .should.eventually.have.property("read")
               .eql(["github:n1k0"]);
