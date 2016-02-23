@@ -666,6 +666,20 @@ describe("Integration tests", () => {
             .should.eventually.not.include("foo");
         });
       });
+
+      describe(".batch()", () => {
+        it("should allow batching operations for current bucket", () => {
+          return bucket.batch(batch => {
+            batch.createCollection({id: "comments"});
+            batch.createRecord("comments", {content: "plop"});
+            batch.createRecord("comments", {content: "yo"});
+          })
+            .then(res => console.log(res))
+            .then(_ => bucket.collection("comments").listRecords())
+            .then(comments => comments.map(comment => comment.content).sort())
+            .should.become(["plop", "yo"]);
+        });
+      });
     });
 
     describe(".collection()", () => {

@@ -115,6 +115,19 @@ describe("chain module", () => {
           });
         });
       });
+
+      describe("#batch()", () => {
+        it("should batch operations for this bucket", () => {
+          sandbox.stub(client, "batch");
+          const fn = batch => {};
+
+          bucket.batch(fn);
+
+          sinon.assert.calledWith(client.batch, fn, {
+            bucket: "blog"
+          });
+        });
+      });
     });
   });
 

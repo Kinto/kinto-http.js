@@ -115,6 +115,20 @@ export class Bucket {
       permissions,
     });
   }
+
+  /**
+   * Performs batch operations at the current bucket level.
+   *
+   * @param  {Function} fn      The batch operation function.
+   * @param  {Object}   options The options object.
+   * @return {Promise<Object, Error>}
+   */
+  batch(fn, options) {
+    return this.client.batch(fn, {
+      ...options,
+      bucket: this.name
+    });
+  }
 }
 
 /**
