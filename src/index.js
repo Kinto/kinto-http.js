@@ -449,10 +449,11 @@ export default class KintoClient {
   /**
    * Deletes a collection from the server.
    *
-   * @param  {Object}  options             The options object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {String}  options.bucket      The bucket name option.
-   * @param  {Object}  options.headers     The headers object option.
+   * @param  {String}  collName        The collection name.
+   * @param  {Object}  options         The options object.
+   * @param  {Boolean} options.safe    The safe option.
+   * @param  {String}  options.bucket  The bucket name option.
+   * @param  {Object}  options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
   deleteCollection(collName, options={}) {
@@ -508,6 +509,7 @@ export default class KintoClient {
    * Retrieve a record from a collection by its id.
    *
    * @param  {String}   collName        The collection name.
+   * @param  {String}   id              The record id.
    * @param  {Object}   options         The options object.
    * @param  {String}   options.bucket  The bucket name option.
    * @param  {Object}   options.headers The headers object option.
