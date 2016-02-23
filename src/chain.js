@@ -301,8 +301,8 @@ export class Collection {
    * @param  {Object} options The options object.
    * @return {Promise<Array<Object>, Error>}
    */
-  list(options) {
-    return this.client.getRecords(this.name, {
+  listRecords(options) {
+    return this.client.listRecords(this.name, {
       ...options,
       bucket: this.bucket.name
     })

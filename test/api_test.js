@@ -579,14 +579,14 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#getRecords} */
-  describe("#getRecords()", () => {
+  /** @test {KintoClient#listRecords} */
+  describe("#listRecords()", () => {
     beforeEach(() => {
       sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
     it("should execute expected request", () => {
-      api.getRecords("foo");
+      api.listRecords("foo");
 
       sinon.assert.calledWithMatch(api.execute, {
         path: "/buckets/default/collections/foo/records?_sort=-last_modified",

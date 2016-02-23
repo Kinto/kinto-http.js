@@ -542,7 +542,7 @@ export default class KintoClient {
    * descending)
    * @return {Promise<Object, Error>}
    */
-  getRecords(collName, options={}) {
+  listRecords(collName, options={}) {
     const { bucket, sort, headers } = {
       bucket: this.defaultBucket,
       sort: "-last_modified",

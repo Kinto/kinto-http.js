@@ -520,7 +520,7 @@ Sample result:
 
 ```js
 client.bucket("blog").collection("posts")
-  .getRecords();
+  .listRecords();
 ```
 
 Sample result:

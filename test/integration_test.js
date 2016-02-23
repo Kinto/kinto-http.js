@@ -308,7 +308,7 @@ describe("Integration tests", () => {
     describe("#createRecord", () => {
       it("should create a record", () => {
         return api.createRecord("blog", {title: "foo"})
-          .then(_ => api.getRecords("blog"))
+          .then(_ => api.listRecords("blog"))
           .then(({data}) => {
             expect(data[0].title).eql("foo");
           });
@@ -317,7 +317,7 @@ describe("Integration tests", () => {
       describe("In batch", () => {
         it("should create a record", () => {
           return api.batch(batch => batch.createRecord("blog", {title: "foo"}))
-            .then(_ => api.getRecords("blog"))
+            .then(_ => api.listRecords("blog"))
             .then(({data}) => {
               expect(data[0].title).eql("foo");
             });
@@ -329,7 +329,7 @@ describe("Integration tests", () => {
       it("should update an existing record", () => {
         return api.createRecord("blog", {title: "foo"})
           .then(({data}) => api.updateRecord("blog", {id: data.id, title: "bar"}))
-          .then(_ => api.getRecords("blog"))
+          .then(_ => api.listRecords("blog"))
           .then(({data}) => {
             expect(data[0].title).eql("bar");
           });
@@ -339,7 +339,7 @@ describe("Integration tests", () => {
         return api.createRecord("blog", {title: "foo", blah: 42})
           .then(({data}) => api.updateRecord("blog", {id: data.id, blah: 43},
                                              {patch: true}))
-          .then(_ => api.getRecords("blog"))
+          .then(_ => api.listRecords("blog"))
           .then(({data}) => {
             expect(data[0].title).eql("foo");
             expect(data[0].blah).eql(43);
@@ -361,7 +361,7 @@ describe("Integration tests", () => {
             .then(({data}) => api.batch(batch => {
               return batch.updateRecord("blog", {id: data.id, title: "bar"});
             }))
-            .then(_ => api.getRecords("blog"))
+            .then(_ => api.listRecords("blog"))
             .then(({data}) => {
               expect(data[0].title).eql("bar");
             });
@@ -378,7 +378,7 @@ describe("Integration tests", () => {
             batch.createRecord("blog", {title: "art1"});
             batch.createRecord("blog", {title: "art2"});
           }, {bucket: "custom"})
-            .then(_ => api.getRecords("blog", {bucket: "custom"}))
+            .then(_ => api.listRecords("blog", {bucket: "custom"}))
             .then(res => res.data.map(x => x.title))
             .should.become(["art2", "art1"]);
         });
@@ -394,7 +394,7 @@ describe("Integration tests", () => {
             }
           })
             // .then(res => console.log(res))
-            .then(_ => api.getRecords("blog", {bucket: "custom"}))
+            .then(_ => api.listRecords("blog", {bucket: "custom"}))
             .then(res => res.data)
             .should.eventually.have.length.of(27);
         });
@@ -459,7 +459,7 @@ describe("Integration tests", () => {
       });
     });
 
-    describe("#getRecords", function() {
+    describe("#listRecords", function() {
       const fixtures = [
         {title: "art1"},
         {title: "art2"},
@@ -477,13 +477,13 @@ describe("Integration tests", () => {
         });
 
         it("should return every records", () => {
-          return api.getRecords("blog")
+          return api.listRecords("blog")
             .then((res) => res.data.map((r) => r.title))
             .should.eventually.become(["art3", "art2", "art1"]);
         });
 
         it("should order records by field", () => {
-          return api.getRecords("blog", {sort: "title"})
+          return api.listRecords("blog", {sort: "title"})
             .then((res) => res.data.map((r) => r.title))
             .should.eventually.become(["art1", "art2", "art3"]);
         });
@@ -501,7 +501,7 @@ describe("Integration tests", () => {
         });
 
         it("should accept a custom bucket option", () => {
-          return api.getRecords("blog", {bucket: "custom"})
+          return api.listRecords("blog", {bucket: "custom"})
             .then((res) => res.data.map((r) => r.title))
             .should.eventually.become(["art3", "art2", "art1"]);
         });
@@ -752,7 +752,7 @@ describe("Integration tests", () => {
             return coll
               .createRecord({title: "foo"})
               .then(({data}) => coll.updateRecord({...data, title: "mod"}))
-              .then(_ => coll.list())
+              .then(_ => coll.listRecords())
               .then((records) => records[0].title)
               .should.become("mod");
           });
@@ -763,7 +763,7 @@ describe("Integration tests", () => {
             return coll
               .createRecord({title: "foo"})
               .then(({data}) => coll.deleteRecord(data.id))
-              .then(_ => coll.list())
+              .then(_ => coll.listRecords())
               .should.become([]);
           });
         });
@@ -777,11 +777,11 @@ describe("Integration tests", () => {
           });
         });
 
-        describe(".list()", () => {
+        describe(".listRecords()", () => {
           it("should list records", () => {
             return coll
               .createRecord({title: "foo"})
-              .then(_ => coll.list())
+              .then(_ => coll.listRecords())
               .then(records => records.map(record => record.title))
               .should.become(["foo"]);
           });
@@ -793,7 +793,7 @@ describe("Integration tests", () => {
               batch.createRecord({title: "a"});
               batch.createRecord({title: "b"});
             })
-              .then(_ => coll.list({sort: "title"}))
+              .then(_ => coll.listRecords({sort: "title"}))
               .then(records => records.map(record => record.title))
               .should.become(["a", "b"]);
           });
@@ -889,7 +889,7 @@ describe("Integration tests", () => {
             return coll
               .createRecord({title: "foo"})
               .then(({data}) => coll.updateRecord({...data, title: "mod"}))
-              .then(_ => coll.list())
+              .then(_ => coll.listRecords())
               .then((records) => records[0].title)
               .should.become("mod");
           });
@@ -900,7 +900,7 @@ describe("Integration tests", () => {
             return coll
               .createRecord({title: "foo"})
               .then(({data}) => coll.deleteRecord(data.id))
-              .then(_ => coll.list())
+              .then(_ => coll.listRecords())
               .should.become([]);
           });
         });
@@ -914,11 +914,11 @@ describe("Integration tests", () => {
           });
         });
 
-        describe(".list()", () => {
+        describe(".listRecords()", () => {
           it("should list records", () => {
             return coll
               .createRecord({title: "foo"})
-              .then(_ => coll.list())
+              .then(_ => coll.listRecords())
               .then(records => records.map(record => record.title))
               .should.become(["foo"]);
           });
@@ -930,7 +930,7 @@ describe("Integration tests", () => {
               batch.createRecord({title: "a"});
               batch.createRecord({title: "b"});
             })
-              .then(_ => coll.list({sort: "title"}))
+              .then(_ => coll.listRecords({sort: "title"}))
               .then(records => records.map(record => record.title))
               .should.become(["a", "b"]);
           });
