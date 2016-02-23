@@ -103,7 +103,7 @@ describe("Integration tests", () => {
 
       it("should create the bucket if it doesn't exist yet", () => {
         return api.updateBucket("foo", {})
-          .then(_ => api.getBuckets())
+          .then(_ => api.listBuckets())
           .then(buckets => buckets.map(bucket => bucket.id))
           .should.eventually.include("foo");
       });
@@ -113,7 +113,7 @@ describe("Integration tests", () => {
       it("should delete a bucket", () => {
         return api.createBucket("foo")
           .then(_ => api.deleteBucket("foo"))
-          .then(_ => api.getBuckets())
+          .then(_ => api.listBuckets())
           .then(buckets => buckets.map(bucket => bucket.id))
           .should.eventually.not.include("foo");
       });
@@ -262,7 +262,7 @@ describe("Integration tests", () => {
       });
     });
 
-    describe("#getBuckets", () => {
+    describe("#listBuckets", () => {
       beforeEach(() => {
         return api.batch(batch => {
           batch.createBucket("b1");
@@ -271,7 +271,7 @@ describe("Integration tests", () => {
       });
 
       it("should retrieve the list of buckets", () => {
-        return api.getBuckets()
+        return api.listBuckets()
           .then(buckets => buckets.map(bucket => bucket.id))
           .should.become(["b1", "b2"]);
       });

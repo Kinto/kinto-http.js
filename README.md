@@ -26,7 +26,7 @@ const client = new KintoClient("https://kinto.dev.mozaws.net/v1/");
 ### Listing buckets
 
 ```js
-client.getBuckets();
+client.listBuckets();
 ```
 
 Sample result:

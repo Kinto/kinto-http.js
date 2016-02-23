@@ -337,7 +337,7 @@ export default class KintoClient {
    * @param  {Object} options.headers The headers object option.
    * @return {Promise<String[], Error>}
    */
-  getBuckets(options={}) {
+  listBuckets(options={}) {
     return this.execute({
       path: endpoint("buckets"),
       headers: {...this.optionHeaders, ...options.headers}

@@ -555,14 +555,14 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#getBuckets} */
-  describe("#getBuckets()", () => {
+  /** @test {KintoClient#listBuckets} */
+  describe("#listBuckets()", () => {
     beforeEach(() => {
       sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
     it("should execute expected request", () => {
-      api.getBuckets();
+      api.listBuckets();
 
       sinon.assert.calledWithMatch(api.execute, {
         path: "/buckets",
@@ -571,7 +571,7 @@ describe("KintoClient", () => {
 
     it("should support passing custom headers", () => {
       api.optionHeaders = {Foo: "Bar"};
-      api.getBuckets({headers: {Baz: "Qux"}});
+      api.listBuckets({headers: {Baz: "Qux"}});
 
       sinon.assert.calledWithMatch(api.execute, {
         headers: {Foo: "Bar", Baz: "Qux"}
