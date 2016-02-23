@@ -37,8 +37,8 @@ export class Bucket {
    * @param  {Object} options The options object.
    * @return {Promise<Array<Object>, Error>}
    */
-  getCollections(options) {
-    return this.client.getCollections(this.name, {
+  listCollections(options) {
+    return this.client.listCollections(this.name, {
       ...options,
       bucket: this.name
     });

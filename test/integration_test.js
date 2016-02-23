@@ -211,7 +211,7 @@ describe("Integration tests", () => {
       it("should create a collection if it doesn't exist yet", () => {
         return api.createBucket("blog")
           .then(_ => api.updateCollection("posts", {}, {bucket: "blog"}))
-          .then(_ => api.getCollections("blog"))
+          .then(_ => api.listCollections("blog"))
           .then(res => res.map(x => x.id))
           .should.become(["posts"]);
       });
@@ -610,9 +610,9 @@ describe("Integration tests", () => {
           });
       });
 
-      describe(".getCollections()", () => {
+      describe(".listCollections()", () => {
         it("should list existing collections", () => {
-          return bucket.getCollections()
+          return bucket.listCollections()
             .then(colls => colls.map(coll => coll.id))
             .should.become(["b1", "b2"]);
         });
@@ -636,7 +636,7 @@ describe("Integration tests", () => {
       describe(".createCollection()", () => {
         it("should create a named collection", () => {
           return bucket.createCollection("foo")
-            .then(_ => bucket.getCollections())
+            .then(_ => bucket.listCollections())
             .then(colls => colls.map(coll => coll.id))
             .should.eventually.include("foo");
         });
@@ -646,7 +646,7 @@ describe("Integration tests", () => {
 
           return bucket.createCollection()
             .then(res => generated = res.data.id)
-            .then(_ => bucket.getCollections())
+            .then(_ => bucket.listCollections())
             .then(c => expect(c.some(x => x.id === generated)).eql(true));
         });
       });
@@ -655,7 +655,7 @@ describe("Integration tests", () => {
         it("should delete a collection", () => {
           return bucket.createCollection("foo")
             .then(_ => bucket.deleteCollection("foo"))
-            .then(_ => bucket.getCollections())
+            .then(_ => bucket.listCollections())
             .then(colls => colls.map(coll => coll.id))
             .should.eventually.not.include("foo");
         });

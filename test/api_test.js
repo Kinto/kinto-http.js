@@ -644,8 +644,8 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#getCollections} */
-  describe("#getCollections()", () => {
+  /** @test {KintoClient#listCollections} */
+  describe("#listCollections()", () => {
     const data = [
       {id: "c1", last_modified: 1},
       {id: "c2", last_modified: 2},
@@ -656,7 +656,7 @@ describe("KintoClient", () => {
     });
 
     it("should execute expected request", () => {
-      api.getCollections("buck");
+      api.listCollections("buck");
 
       sinon.assert.calledWithMatch(api.execute, {
         path: "/buckets/buck/collections",
@@ -664,7 +664,7 @@ describe("KintoClient", () => {
     });
 
     it("should accept a headers option", () => {
-      api.getCollections("buck", {headers: {Foo: "Bar"}});
+      api.listCollections("buck", {headers: {Foo: "Bar"}});
 
       sinon.assert.calledWithMatch(api.execute, {
         headers: {Foo: "Bar"}
@@ -672,7 +672,7 @@ describe("KintoClient", () => {
     });
 
     it("should retrieve the list of collections for a bucket", () => {
-      return api.getCollections()
+      return api.listCollections()
         .should.become(data);
     });
   });
