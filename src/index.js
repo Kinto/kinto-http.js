@@ -22,9 +22,11 @@ export const SUPPORTED_PROTOCOL_VERSION = "v1";
  *
  * @example
  * const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
- * client.createRecord("my-blog", {title: "First article"})
+ * client.bucket("default")
+*    .collection("my-blog")
+*    .createRecord({title: "First article"})
  *   .then(console.log.bind(console))
- *   .catch(console.error.bind(console))
+ *   .catch(console.error.bind(console));
  */
 export default class KintoClient {
   /**
@@ -60,33 +62,39 @@ export default class KintoClient {
     this.remote = remote;
     /**
      * The default bucket name to use.
+     * @ignore
      * @type {String}
      */
     this.defaultBucket = options.bucket || "default";
     /**
      * The default safe setting value.
+     * @ignore
      * @type {Boolean}
      */
     this.defaultSafe = !!options.safe;
     /**
      * The optional generic headers.
+     * @ignore
      * @type {Object}
      */
     this.optionHeaders = options.headers || {};
     /**
      * Current server settings, retrieved from the server.
+     * @ignore
      * @type {Object}
      */
     this.serverSettings = null;
     /**
      * The event emitter instance. Should comply with the `EventEmitter`
      * interface.
+     * @ignore
      * @type {EventEmitter}
      */
     this.events = options.events || new EventEmitter();
 
     /**
      * The HTTP instance.
+     * @ignore
      * @type {HTTP}
      */
     this.http = new HTTP(this.events, {requestMode: options.requestMode});
@@ -286,6 +294,9 @@ export default class KintoClient {
   /**
    * Sends batch requests to the remote server.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {Function} fn      The function to use for describing batch ops.
    * @param  {Object}   options The options object.
    * @param  {Boolean}  options.safe      The safe option.
@@ -294,15 +305,6 @@ export default class KintoClient {
    * @param  {Boolean}  options.aggregate Produces an aggregated result object
    * (default: `false`).
    * @return {Promise<Object, Error>}
-   * @example
-   * const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
-   * client.batch(batch => {
-   *   batch.createBucket("blog");
-   *   batch.createCollection("posts");
-   *   batch.createRecord("posts", {title: "My first post"});
-   * })
-   *   .then(console.log.bind(console))
-   *   .catch(console.error.bind(console));
    */
   batch(fn, options={}) {
     const batch = createBatch(this._getRequestOptions(options));
@@ -335,7 +337,7 @@ export default class KintoClient {
    *
    * @param  {Object} options         The options object.
    * @param  {Object} options.headers The headers object option.
-   * @return {Promise<String[], Error>}
+   * @return {Promise<Object[], Error>}
    */
   listBuckets(options={}) {
     return this.execute({
@@ -361,8 +363,27 @@ export default class KintoClient {
   }
 
   /**
+   * Deletes a bucket from the server.
+   *
+   * @ignore
+   * @param  {String}  bucketName          The bucket name.
+   * @param  {Object}  options             The options object.
+   * @param  {Boolean} options.safe        The safe option.
+   * @param  {Object}  options.headers     The headers object option.
+   * @return {Promise<Object, Error>}
+   */
+  deleteBucket(bucketName, options={}) {
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(requests.deleteBucket(bucketName, reqOptions))
+      .then(res => res.json);
+  }
+
+  /**
    * Retrieves informations for a given bucket.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {String} bucketName      The bucket name.
    * @param  {Object} options         The options object.
    * @param  {Object} options.headers The headers object option.
@@ -379,9 +400,12 @@ export default class KintoClient {
   /**
    * Updates a bucket on the server.
    *
-   * Note: Metadata are not supported by the bucket endpoints on Kinto server,
+   * Notes:
+   * - Metadata are not supported by the bucket endpoints on Kinto server,
    * though that is planned, hence a future-proof API here.
+   * - Reserved for internal use only.
    *
+   * @ignore
    * @param  {String}  bucketName          The bucket name.
    * @param  {Object}  metadata            The metadata object.
    * @param  {Object}  options             The options object.
@@ -397,23 +421,11 @@ export default class KintoClient {
   }
 
   /**
-   * Deletes a bucket from the server.
-   *
-   * @param  {String}  bucketName          The bucket name.
-   * @param  {Object}  options             The options object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {Object}  options.headers     The headers object option.
-   * @return {Promise<Object, Error>}
-   */
-  deleteBucket(bucketName, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteBucket(bucketName, reqOptions))
-      .then(res => res.json);
-  }
-
-  /**
    * Retrieves the list of collections attached to a given bucket.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {String} bucketName      The bucket name.
    * @param  {Object} options         The options object.
    * @param  {Object} options.headers The headers object option.
@@ -430,6 +442,9 @@ export default class KintoClient {
   /**
    * Creates a new collection on the server.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {Object}  options             The options object.
    * @param  {Boolean} options.safe        The safe option.
    * @param  {String}  options.bucket      The bucket name option.
@@ -449,6 +464,9 @@ export default class KintoClient {
   /**
    * Deletes a collection from the server.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {String}  collName        The collection name.
    * @param  {Object}  options         The options object.
    * @param  {Boolean} options.safe    The safe option.
@@ -465,6 +483,9 @@ export default class KintoClient {
   /**
    * Retrieves information for a given collection.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {String}   id              The collection name.
    * @param  {Object}   options         The options object.
    * @param  {String}   options.bucket  The bucket name option.
@@ -486,6 +507,9 @@ export default class KintoClient {
   /**
    * Updates a collection.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {String} id         The collection id.
    * @param  {Object} metadata   The metadata to update the collection with; this
    * can be anything but schema and permission, which are handled using
@@ -508,6 +532,9 @@ export default class KintoClient {
   /**
    * Retrieve a record from a collection by its id.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {String}   collName        The collection name.
    * @param  {String}   id              The record id.
    * @param  {Object}   options         The options object.
@@ -530,10 +557,12 @@ export default class KintoClient {
   /**
    * Get a list of records for a given collection from the server.
    *
+   * Note: Reserved for internal use only.
    * Note: Because of a bug on the server, the order of records is not
    * predictible, so it's forced in the default options here.
    * See https://github.com/Kinto/kinto/issues/434
    *
+   * @ignore
    * @param  {String}   collName        The collection name.
    * @param  {Object}   options         The options object.
    * @param  {String}   options.bucket  The bucket name option.
@@ -560,6 +589,9 @@ export default class KintoClient {
   /**
    * Creates a record in a given collection.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {String}   collName        The collection name.
    * @param  {Object}   record          The record object.
    * @param  {Object}   options         The options object.
@@ -577,6 +609,9 @@ export default class KintoClient {
   /**
    * Updates a record in a given collection.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {String}   collName        The collection name.
    * @param  {Object}   record          The updated record object.
    * @param  {Object}   options         The options object.
@@ -595,6 +630,9 @@ export default class KintoClient {
   /**
    * Deletes a record in a given collection.
    *
+   * Note: Reserved for internal use only.
+   *
+   * @ignore
    * @param  {String}   collName             The collection name.
    * @param  {String}   id                   The record id to delete.
    * @param  {Object}   options              The options object.

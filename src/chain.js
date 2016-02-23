@@ -35,7 +35,8 @@ export class Bucket {
   /**
    * Retrieves bucket properties.
    *
-   * @param  {Object} options The options object.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
   getProperties(options) {
@@ -45,7 +46,8 @@ export class Bucket {
   /**
    * Retrieves the list of collections in the current bucket.
    *
-   * @param  {Object} options The options object.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
    * @return {Promise<Array<Object>, Error>}
    */
   listCollections(options) {
@@ -79,8 +81,10 @@ export class Bucket {
   /**
    * Deletes a collection from the current bucket.
    *
-   * @param  {String} id      The collection id.
-   * @param  {Object} options The options object.
+   * @param  {String} id              The collection id.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @param  {Boolean}  options.safe  The safe option.
    * @return {Promise<Object, Error>}
    */
   deleteCollection(id, options) {
@@ -93,7 +97,8 @@ export class Bucket {
   /**
    * Retrieves the list of permissions for this bucket.
    *
-   * @param  {Object} options The options object.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
   getPermissions(options) {
@@ -104,9 +109,10 @@ export class Bucket {
   /**
    * Recplaces all existing bucket permissions with the ones provided.
    *
-   * @param {String} type        The permissions type, "write" or "read".
-   * @param {Object} permissions The permissions object.
-   * @param {Object} options     The options object
+   * @param  {Object} permissions     The permissions object.
+   * @param  {Object} options         The options object
+   * @param  {Object} options.headers The headers object option.
+   * @param  {Boolean}  options.safe  The safe option.
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
@@ -119,8 +125,11 @@ export class Bucket {
   /**
    * Performs batch operations at the current bucket level.
    *
-   * @param  {Function} fn      The batch operation function.
-   * @param  {Object}   options The options object.
+   * @param  {Function} fn                 The batch operation function.
+   * @param  {Object}   options            The options object.
+   * @param  {Object}   options.headers    The headers object option.
+   * @param  {Boolean}  options.safe       The safe option.
+   * @param  {Boolean}  options.aggregate  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
   batch(fn, options) {
@@ -162,7 +171,8 @@ export class Collection {
   /**
    * Retrieves collection properties.
    *
-   * @param  {Object} options The options object.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
   getProperties(options) {
@@ -175,7 +185,8 @@ export class Collection {
   /**
    * Retrieves the list of permissions for this collection.
    *
-   * @param  {Object} options The options object.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
   getPermissions(options) {
@@ -186,9 +197,10 @@ export class Collection {
   /**
    * Replaces all existing collection permissions with the ones provided.
    *
-   * @param {String} type        The permissions type, "write" or "read".
-   * @param {Object} permissions The permissions object.
-   * @param {Object} options     The options object
+   * @param {Object} permissions      The permissions object.
+   * @param {Object} options          The options object
+   * @param  {Object} options.headers The headers object option.
+   * @param  {Boolean}  options.safe  The safe option.
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
@@ -202,7 +214,8 @@ export class Collection {
   /**
    * Retrieves the JSON schema for this collection, if any.
    *
-   * @param  {Object} options The options object.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object|null, Error>}
    */
   getSchema(options) {
@@ -213,8 +226,10 @@ export class Collection {
   /**
    * Sets the JSON schema for this collection.
    *
-   * @param  {Object} schema  The JSON schema object.
-   * @param  {Object} options The options object.
+   * @param  {Object} schema          The JSON schema object.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @param  {Boolean}  options.safe  The safe option.
    * @return {Promise<Object|null, Error>}
    */
   setSchema(schema, options) {
@@ -228,7 +243,8 @@ export class Collection {
   /**
    * Retrieves metadata attached to current collection.
    *
-   * @param  {Object} options The options object.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
   getMetadata(options) {
@@ -247,8 +263,10 @@ export class Collection {
   /**
    * Sets metadata for current collection.
    *
-   * @param  {Object} metadata The metadata object.
-   * @param  {Object} options  The options object.
+   * @param  {Object} metadata        The metadata object.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @param  {Boolean}  options.safe  The safe option.
    * @return {Promise<Object, Error>}
    */
   setMetadata(metadata, options) {
@@ -262,8 +280,10 @@ export class Collection {
   /**
    * Creates a record in current collection.
    *
-   * @param  {Object} record  The record to create.
-   * @param  {Object} options The options object.
+   * @param  {Object} record          The record to create.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @param  {Boolean}  options.safe  The safe option.
    * @return {Promise<Object, Error>}
    */
   createRecord(record, options) {
@@ -276,8 +296,10 @@ export class Collection {
   /**
    * Updates a record in current collection.
    *
-   * @param  {Object} record  The record to update.
-   * @param  {Object} options The options object.
+   * @param  {Object} record          The record to update.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @param  {Boolean}  options.safe  The safe option.
    * @return {Promise<Object, Error>}
    */
   updateRecord(record, options) {
@@ -290,8 +312,10 @@ export class Collection {
   /**
    * Deletes a record from the current collection.
    *
-   * @param  {String} id      The record id to delete.
-   * @param  {Object} options The options object.
+   * @param  {String} id              The record id to delete.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @param  {Boolean}  options.safe  The safe option.
    * @return {Promise<Object, Error>}
    */
   deleteRecord(id, options) {
@@ -304,8 +328,9 @@ export class Collection {
   /**
    * Retrieves a record from the current collection.
    *
-   * @param  {String} id      The record id to retrieve.
-   * @param  {Object} options The options object.
+   * @param  {String} id              The record id to retrieve.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
   getRecord(id, options) {
@@ -318,7 +343,8 @@ export class Collection {
   /**
    * Lists records from the current collection.
    *
-   * @param  {Object} options The options object.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
    * @return {Promise<Array<Object>, Error>}
    */
   listRecords(options) {
@@ -332,8 +358,11 @@ export class Collection {
   /**
    * Performs batch operations at the current collection level.
    *
-   * @param  {Function} fn      The batch operation function.
-   * @param  {Object}   options The options object.
+   * @param  {Function} fn                 The batch operation function.
+   * @param  {Object}   options            The options object.
+   * @param  {Object}   options.headers    The headers object option.
+   * @param  {Boolean}  options.safe       The safe option.
+   * @param  {Boolean}  options.aggregate  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
   batch(fn, options) {
