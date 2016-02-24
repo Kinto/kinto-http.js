@@ -40,7 +40,7 @@ describe("chain module", () => {
       });
     });
 
-    describe("#collection", () => {
+    describe("#collection()", () => {
       it("should return a Collection instance", () => {
         expect(getBlogBucket().collection("posts"))
           .to.be.an.instanceOf(Collection);
@@ -48,6 +48,20 @@ describe("chain module", () => {
 
       it("should return a named collection", () => {
         expect(getBlogBucket().collection("posts").name).eql("posts");
+      });
+
+      it("should propagate bucket options", () => {
+        expect(getBlogBucket({
+          headers: {Foo: "Bar"},
+          safe: true,
+        }).collection("posts", {
+          headers: {Baz: "Qux"},
+          safe: false,
+        }).options).eql({
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
+          safe: false,
+        });
       });
     });
 
@@ -248,8 +262,8 @@ describe("chain module", () => {
     let coll;
 
     beforeEach(() => {
-      const bucket = new Bucket(client, "blog");
-      coll = new Collection(client, bucket, "posts");
+      const bucket = new Bucket(client, "blog", {headers: {Foo: "Bar"}});
+      coll = new Collection(client, bucket, "posts", {headers: {Baz: "Qux"}});
     });
 
     describe("#getPermissions()", () => {
@@ -273,7 +287,8 @@ describe("chain module", () => {
 
         sinon.assert.calledWith(client.updateCollection, "posts", {}, {
           bucket: "blog",
-          permissions: "fakeperms"
+          permissions: "fakeperms",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -303,7 +318,8 @@ describe("chain module", () => {
 
         sinon.assert.calledWith(client.updateCollection, "posts", {}, {
           bucket: "blog",
-          schema
+          schema,
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -329,7 +345,8 @@ describe("chain module", () => {
 
         sinon.assert.calledWith(client.updateCollection, "posts", {a: 1}, {
           bucket: "blog",
-          patch: true
+          patch: true,
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -343,7 +360,8 @@ describe("chain module", () => {
         coll.createRecord(record);
 
         sinon.assert.calledWith(client.createRecord, "posts", record, {
-          bucket: "blog"
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -357,7 +375,8 @@ describe("chain module", () => {
         coll.updateRecord(record);
 
         sinon.assert.calledWith(client.updateRecord, "posts", record, {
-          bucket: "blog"
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -369,7 +388,8 @@ describe("chain module", () => {
         coll.deleteRecord(1);
 
         sinon.assert.calledWith(client.deleteRecord, "posts", 1, {
-          bucket: "blog"
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -381,7 +401,8 @@ describe("chain module", () => {
         coll.getRecord(1);
 
         sinon.assert.calledWith(client.getRecord, "posts", 1, {
-          bucket: "blog"
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -398,7 +419,8 @@ describe("chain module", () => {
 
         sinon.assert.calledWith(client.listRecords, "posts", {
           bucket: "blog",
-          sort: "title"
+          sort: "title",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
 
@@ -417,7 +439,8 @@ describe("chain module", () => {
 
         sinon.assert.calledWith(client.batch, fn, {
           bucket: "blog",
-          collection: "posts"
+          collection: "posts",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });

@@ -11,7 +11,7 @@ export class Bucket {
    * @param  {Object}      options.headers The headers object option.
    * @param  {Boolean}     options.safe    The safe option.
    */
-  constructor(client, name, options) {
+  constructor(client, name, options={}) {
     /**
      * @ignore
      */
@@ -30,13 +30,13 @@ export class Bucket {
   }
 
   /**
-   * Merges passed request options with default ones, if any.
+   * Merges passed request options with default bucket ones, if any.
    *
    * @private
    * @param  {Object} options The options to merge.
    * @return {Object}         The merged options.
    */
-  _reqOptions(options={}) {
+  _bucketOptions(options={}) {
     const headers = {
       ...this.options && this.options.headers,
       ...options.headers
@@ -47,11 +47,14 @@ export class Bucket {
   /**
    * Selects a collection.
    *
-   * @param  {String} name The collection name.
+   * @param  {String} name            The collection name.
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @param  {Boolean}  options.safe  The safe option.
    * @return {Collection}
    */
-  collection(name) {
-    return new Collection(this.client, this, name);
+  collection(name, options) {
+    return new Collection(this.client, this, name, this._bucketOptions(options));
   }
 
 
@@ -74,7 +77,7 @@ export class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   listCollections(options) {
-    return this.client.listCollections(this.name, this._reqOptions(options));
+    return this.client.listCollections(this.name, this._bucketOptions(options));
   }
 
   /**
@@ -98,7 +101,7 @@ export class Bucket {
     } else {
       createOptions = {...args[0], ...createOptions};
     }
-    return this.client.createCollection(this._reqOptions(createOptions));
+    return this.client.createCollection(this._bucketOptions(createOptions));
   }
 
   /**
@@ -111,7 +114,7 @@ export class Bucket {
    * @return {Promise<Object, Error>}
    */
   deleteCollection(id, options) {
-    return this.client.deleteCollection(id, this._reqOptions(options));
+    return this.client.deleteCollection(id, this._bucketOptions(options));
   }
 
   /**
@@ -122,7 +125,7 @@ export class Bucket {
    * @return {Promise<Object, Error>}
    */
   getPermissions(options) {
-    return this.getProperties(this._reqOptions(options))
+    return this.getProperties(this._bucketOptions(options))
       .then(res => res.permissions);
   }
 
@@ -136,7 +139,7 @@ export class Bucket {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
-    const reqOptions = this._reqOptions({...options, permissions});
+    const reqOptions = this._bucketOptions({...options, permissions});
     return this.client.updateBucket(this.name, {}, reqOptions);
   }
 
@@ -151,7 +154,7 @@ export class Bucket {
    * @return {Promise<Object, Error>}
    */
   batch(fn, options) {
-    return this.client.batch(fn, this._reqOptions(options));
+    return this.client.batch(fn, this._bucketOptions(options));
   }
 }
 
@@ -163,11 +166,13 @@ export class Collection {
   /**
    * Constructor.
    *
-   * @param  {KintoClient}  client The client instance.
-   * @param  {Bucket}       bucket The bucket instance.
-   * @param  {String}       name   The collection name.
+   * @param  {KintoClient}  client          The client instance.
+   * @param  {Bucket}       bucket          The bucket instance.
+   * @param  {String}       name            The collection name.
+   * @param  {Object}       options.headers The headers object option.
+   * @param  {Boolean}      options.safe    The safe option.
    */
-  constructor(client, bucket, name) {
+  constructor(client, bucket, name, options={}) {
     /**
      * @ignore
      */
@@ -181,6 +186,36 @@ export class Collection {
      * @type {String}
      */
     this.name = name;
+
+    /**
+     * The default collection options object, embedding the default bucket ones.
+     * @ignore
+     * @type {Object}
+     */
+    this.options = options;
+  }
+
+  /**
+   * Merges passed request options with default bucket and collection ones, if
+   * any.
+   *
+   * @private
+   * @param  {Object} options The options to merge.
+   * @return {Object}         The merged options.
+   */
+  _collOptions(options={}) {
+    const headers = {
+      ...this.bucket.options && this.bucket.options.headers,
+      ...this.options && this.options.headers,
+      ...options.headers
+    };
+    return {
+      ...this.bucket.options,
+      ...this.options,
+      ...options,
+      headers,
+      bucket: this.bucket.name
+    };
   }
 
   /**
@@ -191,10 +226,8 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   getProperties(options) {
-    return this.client.getCollection(this.name, {
-      ...options,
-      bucket: this.bucket.name
-    });
+    const reqOptions = this._collOptions(options);
+    return this.client.getCollection(this.name, reqOptions);
   }
 
   /**
@@ -219,10 +252,10 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
+    const reqOptions = this._collOptions(options);
     return this.client.updateCollection(this.name, {}, {
-      ...options,
+      ...reqOptions,
       permissions,
-      bucket: this.bucket.name
     });
   }
 
@@ -248,10 +281,10 @@ export class Collection {
    * @return {Promise<Object|null, Error>}
    */
   setSchema(schema, options) {
+    const reqOptions = this._collOptions(options);
     return this.client.updateCollection(this.name, {}, {
-      ...options,
+      ...reqOptions,
       schema,
-      bucket: this.bucket.name
     });
   }
 
@@ -285,10 +318,10 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   setMetadata(metadata, options) {
+    const reqOptions = this._collOptions(options);
     return this.client.updateCollection(this.name, metadata, {
-      ...options,
+      ...reqOptions,
       patch: true,
-      bucket: this.bucket.name
     });
   }
 
@@ -302,10 +335,8 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   createRecord(record, options) {
-    return this.client.createRecord(this.name, record, {
-      ...options,
-      bucket: this.bucket.name
-    });
+    const reqOptions = this._collOptions(options);
+    return this.client.createRecord(this.name, record, reqOptions);
   }
 
   /**
@@ -318,10 +349,8 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   updateRecord(record, options) {
-    return this.client.updateRecord(this.name, record, {
-      ...options,
-      bucket: this.bucket.name
-    });
+    const reqOptions = this._collOptions(options);
+    return this.client.updateRecord(this.name, record, reqOptions);
   }
 
   /**
@@ -334,10 +363,8 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   deleteRecord(id, options) {
-    return this.client.deleteRecord(this.name, id, {
-      ...options,
-      bucket: this.bucket.name
-    });
+    const reqOptions = this._collOptions(options);
+    return this.client.deleteRecord(this.name, id, reqOptions);
   }
 
   /**
@@ -349,10 +376,8 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   getRecord(id, options) {
-    return this.client.getRecord(this.name, id, {
-      ...options,
-      bucket: this.bucket.name
-    });
+    const reqOptions = this._collOptions(options);
+    return this.client.getRecord(this.name, id, reqOptions);
   }
 
   /**
@@ -363,10 +388,8 @@ export class Collection {
    * @return {Promise<Array<Object>, Error>}
    */
   listRecords(options) {
-    return this.client.listRecords(this.name, {
-      ...options,
-      bucket: this.bucket.name
-    })
+    const reqOptions = this._collOptions(options);
+    return this.client.listRecords(this.name, reqOptions)
       .then(res => res.data);
   }
 
@@ -381,10 +404,10 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   batch(fn, options) {
+    const reqOptions = this._collOptions(options);
     return this.client.batch(fn, {
-      ...options,
+      ...reqOptions,
       collection: this.name,
-      bucket: this.bucket.name
     });
   }
 }
