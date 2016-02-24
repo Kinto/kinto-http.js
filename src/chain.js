@@ -6,10 +6,12 @@ export class Bucket {
   /**
    * Constructor.
    *
-   * @param  {KintoClient} client The client instance.
-   * @param  {String}      name   The bucket name.
+   * @param  {KintoClient} client          The client instance.
+   * @param  {String}      name            The bucket name.
+   * @param  {Object}      options.headers The headers object option.
+   * @param  {Boolean}     options.safe    The safe option.
    */
-  constructor(client, name) {
+  constructor(client, name, options) {
     /**
      * @ignore
      */
@@ -19,6 +21,27 @@ export class Bucket {
      * @type {String}
      */
     this.name = name;
+    /**
+     * The default options object.
+     * @ignore
+     * @type {Object}
+     */
+    this.options = options;
+  }
+
+  /**
+   * Merges passed request options with default ones, if any.
+   *
+   * @private
+   * @param  {Object} options The options to merge.
+   * @return {Object}         The merged options.
+   */
+  _reqOptions(options={}) {
+    const headers = {
+      ...this.options && this.options.headers,
+      ...options.headers
+    };
+    return {...this.options, ...options, headers, bucket: this.name};
   }
 
   /**
@@ -51,7 +74,7 @@ export class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   listCollections(options) {
-    return this.client.listCollections(this.name, options);
+    return this.client.listCollections(this.name, this._reqOptions(options));
   }
 
   /**
@@ -75,7 +98,7 @@ export class Bucket {
     } else {
       createOptions = {...args[0], ...createOptions};
     }
-    return this.client.createCollection(createOptions);
+    return this.client.createCollection(this._reqOptions(createOptions));
   }
 
   /**
@@ -88,10 +111,7 @@ export class Bucket {
    * @return {Promise<Object, Error>}
    */
   deleteCollection(id, options) {
-    return this.client.deleteCollection(id, {
-      ...options,
-      bucket: this.name
-    });
+    return this.client.deleteCollection(id, this._reqOptions(options));
   }
 
   /**
@@ -102,7 +122,7 @@ export class Bucket {
    * @return {Promise<Object, Error>}
    */
   getPermissions(options) {
-    return this.getProperties(options)
+    return this.getProperties(this._reqOptions(options))
       .then(res => res.permissions);
   }
 
@@ -116,10 +136,8 @@ export class Bucket {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
-    return this.client.updateBucket(this.name, {}, {
-      ...options,
-      permissions,
-    });
+    const reqOptions = this._reqOptions({...options, permissions});
+    return this.client.updateBucket(this.name, {}, reqOptions);
   }
 
   /**
@@ -133,10 +151,7 @@ export class Bucket {
    * @return {Promise<Object, Error>}
    */
   batch(fn, options) {
-    return this.client.batch(fn, {
-      ...options,
-      bucket: this.name
-    });
+    return this.client.batch(fn, this._reqOptions(options));
   }
 }
 
