@@ -112,15 +112,18 @@ export function deleteBucket(id, options = {}) {
 /**
  * @private
  */
-export function createCollection(options = {}) {
-  const { bucket, headers, permissions, data, safe, id } = {
+export function createCollection(collection, options = {}) {
+  const { bucket, headers, permissions, data, safe } = {
     ...requestDefaults,
     ...options
   };
-  const path = options.id ? endpoint("collection", bucket, id) :
-                            endpoint("collections", bucket);
+  // Note: we can't use default arg value for collection here, because
+  // positional arg default value is the way createBatch detects them.
+  collection = collection || {};
+  const path = collection.id ? endpoint("collection", bucket, collection.id) :
+                               endpoint("collections", bucket);
   return handleCacheHeaders(safe, {
-    method: options.id ? "PUT" : "POST",
+    method: collection.id ? "PUT" : "POST",
     path,
     headers,
     body: {data, permissions}

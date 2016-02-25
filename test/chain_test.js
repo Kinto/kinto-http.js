@@ -93,11 +93,10 @@ describe("chain module", () => {
 
       describe("Named collection", () => {
         it("should create a named collection", () => {
-          getBlogBucket().createCollection("foo");
+          getBlogBucket().createCollection({id: "foo"});
 
-          sinon.assert.calledWith(client.createCollection, {
+          sinon.assert.calledWith(client.createCollection, {id: "foo"}, {
             bucket: "blog",
-            id: "foo",
             headers: {},
           });
         });
@@ -106,11 +105,10 @@ describe("chain module", () => {
           getBlogBucket({
             headers: {Foo: "Bar"},
             safe: true,
-          }).createCollection("foo", {headers: {Baz: "Qux"}});
+          }).createCollection({id: "foo"}, {headers: {Baz: "Qux"}});
 
-          sinon.assert.calledWithExactly(client.createCollection, {
+          sinon.assert.calledWithExactly(client.createCollection, {id: "foo"}, {
             bucket: "blog",
-            id: "foo",
             headers: {Foo: "Bar", Baz: "Qux"},
             safe: true,
           });
@@ -121,7 +119,7 @@ describe("chain module", () => {
         it("should create an unnamed collection", () => {
           getBlogBucket().createCollection();
 
-          sinon.assert.calledWith(client.createCollection, {
+          sinon.assert.calledWith(client.createCollection, {}, {
             bucket: "blog",
             headers: {},
           });
@@ -131,9 +129,9 @@ describe("chain module", () => {
           getBlogBucket({
             headers: {Foo: "Bar"},
             safe: true,
-          }).createCollection({headers: {Baz: "Qux"}});
+          }).createCollection({}, {headers: {Baz: "Qux"}});
 
-          sinon.assert.calledWithExactly(client.createCollection, {
+          sinon.assert.calledWithExactly(client.createCollection, {}, {
             bucket: "blog",
             headers: {Foo: "Bar", Baz: "Qux"},
             safe: true,

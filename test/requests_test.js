@@ -65,18 +65,18 @@ describe("requests module", () => {
     });
 
     it("should accept a bucket option", () => {
-      expect(requests.createCollection({id: "foo", bucket: "custom"}))
+      expect(requests.createCollection({id: "foo"}, {bucket: "custom"}))
         .to.have.property("path").eql("/buckets/custom/collections/foo");
     });
 
     it("should accept a headers option", () => {
-      expect(requests.createCollection({id: "foo", headers: {Foo: "Bar"}}))
+      expect(requests.createCollection({id: "foo"}, {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     it("should accept a permissions option", () => {
       const permissions = {read: ["github:n1k0"]};
-      expect(requests.createCollection({id: "foo", permissions}))
+      expect(requests.createCollection({id: "foo"}, {permissions}))
         .to.have.property("body")
         .to.have.property("permissions").eql(permissions);
     });

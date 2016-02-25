@@ -141,7 +141,7 @@ Sample result:
 #### Named collection
 
 ```js
-client.bucket("blog").createCollection("posts");
+client.bucket("blog").createCollection({id: "posts"});
 ```
 
 Sample result:

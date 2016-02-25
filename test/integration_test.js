@@ -124,13 +124,13 @@ describe("Integration tests", () => {
 
       describe("Default options", () => {
         beforeEach(() => {
-          return api.createCollection()
+          return api.createCollection({id: "posts"})
             .then(res => result = res);
         });
 
         it("should create a collection with the passed id", () => {
           expect(result).to.have.property("data")
-                        .to.have.property("id").to.have.length.of(8);
+                        .to.have.property("id").eql("posts");
         });
 
         it("should create a collection having a list of write permissions", () => {
@@ -139,9 +139,21 @@ describe("Integration tests", () => {
         });
       });
 
+      describe("No id property passed", () => {
+        beforeEach(() => {
+          return api.createCollection()
+            .then(res => result = res);
+        });
+
+        it("should create an automatically named collection", () => {
+          expect(result).to.have.property("data")
+                        .to.have.property("id").to.have.length.of(8);
+        });
+      });
+
       describe("permissions option", () => {
         beforeEach(() => {
-          return api.createCollection({
+          return api.createCollection({id: "posts"}, {
             permissions: {
               read: ["github:n1k0"]
             }
@@ -156,7 +168,7 @@ describe("Integration tests", () => {
 
       describe("data option", () => {
         beforeEach(() => {
-          return api.createCollection({
+          return api.createCollection({id: "posts"}, {
             data: {foo: "bar"}
           }).then(res => result = res);
         });
@@ -170,9 +182,9 @@ describe("Integration tests", () => {
       describe("bucket option", () => {
         it("should respect the bucket option", () => {
           return api.createBucket("custom")
-            .then(() => api.createCollection({bucket: "custom"}))
+            .then(() => api.createCollection({}, {bucket: "custom"}))
             .should.eventually.have.property("data")
-                   .to.have.property("id").to.have.length.of(8);
+                           .to.have.property("id").to.have.length.of(8);
         });
       });
     });
@@ -388,7 +400,7 @@ describe("Integration tests", () => {
         it("should allow batching by chunks", () => {
           return api.batch(batch => {
             batch.createBucket("custom");
-            batch.createCollection({id: "blog", bucket: "custom"});
+            batch.createCollection({id: "blog"}, {bucket: "custom"});
             for (let i=1; i<=27; i++) {
               batch.createRecord("blog", {title: "art" + i}, {bucket: "custom"});
             }
@@ -407,7 +419,7 @@ describe("Integration tests", () => {
             beforeEach(() => {
               return api.batch(batch => {
                 batch.createBucket("custom");
-                batch.createCollection({id: "blog", bucket: "custom"});
+                batch.createCollection({id: "blog"}, {bucket: "custom"});
                 batch.createRecord("blog", {title: "art1"}, {bucket: "custom"});
                 batch.createRecord("blog", {title: "art2"}, {bucket: "custom"});
               }, {aggregate: true})
@@ -492,7 +504,7 @@ describe("Integration tests", () => {
         beforeEach(() => {
           return api.batch(batch => {
             batch.createBucket("custom");
-            batch.createCollection({id: "blog", bucket: "custom"});
+            batch.createCollection({id: "blog"}, {bucket: "custom"});
             for (const record of fixtures) {
               batch.createRecord("blog", record, {bucket: "custom"});
             }
@@ -640,7 +652,7 @@ describe("Integration tests", () => {
 
       describe(".createCollection()", () => {
         it("should create a named collection", () => {
-          return bucket.createCollection("foo")
+          return bucket.createCollection({id: "foo"})
             .then(_ => bucket.listCollections())
             .then(colls => colls.map(coll => coll.id))
             .should.eventually.include("foo");
@@ -658,7 +670,7 @@ describe("Integration tests", () => {
 
       describe(".deleteCollection()", () => {
         it("should delete a collection", () => {
-          return bucket.createCollection("foo")
+          return bucket.createCollection({id: "foo"})
             .then(_ => bucket.deleteCollection("foo"))
             .then(_ => bucket.listCollections())
             .then(colls => colls.map(coll => coll.id))
@@ -819,7 +831,7 @@ describe("Integration tests", () => {
       describe("custom bucket", () => {
         beforeEach(() => {
           return api.createBucket("custom")
-            .then(_ => api.createCollection({id: "plop", bucket: "custom"}))
+            .then(_ => api.createCollection({id: "plop"}, {bucket: "custom"}))
             .then(_ => {
               coll = api.bucket("custom").collection("plop");
             });

@@ -687,7 +687,7 @@ describe("KintoClient", () => {
     it("should execute expected request", () => {
       api.createCollection();
 
-      sinon.assert.calledWithExactly(requests.createCollection, {
+      sinon.assert.calledWithExactly(requests.createCollection, undefined, {
         bucket: "default",
         headers: {},
         safe: false,
@@ -695,9 +695,9 @@ describe("KintoClient", () => {
     });
 
     it("should accept a safe option", () => {
-      api.createCollection({safe: true});
+      api.createCollection({}, {safe: true});
 
-      sinon.assert.calledWithMatch(requests.createCollection, {
+      sinon.assert.calledWithMatch(requests.createCollection, {}, {
         safe: true
       });
     });
@@ -705,9 +705,9 @@ describe("KintoClient", () => {
     it("should use instance default bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.createCollection();
+      api.createCollection({});
 
-      sinon.assert.calledWithMatch(requests.createCollection, {
+      sinon.assert.calledWithMatch(requests.createCollection, {}, {
         bucket: "custom"
       });
     });
@@ -725,9 +725,9 @@ describe("KintoClient", () => {
     it("should extend request headers with optional ones", () => {
       api.optionHeaders = {Foo: "Bar"};
 
-      api.createCollection({headers: {Baz: "Qux"}});
+      api.createCollection({}, {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(requests.createCollection, {
+      sinon.assert.calledWithMatch(requests.createCollection, {}, {
         headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
