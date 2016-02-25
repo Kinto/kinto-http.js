@@ -134,9 +134,9 @@ export function createCollection(collection, options = {}) {
  * @private
  */
 export function updateCollection(collection, options = {}) {
-  // Note: we can't use default arg value for collection here, because
-  // positional arg default value is the way createBatch detects them.
-  collection = collection || {};
+  if (typeof collection !== "object") {
+    throw new Error("A collection object is required.");
+  }
   if (!collection.id) {
     throw new Error("A collection id is required.");
   }
@@ -164,14 +164,20 @@ export function updateCollection(collection, options = {}) {
 /**
  * @private
  */
-export function deleteCollection(collName, options = {}) {
+export function deleteCollection(collection, options = {}) {
+  if (typeof collection !== "object") {
+    throw new Error("A collection object is required.");
+  }
+  if (!collection.id) {
+    throw new Error("A collection id is required.");
+  }
   const { bucket, headers, safe } = {
     ...requestDefaults,
     ...options
   };
   return handleCacheHeaders(safe, {
     method: "DELETE",
-    path: endpoint("collection", bucket, collName),
+    path: endpoint("collection", bucket, collection.id),
     headers,
     body: {}
   });

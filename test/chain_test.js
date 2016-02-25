@@ -148,7 +148,7 @@ describe("chain module", () => {
       it("should delete a collection", () => {
         getBlogBucket().deleteCollection("todelete");
 
-        sinon.assert.calledWith(client.deleteCollection, "todelete", {
+        sinon.assert.calledWith(client.deleteCollection, {id: "todelete"}, {
           bucket: "blog",
           headers: {},
         });
@@ -160,7 +160,7 @@ describe("chain module", () => {
           safe: true,
         }).deleteCollection("todelete", {headers: {Baz: "Qux"}});
 
-        sinon.assert.calledWithExactly(client.deleteCollection, "todelete", {
+        sinon.assert.calledWithExactly(client.deleteCollection, {id: "todelete"}, {
           bucket: "blog",
           headers: {Foo: "Bar", Baz: "Qux"},
           safe: true,

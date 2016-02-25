@@ -1,3 +1,13 @@
+function collectionObject(coll) {
+  if (typeof coll === "object") {
+    return coll;
+  }
+  if (typeof coll === "string") {
+    return {id: coll};
+  }
+  throw new Error("Invalid collection argument.");
+}
+
 /**
  * Abstract representation of a selected bucket.
  *
@@ -93,20 +103,21 @@ export class Bucket {
    */
   createCollection(collection={}, options) {
     const reqOptions = this._bucketOptions(options);
-    return this.client.createCollection(collection, reqOptions);
+    return this.client.createCollection(collectionObject(collection), reqOptions);
   }
 
   /**
    * Deletes a collection from the current bucket.
    *
-   * @param  {String} id              The collection id.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @param  {Boolean}  options.safe  The safe option.
+   * @param  {Object|String} collection The collection to delete.
+   * @param  {Object} options           The options object.
+   * @param  {Object} options.headers   The headers object option.
+   * @param  {Boolean}  options.safe    The safe option.
    * @return {Promise<Object, Error>}
    */
-  deleteCollection(id, options) {
-    return this.client.deleteCollection(id, this._bucketOptions(options));
+  deleteCollection(collection, options) {
+    const reqOptions = this._bucketOptions(options);
+    return this.client.deleteCollection(collectionObject(collection), reqOptions);
   }
 
   /**

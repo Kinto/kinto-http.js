@@ -140,7 +140,7 @@ describe("requests module", () => {
 
   describe("deleteCollection()", () => {
     it("should return a collection creation request when an id is provided", () => {
-      expect(requests.deleteCollection("foo")).eql({
+      expect(requests.deleteCollection({id: "foo"})).eql({
         body: {},
         headers: {},
         method: "DELETE",
@@ -149,12 +149,12 @@ describe("requests module", () => {
     });
 
     it("should accept a bucket option", () => {
-      expect(requests.deleteCollection("foo", {bucket: "custom"}))
+      expect(requests.deleteCollection({id: "foo"}, {bucket: "custom"}))
         .to.have.property("path").eql("/buckets/custom/collections/foo");
     });
 
     it("should accept a headers option", () => {
-      expect(requests.deleteCollection("foo", {headers: {Foo: "Bar"}}))
+      expect(requests.deleteCollection({id: "foo"}, {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
   });
