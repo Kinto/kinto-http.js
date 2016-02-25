@@ -283,7 +283,7 @@ describe("chain module", () => {
 
         coll.setPermissions("fakeperms");
 
-        sinon.assert.calledWith(client.updateCollection, "posts", {}, {
+        sinon.assert.calledWith(client.updateCollection, {id: "posts"}, {
           bucket: "blog",
           permissions: "fakeperms",
           headers: {Foo: "Bar", Baz: "Qux"},
@@ -314,7 +314,7 @@ describe("chain module", () => {
 
         coll.setSchema(schema);
 
-        sinon.assert.calledWith(client.updateCollection, "posts", {}, {
+        sinon.assert.calledWith(client.updateCollection, {id: "posts"}, {
           bucket: "blog",
           schema,
           headers: {Foo: "Bar", Baz: "Qux"},
@@ -336,12 +336,12 @@ describe("chain module", () => {
     });
 
     describe("#setMetadata()", () => {
-      it("should set the collection schema", () => {
+      it("should set the metadata", () => {
         sandbox.stub(client, "updateCollection");
 
         coll.setMetadata({a: 1});
 
-        sinon.assert.calledWith(client.updateCollection, "posts", {a: 1}, {
+        sinon.assert.calledWith(client.updateCollection, {id: "posts", a: 1}, {
           bucket: "blog",
           patch: true,
           headers: {Foo: "Bar", Baz: "Qux"},

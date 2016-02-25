@@ -91,10 +91,10 @@ describe("requests module", () => {
     });
 
     it("should return a collection update request", () => {
-      expect(requests.updateCollection("foo", {}, {schema})).eql({
+      expect(requests.updateCollection({id: "foo"}, {schema})).eql({
         body: {
           permissions: {},
-          data: {schema}
+          data: {id: "foo", schema}
         },
         headers: {},
         method: "PUT",
@@ -103,38 +103,38 @@ describe("requests module", () => {
     });
 
     it("should accept a bucket option", () => {
-      expect(requests.updateCollection("foo", {}, {bucket: "custom"}))
+      expect(requests.updateCollection({id: "foo"}, {bucket: "custom"}))
         .to.have.property("path").eql("/buckets/custom/collections/foo");
     });
 
     it("should accept a headers option", () => {
-      expect(requests.updateCollection("foo", {}, {headers: {Foo: "Bar"}}))
+      expect(requests.updateCollection({id: "foo"}, {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     it("should accept a permissions option", () => {
       const permissions = {read: ["github:n1k0"]};
-      expect(requests.updateCollection("foo", {}, {permissions}))
+      expect(requests.updateCollection({id: "foo"}, {permissions}))
         .to.have.property("body")
         .to.have.property("permissions").eql(permissions);
     });
 
     it("should accept a schema option", () => {
-      expect(requests.updateCollection("foo", {}, {schema}))
+      expect(requests.updateCollection({id: "foo"}, {schema}))
         .to.have.property("body")
         .to.have.property("data")
         .to.have.property("schema").eql(schema);
     });
 
     it("should accept a patch option", () => {
-      expect(requests.updateCollection("foo", {}, {schema, patch: true}))
+      expect(requests.updateCollection({id: "foo"}, {schema, patch: true}))
         .to.have.property("method").eql("PATCH");
     });
 
     it("should handle metadata", () => {
-      expect(requests.updateCollection("foo", {a: 1}))
+      expect(requests.updateCollection({id: "foo", a: 1}))
         .to.have.property("body")
-        .to.have.property("data").eql({a: 1});
+        .to.have.property("data").eql({id: "foo", a: 1});
     });
   });
 

@@ -735,17 +735,21 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#updateCollection} */
   describe("#updateCollection()", () => {
-    const metadata = {sampleData: 1};
-
     beforeEach(() => {
       sandbox.stub(requests, "updateCollection");
       sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
     it("should execute expected request", () => {
-      api.updateCollection("plop", metadata);
+      api.updateCollection({
+        id: "plop",
+        sampleData: 1
+      });
 
-      sinon.assert.calledWithExactly(requests.updateCollection, "plop", metadata, {
+      sinon.assert.calledWithExactly(requests.updateCollection, {
+        id: "plop",
+        sampleData: 1
+      }, {
         bucket: "default",
         headers: {},
         safe: false,
@@ -753,37 +757,55 @@ describe("KintoClient", () => {
     });
 
     it("should accept a safe option", () => {
-      api.updateCollection("plop", metadata, {safe: true});
+      api.updateCollection({
+        id: "plop",
+        sampleData: 1
+      }, {safe: true});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metadata, {
-        safe: true
-      });
+      sinon.assert.calledWithMatch(requests.updateCollection, {
+        id: "plop",
+        sampleData: 1
+      }, {safe: true});
     });
 
     it("should accept a patch option", () => {
-      api.updateCollection("plop", metadata, {patch: true});
+      api.updateCollection({
+        id: "plop",
+        sampleData: 1
+      }, {patch: true});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metadata, {
-        patch: true
-      });
+      sinon.assert.calledWithMatch(requests.updateCollection, {
+        id: "plop",
+        sampleData: 1
+      }, {patch: true});
     });
 
     it("should use instance default bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.updateCollection("plop", metadata);
-
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metadata, {
-        bucket: "custom"
+      api.updateCollection({
+        id: "plop",
+        sampleData: 1
       });
+
+      sinon.assert.calledWithMatch(requests.updateCollection, {
+        id: "plop",
+        sampleData: 1
+      }, {bucket: "custom"});
     });
 
     it("should allow overriding the default instance bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.updateCollection("plop", metadata, {bucket: "myblog"});
+      api.updateCollection({
+        id: "plop",
+        sampleData: 1
+      }, {bucket: "myblog"});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metadata, {
+      sinon.assert.calledWithMatch(requests.updateCollection, {
+        id: "plop",
+        sampleData: 1
+      }, {
         bucket: "myblog"
       });
     });
@@ -791,9 +813,15 @@ describe("KintoClient", () => {
     it("should extend request headers with optional ones", () => {
       api.optionHeaders = {Foo: "Bar"};
 
-      api.updateCollection("plop", metadata, {headers: {Baz: "Qux"}});
+      api.updateCollection({
+        id: "plop",
+        sampleData: 1
+      }, {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metadata, {
+      sinon.assert.calledWithMatch(requests.updateCollection, {
+        id: "plop",
+        sampleData: 1
+      }, {
         headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
@@ -801,9 +829,15 @@ describe("KintoClient", () => {
     it("should accept a permissions option", () => {
       const permissions = {permissions: {write: ["github:n1k0"]}};
 
-      api.updateCollection("plop", metadata, {permissions});
+      api.updateCollection({
+        id: "plop",
+        sampleData: 1
+      }, {permissions});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metadata, {
+      sinon.assert.calledWithMatch(requests.updateCollection, {
+        id: "plop",
+        sampleData: 1
+      }, {
         permissions
       });
     });
@@ -811,9 +845,15 @@ describe("KintoClient", () => {
     it("should accept a schema option", () => {
       const schema = {title: "boo"};
 
-      api.updateCollection("plop", metadata, {schema});
+      api.updateCollection({
+        id: "plop",
+        sampleData: 1
+      }, {schema});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, "plop", metadata, {
+      sinon.assert.calledWithMatch(requests.updateCollection, {
+        id: "plop",
+        sampleData: 1
+      }, {
         schema
       });
     });

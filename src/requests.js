@@ -113,13 +113,13 @@ export function deleteBucket(id, options = {}) {
  * @private
  */
 export function createCollection(collection, options = {}) {
+  // Note: we can't use default arg value for collection here, because
+  // positional arg default value is the way createBatch detects them.
+  collection = collection || {};
   const { bucket, headers, permissions, data, safe } = {
     ...requestDefaults,
     ...options
   };
-  // Note: we can't use default arg value for collection here, because
-  // positional arg default value is the way createBatch detects them.
-  collection = collection || {};
   const path = collection.id ? endpoint("collection", bucket, collection.id) :
                                endpoint("collections", bucket);
   return handleCacheHeaders(safe, {
@@ -133,24 +133,26 @@ export function createCollection(collection, options = {}) {
 /**
  * @private
  */
-export function updateCollection(id, metadata, options = {}) {
-  if (!id) {
+export function updateCollection(collection, options = {}) {
+  // Note: we can't use default arg value for collection here, because
+  // positional arg default value is the way createBatch detects them.
+  collection = collection || {};
+  if (!collection.id) {
     throw new Error("A collection id is required.");
   }
-  if (typeof metadata !== "object") {
-    throw new Error("A metadata object is required.");
-  }
-  const { bucket, headers, permissions, data, schema, safe, patch } = {
+  const { bucket, headers, permissions, schema, safe, patch } = {
     ...requestDefaults,
     ...options
   };
-  const requestData = {...data, ...metadata};
+  // XXX drop schema prop from collection obj if provided, as it's handled
+  // by options
+  const requestData = collection;
   if (options.schema) {
     requestData.schema = schema;
   }
   return handleCacheHeaders(safe, {
     method: patch ? "PATCH" : "PUT",
-    path: endpoint("collection", bucket, id),
+    path: endpoint("collection", bucket, collection.id),
     headers,
     body: {
       data: requestData,

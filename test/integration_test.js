@@ -196,25 +196,24 @@ describe("Integration tests", () => {
           title: {type: "string"}
         }
       };
-      const metas = {isMeta: true};
 
       it("should update a collection schema", () => {
-        return api.updateCollection("plop", metas, {schema})
+        return api.updateCollection({id: "plop", isMeta: true}, {schema})
           .then(_ => api.getCollection("plop"))
           .then(({data}) => data.schema)
           .should.become(schema);
       });
 
       it("should update a collection metas", () => {
-        return api.updateCollection("plop", metas, {schema})
+        return api.updateCollection({id: "plop", isMeta: true}, {schema})
           .then(_ => api.getCollection("plop"))
           .should.eventually.have.property("data")
           .to.have.property("isMeta").eql(true);
       });
 
       it("should allow patching a collection", () => {
-        return api.updateCollection("plop", {}, {schema})
-          .then(_ => api.updateCollection("plop", metas, {patch: true}))
+        return api.updateCollection({id: "plop"}, {schema})
+          .then(_ => api.updateCollection({id: "plop"}, {patch: true}))
           .then(_ => api.getCollection("plop"))
           .then(({data}) => data.schema)
           .should.become(schema);
@@ -222,7 +221,7 @@ describe("Integration tests", () => {
 
       it("should create a collection if it doesn't exist yet", () => {
         return api.createBucket("blog")
-          .then(_ => api.updateCollection("posts", {}, {bucket: "blog"}))
+          .then(_ => api.updateCollection({id: "posts"}, {bucket: "blog"}))
           .then(_ => api.listCollections("blog"))
           .then(res => res.map(x => x.id))
           .should.become(["posts"]);
@@ -726,7 +725,7 @@ describe("Integration tests", () => {
           };
 
           beforeEach(() => {
-            return api.updateCollection("plop", {}, {schema});
+            return api.updateCollection({id: "plop"}, {schema});
           });
 
           it("should retrieve collection schema", () => {
@@ -863,7 +862,7 @@ describe("Integration tests", () => {
           };
 
           beforeEach(() => {
-            return api.updateCollection("plop", {}, {bucket: "custom", schema});
+            return api.updateCollection({id: "plop"}, {bucket: "custom", schema});
           });
 
           it("should retrieve collection schema", () => {
