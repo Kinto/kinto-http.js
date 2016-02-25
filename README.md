@@ -627,3 +627,71 @@ Sample result:
 }
 
 ```
+
+## Options
+
+Both `bucket()` and `collection()` methods accept an `options` object as a second arguments where you can define the following options:
+
+- `{Object} headers`: Custom headers to send along the request;
+- `{Boolean} safe`: Ensure safe transactional operations; read more about that below.
+
+Sample usage:
+
+```js
+client.bucket("blog", {
+  headers: {"X-Hello": "Hello!"},
+  safe: true
+});
+```
+
+Here the `X-Hello` header and the `safe` option will be used for building every outgoing request sent to the server, for every collection attached to this bucket.
+
+This works at the collection level as well:
+
+```js
+client.bucket("blog")
+  .collection("posts", {
+    headers: {"X-Hello": "Hello!"},
+    safe: true
+  });
+```
+
+Every request sent for this collection will have the options applied.
+
+Last, you can of course pass these options at the atomic operation level:
+
+```js
+client.bucket("blog")
+  .collection("posts")
+  .updateRecord(updatedRecord, {
+    headers: {"X-Hello": "Hello!"},
+    safe: true
+  });
+```
+
+The cool thing being you can always override the default defined options at the atomic operation level:
+
+```js
+client.bucket("blog", {safe: true})
+  .collection("posts")
+  .updateRecord(updatedRecord, {safe: false});
+```
+
+### The `safe` option explained
+
+Enabling this option will ensure remote resources are never overriden if they've been modified since we first received them, raising an `HTTP 412` response describing the conflict when that happens:
+
+```js
+const updatedRecord = {
+  id: "fbd2a565-8c10-497a-95b8-ce4ea6f474e1",
+  title: "new post, modified",
+  content: "yoyo",
+  last_modified: 1456184189160
+};
+
+client.bucket("blog")
+  .collection("posts")
+  .updateRecord(updatedRecord, {safe: true});
+```
+
+If this record has been modified on the server already, meaning its `last_modified` is greater than the one we provide , we'll get a `412` error response.

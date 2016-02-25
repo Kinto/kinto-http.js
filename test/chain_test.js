@@ -26,106 +26,233 @@ describe("chain module", () => {
   });
 
   describe("Bucket", () => {
-    let bucket;
+    function getBlogBucket(options) {
+      return new Bucket(client, "blog", options);
+    }
 
-    beforeEach(() => {
-      bucket = new Bucket(client, "blog");
+    describe("Options handling", () => {
+      it("should accept options", () => {
+        const options = {
+          headers: {Foo: "Bar"},
+          safe: true,
+        };
+        expect(getBlogBucket(options).options).eql(options);
+      });
     });
 
-    describe("#collection", () => {
+    describe("#collection()", () => {
       it("should return a Collection instance", () => {
-        expect(bucket.collection("posts"))
+        expect(getBlogBucket().collection("posts"))
           .to.be.an.instanceOf(Collection);
       });
 
       it("should return a named collection", () => {
-        expect(bucket.collection("posts").name).eql("posts");
+        expect(getBlogBucket().collection("posts").name).eql("posts");
+      });
+
+      it("should propagate bucket options", () => {
+        expect(getBlogBucket({
+          headers: {Foo: "Bar"},
+          safe: true,
+        }).collection("posts", {
+          headers: {Baz: "Qux"},
+          safe: false,
+        }).options).eql({
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
+          safe: false,
+        });
       });
     });
 
     describe("#listCollections()", () => {
-      it("should list bucket collections", () => {
+      beforeEach(() => {
         sandbox.stub(client, "listCollections");
+      });
 
-        bucket.listCollections();
+      it("should list bucket collections", () => {
+        getBlogBucket().listCollections();
 
         sinon.assert.calledWith(client.listCollections, "blog");
+      });
+
+      it("should merge default options", () => {
+        getBlogBucket({headers: {Foo: "Bar"}})
+          .listCollections({headers: {Baz: "Qux"}});
+
+        sinon.assert.calledWithMatch(client.listCollections, "blog", {
+          headers: {Foo: "Bar", Baz: "Qux"}
+        });
       });
     });
 
     describe("#createCollection()", () => {
+      beforeEach(() => {
+        sandbox.stub(client, "createCollection");
+      });
+
       describe("Named collection", () => {
         it("should create a named collection", () => {
-          sandbox.stub(client, "createCollection");
-
-          bucket.createCollection("foo");
+          getBlogBucket().createCollection("foo");
 
           sinon.assert.calledWith(client.createCollection, {
             bucket: "blog",
-            id: "foo"
+            id: "foo",
+            headers: {},
+          });
+        });
+
+        it("should merge default options", () => {
+          getBlogBucket({
+            headers: {Foo: "Bar"},
+            safe: true,
+          }).createCollection("foo", {headers: {Baz: "Qux"}});
+
+          sinon.assert.calledWithExactly(client.createCollection, {
+            bucket: "blog",
+            id: "foo",
+            headers: {Foo: "Bar", Baz: "Qux"},
+            safe: true,
           });
         });
       });
 
       describe("Unnamed collection", () => {
         it("should create an unnamed collection", () => {
-          sandbox.stub(client, "createCollection");
-
-          bucket.createCollection();
+          getBlogBucket().createCollection();
 
           sinon.assert.calledWith(client.createCollection, {
             bucket: "blog",
+            headers: {},
           });
         });
-      });
 
-      describe("#deleteCollection", () => {
-        it("should delete a collection", () => {
-          sandbox.stub(client, "deleteCollection");
+        it("should merge default options", () => {
+          getBlogBucket({
+            headers: {Foo: "Bar"},
+            safe: true,
+          }).createCollection({headers: {Baz: "Qux"}});
 
-          bucket.deleteCollection("todelete");
-
-          sinon.assert.calledWith(client.deleteCollection, "todelete", {
+          sinon.assert.calledWithExactly(client.createCollection, {
             bucket: "blog",
+            headers: {Foo: "Bar", Baz: "Qux"},
+            safe: true,
           });
         });
       });
+    });
 
-      describe("#getPermissions()", () => {
-        beforeEach(() => {
-          sandbox.stub(bucket, "getProperties").returns(Promise.resolve({
-            permissions: "fakeperms"
-          }));
-        });
+    describe("#deleteCollection", () => {
+      beforeEach(() => {
+        sandbox.stub(client, "deleteCollection");
+      });
 
-        it("should retrieve permissions", () => {
-          return bucket.getPermissions()
-            .should.become("fakeperms");
+      it("should delete a collection", () => {
+        getBlogBucket().deleteCollection("todelete");
+
+        sinon.assert.calledWith(client.deleteCollection, "todelete", {
+          bucket: "blog",
+          headers: {},
         });
       });
 
-      describe("#setPermissions()", () => {
-        it("should set permissions", () => {
-          sandbox.stub(client, "updateBucket");
+      it("should merge default options", () => {
+        getBlogBucket({
+          headers: {Foo: "Bar"},
+          safe: true,
+        }).deleteCollection("todelete", {headers: {Baz: "Qux"}});
 
-          bucket.setPermissions("fakeperms");
+        sinon.assert.calledWithExactly(client.deleteCollection, "todelete", {
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
+          safe: true,
+        });
+      });
+    });
 
-          sinon.assert.calledWith(client.updateBucket, "blog", {}, {
-            permissions: "fakeperms"
+    describe("#getPermissions()", () => {
+      it("should retrieve permissions", () => {
+        const bucket = getBlogBucket();
+        sandbox.stub(bucket, "getProperties").returns(Promise.resolve({
+          permissions: "fakeperms"
+        }));
+
+        return bucket.getPermissions().should.become("fakeperms");
+      });
+
+      it("should merge default options", () => {
+        const bucket = getBlogBucket({
+          headers: {Foo: "Bar"},
+          safe: true,
+        });
+        sandbox.stub(bucket, "getProperties").returns(Promise.resolve({
+          permissions: "fakeperms"
+        }));
+
+        return bucket.getPermissions({headers: {Baz: "Qux"}}).then(_ => {
+          sinon.assert.calledWithMatch(bucket.getProperties, {
+            headers: {Foo: "Bar", Baz: "Qux"},
+            safe: true,
           });
         });
       });
+    });
 
-      describe("#batch()", () => {
-        it("should batch operations for this bucket", () => {
-          sandbox.stub(client, "batch");
-          const fn = batch => {};
+    describe("#setPermissions()", () => {
+      beforeEach(() => {
+        sandbox.stub(client, "updateBucket");
+      });
 
-          bucket.batch(fn);
+      it("should set permissions", () => {
+        getBlogBucket().setPermissions("fakeperms");
 
-          sinon.assert.calledWith(client.batch, fn, {
-            bucket: "blog"
-          });
+        sinon.assert.calledWithMatch(client.updateBucket, "blog", {}, {
+          permissions: "fakeperms"
+        });
+      });
+
+      it("should merge default options", () => {
+        getBlogBucket({
+          headers: {Foo: "Bar"},
+          safe: true,
+        }).setPermissions("fakeperms", {headers: {Baz: "Qux"}});
+
+        sinon.assert.calledWithMatch(client.updateBucket, "blog", {}, {
+          permissions: "fakeperms",
+          headers: {Foo: "Bar", Baz: "Qux"},
+          safe: true,
+        });
+      });
+    });
+
+    describe("#batch()", () => {
+      beforeEach(() => {
+        sandbox.stub(client, "batch");
+      });
+
+      it("should batch operations for this bucket", () => {
+        const fn = batch => {};
+
+        getBlogBucket().batch(fn);
+
+        sinon.assert.calledWith(client.batch, fn, {
+          bucket: "blog",
+          headers: {},
+        });
+      });
+
+      it("should merge default options", () => {
+        const fn = batch => {};
+
+        getBlogBucket({
+          headers: {Foo: "Bar"},
+          safe: true,
+        }).batch(fn, {headers: {Baz: "Qux"}});
+
+        sinon.assert.calledWithExactly(client.batch, fn, {
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
+          safe: true,
         });
       });
     });
@@ -135,8 +262,8 @@ describe("chain module", () => {
     let coll;
 
     beforeEach(() => {
-      const bucket = new Bucket(client, "blog");
-      coll = new Collection(client, bucket, "posts");
+      const bucket = new Bucket(client, "blog", {headers: {Foo: "Bar"}});
+      coll = new Collection(client, bucket, "posts", {headers: {Baz: "Qux"}});
     });
 
     describe("#getPermissions()", () => {
@@ -160,7 +287,8 @@ describe("chain module", () => {
 
         sinon.assert.calledWith(client.updateCollection, "posts", {}, {
           bucket: "blog",
-          permissions: "fakeperms"
+          permissions: "fakeperms",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -190,7 +318,8 @@ describe("chain module", () => {
 
         sinon.assert.calledWith(client.updateCollection, "posts", {}, {
           bucket: "blog",
-          schema
+          schema,
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -216,7 +345,8 @@ describe("chain module", () => {
 
         sinon.assert.calledWith(client.updateCollection, "posts", {a: 1}, {
           bucket: "blog",
-          patch: true
+          patch: true,
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -230,7 +360,8 @@ describe("chain module", () => {
         coll.createRecord(record);
 
         sinon.assert.calledWith(client.createRecord, "posts", record, {
-          bucket: "blog"
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -244,7 +375,8 @@ describe("chain module", () => {
         coll.updateRecord(record);
 
         sinon.assert.calledWith(client.updateRecord, "posts", record, {
-          bucket: "blog"
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -256,7 +388,8 @@ describe("chain module", () => {
         coll.deleteRecord(1);
 
         sinon.assert.calledWith(client.deleteRecord, "posts", 1, {
-          bucket: "blog"
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -268,7 +401,8 @@ describe("chain module", () => {
         coll.getRecord(1);
 
         sinon.assert.calledWith(client.getRecord, "posts", 1, {
-          bucket: "blog"
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
@@ -285,7 +419,8 @@ describe("chain module", () => {
 
         sinon.assert.calledWith(client.listRecords, "posts", {
           bucket: "blog",
-          sort: "title"
+          sort: "title",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
 
@@ -304,7 +439,8 @@ describe("chain module", () => {
 
         sinon.assert.calledWith(client.batch, fn, {
           bucket: "blog",
-          collection: "posts"
+          collection: "posts",
+          headers: {Foo: "Bar", Baz: "Qux"},
         });
       });
     });
