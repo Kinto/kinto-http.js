@@ -344,10 +344,22 @@ export class Collection {
    */
   setMetadata(metadata, options) {
     const reqOptions = this._collOptions(options);
-    return this.client.updateCollection({...metadata, id: this.name}, {
-      ...reqOptions,
-      patch: true,
-    });
+    return Promise.resolve({...metadata, id: this.name})
+      .then(collData => {
+        if (!reqOptions.safe) {
+          return collData;
+        }
+        // When safe option is true, retrieve collection last_modified, amend
+        // the collection data object with it
+        return this.getProperties(reqOptions).then(({data}) => ({
+          ...collData,
+          last_modified: data.last_modified,
+        }));
+      })
+      .then(collData => this.client.updateCollection(collData, {
+        ...reqOptions,
+        patch: true,
+      }));
   }
 
   /**

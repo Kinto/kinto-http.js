@@ -386,16 +386,42 @@ describe("chain module", () => {
     });
 
     describe("#setMetadata()", () => {
-      it("should set the metadata", () => {
+      beforeEach(() => {
         sandbox.stub(client, "updateCollection");
+      });
 
-        coll.setMetadata({a: 1});
+      it("should set the metadata", () => {
+        return coll.setMetadata({a: 1})
+          .then(_ => {
+            sinon.assert.calledWith(client.updateCollection, {id: "posts", a: 1}, {
+              bucket: "blog",
+              patch: true,
+              headers: {Foo: "Bar", Baz: "Qux"},
+            });
+          });
+      });
 
-        sinon.assert.calledWith(client.updateCollection, {id: "posts", a: 1}, {
-          bucket: "blog",
-          patch: true,
-          headers: {Foo: "Bar", Baz: "Qux"},
-        });
+      it("should handle the safe option", () => {
+        sandbox.stub(coll, "getProperties").returns(Promise.resolve({
+          data: {
+            id: "posts",
+            last_modified: 42,
+          }
+        }));
+
+        return coll.setMetadata({a: 1}, {safe: true})
+          .then(_ => {
+            sinon.assert.calledWith(client.updateCollection, {
+              id: "posts",
+              last_modified: 42,
+              a: 1
+            }, {
+              bucket: "blog",
+              headers: {Foo: "Bar", Baz: "Qux"},
+              patch: true,
+              safe: true
+            });
+          });
       });
     });
 
