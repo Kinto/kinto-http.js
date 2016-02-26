@@ -644,6 +644,50 @@ describe("KintoClient", () => {
     });
   });
 
+  /** @test {KintoClient#deleteBucket} */
+  describe("#deleteBucket()", () => {
+    beforeEach(() => {
+      sandbox.stub(requests, "deleteBucket");
+      sandbox.stub(api, "execute").returns(Promise.resolve());
+    });
+
+    it("should execute expected request", () => {
+      api.deleteBucket("plop");
+
+      sinon.assert.calledWithMatch(requests.deleteBucket, {id: "plop"}, {
+        headers: {},
+        safe: false,
+      });
+    });
+
+    it("should accept a bucket object", () => {
+      api.deleteBucket({id: "plop"});
+
+      sinon.assert.calledWithMatch(requests.deleteBucket, {id: "plop"}, {
+        headers: {},
+        safe: false,
+      });
+    });
+
+    it("should accept a safe option", () => {
+      api.deleteBucket("plop", {safe: true});
+
+      sinon.assert.calledWithMatch(requests.deleteBucket, {id: "plop"}, {
+        safe: true
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      api.optionHeaders = {Foo: "Bar"};
+
+      api.deleteBucket("plop", {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.deleteBucket, {id: "plop"}, {
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
+    });
+  });
+
   /** @test {KintoClient#listCollections} */
   describe("#listCollections()", () => {
     const data = [

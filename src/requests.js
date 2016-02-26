@@ -96,16 +96,21 @@ export function updateBucket(bucket, options = {}) {
 /**
  * @private
  */
-export function deleteBucket(id, options = {}) {
-  if (!id) {
+export function deleteBucket(bucket, options = {}) {
+  if (typeof bucket !== "object") {
+    throw new Error("A bucket object is required.");
+  }
+  if (!bucket.id) {
     throw new Error("A bucket id is required.");
   }
   const { headers, safe } = {...requestDefaults, ...options};
   return handleCacheHeaders(safe, {
     method: "DELETE",
-    path: endpoint("bucket", id),
+    path: endpoint("bucket", bucket.id),
     headers,
-    body: {}
+    body: {
+      data: bucket
+    }
   });
 }
 
@@ -177,7 +182,9 @@ export function deleteCollection(collection, options = {}) {
     method: "DELETE",
     path: endpoint("collection", bucket, collection.id),
     headers,
-    body: {}
+    body: {
+      data: collection
+    }
   });
 }
 

@@ -366,15 +366,16 @@ export default class KintoClient {
    * Deletes a bucket from the server.
    *
    * @ignore
-   * @param  {String}  bucketName          The bucket name.
-   * @param  {Object}  options             The options object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {Object}  options.headers     The headers object option.
+   * @param  {Object|String} bucket          The bucket to delete.
+   * @param  {Object}        options         The options object.
+   * @param  {Boolean}       options.safe    The safe option.
+   * @param  {Object}        options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
-  deleteBucket(bucketName, options={}) {
+  deleteBucket(bucket, options={}) {
+    const _bucket = typeof bucket === "object" ? bucket : {id: bucket};
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteBucket(bucketName, reqOptions))
+    return this.execute(requests.deleteBucket(_bucket, reqOptions))
       .then(res => res.json);
   }
 
