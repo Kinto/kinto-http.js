@@ -1,3 +1,9 @@
+/**
+ * Always returns a collection descriptor object from the provided argument.
+ *
+ * @param  {Object|String} coll
+ * @return {Object}
+ */
 function collectionObject(coll) {
   if (typeof coll === "object") {
     return coll;
@@ -220,6 +226,31 @@ export class Collection {
   }
 
   /**
+   * Updates current collection properties.
+   *
+   * @private
+   * @param  {Object} options  The request options.
+   * @param  {Object} metadata The collection metadata, id any.
+   * @return {Promise<Object, Error>}
+   */
+  _updateProperties(options, metadata) {
+    const reqOptions = this._collOptions(options);
+    return Promise.resolve({...metadata, id: this.name})
+      .then(collData => {
+        if (!reqOptions.safe) {
+          return collData;
+        }
+        // When safe option is true, retrieve collection last_modified, amend
+        // the collection data object with it
+        return this.getProperties(reqOptions).then(({data}) => ({
+          ...collData,
+          last_modified: data.last_modified,
+        }));
+      })
+      .then(collData => this.client.updateCollection(collData, reqOptions));
+  }
+
+  /**
    * Retrieves collection properties.
    *
    * @param  {Object} options         The options object.
@@ -253,23 +284,7 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
-    const reqOptions = this._collOptions(options);
-    return Promise.resolve({id: this.name})
-      .then(collData => {
-        if (!reqOptions.safe) {
-          return collData;
-        }
-        // When safe option is true, retrieve collection last_modified, amend
-        // the collection data object with it
-        return this.getProperties(reqOptions).then(({data}) => ({
-          id: data.id,
-          last_modified: data.last_modified
-        }));
-      })
-      .then(collData => this.client.updateCollection(collData, {
-        ...reqOptions,
-        permissions
-      }));
+    return this._updateProperties({...options, permissions});
   }
 
   /**
@@ -294,23 +309,7 @@ export class Collection {
    * @return {Promise<Object|null, Error>}
    */
   setSchema(schema, options) {
-    const reqOptions = this._collOptions(options);
-    return Promise.resolve({id: this.name})
-      .then(collData => {
-        if (!reqOptions.safe) {
-          return collData;
-        }
-        // When safe option is true, retrieve collection last_modified, amend
-        // the collection data object with it
-        return this.getProperties(reqOptions).then(({data}) => ({
-          id: data.id,
-          last_modified: data.last_modified
-        }));
-      })
-      .then(collData => this.client.updateCollection(collData, {
-        ...reqOptions,
-        schema
-      }));
+    return this._updateProperties({...options, schema});
   }
 
   /**
@@ -343,23 +342,9 @@ export class Collection {
    * @return {Promise<Object, Error>}
    */
   setMetadata(metadata, options) {
-    const reqOptions = this._collOptions(options);
-    return Promise.resolve({...metadata, id: this.name})
-      .then(collData => {
-        if (!reqOptions.safe) {
-          return collData;
-        }
-        // When safe option is true, retrieve collection last_modified, amend
-        // the collection data object with it
-        return this.getProperties(reqOptions).then(({data}) => ({
-          ...collData,
-          last_modified: data.last_modified,
-        }));
-      })
-      .then(collData => this.client.updateCollection(collData, {
-        ...reqOptions,
-        patch: true,
-      }));
+    // Note: patching allows preventing overridding the schema, which lives
+    // within the "data" namespace.
+    return this._updateProperties({...options, patch: true}, metadata);
   }
 
   /**
