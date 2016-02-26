@@ -2,35 +2,19 @@ import { omit } from "./utils";
 
 
 /**
- * Always returns a collection descriptor object from the provided argument.
+ * Always returns an entity descriptor object from the provided argument.
  *
- * @param  {Object|String} coll
+ * @param  {Object|String} value
  * @return {Object}
  */
-function collectionObject(coll) {
-  if (typeof coll === "object") {
-    return coll;
+function asEntity(value) {
+  if (typeof value === "object") {
+    return value;
   }
-  if (typeof coll === "string") {
-    return {id: coll};
+  if (typeof value === "string") {
+    return {id: value};
   }
   throw new Error("Invalid collection argument.");
-}
-
-/**
- * Always returns a record descriptor object from the provided argument.
- *
- * @param  {Object|String} record
- * @return {Object}
- */
-function recordObject(record) {
-  if (typeof record === "object") {
-    return record;
-  }
-  if (typeof record === "string") {
-    return {id: record};
-  }
-  throw new Error("Invalid record argument.");
 }
 
 /**
@@ -140,7 +124,7 @@ export class Bucket {
    */
   deleteCollection(collection, options) {
     const reqOptions = this._bucketOptions(options);
-    return this.client.deleteCollection(collectionObject(collection),
+    return this.client.deleteCollection(asEntity(collection),
                                         reqOptions);
   }
 
@@ -397,7 +381,7 @@ export class Collection {
    */
   deleteRecord(record, options) {
     const reqOptions = this._collOptions(options);
-    return this.client.deleteRecord(this.name, recordObject(record), reqOptions);
+    return this.client.deleteRecord(this.name, asEntity(record), reqOptions);
   }
 
   /**
