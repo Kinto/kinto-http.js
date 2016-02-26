@@ -141,7 +141,7 @@ Sample result:
 #### Named collection
 
 ```js
-client.bucket("blog").createCollection({id: "posts"});
+client.bucket("blog").createCollection("posts");
 ```
 
 Sample result:
@@ -679,7 +679,13 @@ client.bucket("blog", {safe: true})
 
 ### The `safe` option explained
 
-Enabling this option will ensure remote resources are never overriden if they've been modified since we first received them, raising an `HTTP 412` response describing the conflict when that happens:
+## Safe creations
+
+When creating a new ressource, using the `safe` option will ensure the resource will be created only if it doesn't already exist on the server.
+
+## Safe updates
+
+If a `last_modified` property value is set in the resource object being updated or deleted, the `safe` option will ensure it won't be overriden if it's been modified on the server since that `last_modified` timestamp, raising an `HTTP 412` response describing the conflict when that happens:
 
 ```js
 const updatedRecord = {
