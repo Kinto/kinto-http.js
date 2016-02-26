@@ -685,9 +685,9 @@ describe("KintoClient", () => {
     });
 
     it("should execute expected request", () => {
-      api.createCollection();
+      api.createCollection("foo");
 
-      sinon.assert.calledWithExactly(requests.createCollection, undefined, {
+      sinon.assert.calledWithExactly(requests.createCollection, "foo", {
         bucket: "default",
         headers: {},
         safe: false,
@@ -695,9 +695,9 @@ describe("KintoClient", () => {
     });
 
     it("should accept a safe option", () => {
-      api.createCollection({}, {safe: true});
+      api.createCollection("foo", {safe: true});
 
-      sinon.assert.calledWithMatch(requests.createCollection, {}, {
+      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
         safe: true
       });
     });
@@ -705,9 +705,9 @@ describe("KintoClient", () => {
     it("should use instance default bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.createCollection({});
+      api.createCollection("foo");
 
-      sinon.assert.calledWithMatch(requests.createCollection, {}, {
+      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
         bucket: "custom"
       });
     });
@@ -715,9 +715,9 @@ describe("KintoClient", () => {
     it("should allow overriding the default instance bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.createCollection({bucket: "myblog"});
+      api.createCollection("foo", {bucket: "myblog"});
 
-      sinon.assert.calledWithMatch(requests.createCollection, {
+      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
         bucket: "myblog"
       });
     });
@@ -725,9 +725,9 @@ describe("KintoClient", () => {
     it("should extend request headers with optional ones", () => {
       api.optionHeaders = {Foo: "Bar"};
 
-      api.createCollection({}, {headers: {Baz: "Qux"}});
+      api.createCollection("foo", {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(requests.createCollection, {}, {
+      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
         headers: {Foo: "Bar", Baz: "Qux"}
       });
     });

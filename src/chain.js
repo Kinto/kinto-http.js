@@ -93,17 +93,15 @@ export class Bucket {
   /**
    * Creates a new collection in current bucket.
    *
-   * @param  {Object} collection               The collection object to create.
-   * @param  {Object} collection.id            The collection id.
-   * @param  {Object} collection.last_modified The collection last_modified.
-   * @param  {Object} options                  The options object.
-   * @param  {Object} options.headers          The headers object option.
-   * @param  {Boolean}  options.safe           The safe option.
+   * @param  {String}   id              The collection id.
+   * @param  {Object}   options         The options object.
+   * @param  {Object}   options.headers The headers object option.
+   * @param  {Boolean}  options.safe    The safe option.
    * @return {Promise<Object, Error>}
    */
-  createCollection(collection={}, options) {
+  createCollection(id, options) {
     const reqOptions = this._bucketOptions(options);
-    return this.client.createCollection(collectionObject(collection), reqOptions);
+    return this.client.createCollection(id, reqOptions);
   }
 
   /**
