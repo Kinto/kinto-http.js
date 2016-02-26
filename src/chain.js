@@ -15,6 +15,22 @@ function collectionObject(coll) {
 }
 
 /**
+ * Always returns a record descriptor object from the provided argument.
+ *
+ * @param  {Object|String} record
+ * @return {Object}
+ */
+function recordObject(record) {
+  if (typeof record === "object") {
+    return record;
+  }
+  if (typeof record === "string") {
+    return {id: record};
+  }
+  throw new Error("Invalid record argument.");
+}
+
+/**
  * Abstract representation of a selected bucket.
  *
  */
@@ -402,15 +418,15 @@ export class Collection {
   /**
    * Deletes a record from the current collection.
    *
-   * @param  {String} id              The record id to delete.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @param  {Boolean}  options.safe  The safe option.
+   * @param  {Object|String} record          The record to delete.
+   * @param  {Object}        options         The options object.
+   * @param  {Object}        options.headers The headers object option.
+   * @param  {Boolean}       options.safe    The safe option.
    * @return {Promise<Object, Error>}
    */
-  deleteRecord(id, options) {
+  deleteRecord(record, options) {
     const reqOptions = this._collOptions(options);
-    return this.client.deleteRecord(this.name, id, reqOptions);
+    return this.client.deleteRecord(this.name, recordObject(record), reqOptions);
   }
 
   /**

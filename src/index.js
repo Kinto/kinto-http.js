@@ -409,7 +409,7 @@ export default class KintoClient {
    * @ignore
    * @param  {Object}  bucket               The bucket object.
    * @param  {Object}  bucket.id            The bucket id.
-   * @param  {Object}  bucket.last_modified The bucket object.
+   * @param  {Number}  bucket.last_modified The bucket object.
    * @param  {Object}  options              The options object.
    * @param  {Boolean} options.safe         The safe option.
    * @param  {Object}  options.headers      The headers object option.
@@ -471,7 +471,7 @@ export default class KintoClient {
    * @ignore
    * @param  {String}  collection      The collection object to delete.
    * @param  {Object}  collection.id   The collection id.
-   * @param  {Object}  collection.last_modified The collection last_modified.
+   * @param  {Number}  collection.last_modified The collection last_modified.
    * @param  {Object}  options         The options object.
    * @param  {Boolean} options.safe    The safe option.
    * @param  {String}  options.bucket  The bucket name option.
@@ -637,18 +637,19 @@ export default class KintoClient {
    *
    * @ignore
    * @param  {String}   collName             The collection name.
-   * @param  {String}   id                   The record id to delete.
+   * @param  {Object}   record               The record to delete.
+   * @param  {String}   record.id            The record id.
+   * @param  {Number}   record.last_modified The record last_modified.
    * @param  {Object}   options              The options object.
    * @param  {Boolean}  options.safe         The safe option.
    * @param  {String}   options.bucket       The bucket name option.
    * @param  {Object}   options.headers      The headers object option.
-   * @param  {Object}   options.lastModified The last_modified value to use when
    * the `safe` option is used.
    * @return {Promise<Object, Error>}
    */
-  deleteRecord(collName, id, options={}) {
+  deleteRecord(collName, record, options={}) {
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteRecord(collName, id, reqOptions))
+    return this.execute(requests.deleteRecord(collName, record, reqOptions))
       .then(res => res.json);
   }
 }

@@ -389,9 +389,14 @@ describe("requests module", () => {
         .to.Throw(Error, /required/);
     });
 
+    it("should throw if record is not an object", () => {
+      expect(() => requests.deleteRecord("foo", "invalid"))
+        .to.Throw(Error, /required/);
+    });
+
     it("should return a record creation request", () => {
-      expect(requests.deleteRecord("foo", 42)).eql({
-        body: {data: {last_modified: undefined}},
+      expect(requests.deleteRecord("foo", {id: 42})).eql({
+        body: {data: {id: 42}},
         headers: {},
         method: "DELETE",
         path: "/buckets/default/collections/foo/records/42",
@@ -399,29 +404,27 @@ describe("requests module", () => {
     });
 
     it("should accept a bucket option", () => {
-      expect(requests.deleteRecord("foo", 42, {bucket: "custom"}))
+      expect(requests.deleteRecord("foo", {id: "42"}, {bucket: "custom"}))
         .to.have.property("path").eql("/buckets/custom/collections/foo/records/42");
     });
 
     it("should accept a headers option", () => {
-      expect(requests.deleteRecord("foo", 42, {headers: {Foo: "Bar"}}))
+      expect(requests.deleteRecord("foo", {id: "42"}, {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     describe("should add cache headers when the safe option is true", () => {
       it("for a record with no last_modified", () => {
-        expect(requests.deleteRecord("foo", 42, {safe: true}))
+        expect(requests.deleteRecord("foo", {id: "42"}, {safe: true}))
           .to.have.property("headers")
           .eql({"If-None-Match": "*"});
       });
 
       it("for a record with a last_modified option set", () => {
-        expect(requests.deleteRecord("foo", 1337, {
-          safe: true,
-          lastModified: 42
-        }))
+        expect(requests.deleteRecord("foo", {id: "42", last_modified: 1337},
+                                            {safe: true}))
           .to.have.property("headers")
-          .eql({"If-Match": "\"42\""});
+          .eql({"If-Match": "\"1337\""});
       });
     });
   });

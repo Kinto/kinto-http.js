@@ -471,9 +471,20 @@ describe("chain module", () => {
       it("should delete a record", () => {
         sandbox.stub(client, "deleteRecord");
 
-        coll.deleteRecord(1);
+        coll.deleteRecord("1");
 
-        sinon.assert.calledWith(client.deleteRecord, "posts", 1, {
+        sinon.assert.calledWith(client.deleteRecord, "posts", {id: "1"}, {
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
+        });
+      });
+
+      it("should delete a record using a record object", () => {
+        sandbox.stub(client, "deleteRecord");
+
+        coll.deleteRecord({id: "1"});
+
+        sinon.assert.calledWith(client.deleteRecord, "posts", {id: "1"}, {
           bucket: "blog",
           headers: {Foo: "Bar", Baz: "Qux"},
         });

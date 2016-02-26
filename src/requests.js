@@ -238,20 +238,23 @@ export function updateRecord(collName, record, options = {}) {
 /**
  * @private
  */
-export function deleteRecord(collName, id, options = {}) {
+export function deleteRecord(collName, record, options = {}) {
   if (!collName) {
     throw new Error("A collection name is required.");
   }
-  if (!id) {
+  if (typeof record !== "object") {
+    throw new Error("A record object is required.");
+  }
+  if (!record.id) {
     throw new Error("A record id is required.");
   }
   const { bucket, headers, safe } = {...requestDefaults, ...options};
   return handleCacheHeaders(safe, {
     method: "DELETE",
-    path: endpoint("record", bucket, collName, id),
+    path: endpoint("record", bucket, collName, record.id),
     headers,
     body: {
-      data: {last_modified: options.lastModified}
+      data: record
     }
   });
 }
