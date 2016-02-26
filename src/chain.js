@@ -80,30 +80,6 @@ export class Bucket {
   }
 
   /**
-   * Updates current bucket properties.
-   *
-   * @private
-   * @param  {Object} options  The request options.
-   * @return {Promise<Object, Error>}
-   */
-  _updateProperties(options) {
-    const reqOptions = this._bucketOptions(options);
-    return Promise.resolve({id: this.name})
-      .then(bucketData => {
-        if (!reqOptions.safe) {
-          return bucketData;
-        }
-        // When safe option is true, retrieve bucket last_modified, amend
-        // the collection data object with it
-        return this.getProperties(reqOptions).then(({data}) => ({
-          id: this.name,
-          last_modified: data.last_modified,
-        }));
-      })
-      .then(bucketData => this.client.updateBucket(bucketData, reqOptions));
-  }
-
-  /**
    * Selects a collection.
    *
    * @param  {String} name            The collection name.
@@ -183,16 +159,19 @@ export class Bucket {
   /**
    * Recplaces all existing bucket permissions with the ones provided.
    *
-   * XXX how to pass last_modified? where to get it from? options seems obvious
-   *
    * @param  {Object} permissions     The permissions object.
    * @param  {Object} options         The options object
    * @param  {Object} options.headers The headers object option.
+   * @param  {Object} options.last_modified The last_modified option.
    * @param  {Boolean}  options.safe  The safe option.
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
-    return this._updateProperties({...options, permissions});
+    const reqOptions = this._bucketOptions(options);
+    return this.client.updateBucket({
+      id: this.name,
+      last_modified: options && options.last_modified
+    }, {...reqOptions, permissions});
   }
 
   /**
@@ -280,19 +259,11 @@ export class Collection {
    */
   _updateProperties(options, metadata) {
     const reqOptions = this._collOptions(options);
-    return Promise.resolve({...metadata, id: this.name})
-      .then(collData => {
-        if (!reqOptions.safe) {
-          return collData;
-        }
-        // When safe option is true, retrieve collection last_modified, amend
-        // the collection data object with it
-        return this.getProperties(reqOptions).then(({data}) => ({
-          ...collData,
-          last_modified: data.last_modified,
-        }));
-      })
-      .then(collData => this.client.updateCollection(collData, reqOptions));
+    return this.client.updateCollection({
+      ...metadata,
+      id: this.name,
+      last_modified: options && options.last_modified
+    }, reqOptions);
   }
 
   /**
@@ -326,6 +297,7 @@ export class Collection {
    * @param  {Object}   options         The options object
    * @param  {Object}   options.headers The headers object option.
    * @param  {Boolean}  options.safe    The safe option.
+   * @param  {Number}   options.last_modified The last_modified option.
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
@@ -351,6 +323,7 @@ export class Collection {
    * @param  {Object}   options         The options object.
    * @param  {Object}   options.headers The headers object option.
    * @param  {Boolean}  options.safe    The safe option.
+   * @param  {Number}   options.last_modified The last_modified option.
    * @return {Promise<Object|null, Error>}
    */
   setSchema(schema, options) {
@@ -372,10 +345,11 @@ export class Collection {
   /**
    * Sets metadata for current collection.
    *
-   * @param  {Object} metadata        The metadata object.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
+   * @param  {Object}   metadata        The metadata object.
+   * @param  {Object}   options         The options object.
+   * @param  {Object}   options.headers The headers object option.
    * @param  {Boolean}  options.safe  The safe option.
+   * @param  {Number}   options.last_modified The last_modified option.
    * @return {Promise<Object, Error>}
    */
   setMetadata(metadata, options) {

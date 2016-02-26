@@ -202,12 +202,11 @@ describe("chain module", () => {
       });
 
       it("should set permissions", () => {
-        return getBlogBucket().setPermissions("fakeperms")
-          .then(_ => {
-            sinon.assert.calledWithMatch(client.updateBucket, {id: "blog"}, {
-              permissions: "fakeperms"
-            });
-          });
+        getBlogBucket().setPermissions("fakeperms");
+
+        sinon.assert.calledWithMatch(client.updateBucket, {id: "blog"}, {
+          permissions: "fakeperms"
+        });
       });
 
       it("should merge default options", () => {
@@ -215,23 +214,29 @@ describe("chain module", () => {
           headers: {Foo: "Bar"},
           safe: true,
         });
-        sandbox.stub(bucket, "getProperties").returns(Promise.resolve({
-          data: {
-            id: "blog",
-            last_modified: 42
-          }
-        }));
 
-        return bucket.setPermissions("fakeperms", {headers: {Baz: "Qux"}})
-          .then(_ => {
-            sinon.assert.calledWithMatch(client.updateBucket, {
-              id: "blog", last_modified: 42
-            }, {
-              permissions: "fakeperms",
-              headers: {Foo: "Bar", Baz: "Qux"},
-              safe: true,
-            });
-          });
+        bucket.setPermissions("fakeperms", {headers: {Baz: "Qux"}});
+
+        sinon.assert.calledWithMatch(client.updateBucket, {id: "blog"}, {
+          permissions: "fakeperms",
+          headers: {Foo: "Bar", Baz: "Qux"},
+          safe: true,
+        });
+      });
+
+      it("should accept a last_modified option", () => {
+        const bucket = getBlogBucket({
+          headers: {Foo: "Bar"},
+          safe: true,
+        });
+
+        bucket.setPermissions("fakeperms", {last_modified: 42});
+
+        sinon.assert.calledWithMatch(client.updateBucket, {id: "blog"}, {
+          permissions: "fakeperms",
+          safe: true,
+          last_modified: 42
+        });
       });
     });
 
@@ -295,36 +300,27 @@ describe("chain module", () => {
       });
 
       it("should set permissions", () => {
-        return coll.setPermissions("fakeperms")
-          .then(_ => {
-            sinon.assert.calledWith(client.updateCollection, {id: "posts"}, {
-              bucket: "blog",
-              permissions: "fakeperms",
-              headers: {Foo: "Bar", Baz: "Qux"},
-            });
-          });
+        coll.setPermissions("fakeperms");
+
+        sinon.assert.calledWithMatch(client.updateCollection, {id: "posts"}, {
+          bucket: "blog",
+          permissions: "fakeperms",
+          headers: {Foo: "Bar", Baz: "Qux"},
+        });
       });
 
       it("should handle the safe option", () => {
-        sandbox.stub(coll, "getProperties").returns(Promise.resolve({
-          data: {
-            id: "posts",
-            last_modified: 42,
-          }
-        }));
+        coll.setPermissions("fakeperms", {safe: true, last_modified: 42});
 
-        return coll.setPermissions("fakeperms", {safe: true})
-          .then(_ => {
-            sinon.assert.calledWith(client.updateCollection, {
-              id: "posts",
-              last_modified: 42
-            }, {
-              bucket: "blog",
-              permissions: "fakeperms",
-              headers: {Foo: "Bar", Baz: "Qux"},
-              safe: true,
-            });
-          });
+        sinon.assert.calledWithMatch(client.updateCollection, {
+          id: "posts",
+          last_modified: 42
+        }, {
+          bucket: "blog",
+          permissions: "fakeperms",
+          headers: {Foo: "Bar", Baz: "Qux"},
+          safe: true,
+        });
       });
     });
 
@@ -351,36 +347,27 @@ describe("chain module", () => {
       });
 
       it("should set the collection schema", () => {
-        return coll.setSchema(schema)
-          .then(_ => {
-            sinon.assert.calledWith(client.updateCollection, {id: "posts"}, {
-              bucket: "blog",
-              schema,
-              headers: {Foo: "Bar", Baz: "Qux"},
-            });
-          });
+        coll.setSchema(schema);
+
+        sinon.assert.calledWithMatch(client.updateCollection, {id: "posts"}, {
+          bucket: "blog",
+          schema,
+          headers: {Foo: "Bar", Baz: "Qux"},
+        });
       });
 
       it("should handle the safe option", () => {
-        sandbox.stub(coll, "getProperties").returns(Promise.resolve({
-          data: {
-            id: "posts",
-            last_modified: 42,
-          }
-        }));
+        coll.setSchema(schema, {safe: true, last_modified: 42});
 
-        return coll.setSchema(schema, {safe: true})
-          .then(_ => {
-            sinon.assert.calledWith(client.updateCollection, {
-              id: "posts",
-              last_modified: 42
-            }, {
-              bucket: "blog",
-              headers: {Foo: "Bar", Baz: "Qux"},
-              schema,
-              safe: true
-            });
-          });
+        sinon.assert.calledWithMatch(client.updateCollection, {
+          id: "posts",
+          last_modified: 42
+        }, {
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
+          schema,
+          safe: true
+        });
       });
     });
 
@@ -403,37 +390,28 @@ describe("chain module", () => {
       });
 
       it("should set the metadata", () => {
-        return coll.setMetadata({a: 1})
-          .then(_ => {
-            sinon.assert.calledWith(client.updateCollection, {id: "posts", a: 1}, {
-              bucket: "blog",
-              patch: true,
-              headers: {Foo: "Bar", Baz: "Qux"},
-            });
-          });
+        coll.setMetadata({a: 1});
+
+        sinon.assert.calledWithMatch(client.updateCollection, {id: "posts", a: 1}, {
+          bucket: "blog",
+          patch: true,
+          headers: {Foo: "Bar", Baz: "Qux"},
+        });
       });
 
       it("should handle the safe option", () => {
-        sandbox.stub(coll, "getProperties").returns(Promise.resolve({
-          data: {
-            id: "posts",
-            last_modified: 42,
-          }
-        }));
+        coll.setMetadata({a: 1}, {safe: true, last_modified: 42});
 
-        return coll.setMetadata({a: 1}, {safe: true})
-          .then(_ => {
-            sinon.assert.calledWith(client.updateCollection, {
-              id: "posts",
-              last_modified: 42,
-              a: 1
-            }, {
-              bucket: "blog",
-              headers: {Foo: "Bar", Baz: "Qux"},
-              patch: true,
-              safe: true
-            });
-          });
+        sinon.assert.calledWithMatch(client.updateCollection, {
+          id: "posts",
+          last_modified: 42,
+          a: 1
+        }, {
+          bucket: "blog",
+          headers: {Foo: "Bar", Baz: "Qux"},
+          patch: true,
+          safe: true
+        });
       });
     });
 
