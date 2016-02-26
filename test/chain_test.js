@@ -278,16 +278,41 @@ describe("chain module", () => {
     });
 
     describe("#setPermissions()", () => {
-      it("should set permissions", () => {
+      beforeEach(() => {
         sandbox.stub(client, "updateCollection");
+      });
 
-        coll.setPermissions("fakeperms");
+      it("should set permissions", () => {
+        return coll.setPermissions("fakeperms")
+          .then(_ => {
+            sinon.assert.calledWith(client.updateCollection, {id: "posts"}, {
+              bucket: "blog",
+              permissions: "fakeperms",
+              headers: {Foo: "Bar", Baz: "Qux"},
+            });
+          });
+      });
 
-        sinon.assert.calledWith(client.updateCollection, {id: "posts"}, {
-          bucket: "blog",
-          permissions: "fakeperms",
-          headers: {Foo: "Bar", Baz: "Qux"},
-        });
+      it("should handle the safe option", () => {
+        sandbox.stub(coll, "getProperties").returns(Promise.resolve({
+          data: {
+            id: "posts",
+            last_modified: 42,
+          }
+        }));
+
+        return coll.setPermissions("fakeperms", {safe: true})
+          .then(_ => {
+            sinon.assert.calledWith(client.updateCollection, {
+              id: "posts",
+              last_modified: 42
+            }, {
+              bucket: "blog",
+              permissions: "fakeperms",
+              headers: {Foo: "Bar", Baz: "Qux"},
+              safe: true,
+            });
+          });
       });
     });
 

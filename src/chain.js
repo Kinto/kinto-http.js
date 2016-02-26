@@ -246,18 +246,27 @@ export class Collection {
   /**
    * Replaces all existing collection permissions with the ones provided.
    *
-   * @param {Object} permissions      The permissions object.
-   * @param {Object} options          The options object
-   * @param  {Object} options.headers The headers object option.
-   * @param  {Boolean}  options.safe  The safe option.
+   * @param  {Object}   permissions     The permissions object.
+   * @param  {Object}   options         The options object
+   * @param  {Object}   options.headers The headers object option.
+   * @param  {Boolean}  options.safe    The safe option.
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
     const reqOptions = this._collOptions(options);
-    return this.client.updateCollection({id: this.name}, {
-      ...reqOptions,
-      permissions,
-    });
+    return Promise.resolve({id: this.name})
+      .then(collData => {
+        if (!reqOptions.safe) {
+          return collData;
+        }
+        // When safe option is true, retrieve collection last_modified, amend
+        // the collection data object using it
+        return this.getProperties(reqOptions).then(({data}) => data);
+      })
+      .then(collData => this.client.updateCollection(collData, {
+        ...reqOptions,
+        permissions
+      }));
   }
 
   /**

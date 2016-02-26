@@ -116,7 +116,10 @@ Sample result:
 }
 ```
 
-> In the Kinto protocol, the current user is always added to the `write` permission.
+#### Notes
+
+- This will replace any previously set permissions;
+- Though owners will always keep their `write` permission bit, as per the Kinto protocol.
 
 ### Deleting a bucket
 
@@ -278,7 +281,7 @@ Sample result:
 }
 ```
 
-### Retrieving collection schema
+### Retrieving the collection schema
 
 ```js
 client.bucket("blog").collection("posts").getSchema();
@@ -306,13 +309,12 @@ Sample result:
 
 ### Setting collection permissions
 
-#### Write permissions
-
 ```js
 client.bucket("blog").collection("posts")
-  read: ["github:bob"],
-  write: ["github:john", "github:bob"]
-});
+  .setPermissions({
+    read: ["github:bob"],
+    write: ["github:john", "github:bob"]
+  });
 ```
 
 Sample result:
@@ -333,6 +335,11 @@ Sample result:
   }
 }
 ```
+
+#### Notes
+
+- This will replace any previously set permissions;
+- Though owners will always keep their `write` permission bit, as per the Kinto protocol.
 
 ### Setting collection metadata
 
