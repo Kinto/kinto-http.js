@@ -166,10 +166,10 @@ describe("requests module", () => {
     });
 
     it("should return a bucket update request", () => {
-      expect(requests.updateBucket("foo", {})).eql({
+      expect(requests.updateBucket({id: "foo"})).eql({
         body: {
           permissions: {},
-          data: {}
+          data: {id: "foo"}
         },
         headers: {},
         method: "PUT",
@@ -178,21 +178,21 @@ describe("requests module", () => {
     });
 
     it("should accept a headers option", () => {
-      expect(requests.updateBucket("foo", {}, {headers: {Foo: "Bar"}}))
+      expect(requests.updateBucket({id: "foo"}, {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     it("should accept a permissions option", () => {
       const permissions = {read: ["github:n1k0"]};
-      expect(requests.updateBucket("foo", {}, {permissions}))
+      expect(requests.updateBucket({id: "foo"}, {permissions}))
         .to.have.property("body")
         .to.have.property("permissions").eql(permissions);
     });
 
     it("should handle metadata", () => {
-      expect(requests.updateBucket("foo", {a: 1}))
+      expect(requests.updateBucket({id: "foo", a: 1}))
         .to.have.property("body")
-        .to.have.property("data").eql({a: 1});
+        .to.have.property("data").eql({id: "foo", a: 1});
     });
   });
 

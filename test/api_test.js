@@ -973,18 +973,18 @@ describe("KintoClient", () => {
     });
 
     it("should execute expected request", () => {
-      api.updateBucket("foo", {});
+      api.updateBucket({id: "foo"});
 
-      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {}, {
+      sinon.assert.calledWithMatch(requests.updateBucket, {id: "foo"}, {
         headers: {},
         safe: false,
       });
     });
 
     it("should accept a safe option", () => {
-      api.updateBucket("foo", {}, {safe: true});
+      api.updateBucket({id: "foo"}, {safe: true});
 
-      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {}, {
+      sinon.assert.calledWithMatch(requests.updateBucket, {id: "foo"}, {
         safe: true
       });
     });
@@ -992,9 +992,9 @@ describe("KintoClient", () => {
     it("should use instance default bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.updateBucket("foo", {});
+      api.updateBucket({id: "foo"});
 
-      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {}, {
+      sinon.assert.calledWithMatch(requests.updateBucket, {id: "foo"}, {
         bucket: "custom"
       });
     });
@@ -1002,9 +1002,9 @@ describe("KintoClient", () => {
     it("should allow overriding the default instance bucket option", () => {
       api.defaultBucket = "custom";
 
-      api.updateBucket("foo", {}, {bucket: "myblog"});
+      api.updateBucket({id: "foo"}, {bucket: "myblog"});
 
-      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {}, {
+      sinon.assert.calledWithMatch(requests.updateBucket, {id: "foo"}, {
         bucket: "myblog"
       });
     });
@@ -1012,9 +1012,9 @@ describe("KintoClient", () => {
     it("should extend request headers with optional ones", () => {
       api.optionHeaders = {Foo: "Bar"};
 
-      api.updateBucket("foo", {}, {headers: {Baz: "Qux"}});
+      api.updateBucket({id: "foo"}, {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {}, {
+      sinon.assert.calledWithMatch(requests.updateBucket, {id: "foo"}, {
         headers: {Foo: "Bar", Baz: "Qux"}
       });
     });

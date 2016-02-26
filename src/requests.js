@@ -71,23 +71,23 @@ export function createBucket(bucketName, options = {}) {
 /**
  * @private
  */
-export function updateBucket(id, metadata, options = {}) {
-  if (!id) {
+export function updateBucket(bucket, options = {}) {
+  if (typeof bucket !== "object") {
+    throw new Error("A bucket object is required.");
+  }
+  if (!bucket.id) {
     throw new Error("A bucket id is required.");
   }
-  if (typeof metadata !== "object") {
-    throw new Error("A metadata object is required.");
-  }
-  const { headers, permissions, safe } = {
+  const { headers, permissions, safe, patch } = {
     ...requestDefaults,
     ...options
   };
   return handleCacheHeaders(safe, {
-    method: "PUT",
-    path: endpoint("bucket", id),
+    method: patch ? "PATCH" : "PUT",
+    path: endpoint("bucket", bucket.id),
     headers,
     body: {
-      data: metadata,
+      data: bucket,
       permissions
     }
   });
@@ -144,16 +144,16 @@ export function updateCollection(collection, options = {}) {
   };
   // XXX drop schema prop from collection obj if provided, as it's handled
   // by options
-  const requestData = collection;
+  const collectionData = collection;
   if (options.schema) {
-    requestData.schema = schema;
+    collectionData.schema = schema;
   }
   return handleCacheHeaders(safe, {
     method: patch ? "PATCH" : "PUT",
     path: endpoint("collection", bucket, collection.id),
     headers,
     body: {
-      data: requestData,
+      data: collectionData,
       permissions
     }
   });

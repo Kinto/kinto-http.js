@@ -93,7 +93,7 @@ describe("Integration tests", () => {
     describe("#updateBucket()", () => {
       it("should update a bucket", () => {
         return api.createBucket("foo")
-          .then(_ => api.updateBucket("foo", {}, {
+          .then(_ => api.updateBucket({id: "foo"}, {
             permissions: {read: ["github:n1k0"]}
           }))
           .then(_ => api.getBucket("foo"))
@@ -102,7 +102,7 @@ describe("Integration tests", () => {
       });
 
       it("should create the bucket if it doesn't exist yet", () => {
-        return api.updateBucket("foo", {})
+        return api.updateBucket({id: "foo"})
           .then(_ => api.listBuckets())
           .then(buckets => buckets.map(bucket => bucket.id))
           .should.eventually.include("foo");

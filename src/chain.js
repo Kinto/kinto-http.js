@@ -61,6 +61,30 @@ export class Bucket {
   }
 
   /**
+   * Updates current bucket properties.
+   *
+   * @private
+   * @param  {Object} options  The request options.
+   * @return {Promise<Object, Error>}
+   */
+  _updateProperties(options) {
+    const reqOptions = this._bucketOptions(options);
+    return Promise.resolve({id: this.name})
+      .then(bucketData => {
+        if (!reqOptions.safe) {
+          return bucketData;
+        }
+        // When safe option is true, retrieve bucket last_modified, amend
+        // the collection data object with it
+        return this.getProperties(reqOptions).then(({data}) => ({
+          id: this.name,
+          last_modified: data.last_modified,
+        }));
+      })
+      .then(bucketData => this.client.updateBucket(bucketData, reqOptions));
+  }
+
+  /**
    * Selects a collection.
    *
    * @param  {String} name            The collection name.
@@ -121,7 +145,8 @@ export class Bucket {
    */
   deleteCollection(collection, options) {
     const reqOptions = this._bucketOptions(options);
-    return this.client.deleteCollection(collectionObject(collection), reqOptions);
+    return this.client.deleteCollection(collectionObject(collection),
+                                        reqOptions);
   }
 
   /**
@@ -146,8 +171,7 @@ export class Bucket {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
-    const reqOptions = this._bucketOptions({...options, permissions});
-    return this.client.updateBucket(this.name, {}, reqOptions);
+    return this._updateProperties({...options, permissions});
   }
 
   /**

@@ -202,24 +202,36 @@ describe("chain module", () => {
       });
 
       it("should set permissions", () => {
-        getBlogBucket().setPermissions("fakeperms");
-
-        sinon.assert.calledWithMatch(client.updateBucket, "blog", {}, {
-          permissions: "fakeperms"
-        });
+        return getBlogBucket().setPermissions("fakeperms")
+          .then(_ => {
+            sinon.assert.calledWithMatch(client.updateBucket, {id: "blog"}, {
+              permissions: "fakeperms"
+            });
+          });
       });
 
       it("should merge default options", () => {
-        getBlogBucket({
+        const bucket = getBlogBucket({
           headers: {Foo: "Bar"},
           safe: true,
-        }).setPermissions("fakeperms", {headers: {Baz: "Qux"}});
-
-        sinon.assert.calledWithMatch(client.updateBucket, "blog", {}, {
-          permissions: "fakeperms",
-          headers: {Foo: "Bar", Baz: "Qux"},
-          safe: true,
         });
+        sandbox.stub(bucket, "getProperties").returns(Promise.resolve({
+          data: {
+            id: "blog",
+            last_modified: 42
+          }
+        }));
+
+        return bucket.setPermissions("fakeperms", {headers: {Baz: "Qux"}})
+          .then(_ => {
+            sinon.assert.calledWithMatch(client.updateBucket, {
+              id: "blog", last_modified: 42
+            }, {
+              permissions: "fakeperms",
+              headers: {Foo: "Bar", Baz: "Qux"},
+              safe: true,
+            });
+          });
       });
     });
 

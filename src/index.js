@@ -406,17 +406,18 @@ export default class KintoClient {
    * - Reserved for internal use only.
    *
    * @ignore
-   * @param  {String}  bucketName          The bucket name.
-   * @param  {Object}  metadata            The metadata object.
-   * @param  {Object}  options             The options object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {Object}  options.headers     The headers object option.
-   * @param  {Object}  options.permissions The permissions object.
+   * @param  {Object}  bucket               The bucket object.
+   * @param  {Object}  bucket.id            The bucket id.
+   * @param  {Object}  bucket.last_modified The bucket object.
+   * @param  {Object}  options              The options object.
+   * @param  {Boolean} options.safe         The safe option.
+   * @param  {Object}  options.headers      The headers object option.
+   * @param  {Object}  options.permissions  The permissions object.
    * @return {Promise<Object, Error>}
    */
-  updateBucket(bucketName, metadata, options={}) {
+  updateBucket(bucket, options={}) {
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.updateBucket(bucketName, metadata, reqOptions))
+    return this.execute(requests.updateBucket(bucket, reqOptions))
       .then(res => res.json);
   }
 
