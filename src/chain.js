@@ -260,8 +260,11 @@ export class Collection {
           return collData;
         }
         // When safe option is true, retrieve collection last_modified, amend
-        // the collection data object using it
-        return this.getProperties(reqOptions).then(({data}) => data);
+        // the collection data object with it
+        return this.getProperties(reqOptions).then(({data}) => ({
+          id: data.id,
+          last_modified: data.last_modified
+        }));
       })
       .then(collData => this.client.updateCollection(collData, {
         ...reqOptions,
@@ -284,18 +287,30 @@ export class Collection {
   /**
    * Sets the JSON schema for this collection.
    *
-   * @param  {Object} schema          The JSON schema object.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @param  {Boolean}  options.safe  The safe option.
+   * @param  {Object}   schema          The JSON schema object.
+   * @param  {Object}   options         The options object.
+   * @param  {Object}   options.headers The headers object option.
+   * @param  {Boolean}  options.safe    The safe option.
    * @return {Promise<Object|null, Error>}
    */
   setSchema(schema, options) {
     const reqOptions = this._collOptions(options);
-    return this.client.updateCollection({id: this.name}, {
-      ...reqOptions,
-      schema,
-    });
+    return Promise.resolve({id: this.name})
+      .then(collData => {
+        if (!reqOptions.safe) {
+          return collData;
+        }
+        // When safe option is true, retrieve collection last_modified, amend
+        // the collection data object with it
+        return this.getProperties(reqOptions).then(({data}) => ({
+          id: data.id,
+          last_modified: data.last_modified
+        }));
+      })
+      .then(collData => this.client.updateCollection(collData, {
+        ...reqOptions,
+        schema
+      }));
   }
 
   /**

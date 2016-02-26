@@ -334,16 +334,41 @@ describe("chain module", () => {
     describe("#setSchema()", () => {
       const schema = {title: "schema"};
 
-      it("should set the collection schema", () => {
+      beforeEach(() => {
         sandbox.stub(client, "updateCollection");
+      });
 
-        coll.setSchema(schema);
+      it("should set the collection schema", () => {
+        return coll.setSchema(schema)
+          .then(_ => {
+            sinon.assert.calledWith(client.updateCollection, {id: "posts"}, {
+              bucket: "blog",
+              schema,
+              headers: {Foo: "Bar", Baz: "Qux"},
+            });
+          });
+      });
 
-        sinon.assert.calledWith(client.updateCollection, {id: "posts"}, {
-          bucket: "blog",
-          schema,
-          headers: {Foo: "Bar", Baz: "Qux"},
-        });
+      it("should handle the safe option", () => {
+        sandbox.stub(coll, "getProperties").returns(Promise.resolve({
+          data: {
+            id: "posts",
+            last_modified: 42,
+          }
+        }));
+
+        return coll.setSchema(schema, {safe: true})
+          .then(_ => {
+            sinon.assert.calledWith(client.updateCollection, {
+              id: "posts",
+              last_modified: 42
+            }, {
+              bucket: "blog",
+              headers: {Foo: "Bar", Baz: "Qux"},
+              schema,
+              safe: true
+            });
+          });
       });
     });
 
