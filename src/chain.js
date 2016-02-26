@@ -1,3 +1,6 @@
+import { omit } from "./utils";
+
+
 /**
  * Always returns a collection descriptor object from the provided argument.
  *
@@ -180,6 +183,8 @@ export class Bucket {
   /**
    * Recplaces all existing bucket permissions with the ones provided.
    *
+   * XXX how to pass last_modified? where to get it from? options seems obvious
+   *
    * @param  {Object} permissions     The permissions object.
    * @param  {Object} options         The options object
    * @param  {Object} options.headers The headers object option.
@@ -361,15 +366,7 @@ export class Collection {
    */
   getMetadata(options) {
     return this.getProperties(options)
-      .then(res => {
-        // XXX move this to utils
-        return Object.keys(res.data).reduce((acc, key) => {
-          if (key !== "schema") {
-            acc[key] = res.data[key];
-          }
-          return acc;
-        }, {});
-      });
+      .then(({data}) => omit(data, "schema"));
   }
 
   /**
