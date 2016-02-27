@@ -597,7 +597,7 @@ describe("Integration tests", () => {
 
       it("should reject with a 410 Gone when hard EOL is received", () => {
         return api.fetchServerSettings()
-          .should.be.rejectedWith(Error, /HTTP 410; Service deprecated/);
+          .should.be.rejectedWith(Error, /HTTP 410 Gone: Service deprecated/);
       });
     });
   });

@@ -226,7 +226,7 @@ describe("KintoClient", () => {
         }));
 
         return api.fetchChangesSince("blog", "articles")
-          .should.eventually.be.rejectedWith(Error, /HTTP 401; Invalid Authorization Token/);
+          .should.eventually.be.rejectedWith(Error, /HTTP 401(.*)Invalid Authorization Token/);
       });
 
       it("should expose json response body to err object on rejection", () => {
@@ -331,7 +331,7 @@ describe("KintoClient", () => {
       describe("Safe mode", () => {
         const fixtures = [
           {title: "art1"},
-          {title: "art2", last_modified: 42},
+          {title: "art2"},
         ];
 
         it("should forward the safe option to resulting requests", () => {
@@ -345,7 +345,7 @@ describe("KintoClient", () => {
               expect(requests.map(r => r.headers))
                 .eql([
                   {"If-None-Match": "*"},
-                  {"If-Match": quote(42)},
+                  {"If-None-Match": "*"},
                 ]);
             });
         });

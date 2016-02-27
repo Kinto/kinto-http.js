@@ -35,7 +35,7 @@ export default class KintoClient {
    * @param  {String} remote  The remote URL.
    * @param  {Object}  options The options object.
    * @param  {Boolean} options.safe        Adds concurrency headers to every
-   * requests (default: `false`).
+   * requests (default: `true`).
    * @param  {EventEmitter} options.events The events handler. If none provided
    * an `EventEmitter` instance will be created.
    * @param  {Object}  options.headers     The key-value headers to pass to each

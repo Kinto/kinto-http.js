@@ -127,11 +127,12 @@ export default class HTTP {
       })
       .then(json => {
         if (json && status >= 400) {
-          let message = `HTTP ${status}; `;
+          let message = `HTTP ${status} ${json.error||""}: `;
           if (json.errno && json.errno in ERROR_CODES) {
-            message += ERROR_CODES[json.errno];
-            if (json.message) {
-              message += `: ${json.message}`;
+            const errnoMsg = ERROR_CODES[json.errno];
+            message += errnoMsg;
+            if (json.message && json.message !== errnoMsg) {
+              message += ` (${json.message})`;
             }
           } else {
             message += statusText || "";
