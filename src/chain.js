@@ -2,12 +2,12 @@ import { omit } from "./utils";
 
 
 /**
- * Always returns an entity descriptor object from the provided argument.
+ * Always returns a resource data object from the provided argument.
  *
  * @param  {Object|String} value
  * @return {Object}
  */
-function asEntity(value) {
+function toDataObj(value) {
   if (typeof value === "object") {
     return value;
   }
@@ -124,8 +124,7 @@ export class Bucket {
    */
   deleteCollection(collection, options) {
     const reqOptions = this._bucketOptions(options);
-    return this.client.deleteCollection(asEntity(collection),
-                                        reqOptions);
+    return this.client.deleteCollection(toDataObj(collection), reqOptions);
   }
 
   /**
@@ -381,7 +380,7 @@ export class Collection {
    */
   deleteRecord(record, options) {
     const reqOptions = this._collOptions(options);
-    return this.client.deleteRecord(this.name, asEntity(record), reqOptions);
+    return this.client.deleteRecord(this.name, toDataObj(record), reqOptions);
   }
 
   /**
