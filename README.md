@@ -138,7 +138,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Checks whether to override the existing resource if it already exists, or ensures the record hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 #### Notes
@@ -168,7 +168,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the record hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 ### Creating a collection
@@ -275,7 +275,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the record hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 ## Collections
@@ -337,7 +337,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the record hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 ### Retrieving the collection schema
@@ -404,7 +404,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the record hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 #### Notes
@@ -442,7 +442,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the record hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 ### Getting collection metadata
@@ -563,7 +563,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the record hasn't been modified in the meanwhile if `last_modified` is provided; otherwise ensures the record won't be overridden if it already exists on the server (default: `false`).
+- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided; otherwise ensures the record won't be overridden if it already exists on the server (default: `false`).
 
 ### Deleting record
 
@@ -588,7 +588,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the record hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 ### Listing records
@@ -631,7 +631,7 @@ client.bucket("blog").collection("posts")
 
 - `sort`: The order field (default: `-last_modified`);
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the record hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 ### Batching operations
