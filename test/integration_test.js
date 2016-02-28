@@ -797,6 +797,16 @@ describe("Integration tests", () => {
                 .should.eventually.have.property("read")
                 .eql(["github:n1k0"]);
             });
+
+            describe("Safe option", () => {
+              it("should perform concurrency checks", () => {
+                return coll.setPermissions({read: ["github:n1k0"]}, {
+                  safe: true,
+                  last_modified: 1
+                })
+                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+              });
+            });
           });
 
           describe(".getSchema()", () => {
@@ -830,6 +840,16 @@ describe("Integration tests", () => {
                 .then(_ => coll.getSchema())
                 .should.become(schema);
             });
+
+            describe("Safe option", () => {
+              it("should perform concurrency checks", () => {
+                return coll.setSchema(schema, {
+                  safe: true,
+                  last_modified: 1
+                })
+                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+              });
+            });
           });
 
           describe(".getMetadata()", () => {
@@ -846,6 +866,16 @@ describe("Integration tests", () => {
                 .then(_ => coll.getMetadata())
                 .should.eventually.have.property("isMeta").eql(true);
             });
+
+            describe("Safe option", () => {
+              it("should perform concurrency checks", () => {
+                return coll.setMetadata({isMeta: true}, {
+                  safe: true,
+                  last_modified: 1
+                })
+                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+              });
+            });
           });
 
           describe(".createRecord()", () => {
@@ -854,6 +884,17 @@ describe("Integration tests", () => {
                 .createRecord({title: "foo"})
                 .should.eventually.have.property("data")
                     .to.have.property("title").eql("foo");
+            });
+
+            describe("Safe option", () => {
+              it("should check for existing record", () => {
+                return coll.createRecord({title: "foo"})
+                  .then(({data}) => coll.createRecord({
+                    id: data.id,
+                    title: "foo"
+                  }, {safe: true}))
+                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+              });
             });
           });
 
@@ -866,6 +907,18 @@ describe("Integration tests", () => {
                 .then((records) => records[0].title)
                 .should.become("mod");
             });
+
+            describe("Safe option", () => {
+              it("should perform concurrency checks", () => {
+                return coll.createRecord({title: "foo"})
+                  .then(({data}) => coll.updateRecord({
+                    id: data.id,
+                    title: "foo",
+                    last_modified: 1,
+                  }, {safe: true}))
+                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+              });
+            });
           });
 
           describe(".deleteRecord()", () => {
@@ -875,6 +928,17 @@ describe("Integration tests", () => {
                 .then(({data}) => coll.deleteRecord(data.id))
                 .then(_ => coll.listRecords())
                 .should.become([]);
+            });
+
+            describe("Safe option", () => {
+              it("should perform concurrency checks", () => {
+                return coll.createRecord({title: "foo"})
+                  .then(({data}) => coll.deleteRecord(data.id, {
+                    last_modified: 1,
+                    safe: true
+                  }))
+                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+              });
             });
           });
 
@@ -912,7 +976,9 @@ describe("Integration tests", () => {
       }
 
       runSuite("default bucket", () => {
-        return Promise.resolve(api.bucket("default").collection("plop"));
+        return api.bucket("default")
+          .createCollection("plop")
+          .then(_ => api.bucket("default").collection("plop"));
       });
 
       runSuite("custom bucket", () => {
