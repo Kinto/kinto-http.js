@@ -61,3 +61,19 @@ export function pMap(list, fn) {
     });
   }, Promise.resolve()).then(() => results);
 }
+
+/**
+ * Takes an object and returns a copy of it with the provided keys omitted.
+ *
+ * @param  {Object}    obj  The source object.
+ * @param  {...String} keys The keys to omit.
+ * @return {Object}
+ */
+export function omit(obj, ...keys) {
+  return Object.keys(obj).reduce((acc, key) => {
+    if (keys.indexOf(key) === -1) {
+      acc[key] = obj[key];
+    }
+    return acc;
+  }, {});
+}

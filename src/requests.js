@@ -2,12 +2,9 @@ import endpoint from "./endpoint";
 import { quote } from "./utils.js";
 
 
-/**
- * Request default options.
- * @type {Object}
- */
 const requestDefaults = {
   safe: false,
+  // check if we should set default content type here
   headers: {},
   bucket: "default",
   permissions: {},
@@ -15,36 +12,18 @@ const requestDefaults = {
   patch: false,
 };
 
-/**
- * @private
- */
-function getLastModified(request) {
-  return request.body &&
-         "data" in request.body &&
-         request.body.data.last_modified;
+function doNotOverwrite(safe) {
+  return safe ? {"If-None-Match": "*"} : {};
 }
 
-/**
- * @private
- */
-function handleCacheHeaders(safe, request) {
+function concurrencyCheck(safe, last_modified) {
   if (!safe) {
-    return request;
+    return {};
   }
-  const cacheHeaders = {};
-  const lastModified = getLastModified(request);
-  if (lastModified) {
-    cacheHeaders["If-Match"] = quote(lastModified);
-  } else {
-    cacheHeaders["If-None-Match"] = "*";
+  if (!last_modified) {
+    throw new Error("Safe concurrency check requires a last_modified value.");
   }
-  return {
-    ...request,
-    headers: {
-      ...request.headers,
-      ...cacheHeaders
-    }
-  };
+  return {"If-Match": quote(last_modified)};
 }
 
 /**
@@ -57,119 +36,145 @@ export function createBucket(bucketName, options = {}) {
   // Note that we simply ignore any "bucket" option passed here, as the one
   // we're interested in is the one provided as a required argument.
   const { headers, permissions, safe } = {...requestDefaults, ...options};
-  return handleCacheHeaders(safe, {
+  return {
     method: "PUT",
     path: endpoint("bucket", bucketName),
-    headers,
+    headers: {...headers, ...doNotOverwrite(safe)},
     body: {
       // XXX We can't pass the data option just yet, see Kinto/kinto/issues/239
       permissions
     }
-  });
+  };
 }
 
 /**
  * @private
  */
-export function updateBucket(id, metadata, options = {}) {
-  if (!id) {
+export function updateBucket(bucket, options = {}) {
+  if (typeof bucket !== "object") {
+    throw new Error("A bucket object is required.");
+  }
+  if (!bucket.id) {
     throw new Error("A bucket id is required.");
   }
-  if (typeof metadata !== "object") {
-    throw new Error("A metadata object is required.");
-  }
-  const { headers, permissions, safe } = {
+  const { headers, permissions, safe, patch, last_modified } = {
     ...requestDefaults,
     ...options
   };
-  return handleCacheHeaders(safe, {
-    method: "PUT",
-    path: endpoint("bucket", id),
-    headers,
+  return {
+    method: patch ? "PATCH" : "PUT",
+    path: endpoint("bucket", bucket.id),
+    headers: {
+      ...headers,
+      ...concurrencyCheck(safe, last_modified || bucket.last_modified)
+    },
     body: {
-      data: metadata,
+      data: bucket,
       permissions
     }
-  });
+  };
 }
 
 /**
  * @private
  */
-export function deleteBucket(id, options = {}) {
-  if (!id) {
+export function deleteBucket(bucket, options = {}) {
+  if (typeof bucket !== "object") {
+    throw new Error("A bucket object is required.");
+  }
+  if (!bucket.id) {
     throw new Error("A bucket id is required.");
   }
-  const { headers, safe } = {...requestDefaults, ...options};
-  return handleCacheHeaders(safe, {
+  const { headers, safe, last_modified} = {...requestDefaults, ...options};
+  return {
     method: "DELETE",
-    path: endpoint("bucket", id),
-    headers,
-    body: {}
-  });
+    path: endpoint("bucket", bucket.id),
+    headers: {
+      ...headers,
+      ...concurrencyCheck(safe, last_modified || bucket.last_modified)
+    },
+    body: {
+      data: bucket
+    }
+  };
 }
 
 /**
  * @private
  */
-export function createCollection(options = {}) {
-  const { bucket, headers, permissions, data, safe, id } = {
+export function createCollection(id, options = {}) {
+  const { bucket, headers, permissions, data, safe } = {
     ...requestDefaults,
     ...options
   };
-  const path = options.id ? endpoint("collection", bucket, id) :
-                            endpoint("collections", bucket);
-  return handleCacheHeaders(safe, {
-    method: options.id ? "PUT" : "POST",
+  // XXX checks that provided data can't override schema when provided
+  const path = id ? endpoint("collection", bucket, id) :
+                    endpoint("collections", bucket);
+  return {
+    method: id ? "PUT" : "POST",
     path,
-    headers,
+    headers: {...headers, ...doNotOverwrite(safe)},
     body: {data, permissions}
-  });
+  };
 }
 
 /**
  * @private
  */
-export function updateCollection(id, metadata, options = {}) {
-  if (!id) {
+export function updateCollection(collection, options = {}) {
+  if (typeof collection !== "object") {
+    throw new Error("A collection object is required.");
+  }
+  if (!collection.id) {
     throw new Error("A collection id is required.");
   }
-  if (typeof metadata !== "object") {
-    throw new Error("A metadata object is required.");
-  }
-  const { bucket, headers, permissions, data, schema, safe, patch } = {
+  const { bucket, headers, permissions, schema, safe, patch, last_modified } = {
     ...requestDefaults,
     ...options
   };
-  const requestData = {...data, ...metadata};
+  const collectionData = collection;
   if (options.schema) {
-    requestData.schema = schema;
+    collectionData.schema = schema;
   }
-  return handleCacheHeaders(safe, {
+  return {
     method: patch ? "PATCH" : "PUT",
-    path: endpoint("collection", bucket, id),
-    headers,
+    path: endpoint("collection", bucket, collection.id),
+    headers: {
+      ...headers,
+      ...concurrencyCheck(safe, last_modified || collection.last_modified)
+    },
     body: {
-      data: requestData,
+      data: collectionData,
       permissions
     }
-  });
+  };
 }
 
 /**
  * @private
  */
-export function deleteCollection(collName, options = {}) {
-  const { bucket, headers, safe } = {
+export function deleteCollection(collection, options = {}) {
+  if (typeof collection !== "object") {
+    throw new Error("A collection object is required.");
+  }
+  if (!collection.id) {
+    throw new Error("A collection id is required.");
+  }
+  const { bucket, headers, safe, last_modified } = {
     ...requestDefaults,
     ...options
   };
-  return handleCacheHeaders(safe, {
+  return {
     method: "DELETE",
-    path: endpoint("collection", bucket, collName),
-    headers,
-    body: {}
-  });
+    path: endpoint("collection", bucket, collection.id),
+    headers: {
+      ...headers,
+      ...concurrencyCheck(safe, last_modified || collection.last_modified)
+    },
+    body: {
+      data: collection
+    }
+  };
 }
 
 /**
@@ -183,15 +188,15 @@ export function createRecord(collName, record, options = {}) {
     ...requestDefaults,
     ...options
   };
-  return handleCacheHeaders(safe, {
+  return {
     method: "POST",
     path: endpoint("records", bucket, collName),
-    headers,
+    headers: {...headers, ...doNotOverwrite(safe)},
     body: {
       data: record,
       permissions
     }
-  });
+  };
 }
 
 /**
@@ -204,38 +209,50 @@ export function updateRecord(collName, record, options = {}) {
   if (!record.id) {
     throw new Error("A record id is required.");
   }
-  const { bucket, headers, permissions, safe, patch } = {
+  const { bucket, headers, permissions, safe, patch, last_modified } = {
     ...requestDefaults,
     ...options
   };
-  return handleCacheHeaders(safe, {
+  return {
     method: patch ? "PATCH" : "PUT",
     path: endpoint("record", bucket, collName, record.id),
-    headers,
+    headers: {
+      ...headers,
+      ...concurrencyCheck(safe, last_modified || record.last_modified)
+    },
     body: {
       data: record,
       permissions
     }
-  });
+  };
 }
 
 /**
  * @private
  */
-export function deleteRecord(collName, id, options = {}) {
+export function deleteRecord(collName, record, options = {}) {
   if (!collName) {
     throw new Error("A collection name is required.");
   }
-  if (!id) {
+  if (typeof record !== "object") {
+    throw new Error("A record object is required.");
+  }
+  if (!record.id) {
     throw new Error("A record id is required.");
   }
-  const { bucket, headers, safe } = {...requestDefaults, ...options};
-  return handleCacheHeaders(safe, {
+  const { bucket, headers, safe, last_modified } = {
+    ...requestDefaults,
+    ...options
+  };
+  return {
     method: "DELETE",
-    path: endpoint("record", bucket, collName, id),
-    headers,
+    path: endpoint("record", bucket, collName, record.id),
+    headers: {
+      ...headers,
+      ...concurrencyCheck(safe, last_modified || record.last_modified)
+    },
     body: {
-      data: {last_modified: options.lastModified}
+      data: record
     }
-  });
+  };
 }

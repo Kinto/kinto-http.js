@@ -37,11 +37,50 @@ describe("requests module", () => {
         .to.have.property("body")
         .to.have.property("permissions").eql(permissions);
     });
+
+    it("should support a safe option", () => {
+      expect(requests.createBucket({id: "foo"}, {safe: true}))
+        .to.have.property("headers")
+        .to.have.property("If-None-Match").eql("*");
+    });
+  });
+
+  describe("deleteBucket()", () => {
+    it("should return a bucket deletion request when an id is provided", () => {
+      expect(requests.deleteBucket({id: "foo"})).eql({
+        body: {data: {id: "foo"}},
+        headers: {},
+        method: "DELETE",
+        path: "/buckets/foo",
+      });
+    });
+
+    it("should accept a headers option", () => {
+      expect(requests.deleteBucket({id: "foo"}, {headers: {Foo: "Bar"}}))
+        .to.have.property("headers").eql({Foo: "Bar"});
+    });
+
+    it("should raise for safe with no last_modified passed", () => {
+      expect(() => requests.deleteBucket({id: "foo"}, {safe: true}))
+        .to.Throw(Error, /requires a last_modified/);
+    });
+
+    it("should support a safe option with a resource last_modified", () => {
+      expect(requests.deleteBucket({id: "foo", last_modified: 42}, {safe: true}))
+        .to.have.property("headers")
+        .to.have.property("If-Match").eql("\"42\"");
+    });
+
+    it("should support a safe option with a last_modified option", () => {
+      expect(requests.deleteBucket({id: "foo"}, {safe: true, last_modified: 42}))
+        .to.have.property("headers")
+        .to.have.property("If-Match").eql("\"42\"");
+    });
   });
 
   describe("createCollection()", () => {
     it("should return a collection creation request when an id is provided", () => {
-      expect(requests.createCollection({id: "foo"})).eql({
+      expect(requests.createCollection("foo")).eql({
         body: {
           permissions: {},
           data: {}
@@ -65,20 +104,26 @@ describe("requests module", () => {
     });
 
     it("should accept a bucket option", () => {
-      expect(requests.createCollection({id: "foo", bucket: "custom"}))
+      expect(requests.createCollection("foo", {bucket: "custom"}))
         .to.have.property("path").eql("/buckets/custom/collections/foo");
     });
 
     it("should accept a headers option", () => {
-      expect(requests.createCollection({id: "foo", headers: {Foo: "Bar"}}))
+      expect(requests.createCollection("foo", {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     it("should accept a permissions option", () => {
       const permissions = {read: ["github:n1k0"]};
-      expect(requests.createCollection({id: "foo", permissions}))
+      expect(requests.createCollection("foo", {permissions}))
         .to.have.property("body")
         .to.have.property("permissions").eql(permissions);
+    });
+
+    it("should support a safe option", () => {
+      expect(requests.createCollection("foo", {safe: true}))
+        .to.have.property("headers")
+        .to.have.property("If-None-Match").eql("*");
     });
   });
 
@@ -91,10 +136,10 @@ describe("requests module", () => {
     });
 
     it("should return a collection update request", () => {
-      expect(requests.updateCollection("foo", {}, {schema})).eql({
+      expect(requests.updateCollection({id: "foo"}, {schema})).eql({
         body: {
           permissions: {},
-          data: {schema}
+          data: {id: "foo", schema}
         },
         headers: {},
         method: "PUT",
@@ -103,45 +148,56 @@ describe("requests module", () => {
     });
 
     it("should accept a bucket option", () => {
-      expect(requests.updateCollection("foo", {}, {bucket: "custom"}))
+      expect(requests.updateCollection({id: "foo"}, {bucket: "custom"}))
         .to.have.property("path").eql("/buckets/custom/collections/foo");
     });
 
     it("should accept a headers option", () => {
-      expect(requests.updateCollection("foo", {}, {headers: {Foo: "Bar"}}))
+      expect(requests.updateCollection({id: "foo"}, {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     it("should accept a permissions option", () => {
       const permissions = {read: ["github:n1k0"]};
-      expect(requests.updateCollection("foo", {}, {permissions}))
+      expect(requests.updateCollection({id: "foo"}, {permissions}))
         .to.have.property("body")
         .to.have.property("permissions").eql(permissions);
     });
 
     it("should accept a schema option", () => {
-      expect(requests.updateCollection("foo", {}, {schema}))
+      expect(requests.updateCollection({id: "foo"}, {schema}))
         .to.have.property("body")
         .to.have.property("data")
         .to.have.property("schema").eql(schema);
     });
 
     it("should accept a patch option", () => {
-      expect(requests.updateCollection("foo", {}, {schema, patch: true}))
+      expect(requests.updateCollection({id: "foo"}, {schema, patch: true}))
         .to.have.property("method").eql("PATCH");
     });
 
     it("should handle metadata", () => {
-      expect(requests.updateCollection("foo", {a: 1}))
+      expect(requests.updateCollection({id: "foo", a: 1}))
         .to.have.property("body")
-        .to.have.property("data").eql({a: 1});
+        .to.have.property("data").eql({id: "foo", a: 1});
+    });
+
+    it("should raise for safe with no last_modified passed", () => {
+      expect(() => requests.updateCollection({id: "foo"}, {safe: true}))
+        .to.Throw(Error, /requires a last_modified/);
+    });
+
+    it("should support a safe option with a last_modified passed", () => {
+      expect(requests.updateCollection({id: "foo", last_modified: 42}, {safe: true}))
+        .to.have.property("headers")
+        .to.have.property("If-Match").eql("\"42\"");
     });
   });
 
   describe("deleteCollection()", () => {
-    it("should return a collection creation request when an id is provided", () => {
-      expect(requests.deleteCollection("foo")).eql({
-        body: {},
+    it("should return a collection deletion request when an id is provided", () => {
+      expect(requests.deleteCollection({id: "foo"})).eql({
+        body: {data: {id: "foo"}},
         headers: {},
         method: "DELETE",
         path: "/buckets/default/collections/foo",
@@ -149,13 +205,30 @@ describe("requests module", () => {
     });
 
     it("should accept a bucket option", () => {
-      expect(requests.deleteCollection("foo", {bucket: "custom"}))
+      expect(requests.deleteCollection({id: "foo"}, {bucket: "custom"}))
         .to.have.property("path").eql("/buckets/custom/collections/foo");
     });
 
     it("should accept a headers option", () => {
-      expect(requests.deleteCollection("foo", {headers: {Foo: "Bar"}}))
+      expect(requests.deleteCollection({id: "foo"}, {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
+    });
+
+    it("should raise for safe with no last_modified passed", () => {
+      expect(() => requests.deleteCollection({id: "foo"}, {safe: true}))
+        .to.Throw(Error, /requires a last_modified/);
+    });
+
+    it("should support a safe option with a resource last_modified", () => {
+      expect(requests.deleteCollection({id: "foo", last_modified: 42}, {safe: true}))
+        .to.have.property("headers")
+        .to.have.property("If-Match").eql("\"42\"");
+    });
+
+    it("should support a safe option with a last_modified option", () => {
+      expect(requests.deleteCollection({id: "foo"}, {safe: true, last_modified: 42}))
+        .to.have.property("headers")
+        .to.have.property("If-Match").eql("\"42\"");
     });
   });
 
@@ -166,10 +239,10 @@ describe("requests module", () => {
     });
 
     it("should return a bucket update request", () => {
-      expect(requests.updateBucket("foo", {})).eql({
+      expect(requests.updateBucket({id: "foo"})).eql({
         body: {
           permissions: {},
-          data: {}
+          data: {id: "foo"}
         },
         headers: {},
         method: "PUT",
@@ -178,21 +251,38 @@ describe("requests module", () => {
     });
 
     it("should accept a headers option", () => {
-      expect(requests.updateBucket("foo", {}, {headers: {Foo: "Bar"}}))
+      expect(requests.updateBucket({id: "foo"}, {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     it("should accept a permissions option", () => {
       const permissions = {read: ["github:n1k0"]};
-      expect(requests.updateBucket("foo", {}, {permissions}))
+      expect(requests.updateBucket({id: "foo"}, {permissions}))
         .to.have.property("body")
         .to.have.property("permissions").eql(permissions);
     });
 
     it("should handle metadata", () => {
-      expect(requests.updateBucket("foo", {a: 1}))
+      expect(requests.updateBucket({id: "foo", a: 1}))
         .to.have.property("body")
-        .to.have.property("data").eql({a: 1});
+        .to.have.property("data").eql({id: "foo", a: 1});
+    });
+
+    it("should raise for safe with no last_modified passed", () => {
+      expect(() => requests.updateBucket({id: "foo"}, {safe: true}))
+        .to.Throw(Error, /requires a last_modified/);
+    });
+
+    it("should support a safe option with a resource last_modified", () => {
+      expect(requests.updateBucket({id: "foo", last_modified: 42}, {safe: true}))
+        .to.have.property("headers")
+        .to.have.property("If-Match").eql("\"42\"");
+    });
+
+    it("should support a safe option with a last_modified option", () => {
+      expect(requests.updateBucket({id: "foo"}, {safe: true, last_modified: 42}))
+        .to.have.property("headers")
+        .to.have.property("If-Match").eql("\"42\"");
     });
   });
 
@@ -233,19 +323,10 @@ describe("requests module", () => {
         .to.have.property("permissions").eql(permissions);
     });
 
-    describe("should add cache headers when the safe option is true", () => {
-      it("for a record with no last_modified", () => {
-        expect(requests.createRecord("foo", record, {safe: true}))
-          .to.have.property("headers")
-          .eql({"If-None-Match": "*"});
-      });
-
-      it("for a record with last_modified set", () => {
-        const existingRecord = {...record, last_modified: 42};
-        expect(requests.createRecord("foo", existingRecord, {safe: true}))
-          .to.have.property("headers")
-          .eql({"If-Match": "\"42\""});
-      });
+    it("should support a safe option", () => {
+      expect(requests.createRecord("foo", record, {safe: true}))
+        .to.have.property("headers")
+        .to.have.property("If-None-Match").eql("*");
     });
   });
 
@@ -292,10 +373,9 @@ describe("requests module", () => {
     });
 
     describe("should add cache headers when the safe option is true", () => {
-      it("for a record with no last_modified", () => {
-        expect(requests.updateRecord("foo", record, {safe: true}))
-          .to.have.property("headers")
-          .eql({"If-None-Match": "*"});
+      it("should raise for safe with no last_modified passed", () => {
+        expect(() => requests.updateRecord("foo", record, {safe: true}))
+          .to.Throw(Error, /requires a last_modified/);
       });
 
       it("for a record with last_modified set", () => {
@@ -313,9 +393,14 @@ describe("requests module", () => {
         .to.Throw(Error, /required/);
     });
 
+    it("should throw if record is not an object", () => {
+      expect(() => requests.deleteRecord("foo", "invalid"))
+        .to.Throw(Error, /required/);
+    });
+
     it("should return a record creation request", () => {
-      expect(requests.deleteRecord("foo", 42)).eql({
-        body: {data: {last_modified: undefined}},
+      expect(requests.deleteRecord("foo", {id: 42})).eql({
+        body: {data: {id: 42}},
         headers: {},
         method: "DELETE",
         path: "/buckets/default/collections/foo/records/42",
@@ -323,29 +408,26 @@ describe("requests module", () => {
     });
 
     it("should accept a bucket option", () => {
-      expect(requests.deleteRecord("foo", 42, {bucket: "custom"}))
+      expect(requests.deleteRecord("foo", {id: "42"}, {bucket: "custom"}))
         .to.have.property("path").eql("/buckets/custom/collections/foo/records/42");
     });
 
     it("should accept a headers option", () => {
-      expect(requests.deleteRecord("foo", 42, {headers: {Foo: "Bar"}}))
+      expect(requests.deleteRecord("foo", {id: "42"}, {headers: {Foo: "Bar"}}))
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     describe("should add cache headers when the safe option is true", () => {
-      it("for a record with no last_modified", () => {
-        expect(requests.deleteRecord("foo", 42, {safe: true}))
-          .to.have.property("headers")
-          .eql({"If-None-Match": "*"});
+      it("should raise for safe with no last_modified passed", () => {
+        expect(() => requests.deleteRecord("foo", {id: "42"}, {safe: true}))
+          .to.Throw(Error, /requires a last_modified/);
       });
 
       it("for a record with a last_modified option set", () => {
-        expect(requests.deleteRecord("foo", 1337, {
-          safe: true,
-          lastModified: 42
-        }))
+        expect(requests.deleteRecord("foo", {id: "42", last_modified: 1337},
+                                            {safe: true}))
           .to.have.property("headers")
-          .eql({"If-Match": "\"42\""});
+          .eql({"If-Match": "\"1337\""});
       });
     });
   });
