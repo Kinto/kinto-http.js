@@ -3,7 +3,7 @@
 import "isomorphic-fetch";
 import { EventEmitter } from "events";
 
-import { quote, unquote, partition, pMap } from "./utils.js";
+import { quote, unquote, partition, pMap, omit } from "./utils.js";
 import HTTP from "./http.js";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
@@ -152,13 +152,18 @@ export default class KintoClient {
   }
 
   /**
-   * Retrieve a bucket oject to perform operations on it.
+   * Retrieve a bucket object to perform operations on it.
    *
-   * @param  {String} name The bucket name.
+   * @param  {String}  name    The bucket name.
+   * @param  {Object}  options The request options.
+   * @param  {Boolean} safe    The resulting safe option.
+   * @param  {String}  bucket  The resulting bucket name option.
+   * @param  {Object}  headers The extended headers object option.
    * @return {Bucket}
    */
-  bucket(name) {
-    return new Bucket(this, name);
+  bucket(name, options={}) {
+    const bucketOptions = omit(this._getRequestOptions(options), "bucket");
+    return new Bucket(this, name, bucketOptions);
   }
 
   /**

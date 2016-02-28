@@ -8,6 +8,7 @@ import { quote } from "../src/utils";
 import { fakeServerResponse } from "./test_utils.js";
 import KintoClient, { SUPPORTED_PROTOCOL_VERSION as SPV } from "../src";
 import * as requests from "../src/requests";
+import { Bucket } from "../src/chain";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -116,6 +117,21 @@ describe("KintoClient", () => {
 
       return api.fetchChangesSince()
         .then(_ => expect(api.backoff).eql(0));
+    });
+  });
+
+  /** @test {KintoClient#bucket} */
+  describe("#bucket()", () => {
+    it("should return a Bucket instance", () => {
+      expect(api.bucket("foo"))
+        .to.be.an.instanceOf(Bucket);
+    });
+
+    it("should propagate default req options to bucket instance", () => {
+      const options = {safe: true, headers: {Foo: "Bar"}};
+
+      expect(api.bucket("foo", options))
+        .to.have.property("options").eql(options);
     });
   });
 
