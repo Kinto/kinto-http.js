@@ -53,6 +53,16 @@ export default class KintoClient {
       remote = remote.slice(0, -1);
     }
     this._backoffReleaseTime = null;
+    /**
+     * Default request options container.
+     * @private
+     * @type {Object}
+     */
+    this.defaultReqOptions = {
+      bucket:  options.bucket  || "default",
+      headers: options.headers || {},
+      safe:    !!options.safe,
+    };
 
     // public properties
     /**
@@ -60,24 +70,6 @@ export default class KintoClient {
      * @type {String}
      */
     this.remote = remote;
-    /**
-     * The default bucket name to use.
-     * @ignore
-     * @type {String}
-     */
-    this.defaultBucket = options.bucket || "default";
-    /**
-     * The default safe setting value.
-     * @ignore
-     * @type {Boolean}
-     */
-    this.defaultSafe = !!options.safe;
-    /**
-     * The optional generic headers.
-     * @ignore
-     * @type {Object}
-     */
-    this.optionHeaders = options.headers || {};
     /**
      * Current server settings, retrieved from the server.
      * @ignore
@@ -176,19 +168,21 @@ export default class KintoClient {
    * Note: Headers won't be overriden but merged with instance default ones.
    *
    * @private
-   * @param  {Object} options The request options.
-   * @return {Object}
+   * @param    {Object} options The request options.
+   * @return   {Object}
    * @property {Boolean} safe    The resulting safe option.
    * @property {String}  bucket  The resulting bucket name option.
    * @property {Object}  headers The extended headers object option.
    */
   _getRequestOptions(options={}) {
     return {
-      safe: this.defaultSafe,
-      bucket: this.defaultBucket,
+      ...this.defaultReqOptions,
       ...options,
       // Note: headers should never be overriden but extended
-      headers: {...this.optionHeaders, ...options.headers},
+      headers: {
+        ...this.defaultReqOptions.headers,
+        ...options.headers
+      },
     };
   }
 
@@ -222,7 +216,7 @@ export default class KintoClient {
   fetchChangesSince(bucketName, collName, options={lastModified: null, headers: {}}) {
     const recordsUrl = endpoint("records", bucketName, collName);
     let queryString = "";
-    const headers = {...this.optionHeaders, ...options.headers};
+    const headers = {...this.defaultReqOptions.headers, ...options.headers};
 
     if (options.lastModified) {
       queryString = "?_since=" + options.lastModified;
@@ -266,7 +260,7 @@ export default class KintoClient {
    * @return {Promise<Object, Error>}
    */
   _batchRequests(requests, options = {}) {
-    const headers = {...this.optionHeaders, ...options.headers};
+    const headers = {...this.defaultReqOptions.headers, ...options.headers};
     if (!requests.length) {
       return Promise.resolve([]);
     }
@@ -342,7 +336,7 @@ export default class KintoClient {
   listBuckets(options={}) {
     return this.execute({
       path: endpoint("buckets"),
-      headers: {...this.optionHeaders, ...options.headers}
+      headers: {...this.defaultReqOptions.headers, ...options.headers}
     })
       .then(res => res.json && res.json.data);
   }
@@ -393,7 +387,7 @@ export default class KintoClient {
   getBucket(bucketName, options={}) {
     return this.execute({
       path: endpoint("bucket", bucketName),
-      headers: {...this.optionHeaders, ...options.headers}
+      headers: {...this.defaultReqOptions.headers, ...options.headers}
     })
       .then(res => res.json);
   }
@@ -436,7 +430,7 @@ export default class KintoClient {
   listCollections(bucketName, options={}) {
     return this.execute({
       path: endpoint("collections", bucketName),
-      headers: {...this.optionHeaders, ...options.headers}
+      headers: {...this.defaultReqOptions.headers, ...options.headers}
     })
       .then(res => res.json && res.json.data);
   }
@@ -498,13 +492,12 @@ export default class KintoClient {
    */
   getCollection(id, options={}) {
     const { bucket, headers } = {
-      bucket: this.defaultBucket,
-      headers: {},
+      ...this.defaultReqOptions,
       ...options
     };
     return this.execute({
       path: endpoint("collection", bucket, id),
-      headers: {...this.optionHeaders, ...headers}
+      headers: {...this.defaultReqOptions.headers, ...headers}
     }).then(res => res.json);
   }
 
@@ -547,13 +540,12 @@ export default class KintoClient {
    */
   getRecord(collName, id, options={}) {
     const { bucket, headers } = {
-      bucket: this.defaultBucket,
-      headers: {},
+      ...this.defaultReqOptions,
       ...options
     };
     return this.execute({
       path: endpoint("record", bucket, collName, id),
-      headers: {...this.optionHeaders, ...headers},
+      headers: {...this.defaultReqOptions.headers, ...headers},
     }).then(res => res.json);
   }
 
@@ -576,16 +568,15 @@ export default class KintoClient {
    */
   listRecords(collName, options={}) {
     const { bucket, sort, headers } = {
-      bucket: this.defaultBucket,
+      ...this.defaultReqOptions,
       sort: "-last_modified",
-      headers: {},
       ...options
     };
     const path = endpoint("records", bucket, collName);
     const querystring = `?_sort=${sort}`;
     return this.execute({
       path: path + querystring,
-      headers: {...this.optionHeaders, ...headers},
+      headers: {...this.defaultReqOptions.headers, ...headers},
     }).then(res => res.json);
   }
 

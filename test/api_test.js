@@ -63,8 +63,8 @@ describe("KintoClient", () => {
     });
 
     it("should accept a headers option", () => {
-      expect(new KintoClient(sampleRemote, {headers: {Foo: "Bar"}}).optionHeaders)
-        .eql({Foo: "Bar"});
+      expect(new KintoClient(sampleRemote, {headers: {Foo: "Bar"}})
+              .defaultReqOptions.headers).eql({Foo: "Bar"});
     });
 
     it("should validate protocol version", () => {
@@ -90,12 +90,12 @@ describe("KintoClient", () => {
 
     it("should accept a bucket option", () => {
       const api = new KintoClient(sampleRemote, {bucket: "custom"});
-      expect(api.defaultBucket).eql("custom");
+      expect(api.defaultReqOptions.bucket).eql("custom");
     });
 
     it("should accept a safe option", () => {
       const api = new KintoClient(sampleRemote, {safe: true});
-      expect(api.defaultSafe).eql(true);
+      expect(api.defaultReqOptions.safe).eql(true);
     });
   });
 
@@ -167,7 +167,7 @@ describe("KintoClient", () => {
       });
 
       it("should merge instance option headers", () => {
-        api.optionHeaders = {Foo: "Bar"};
+        api.defaultReqOptions.headers = {Foo: "Bar"};
         return api.fetchChangesSince("blog", "articles", {lastModified: 42})
           .then(_ => expect(fetch.secondCall.args[1].headers.Foo).eql("Bar"));
       });
@@ -295,7 +295,7 @@ describe("KintoClient", () => {
         ];
 
         beforeEach(() => {
-          api.optionHeaders = {Authorization: "Basic plop"};
+          api.defaultReqOptions.headers = {Authorization: "Basic plop"};
           return api.batch(batch => {
             for (const article of fixtures) {
               batch.createRecord("blog", article);
@@ -570,7 +570,7 @@ describe("KintoClient", () => {
     });
 
     it("should support passing custom headers", () => {
-      api.optionHeaders = {Foo: "Bar"};
+      api.defaultReqOptions.headers = {Foo: "Bar"};
       api.listBuckets({headers: {Baz: "Qux"}});
 
       sinon.assert.calledWithMatch(api.execute, {
@@ -634,7 +634,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.optionHeaders = {Foo: "Bar"};
+      api.defaultReqOptions.headers = {Foo: "Bar"};
 
       api.createBucket("foo", {headers: {Baz: "Qux"}});
 
@@ -678,7 +678,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.optionHeaders = {Foo: "Bar"};
+      api.defaultReqOptions.headers = {Foo: "Bar"};
 
       api.deleteBucket("plop", {headers: {Baz: "Qux"}});
 
@@ -747,7 +747,7 @@ describe("KintoClient", () => {
     });
 
     it("should use instance default bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.createCollection("foo");
 
@@ -757,7 +757,7 @@ describe("KintoClient", () => {
     });
 
     it("should allow overriding the default instance bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.createCollection("foo", {bucket: "myblog"});
 
@@ -767,7 +767,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.optionHeaders = {Foo: "Bar"};
+      api.defaultReqOptions.headers = {Foo: "Bar"};
 
       api.createCollection("foo", {headers: {Baz: "Qux"}});
 
@@ -825,7 +825,7 @@ describe("KintoClient", () => {
     });
 
     it("should use instance default bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.updateCollection({
         id: "plop",
@@ -839,7 +839,7 @@ describe("KintoClient", () => {
     });
 
     it("should allow overriding the default instance bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.updateCollection({
         id: "plop",
@@ -855,7 +855,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.optionHeaders = {Foo: "Bar"};
+      api.defaultReqOptions.headers = {Foo: "Bar"};
 
       api.updateCollection({
         id: "plop",
@@ -929,7 +929,7 @@ describe("KintoClient", () => {
     });
 
     it("should use instance default bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.deleteCollection("plop");
 
@@ -939,7 +939,7 @@ describe("KintoClient", () => {
     });
 
     it("should allow overriding the default instance bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.deleteCollection("plop", {bucket: "myblog"});
 
@@ -949,7 +949,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.optionHeaders = {Foo: "Bar"};
+      api.defaultReqOptions.headers = {Foo: "Bar"};
 
       api.deleteCollection("plop", {headers: {Baz: "Qux"}});
 
@@ -974,7 +974,7 @@ describe("KintoClient", () => {
     });
 
     it("should use instance default bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.getCollection("foo");
 
@@ -984,7 +984,7 @@ describe("KintoClient", () => {
     });
 
     it("should allow overriding the default instance bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.getCollection("foo", {bucket: "myblog"});
 
@@ -1034,7 +1034,7 @@ describe("KintoClient", () => {
     });
 
     it("should use instance default bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.updateBucket({id: "foo"});
 
@@ -1044,7 +1044,7 @@ describe("KintoClient", () => {
     });
 
     it("should allow overriding the default instance bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.updateBucket({id: "foo"}, {bucket: "myblog"});
 
@@ -1054,7 +1054,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.optionHeaders = {Foo: "Bar"};
+      api.defaultReqOptions.headers = {Foo: "Bar"};
 
       api.updateBucket({id: "foo"}, {headers: {Baz: "Qux"}});
 
@@ -1098,7 +1098,7 @@ describe("KintoClient", () => {
     });
 
     it("should use instance default bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.createRecord("foo", record);
 
@@ -1108,7 +1108,7 @@ describe("KintoClient", () => {
     });
 
     it("should allow overriding the default instance bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.createRecord("foo", record, {bucket: "myblog"});
 
@@ -1118,7 +1118,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.optionHeaders = {Foo: "Bar"};
+      api.defaultReqOptions.headers = {Foo: "Bar"};
 
       api.createRecord("foo", record, {headers: {Baz: "Qux"}});
 
@@ -1164,7 +1164,7 @@ describe("KintoClient", () => {
     });
 
     it("should use instance default bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.updateRecord("foo", record);
 
@@ -1174,7 +1174,7 @@ describe("KintoClient", () => {
     });
 
     it("should allow overriding the default instance bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.updateRecord("foo", record, {bucket: "myblog"});
 
@@ -1184,7 +1184,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.optionHeaders = {Foo: "Bar"};
+      api.defaultReqOptions.headers = {Foo: "Bar"};
 
       api.updateRecord("foo", record, {headers: {Baz: "Qux"}});
 
@@ -1220,7 +1220,7 @@ describe("KintoClient", () => {
     });
 
     it("should use instance default bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.deleteRecord("foo", 42);
 
@@ -1230,7 +1230,7 @@ describe("KintoClient", () => {
     });
 
     it("should allow overriding the default instance bucket option", () => {
-      api.defaultBucket = "custom";
+      api.defaultReqOptions.bucket = "custom";
 
       api.deleteRecord("foo", 42, {bucket: "myblog"});
 
@@ -1240,7 +1240,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.optionHeaders = {Foo: "Bar"};
+      api.defaultReqOptions.headers = {Foo: "Bar"};
 
       api.deleteRecord("foo", 42, {headers: {Baz: "Qux"}});
 

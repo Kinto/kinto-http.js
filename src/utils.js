@@ -65,6 +65,7 @@ export function pMap(list, fn) {
 /**
  * Takes an object and returns a copy of it with the provided keys omitted.
  *
+ * @private
  * @param  {Object}    obj  The source object.
  * @param  {...String} keys The keys to omit.
  * @return {Object}
