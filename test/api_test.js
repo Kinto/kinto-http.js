@@ -830,62 +830,6 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#deleteCollection} */
-  describe("#deleteCollection()", () => {
-    beforeEach(() => {
-      sandbox.stub(requests, "deleteCollection");
-      sandbox.stub(api, "execute").returns(Promise.resolve());
-    });
-
-    it("should execute expected request", () => {
-      api.deleteCollection("plop");
-
-      sinon.assert.calledWithExactly(requests.deleteCollection, "plop", {
-        bucket: "default",
-        headers: {},
-        safe: false,
-      });
-    });
-
-    it("should accept a safe option", () => {
-      api.deleteCollection("plop", {safe: true});
-
-      sinon.assert.calledWithMatch(requests.deleteCollection, "plop", {
-        safe: true
-      });
-    });
-
-    it("should use instance default bucket option", () => {
-      api.defaultReqOptions.bucket = "custom";
-
-      api.deleteCollection("plop");
-
-      sinon.assert.calledWithMatch(requests.deleteCollection, "plop", {
-        bucket: "custom"
-      });
-    });
-
-    it("should allow overriding the default instance bucket option", () => {
-      api.defaultReqOptions.bucket = "custom";
-
-      api.deleteCollection("plop", {bucket: "myblog"});
-
-      sinon.assert.calledWithMatch(requests.deleteCollection, "plop", {
-        bucket: "myblog"
-      });
-    });
-
-    it("should extend request headers with optional ones", () => {
-      api.defaultReqOptions.headers = {Foo: "Bar"};
-
-      api.deleteCollection("plop", {headers: {Baz: "Qux"}});
-
-      sinon.assert.calledWithMatch(requests.deleteCollection, "plop", {
-        headers: {Foo: "Bar", Baz: "Qux"}
-      });
-    });
-  });
-
   /** @test {KintoClient#getCollection} */
   describe("#getCollection()", () => {
     beforeEach(() => {

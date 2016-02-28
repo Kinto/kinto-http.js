@@ -201,13 +201,16 @@ describe("Bucket", () => {
   /** @test {Bucket#deleteCollection} */
   describe("#deleteCollection", () => {
     beforeEach(() => {
-      sandbox.stub(client, "deleteCollection");
+      sandbox.stub(requests, "deleteCollection");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: {}}
+      }));
     });
 
     it("should delete a collection", () => {
       getBlogBucket().deleteCollection("todelete");
 
-      sinon.assert.calledWith(client.deleteCollection, {id: "todelete"}, {
+      sinon.assert.calledWith(requests.deleteCollection, {id: "todelete"}, {
         bucket: "blog",
         headers: {},
       });
@@ -219,10 +222,27 @@ describe("Bucket", () => {
         safe: true,
       }).deleteCollection("todelete", {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithExactly(client.deleteCollection, {id: "todelete"}, {
+      sinon.assert.calledWithExactly(requests.deleteCollection, {id: "todelete"}, {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
         safe: true,
+      });
+    });
+
+    it("should accept a safe option", () => {
+      getBlogBucket().deleteCollection("todelete", {safe: true});
+
+      sinon.assert.calledWithMatch(requests.deleteCollection, {id: "todelete"}, {
+        safe: true
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      getBlogBucket({headers: {Foo: "Bar"}})
+        .deleteCollection("todelete", {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.deleteCollection, {id: "todelete"}, {
+        headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
   });

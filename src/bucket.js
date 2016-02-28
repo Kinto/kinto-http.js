@@ -97,30 +97,34 @@ export default class Bucket {
   /**
    * Creates a new collection in current bucket.
    *
-   * @param  {String}   id              The collection id.
-   * @param  {Object}   options         The options object.
-   * @param  {Object}   options.headers The headers object option.
-   * @param  {Boolean}  options.safe    The safe option.
+   * @param  {String|undefined}  id        The collection id.
+   * @param  {Object}  options             The options object.
+   * @param  {Boolean} options.safe        The safe option.
+   * @param  {Object}  options.headers     The headers object option.
+   * @param  {Object}  options.permissions The permissions object.
+   * @param  {Object}  options.data        The metadadata object.
+   * @param  {Object}  options.schema      The JSONSchema object.
    * @return {Promise<Object, Error>}
    */
   createCollection(id, options) {
     const reqOptions = this._bucketOptions(options);
-    return this.client.execute(requests.createCollection(id, reqOptions))
-      .then(res => res.json);
+    const request = requests.createCollection(id, reqOptions);
+    return this.client.execute(request).then(res => res.json);
   }
 
   /**
    * Deletes a collection from the current bucket.
    *
-   * @param  {Object|String} collection The collection to delete.
-   * @param  {Object} options           The options object.
-   * @param  {Object} options.headers   The headers object option.
-   * @param  {Boolean}  options.safe    The safe option.
+   * @param  {Object|String} collection  The collection to delete.
+   * @param  {Object}    options         The options object.
+   * @param  {Object}    options.headers The headers object option.
+   * @param  {Boolean}   options.safe    The safe option.
    * @return {Promise<Object, Error>}
    */
   deleteCollection(collection, options) {
     const reqOptions = this._bucketOptions(options);
-    return this.client.deleteCollection(toDataObj(collection), reqOptions);
+    const request = requests.deleteCollection(toDataObj(collection), reqOptions);
+    return this.client.execute(request).then(res => res.json);
   }
 
   /**
