@@ -704,62 +704,6 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#createCollection} */
-  describe("#createCollection()", () => {
-    beforeEach(() => {
-      sandbox.stub(requests, "createCollection");
-      sandbox.stub(api, "execute").returns(Promise.resolve());
-    });
-
-    it("should execute expected request", () => {
-      api.createCollection("foo");
-
-      sinon.assert.calledWithExactly(requests.createCollection, "foo", {
-        bucket: "default",
-        headers: {},
-        safe: false,
-      });
-    });
-
-    it("should accept a safe option", () => {
-      api.createCollection("foo", {safe: true});
-
-      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
-        safe: true
-      });
-    });
-
-    it("should use instance default bucket option", () => {
-      api.defaultReqOptions.bucket = "custom";
-
-      api.createCollection("foo");
-
-      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
-        bucket: "custom"
-      });
-    });
-
-    it("should allow overriding the default instance bucket option", () => {
-      api.defaultReqOptions.bucket = "custom";
-
-      api.createCollection("foo", {bucket: "myblog"});
-
-      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
-        bucket: "myblog"
-      });
-    });
-
-    it("should extend request headers with optional ones", () => {
-      api.defaultReqOptions.headers = {Foo: "Bar"};
-
-      api.createCollection("foo", {headers: {Baz: "Qux"}});
-
-      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
-        headers: {Foo: "Bar", Baz: "Qux"}
-      });
-    });
-  });
-
   /** @test {KintoClient#updateCollection} */
   describe("#updateCollection()", () => {
     beforeEach(() => {

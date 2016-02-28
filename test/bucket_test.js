@@ -6,6 +6,7 @@ import sinon from "sinon";
 import KintoClient from "../src";
 import Bucket from "../src/bucket";
 import Collection from "../src/collection";
+import * as requests from "../src/requests";
 
 
 chai.use(chaiAsPromised);
@@ -125,14 +126,34 @@ describe("Bucket", () => {
   /** @test {Bucket#createCollection} */
   describe("#createCollection()", () => {
     beforeEach(() => {
-      sandbox.stub(client, "createCollection");
+      sandbox.stub(requests, "createCollection");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: {}}
+      }));
+    });
+
+    it("should accept a safe option", () => {
+      getBlogBucket().createCollection("foo", {safe: true});
+
+      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
+        safe: true
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      getBlogBucket({headers: {Foo: "Bar"}})
+        .createCollection("foo", {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.createCollection, "foo", {
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
     });
 
     describe("Named collection", () => {
       it("should create a named collection", () => {
         getBlogBucket().createCollection("foo");
 
-        sinon.assert.calledWith(client.createCollection, "foo", {
+        sinon.assert.calledWith(requests.createCollection, "foo", {
           bucket: "blog",
           headers: {},
         });
@@ -144,7 +165,7 @@ describe("Bucket", () => {
           safe: true,
         }).createCollection("foo", {headers: {Baz: "Qux"}});
 
-        sinon.assert.calledWithExactly(client.createCollection, "foo", {
+        sinon.assert.calledWithExactly(requests.createCollection, "foo", {
           bucket: "blog",
           headers: {Foo: "Bar", Baz: "Qux"},
           safe: true,
@@ -156,7 +177,7 @@ describe("Bucket", () => {
       it("should create an unnamed collection", () => {
         getBlogBucket().createCollection();
 
-        sinon.assert.calledWith(client.createCollection, undefined, {
+        sinon.assert.calledWith(requests.createCollection, undefined, {
           bucket: "blog",
           headers: {},
         });
@@ -168,7 +189,7 @@ describe("Bucket", () => {
           safe: true,
         }).createCollection({}, {headers: {Baz: "Qux"}});
 
-        sinon.assert.calledWithExactly(client.createCollection, {}, {
+        sinon.assert.calledWithExactly(requests.createCollection, {}, {
           bucket: "blog",
           headers: {Foo: "Bar", Baz: "Qux"},
           safe: true,

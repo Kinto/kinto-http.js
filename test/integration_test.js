@@ -153,84 +153,6 @@ describe("Integration tests", () => {
       });
     });
 
-    describe("#createCollection", () => {
-      let result;
-
-      describe("Default options", () => {
-        beforeEach(() => {
-          return api.createCollection("posts")
-            .then(res => result = res);
-        });
-
-        it("should create a collection with the passed id", () => {
-          expect(result).to.have.property("data")
-                        .to.have.property("id").eql("posts");
-        });
-
-        it("should create a collection having a list of write permissions", () => {
-          expect(result).to.have.property("permissions")
-                        .to.have.property("write").be.a("array");
-        });
-      });
-
-      describe("No id property passed", () => {
-        beforeEach(() => {
-          return api.createCollection()
-            .then(res => result = res);
-        });
-
-        it("should create an automatically named collection", () => {
-          expect(result).to.have.property("data")
-                        .to.have.property("id").to.have.length.of(8);
-        });
-      });
-
-      describe("permissions option", () => {
-        beforeEach(() => {
-          return api.createCollection("posts", {
-            permissions: {
-              read: ["github:n1k0"]
-            }
-          }).then(res => result = res);
-        });
-
-        it("should create a collection having a list of write permissions", () => {
-          expect(result).to.have.property("permissions")
-                        .to.have.property("read").to.eql(["github:n1k0"]);
-        });
-      });
-
-      describe("data option", () => {
-        beforeEach(() => {
-          return api.createCollection("posts", {
-            data: {foo: "bar"}
-          }).then(res => result = res);
-        });
-
-        it("should create a collection having the expected data attached", () => {
-          expect(result).to.have.property("data")
-                        .to.have.property("foo").eql("bar");
-        });
-      });
-
-      describe("bucket option", () => {
-        it("should respect the bucket option", () => {
-          return api.createBucket("custom")
-            .then(() => api.createCollection(undefined, {bucket: "custom"}))
-            .should.eventually.have.property("data")
-                           .to.have.property("id").to.have.length.of(8);
-        });
-      });
-
-      describe("Safe option", () => {
-        it("should not override existing collection", () => {
-          return api.createCollection("posts")
-            .then(_ => api.createCollection("posts", {safe: true}))
-            .should.be.rejectedWith(Error, /412 Precondition Failed/);
-        });
-      });
-    });
-
     describe("#updateCollection", () => {
       const schema = {
         type: "object",
@@ -289,7 +211,7 @@ describe("Integration tests", () => {
       let collectionData;
 
       beforeEach(() => {
-        return api.createCollection("foo")
+        return api.bucket("default").createCollection("foo")
           .then(_ => api.getCollection("foo"))
           .then(res => collectionData = res);
       });
@@ -701,6 +623,38 @@ describe("Integration tests", () => {
               .should.be.rejectedWith(Error, /412 Precondition Failed/);
           });
         });
+
+        describe("Permissions option", () => {
+          let result;
+
+          beforeEach(() => {
+            return bucket.createCollection("posts", {
+              permissions: {
+                read: ["github:n1k0"]
+              }
+            }).then(res => result = res);
+          });
+
+          it("should create a collection having a list of write permissions", () => {
+            expect(result).to.have.property("permissions")
+                          .to.have.property("read").to.eql(["github:n1k0"]);
+          });
+        });
+
+        describe("Data option", () => {
+          let result;
+
+          beforeEach(() => {
+            return bucket.createCollection("posts", {
+              data: {foo: "bar"}
+            }).then(res => result = res);
+          });
+
+          it("should create a collection having the expected data attached", () => {
+            expect(result).to.have.property("data")
+                          .to.have.property("foo").eql("bar");
+          });
+        });
       });
 
       describe(".deleteCollection()", () => {
@@ -959,7 +913,7 @@ describe("Integration tests", () => {
 
       runSuite("custom bucket", () => {
         return api.createBucket("custom")
-        .then(_ => api.createCollection("plop", {bucket: "custom"}))
+        .then(_ => api.bucket("custom").createCollection("plop"))
         .then(_ => api.bucket("custom").collection("plop"));
       });
     });

@@ -105,7 +105,8 @@ export default class Bucket {
    */
   createCollection(id, options) {
     const reqOptions = this._bucketOptions(options);
-    return this.client.createCollection(id, reqOptions);
+    return this.client.execute(requests.createCollection(id, reqOptions))
+      .then(res => res.json);
   }
 
   /**

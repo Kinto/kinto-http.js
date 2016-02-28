@@ -403,28 +403,6 @@ export default class KintoClient {
   }
 
   /**
-   * Creates a new collection on the server.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String|undefined}  id        The collection id.
-   * @param  {Object}  options             The options object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {String}  options.bucket      The bucket name option.
-   * @param  {Object}  options.headers     The headers object option.
-   * @param  {Object}  options.permissions The permissions object.
-   * @param  {Object}  options.data        The metadadata object.
-   * @param  {Object}  options.schema      The JSONSchema object.
-   * @return {Promise<Object, Error>}
-   */
-  createCollection(id, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.createCollection(id, reqOptions))
-      .then(res => res.json);
-  }
-
-  /**
    * Deletes a collection from the server.
    *
    * Note: Reserved for internal use only.
