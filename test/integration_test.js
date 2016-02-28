@@ -72,6 +72,13 @@ describe("Integration tests", () => {
           expect(result).to.have.property("permissions")
                         .to.have.property("write").to.be.a("array");
         });
+
+        describe("Safe option", () => {
+          it("should not override existing bucket", () => {
+            return api.createBucket("foo", {safe: true})
+              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          });
+        });
       });
 
       describe("permissions option", () => {
@@ -107,15 +114,42 @@ describe("Integration tests", () => {
           .then(buckets => buckets.map(bucket => bucket.id))
           .should.eventually.include("foo");
       });
+
+      describe("Safe option", () => {
+        it("should raise a conflict error when resource has changed", () => {
+          return api.createBucket("foo")
+            .then(({data}) => api.updateBucket({
+              id: data.id,
+              last_modified: data.last_modified - 1000
+            }, {safe: true}))
+            .should.be.rejectedWith(Error, /412 Precondition Failed/);
+        });
+      });
     });
 
     describe("#deleteBucket()", () => {
-      it("should delete a bucket", () => {
+      let last_modified;
+
+      beforeEach(() => {
         return api.createBucket("foo")
-          .then(_ => api.deleteBucket("foo"))
+          .then(({data}) => last_modified = data.last_modified);
+      });
+
+      it("should delete a bucket", () => {
+        return api.deleteBucket("foo")
           .then(_ => api.listBuckets())
           .then(buckets => buckets.map(bucket => bucket.id))
           .should.eventually.not.include("foo");
+      });
+
+      describe("Safe option", () => {
+        it("should raise a conflict error when resource has changed", () => {
+          return api.deleteBucket("foo", {
+            last_modified: last_modified - 1000,
+            safe: true,
+          })
+            .should.be.rejectedWith(Error, /412 Precondition Failed/);
+        });
       });
     });
 
@@ -185,6 +219,14 @@ describe("Integration tests", () => {
             .then(() => api.createCollection(undefined, {bucket: "custom"}))
             .should.eventually.have.property("data")
                            .to.have.property("id").to.have.length.of(8);
+        });
+      });
+
+      describe("Safe option", () => {
+        it("should not override existing collection", () => {
+          return api.createCollection("posts")
+            .then(_ => api.createCollection("posts", {safe: true}))
+            .should.be.rejectedWith(Error, /412 Precondition Failed/);
         });
       });
     });
@@ -646,6 +688,16 @@ describe("Integration tests", () => {
               .then(_ => bucket.getPermissions())
               .should.eventually.have.property("read").eql(["github:n1k0"]);
           });
+
+          describe("Safe option", () => {
+            it("should check for concurrency", () => {
+              return bucket.setPermissions({read: ["github:n1k0"]}, {
+                safe: true,
+                last_modified: 1,
+              })
+                .should.be.rejectedWith(Error, /412 Precondition Failed/);
+            });
+          });
         });
       });
 
@@ -665,6 +717,14 @@ describe("Integration tests", () => {
             .then(_ => bucket.listCollections())
             .then(c => expect(c.some(x => x.id === generated)).eql(true));
         });
+
+        describe("Safe option", () => {
+          it("should not override existing collection", () => {
+            return bucket.createCollection("posts")
+              .then(_ => bucket.createCollection("posts", {safe: true}))
+              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          });
+        });
       });
 
       describe(".deleteCollection()", () => {
@@ -674,6 +734,17 @@ describe("Integration tests", () => {
             .then(_ => bucket.listCollections())
             .then(colls => colls.map(coll => coll.id))
             .should.eventually.not.include("foo");
+        });
+
+        describe("Safe option", () => {
+          it("should check for concurrency", () => {
+            return bucket.createCollection("posts")
+              .then(({data}) => bucket.deleteCollection("posts", {
+                safe: true,
+                last_modified: data.last_modified - 1000
+              }))
+              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          });
         });
       });
 
@@ -687,6 +758,17 @@ describe("Integration tests", () => {
             .then(_ => bucket.collection("comments").listRecords())
             .then(comments => comments.map(comment => comment.content).sort())
             .should.become(["plop", "yo"]);
+        });
+
+        describe("Safe option", () => {
+          it("should allow batching operations for current bucket", () => {
+            return bucket.batch(batch => {
+              batch.createCollection("comments");
+              batch.createCollection("comments");
+            }, {safe: true, aggregate: true})
+              .should.eventually.have.property("conflicts")
+              .to.have.length.of(1);
+          });
         });
       });
     });
