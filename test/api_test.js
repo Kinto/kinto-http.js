@@ -1010,21 +1010,6 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#getBucket} */
-  describe("#getBucket()", () => {
-    beforeEach(() => {
-      sandbox.stub(api, "execute").returns(Promise.resolve());
-    });
-
-    it("should execute expected request", () => {
-      api.getBucket("foo");
-
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets/foo",
-      });
-    });
-  });
-
   /** @test {KintoClient#updateBucket} */
   describe("#updateBucket", () => {
     beforeEach(() => {

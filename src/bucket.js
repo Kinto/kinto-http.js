@@ -1,5 +1,7 @@
 import { toDataObj } from "./utils";
 import Collection from "./collection";
+import * as requests from "./requests";
+import endpoint from "./endpoint";
 
 
 /**
@@ -69,8 +71,12 @@ export default class Bucket {
    * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getProperties(options) {
-    return this.client.getBucket(this.name, options);
+  getProperties(options={}) {
+    return this.client.execute({
+      path: endpoint("bucket", this.name),
+      headers: {...this.options.headers, ...options.headers}
+    })
+      .then(res => res.json);
   }
 
   /**

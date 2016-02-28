@@ -379,25 +379,6 @@ export default class KintoClient {
   }
 
   /**
-   * Retrieves informations for a given bucket.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String} bucketName      The bucket name.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @return {Promise<String[], Error>}
-   */
-  getBucket(bucketName, options={}) {
-    return this.execute({
-      path: endpoint("bucket", bucketName),
-      headers: {...this.defaultReqOptions.headers, ...options.headers}
-    })
-      .then(res => res.json);
-  }
-
-  /**
    * Updates a bucket on the server.
    *
    * Notes:

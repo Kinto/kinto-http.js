@@ -103,7 +103,7 @@ describe("Integration tests", () => {
           .then(_ => api.updateBucket({id: "foo"}, {
             permissions: {read: ["github:n1k0"]}
           }))
-          .then(_ => api.getBucket("foo"))
+          .then(_ => api.bucket("foo").getProperties())
           .then(res => res.permissions.read)
           .should.become(["github:n1k0"]);
       });
@@ -267,51 +267,6 @@ describe("Integration tests", () => {
           .then(_ => api.listCollections("blog"))
           .then(res => res.map(x => x.id))
           .should.become(["posts"]);
-      });
-    });
-
-    describe("#getBucket", () => {
-      describe("Default bucket", () => {
-        let result;
-
-        beforeEach(() => {
-          return api.getBucket("default").then(res => result = res);
-        });
-
-        it("should retrieve the bucket internal uuid", () => {
-          expect(result.data).to.have.property("id").to.have.length.of(36);
-        });
-
-        it("should retrieve bucket last_modified value", () => {
-          expect(result.data).to.have.property("last_modified").to.be.gt(1);
-        });
-
-        it("should have permissions exposed", () => {
-          expect(result).to.have.property("permissions")
-            .to.have.property("write").to.have.length.of(1);
-        });
-      });
-
-      describe("Custom bucket", () => {
-        let result;
-
-        beforeEach(() => {
-          return api.createBucket("buck")
-            .then(_ => api.getBucket("buck").then(res => result = res));
-        });
-
-        it("should retrieve the bucket identifier", () => {
-          expect(result.data).to.have.property("id").eql("buck");
-        });
-
-        it("should retrieve bucket last_modified value", () => {
-          expect(result.data).to.have.property("last_modified").to.be.gt(1);
-        });
-
-        it("should have permissions exposed", () => {
-          expect(result).to.have.property("permissions")
-            .to.have.property("write").to.have.length.of(1);
-        });
       });
     });
 
@@ -664,6 +619,27 @@ describe("Integration tests", () => {
           .then(_ => {
             bucket = api.bucket("custom");
           });
+      });
+
+      describe(".getProperties()", () => {
+        let result;
+
+        beforeEach(() => {
+          return bucket.getProperties().then(res => result = res);
+        });
+
+        it("should retrieve the bucket identifier", () => {
+          expect(result.data).to.have.property("id").eql("custom");
+        });
+
+        it("should retrieve bucket last_modified value", () => {
+          expect(result.data).to.have.property("last_modified").to.be.gt(1);
+        });
+
+        it("should have permissions exposed", () => {
+          expect(result).to.have.property("permissions")
+            .to.have.property("write").to.have.length.of(1);
+        });
       });
 
       describe(".listCollections()", () => {

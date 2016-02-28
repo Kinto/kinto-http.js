@@ -41,6 +41,29 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#getProperties} */
+  describe("#getProperties()", () => {
+    it("should execute expected request", () => {
+      sandbox.stub(client, "execute").returns(Promise.resolve());
+
+      getBlogBucket().getProperties();
+
+      sinon.assert.calledWithMatch(client.execute, {
+        path: "/buckets/blog",
+      });
+    });
+
+    it("should resolve with response data", () => {
+      const data = {data: true};
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: data
+      }));
+
+      return getBlogBucket().getProperties()
+        .should.become(data);
+    });
+  });
+
   describe("#collection()", () => {
     it("should return a Collection instance", () => {
       expect(getBlogBucket().collection("posts"))
