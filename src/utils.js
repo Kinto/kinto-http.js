@@ -78,3 +78,20 @@ export function omit(obj, ...keys) {
     return acc;
   }, {});
 }
+
+/**
+ * Always returns a resource data object from the provided argument.
+ *
+ * @private
+ * @param  {Object|String} value
+ * @return {Object}
+ */
+export function toDataObj(value) {
+  if (typeof value === "object") {
+    return value;
+  }
+  if (typeof value === "string") {
+    return {id: value};
+  }
+  throw new Error("Invalid collection argument.");
+}

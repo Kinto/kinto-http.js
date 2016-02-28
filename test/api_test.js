@@ -8,7 +8,7 @@ import { quote } from "../src/utils";
 import { fakeServerResponse } from "./test_utils.js";
 import KintoClient, { SUPPORTED_PROTOCOL_VERSION as SPV } from "../src";
 import * as requests from "../src/requests";
-import { Bucket } from "../src/chain";
+import Bucket from "../src/bucket";
 
 chai.use(chaiAsPromised);
 chai.should();

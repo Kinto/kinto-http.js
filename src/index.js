@@ -8,7 +8,7 @@ import HTTP from "./http.js";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
 import { createBatch, aggregate } from "./batch";
-import { Bucket } from "./chain";
+import Bucket from "./bucket";
 
 
 /**
