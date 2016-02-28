@@ -89,27 +89,40 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#listCollections} */
   describe("#listCollections()", () => {
+    const data = [{id: "a"}, {id: "b"}];
+
     beforeEach(() => {
-      sandbox.stub(client, "listCollections");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data}
+      }));
     });
 
     it("should list bucket collections", () => {
       getBlogBucket().listCollections();
 
-      sinon.assert.calledWith(client.listCollections, "blog");
+      sinon.assert.calledWithMatch(client.execute, {
+        path: "/buckets/blog/collections"
+      });
     });
 
     it("should merge default options", () => {
       getBlogBucket({headers: {Foo: "Bar"}})
         .listCollections({headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(client.listCollections, "blog", {
+      sinon.assert.calledWithMatch(client.execute, {
         headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
+
+    it("should return the list of collections", () => {
+      return getBlogBucket().listCollections()
+        .should.become(data);
+    });
   });
 
+  /** @test {Bucket#createCollection} */
   describe("#createCollection()", () => {
     beforeEach(() => {
       sandbox.stub(client, "createCollection");
@@ -164,6 +177,7 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#deleteCollection} */
   describe("#deleteCollection", () => {
     beforeEach(() => {
       sandbox.stub(client, "deleteCollection");
@@ -192,6 +206,7 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#getPermissions} */
   describe("#getPermissions()", () => {
     it("should retrieve permissions", () => {
       const bucket = getBlogBucket();
@@ -220,6 +235,7 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#setPermissions} */
   describe("#setPermissions()", () => {
     beforeEach(() => {
       sandbox.stub(client, "updateBucket");
@@ -264,6 +280,7 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#batch} */
   describe("#batch()", () => {
     beforeEach(() => {
       sandbox.stub(client, "batch");

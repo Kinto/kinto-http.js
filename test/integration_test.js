@@ -264,7 +264,7 @@ describe("Integration tests", () => {
       it("should create a collection if it doesn't exist yet", () => {
         return api.createBucket("blog")
           .then(_ => api.updateCollection({id: "posts"}, {bucket: "blog"}))
-          .then(_ => api.listCollections("blog"))
+          .then(_ => api.bucket("blog").listCollections())
           .then(res => res.map(x => x.id))
           .should.become(["posts"]);
       });

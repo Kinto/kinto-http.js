@@ -704,39 +704,6 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#listCollections} */
-  describe("#listCollections()", () => {
-    const data = [
-      {id: "c1", last_modified: 1},
-      {id: "c2", last_modified: 2},
-    ];
-
-    beforeEach(() => {
-      sandbox.stub(api, "execute").returns(Promise.resolve({json: {data}}));
-    });
-
-    it("should execute expected request", () => {
-      api.listCollections("buck");
-
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets/buck/collections",
-      });
-    });
-
-    it("should accept a headers option", () => {
-      api.listCollections("buck", {headers: {Foo: "Bar"}});
-
-      sinon.assert.calledWithMatch(api.execute, {
-        headers: {Foo: "Bar"}
-      });
-    });
-
-    it("should retrieve the list of collections for a bucket", () => {
-      return api.listCollections()
-        .should.become(data);
-    });
-  });
-
   /** @test {KintoClient#createCollection} */
   describe("#createCollection()", () => {
     beforeEach(() => {

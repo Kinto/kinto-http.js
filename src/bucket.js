@@ -86,8 +86,12 @@ export default class Bucket {
    * @param  {Object} options.headers The headers object option.
    * @return {Promise<Array<Object>, Error>}
    */
-  listCollections(options) {
-    return this.client.listCollections(this.name, this._bucketOptions(options));
+  listCollections(options={}) {
+    return this.client.execute({
+      path: endpoint("collections", this.name),
+      headers: {...this.options.headers, ...options.headers}
+    })
+      .then(res => res.json && res.json.data);
   }
 
   /**
