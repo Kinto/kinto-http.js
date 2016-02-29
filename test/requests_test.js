@@ -176,8 +176,14 @@ describe("requests module", () => {
         .to.have.property("method").eql("PATCH");
     });
 
-    it("should handle metadata", () => {
+    it("should handle metadata from resource body", () => {
       expect(requests.updateCollection({id: "foo", a: 1}))
+        .to.have.property("body")
+        .to.have.property("data").eql({id: "foo", a: 1});
+    });
+
+    it("should handle metadata from dedicated option", () => {
+      expect(requests.updateCollection({id: "foo"}, {metadata: {a: 1}}))
         .to.have.property("body")
         .to.have.property("data").eql({id: "foo", a: 1});
     });

@@ -65,6 +65,7 @@ export function pMap(list, fn) {
 /**
  * Takes an object and returns a copy of it with the provided keys omitted.
  *
+ * @private
  * @param  {Object}    obj  The source object.
  * @param  {...String} keys The keys to omit.
  * @return {Object}
@@ -76,4 +77,21 @@ export function omit(obj, ...keys) {
     }
     return acc;
   }, {});
+}
+
+/**
+ * Always returns a resource data object from the provided argument.
+ *
+ * @private
+ * @param  {Object|String} value
+ * @return {Object}
+ */
+export function toDataBody(value) {
+  if (typeof value === "object") {
+    return value;
+  }
+  if (typeof value === "string") {
+    return {id: value};
+  }
+  throw new Error("Invalid collection argument.");
 }

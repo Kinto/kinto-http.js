@@ -3,12 +3,12 @@
 import "isomorphic-fetch";
 import { EventEmitter } from "events";
 
-import { quote, unquote, partition, pMap } from "./utils.js";
+import { quote, unquote, partition, pMap, omit } from "./utils.js";
 import HTTP from "./http.js";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
 import { createBatch, aggregate } from "./batch";
-import { Bucket } from "./chain";
+import Bucket from "./bucket";
 
 
 /**
@@ -53,6 +53,16 @@ export default class KintoClient {
       remote = remote.slice(0, -1);
     }
     this._backoffReleaseTime = null;
+    /**
+     * Default request options container.
+     * @private
+     * @type {Object}
+     */
+    this.defaultReqOptions = {
+      bucket:  options.bucket  || "default",
+      headers: options.headers || {},
+      safe:    !!options.safe,
+    };
 
     // public properties
     /**
@@ -60,24 +70,6 @@ export default class KintoClient {
      * @type {String}
      */
     this.remote = remote;
-    /**
-     * The default bucket name to use.
-     * @ignore
-     * @type {String}
-     */
-    this.defaultBucket = options.bucket || "default";
-    /**
-     * The default safe setting value.
-     * @ignore
-     * @type {Boolean}
-     */
-    this.defaultSafe = !!options.safe;
-    /**
-     * The optional generic headers.
-     * @ignore
-     * @type {Object}
-     */
-    this.optionHeaders = options.headers || {};
     /**
      * Current server settings, retrieved from the server.
      * @ignore
@@ -160,13 +152,18 @@ export default class KintoClient {
   }
 
   /**
-   * Retrieve a bucket oject to perform operations on it.
+   * Retrieve a bucket object to perform operations on it.
    *
-   * @param  {String} name The bucket name.
+   * @param  {String}  name    The bucket name.
+   * @param  {Object}  options The request options.
+   * @param  {Boolean} safe    The resulting safe option.
+   * @param  {String}  bucket  The resulting bucket name option.
+   * @param  {Object}  headers The extended headers object option.
    * @return {Bucket}
    */
-  bucket(name) {
-    return new Bucket(this, name);
+  bucket(name, options={}) {
+    const bucketOptions = omit(this._getRequestOptions(options), "bucket");
+    return new Bucket(this, name, bucketOptions);
   }
 
   /**
@@ -176,19 +173,21 @@ export default class KintoClient {
    * Note: Headers won't be overriden but merged with instance default ones.
    *
    * @private
-   * @param  {Object} options The request options.
-   * @return {Object}
+   * @param    {Object} options The request options.
+   * @return   {Object}
    * @property {Boolean} safe    The resulting safe option.
    * @property {String}  bucket  The resulting bucket name option.
    * @property {Object}  headers The extended headers object option.
    */
   _getRequestOptions(options={}) {
     return {
-      safe: this.defaultSafe,
-      bucket: this.defaultBucket,
+      ...this.defaultReqOptions,
       ...options,
       // Note: headers should never be overriden but extended
-      headers: {...this.optionHeaders, ...options.headers},
+      headers: {
+        ...this.defaultReqOptions.headers,
+        ...options.headers
+      },
     };
   }
 
@@ -222,7 +221,7 @@ export default class KintoClient {
   fetchChangesSince(bucketName, collName, options={lastModified: null, headers: {}}) {
     const recordsUrl = endpoint("records", bucketName, collName);
     let queryString = "";
-    const headers = {...this.optionHeaders, ...options.headers};
+    const headers = {...this.defaultReqOptions.headers, ...options.headers};
 
     if (options.lastModified) {
       queryString = "?_since=" + options.lastModified;
@@ -266,7 +265,7 @@ export default class KintoClient {
    * @return {Promise<Object, Error>}
    */
   _batchRequests(requests, options = {}) {
-    const headers = {...this.optionHeaders, ...options.headers};
+    const headers = {...this.defaultReqOptions.headers, ...options.headers};
     if (!requests.length) {
       return Promise.resolve([]);
     }
@@ -342,7 +341,7 @@ export default class KintoClient {
   listBuckets(options={}) {
     return this.execute({
       path: endpoint("buckets"),
-      headers: {...this.optionHeaders, ...options.headers}
+      headers: {...this.defaultReqOptions.headers, ...options.headers}
     })
       .then(res => res.json && res.json.data);
   }
@@ -376,280 +375,6 @@ export default class KintoClient {
     const _bucket = typeof bucket === "object" ? bucket : {id: bucket};
     const reqOptions = this._getRequestOptions(options);
     return this.execute(requests.deleteBucket(_bucket, reqOptions))
-      .then(res => res.json);
-  }
-
-  /**
-   * Retrieves informations for a given bucket.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String} bucketName      The bucket name.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @return {Promise<String[], Error>}
-   */
-  getBucket(bucketName, options={}) {
-    return this.execute({
-      path: endpoint("bucket", bucketName),
-      headers: {...this.optionHeaders, ...options.headers}
-    })
-      .then(res => res.json);
-  }
-
-  /**
-   * Updates a bucket on the server.
-   *
-   * Notes:
-   * - Metadata are not supported by the bucket endpoints on Kinto server,
-   * though that is planned, hence a future-proof API here.
-   * - Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {Object}  bucket               The bucket object.
-   * @param  {Object}  bucket.id            The bucket id.
-   * @param  {Number}  bucket.last_modified The bucket object.
-   * @param  {Object}  options              The options object.
-   * @param  {Boolean} options.safe         The safe option.
-   * @param  {Object}  options.headers      The headers object option.
-   * @param  {Object}  options.permissions  The permissions object.
-   * @return {Promise<Object, Error>}
-   */
-  updateBucket(bucket, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.updateBucket(bucket, reqOptions))
-      .then(res => res.json);
-  }
-
-  /**
-   * Retrieves the list of collections attached to a given bucket.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String} bucketName      The bucket name.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @return {Promise<String[], Error>}
-   */
-  listCollections(bucketName, options={}) {
-    return this.execute({
-      path: endpoint("collections", bucketName),
-      headers: {...this.optionHeaders, ...options.headers}
-    })
-      .then(res => res.json && res.json.data);
-  }
-
-  /**
-   * Creates a new collection on the server.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String|undefined}  id        The collection id.
-   * @param  {Object}  options             The options object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {String}  options.bucket      The bucket name option.
-   * @param  {Object}  options.headers     The headers object option.
-   * @param  {Object}  options.permissions The permissions object.
-   * @param  {Object}  options.data        The metadadata object.
-   * @param  {Object}  options.schema      The JSONSchema object.
-   * @return {Promise<Object, Error>}
-   */
-  createCollection(id, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.createCollection(id, reqOptions))
-      .then(res => res.json);
-  }
-
-  /**
-   * Deletes a collection from the server.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String}  collection      The collection object to delete.
-   * @param  {Object}  collection.id   The collection id.
-   * @param  {Number}  collection.last_modified The collection last_modified.
-   * @param  {Object}  options         The options object.
-   * @param  {Boolean} options.safe    The safe option.
-   * @param  {String}  options.bucket  The bucket name option.
-   * @param  {Object}  options.headers The headers object option.
-   * @return {Promise<Object, Error>}
-   */
-  deleteCollection(collection, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteCollection(collection, reqOptions))
-      .then(res => res.json);
-  }
-
-  /**
-   * Retrieves information for a given collection.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String}   id              The collection name.
-   * @param  {Object}   options         The options object.
-   * @param  {String}   options.bucket  The bucket name option.
-   * @param  {Object}   options.headers The headers object option.
-   * @return {Promise<Object, Error>}
-   */
-  getCollection(id, options={}) {
-    const { bucket, headers } = {
-      bucket: this.defaultBucket,
-      headers: {},
-      ...options
-    };
-    return this.execute({
-      path: endpoint("collection", bucket, id),
-      headers: {...this.optionHeaders, ...headers}
-    }).then(res => res.json);
-  }
-
-  /**
-   * Updates a collection.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {Object}  collection               The collection object to create.
-   * @param  {Object}  collection.id            The collection id.
-   * @param  {Object}  collection.last_modified The collection last_modified.
-   * @param  {Object}  options             The options object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {String}  options.bucket      The bucket name option.
-   * @param  {Object}  options.headers     The headers object option.
-   * @param  {Object}  options.permissions The permissions object.
-   * @param  {Object}  options.schema      The JSONSchema object.
-   * @param  {Boolean} options.patch       Patch data instead of replacing them.
-   * @return {Promise<Object, Error>}
-   */
-  updateCollection(collection, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.updateCollection(collection, reqOptions))
-      .then(res => res.json);
-  }
-
-  /**
-   * Retrieve a record from a collection by its id.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String}   collName        The collection name.
-   * @param  {String}   id              The record id.
-   * @param  {Object}   options         The options object.
-   * @param  {String}   options.bucket  The bucket name option.
-   * @param  {Object}   options.headers The headers object option.
-   * @return {Promise<Object, Error>}
-   */
-  getRecord(collName, id, options={}) {
-    const { bucket, headers } = {
-      bucket: this.defaultBucket,
-      headers: {},
-      ...options
-    };
-    return this.execute({
-      path: endpoint("record", bucket, collName, id),
-      headers: {...this.optionHeaders, ...headers},
-    }).then(res => res.json);
-  }
-
-  /**
-   * Get a list of records for a given collection from the server.
-   *
-   * Note: Reserved for internal use only.
-   * Note: Because of a bug on the server, the order of records is not
-   * predictible, so it's forced in the default options here.
-   * See https://github.com/Kinto/kinto/issues/434
-   *
-   * @ignore
-   * @param  {String}   collName        The collection name.
-   * @param  {Object}   options         The options object.
-   * @param  {String}   options.bucket  The bucket name option.
-   * @param  {Object}   options.headers The headers object option.
-   * @param  {String}   options.sort    The sort field (prefixed with `-` for
-   * descending)
-   * @return {Promise<Object, Error>}
-   */
-  listRecords(collName, options={}) {
-    const { bucket, sort, headers } = {
-      bucket: this.defaultBucket,
-      sort: "-last_modified",
-      headers: {},
-      ...options
-    };
-    const path = endpoint("records", bucket, collName);
-    const querystring = `?_sort=${sort}`;
-    return this.execute({
-      path: path + querystring,
-      headers: {...this.optionHeaders, ...headers},
-    }).then(res => res.json);
-  }
-
-  /**
-   * Creates a record in a given collection.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String}   collName        The collection name.
-   * @param  {Object}   record          The record object.
-   * @param  {Object}   options         The options object.
-   * @param  {Boolean}  options.safe    The safe option.
-   * @param  {String}   options.bucket  The bucket name option.
-   * @param  {Object}   options.headers The headers object option.
-   * @return {Promise<Object, Error>}
-   */
-  createRecord(collName, record, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.createRecord(collName, record, reqOptions))
-      .then(res => res.json);
-  }
-
-  /**
-   * Updates a record in a given collection.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String}   collName        The collection name.
-   * @param  {Object}   record          The updated record object.
-   * @param  {Object}   options         The options object.
-   * @param  {Boolean}  options.safe    The safe option.
-   * @param  {String}   options.bucket  The bucket name option.
-   * @param  {Object}   options.headers The headers object option.
-   * @param  {Object}   options.patch   Patch data instead of replacing them.
-   * @return {Promise<Object, Error>}
-   */
-  updateRecord(collName, record, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.updateRecord(collName, record, reqOptions))
-      .then(res => res.json);
-  }
-
-  /**
-   * Deletes a record in a given collection.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String}   collName             The collection name.
-   * @param  {Object}   record               The record to delete.
-   * @param  {String}   record.id            The record id.
-   * @param  {Number}   record.last_modified The record last_modified.
-   * @param  {Object}   options              The options object.
-   * @param  {Boolean}  options.safe         The safe option.
-   * @param  {String}   options.bucket       The bucket name option.
-   * @param  {Object}   options.headers      The headers object option.
-   * the `safe` option is used.
-   * @return {Promise<Object, Error>}
-   */
-  deleteRecord(collName, record, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteRecord(collName, record, reqOptions))
       .then(res => res.json);
   }
 }

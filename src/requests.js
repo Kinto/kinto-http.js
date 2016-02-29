@@ -128,11 +128,17 @@ export function updateCollection(collection, options = {}) {
   if (!collection.id) {
     throw new Error("A collection id is required.");
   }
-  const { bucket, headers, permissions, schema, safe, patch, last_modified } = {
-    ...requestDefaults,
-    ...options
-  };
-  const collectionData = collection;
+  const {
+    bucket,
+    headers,
+    permissions,
+    schema,
+    metadata,
+    safe,
+    patch,
+    last_modified
+  } = {...requestDefaults, ...options};
+  const collectionData = {...metadata, ...collection};
   if (options.schema) {
     collectionData.schema = schema;
   }
