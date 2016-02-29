@@ -74,16 +74,13 @@ export default class Collection {
    *
    * @private
    * @param  {Object} options  The request options.
-   * @param  {Object} metadata The collection metadata, id any.
    * @return {Promise<Object, Error>}
    */
-  _updateProperties(options, metadata) {
+  _updateProperties(options={}) {
+    const collection = toDataObj(this.name);
     const reqOptions = this._collOptions(options);
-    return this.client.updateCollection({
-      ...metadata,
-      id: this.name,
-      last_modified: options && options.last_modified
-    }, reqOptions);
+    const request = requests.updateCollection(collection, reqOptions);
+    return this.client.execute(request).then(res => res.json);
   }
 
   /**
@@ -98,8 +95,7 @@ export default class Collection {
     return this.client.execute({
       path: endpoint("collection", this.bucket.name, this.name),
       headers
-    })
-      .then(res => res.json);
+    }).then(res => res.json);
   }
 
   /**
@@ -179,7 +175,7 @@ export default class Collection {
   setMetadata(metadata, options) {
     // Note: patching allows preventing overridding the schema, which lives
     // within the "data" namespace.
-    return this._updateProperties({...options, patch: true}, metadata);
+    return this._updateProperties({...options, metadata, patch: true});
   }
 
   /**

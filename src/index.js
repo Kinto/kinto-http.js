@@ -379,30 +379,6 @@ export default class KintoClient {
   }
 
   /**
-   * Updates a collection.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {Object}  collection               The collection object to create.
-   * @param  {Object}  collection.id            The collection id.
-   * @param  {Object}  collection.last_modified The collection last_modified.
-   * @param  {Object}  options             The options object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {String}  options.bucket      The bucket name option.
-   * @param  {Object}  options.headers     The headers object option.
-   * @param  {Object}  options.permissions The permissions object.
-   * @param  {Object}  options.schema      The JSONSchema object.
-   * @param  {Boolean} options.patch       Patch data instead of replacing them.
-   * @return {Promise<Object, Error>}
-   */
-  updateCollection(collection, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.updateCollection(collection, reqOptions))
-      .then(res => res.json);
-  }
-
-  /**
    * Retrieve a record from a collection by its id.
    *
    * Note: Reserved for internal use only.

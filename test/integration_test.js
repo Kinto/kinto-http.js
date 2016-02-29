@@ -123,45 +123,6 @@ describe("Integration tests", () => {
       });
     });
 
-    describe("#updateCollection", () => {
-      const schema = {
-        type: "object",
-        properties: {
-          title: {type: "string"}
-        }
-      };
-
-      it("should update a collection schema", () => {
-        return api.updateCollection({id: "plop", isMeta: true}, {schema})
-          .then(_ => api.bucket("default").collection("plop").getProperties())
-          .then(({data}) => data.schema)
-          .should.become(schema);
-      });
-
-      it("should update a collection metas", () => {
-        return api.updateCollection({id: "plop", isMeta: true}, {schema})
-          .then(_ => api.bucket("default").collection("plop").getProperties())
-          .should.eventually.have.property("data")
-          .to.have.property("isMeta").eql(true);
-      });
-
-      it("should allow patching a collection", () => {
-        return api.updateCollection({id: "plop"}, {schema})
-          .then(_ => api.updateCollection({id: "plop"}, {patch: true}))
-          .then(_ => api.bucket("default").collection("plop").getProperties())
-          .then(({data}) => data.schema)
-          .should.become(schema);
-      });
-
-      it("should create a collection if it doesn't exist yet", () => {
-        return api.createBucket("blog")
-          .then(_ => api.updateCollection({id: "posts"}, {bucket: "blog"}))
-          .then(_ => api.bucket("blog").listCollections())
-          .then(res => res.map(x => x.id))
-          .should.become(["posts"]);
-      });
-    });
-
     describe("#listBuckets", () => {
       beforeEach(() => {
         return api.batch(batch => {

@@ -73,32 +73,42 @@ describe("Collection", () => {
 
   /** @test {Collection#setPermissions} */
   describe("#setPermissions()", () => {
+    const fakePermissions = {read: [], write: []};
+
     beforeEach(() => {
-      sandbox.stub(client, "updateCollection");
+      sandbox.stub(requests, "updateCollection");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {}
+      }));
     });
 
     it("should set permissions", () => {
-      coll.setPermissions("fakeperms");
+      coll.setPermissions(fakePermissions);
 
-      sinon.assert.calledWithMatch(client.updateCollection, {id: "posts"}, {
+      sinon.assert.calledWithMatch(requests.updateCollection, {id: "posts"}, {
         bucket: "blog",
-        permissions: "fakeperms",
+        permissions: fakePermissions,
         headers: {Foo: "Bar", Baz: "Qux"},
       });
     });
 
     it("should handle the safe option", () => {
-      coll.setPermissions("fakeperms", {safe: true, last_modified: 42});
+      coll.setPermissions(fakePermissions, {safe: true, last_modified: 42});
 
-      sinon.assert.calledWithMatch(client.updateCollection, {
+      sinon.assert.calledWithMatch(requests.updateCollection, {
         id: "posts",
-        last_modified: 42
       }, {
         bucket: "blog",
-        permissions: "fakeperms",
+        permissions: fakePermissions,
         headers: {Foo: "Bar", Baz: "Qux"},
+        last_modified: 42,
         safe: true,
       });
+    });
+
+    it("should resolve with json result", () => {
+      return coll.setPermissions(fakePermissions)
+        .should.become({});
     });
   });
 
@@ -123,13 +133,16 @@ describe("Collection", () => {
     const schema = {title: "schema"};
 
     beforeEach(() => {
-      sandbox.stub(client, "updateCollection");
+      sandbox.stub(requests, "updateCollection");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: 1}
+      }));
     });
 
     it("should set the collection schema", () => {
       coll.setSchema(schema);
 
-      sinon.assert.calledWithMatch(client.updateCollection, {id: "posts"}, {
+      sinon.assert.calledWithMatch(requests.updateCollection, {id: "posts"}, {
         bucket: "blog",
         schema,
         headers: {Foo: "Bar", Baz: "Qux"},
@@ -139,15 +152,20 @@ describe("Collection", () => {
     it("should handle the safe option", () => {
       coll.setSchema(schema, {safe: true, last_modified: 42});
 
-      sinon.assert.calledWithMatch(client.updateCollection, {
+      sinon.assert.calledWithMatch(requests.updateCollection, {
         id: "posts",
-        last_modified: 42
       }, {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
         schema,
-        safe: true
+        safe: true,
+        last_modified: 42
       });
+    });
+
+    it("should resolve with json result", () => {
+      return coll.setSchema(schema)
+        .should.become({data: 1});
     });
   });
 
@@ -167,32 +185,41 @@ describe("Collection", () => {
 
   describe("#setMetadata()", () => {
     beforeEach(() => {
-      sandbox.stub(client, "updateCollection");
+      sandbox.stub(requests, "updateCollection");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: 1}
+      }));
     });
 
     it("should set the metadata", () => {
       coll.setMetadata({a: 1});
 
-      sinon.assert.calledWithMatch(client.updateCollection, {id: "posts", a: 1}, {
+      sinon.assert.calledWithMatch(requests.updateCollection, {id: "posts"}, {
         bucket: "blog",
         patch: true,
         headers: {Foo: "Bar", Baz: "Qux"},
+        metadata: {a: 1}
       });
     });
 
     it("should handle the safe option", () => {
       coll.setMetadata({a: 1}, {safe: true, last_modified: 42});
 
-      sinon.assert.calledWithMatch(client.updateCollection, {
+      sinon.assert.calledWithMatch(requests.updateCollection, {
         id: "posts",
-        last_modified: 42,
-        a: 1
       }, {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
         patch: true,
-        safe: true
+        safe: true,
+        last_modified: 42,
+        metadata: {a: 1}
       });
+    });
+
+    it("should resolve with json result", () => {
+      return coll.setMetadata({a: 1})
+        .should.become({data: 1});
     });
   });
 
