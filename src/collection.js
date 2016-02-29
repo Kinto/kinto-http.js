@@ -1,3 +1,5 @@
+import { stringify as qsify} from "querystring";
+
 import { omit, toDataBody } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
@@ -244,23 +246,34 @@ export default class Collection {
   /**
    * Lists records from the current collection.
    *
+   * Sorting is done by passing a `sort` string option:
+   *
+   * - The field to order the results by, prefixed with `-` for descending.
+   * Default: `-last_modified`.
+   *
+   * @see http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/resource.html#sorting
+   *
+   * Filtering is done by passing a `filters` option object:
+   *
+   * - `{fieldname: "value"}`
+   * - `{min_fieldname: 4000}`
+   * - `{in_fieldname: "1,2,3"}`
+   * - `{not_fieldname: 0}`
+   * - `{exclude_fieldname: "0,1"}`
+   *
+   * @see http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/resource.html#filtering
    * @param  {Object}   options         The options object.
    * @param  {Object}   options.headers The headers object option.
-   * @param  {String}   options.sort    The sort field, prefixed with `-` for
-   * descending. Default: `-last_modified`.
+   * @param  {Object}   options.filters The filters object.
+   * @param  {String}   options.sort    The sort field.
    * @return {Promise<Array<Object>, Error>}
    */
   listRecords(options={}) {
-    const { sort } = {
-      sort: "-last_modified",
-      ...options
-    };
+    const { sort, filters } = {sort: "-last_modified", ...options};
     const path = endpoint("records", this.bucket.name, this.name);
-    // XXX When we'll add support for more qs parameters, we should use node's
-    // url/querystring modules instead.
-    const querystring = `?_sort=${sort}`;
+    const querystring = qsify({...filters, _sort: sort});
     return this.client.execute({
-      path: path + querystring,
+      path: path + "?" + querystring,
       ...this._collOptions(options),
     }).then(res => res.json && res.json.data);
   }

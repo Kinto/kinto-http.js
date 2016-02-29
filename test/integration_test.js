@@ -698,6 +698,22 @@ describe("Integration tests", () => {
                 .then((records) => records.map((r) => r.title))
                 .should.eventually.become(["art1", "art2", "art3"]);
             });
+
+            describe("Filtering", () => {
+              beforeEach(() => {
+                return coll.batch(batch => {
+                  batch.createRecord({name: "paul", age: 28});
+                  batch.createRecord({name: "jess", age: 54});
+                  batch.createRecord({name: "john", age: 33});
+                });
+              });
+
+              it("should filter records", () => {
+                return coll.listRecords({sort: "age", filters: {min_age: 30}})
+                  .then(records => records.map(x => x.name))
+                  .should.become(["john", "jess"]);
+              });
+            });
           });
 
           describe(".batch()", () => {
