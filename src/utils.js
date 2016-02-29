@@ -86,7 +86,7 @@ export function omit(obj, ...keys) {
  * @param  {Object|String} value
  * @return {Object}
  */
-export function toDataObj(value) {
+export function toDataBody(value) {
   if (typeof value === "object") {
     return value;
   }

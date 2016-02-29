@@ -42,12 +42,12 @@ describe("Bucket", () => {
     });
   });
 
-  /** @test {Bucket#getProperties} */
-  describe("#getProperties()", () => {
+  /** @test {Bucket#getAttributes} */
+  describe("#getAttributes()", () => {
     it("should execute expected request", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve());
 
-      getBlogBucket().getProperties();
+      getBlogBucket().getAttributes();
 
       sinon.assert.calledWithMatch(client.execute, {
         path: "/buckets/blog",
@@ -60,7 +60,7 @@ describe("Bucket", () => {
         json: data
       }));
 
-      return getBlogBucket().getProperties()
+      return getBlogBucket().getAttributes()
         .should.become(data);
     });
   });
@@ -252,7 +252,7 @@ describe("Bucket", () => {
   describe("#getPermissions()", () => {
     it("should retrieve permissions", () => {
       const bucket = getBlogBucket();
-      sandbox.stub(bucket, "getProperties").returns(Promise.resolve({
+      sandbox.stub(bucket, "getAttributes").returns(Promise.resolve({
         permissions: "fakeperms"
       }));
 
@@ -264,12 +264,12 @@ describe("Bucket", () => {
         headers: {Foo: "Bar"},
         safe: true,
       });
-      sandbox.stub(bucket, "getProperties").returns(Promise.resolve({
+      sandbox.stub(bucket, "getAttributes").returns(Promise.resolve({
         permissions: "fakeperms"
       }));
 
       return bucket.getPermissions({headers: {Baz: "Qux"}}).then(_ => {
-        sinon.assert.calledWithMatch(bucket.getProperties, {
+        sinon.assert.calledWithMatch(bucket.getAttributes, {
           headers: {Foo: "Bar", Baz: "Qux"},
           safe: true,
         });

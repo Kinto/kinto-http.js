@@ -1,4 +1,4 @@
-import { omit, toDataObj } from "./utils";
+import { omit, toDataBody } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -76,8 +76,8 @@ export default class Collection {
    * @param  {Object} options  The request options.
    * @return {Promise<Object, Error>}
    */
-  _updateProperties(options={}) {
-    const collection = toDataObj(this.name);
+  _updateAttributes(options={}) {
+    const collection = toDataBody(this.name);
     const reqOptions = this._collOptions(options);
     const request = requests.updateCollection(collection, reqOptions);
     return this.client.execute(request).then(res => res.json);
@@ -90,7 +90,7 @@ export default class Collection {
    * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getProperties(options) {
+  getAttributes(options) {
     const { headers } = this._collOptions(options);
     return this.client.execute({
       path: endpoint("collection", this.bucket.name, this.name),
@@ -106,7 +106,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   getPermissions(options) {
-    return this.getProperties(options)
+    return this.getAttributes(options)
       .then(res => res.permissions);
   }
 
@@ -121,7 +121,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options) {
-    return this._updateProperties({...options, permissions});
+    return this._updateAttributes({...options, permissions});
   }
 
   /**
@@ -132,7 +132,7 @@ export default class Collection {
    * @return {Promise<Object|null, Error>}
    */
   getSchema(options) {
-    return this.getProperties(options)
+    return this.getAttributes(options)
       .then(res => res.data && res.data.schema || null);
   }
 
@@ -147,7 +147,7 @@ export default class Collection {
    * @return {Promise<Object|null, Error>}
    */
   setSchema(schema, options) {
-    return this._updateProperties({...options, schema});
+    return this._updateAttributes({...options, schema});
   }
 
   /**
@@ -158,7 +158,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   getMetadata(options) {
-    return this.getProperties(options)
+    return this.getAttributes(options)
       .then(({data}) => omit(data, "schema"));
   }
 
@@ -175,7 +175,7 @@ export default class Collection {
   setMetadata(metadata, options) {
     // Note: patching allows preventing overridding the schema, which lives
     // within the "data" namespace.
-    return this._updateProperties({...options, metadata, patch: true});
+    return this._updateAttributes({...options, metadata, patch: true});
   }
 
   /**
@@ -221,7 +221,7 @@ export default class Collection {
    */
   deleteRecord(record, options) {
     const reqOptions = this._collOptions(options);
-    const request = requests.deleteRecord(this.name, toDataObj(record),
+    const request = requests.deleteRecord(this.name, toDataBody(record),
                                           reqOptions);
     return this.client.execute(request).then(res => res.json);
   }

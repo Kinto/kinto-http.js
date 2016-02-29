@@ -34,12 +34,12 @@ describe("Collection", () => {
     return new Bucket(client, "blog").collection("posts", options);
   }
 
-  /** @test {Collection#getProperties} */
-  describe("#getProperties()", () => {
+  /** @test {Collection#getAttributes} */
+  describe("#getAttributes()", () => {
     it("should execute expected request", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve());
 
-      getBlogPostsCollection().getProperties();
+      getBlogPostsCollection().getAttributes();
 
       sinon.assert.calledWithMatch(client.execute, {
         path: "/buckets/blog/collections/posts",
@@ -52,7 +52,7 @@ describe("Collection", () => {
         json: data
       }));
 
-      return getBlogPostsCollection().getProperties()
+      return getBlogPostsCollection().getAttributes()
         .should.become(data);
     });
   });
@@ -60,7 +60,7 @@ describe("Collection", () => {
   /** @test {Collection#getPermissions} */
   describe("#getPermissions()", () => {
     beforeEach(() => {
-      sandbox.stub(coll, "getProperties").returns(Promise.resolve({
+      sandbox.stub(coll, "getAttributes").returns(Promise.resolve({
         permissions: "fakeperms"
       }));
     });
@@ -117,7 +117,7 @@ describe("Collection", () => {
     const schema = {title: "schema"};
 
     beforeEach(() => {
-      sandbox.stub(coll, "getProperties").returns(Promise.resolve({
+      sandbox.stub(coll, "getAttributes").returns(Promise.resolve({
         data: {schema}
       }));
     });
@@ -172,7 +172,7 @@ describe("Collection", () => {
   /** @test {Collection#getMetadata} */
   describe("#getMetadata()", () => {
     beforeEach(() => {
-      sandbox.stub(coll, "getProperties").returns(Promise.resolve({
+      sandbox.stub(coll, "getAttributes").returns(Promise.resolve({
         data: {a: 1}
       }));
     });

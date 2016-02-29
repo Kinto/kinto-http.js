@@ -323,11 +323,11 @@ describe("Integration tests", () => {
           });
       });
 
-      describe(".getProperties()", () => {
+      describe(".getAttributes()", () => {
         let result;
 
         beforeEach(() => {
-          return bucket.getProperties().then(res => result = res);
+          return bucket.getAttributes().then(res => result = res);
         });
 
         it("should retrieve the bucket identifier", () => {

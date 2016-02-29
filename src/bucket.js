@@ -1,4 +1,4 @@
-import { toDataObj } from "./utils";
+import { toDataBody } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
@@ -71,7 +71,7 @@ export default class Bucket {
    * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getProperties(options={}) {
+  getAttributes(options={}) {
     return this.client.execute({
       path: endpoint("bucket", this.name),
       headers: {...this.options.headers, ...options.headers}
@@ -123,7 +123,7 @@ export default class Bucket {
    */
   deleteCollection(collection, options) {
     const reqOptions = this._bucketOptions(options);
-    const request = requests.deleteCollection(toDataObj(collection), reqOptions);
+    const request = requests.deleteCollection(toDataBody(collection), reqOptions);
     return this.client.execute(request).then(res => res.json);
   }
 
@@ -135,7 +135,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   getPermissions(options) {
-    return this.getProperties(this._bucketOptions(options))
+    return this.getAttributes(this._bucketOptions(options))
       .then(res => res.permissions);
   }
 
