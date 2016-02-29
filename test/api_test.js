@@ -830,41 +830,6 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#getCollection} */
-  describe("#getCollection()", () => {
-    beforeEach(() => {
-      sandbox.stub(api, "execute").returns(Promise.resolve());
-    });
-
-    it("should execute expected request", () => {
-      api.getCollection("foo");
-
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets/default/collections/foo",
-      });
-    });
-
-    it("should use instance default bucket option", () => {
-      api.defaultReqOptions.bucket = "custom";
-
-      api.getCollection("foo");
-
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets/custom/collections/foo",
-      });
-    });
-
-    it("should allow overriding the default instance bucket option", () => {
-      api.defaultReqOptions.bucket = "custom";
-
-      api.getCollection("foo", {bucket: "myblog"});
-
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets/myblog/collections/foo"
-      });
-    });
-  });
-
   /** @test {KintoClient#createRecord} */
   describe("#createRecord()", () => {
     const record = {title: "bar"};

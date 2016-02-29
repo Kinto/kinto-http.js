@@ -133,14 +133,14 @@ describe("Integration tests", () => {
 
       it("should update a collection schema", () => {
         return api.updateCollection({id: "plop", isMeta: true}, {schema})
-          .then(_ => api.getCollection("plop"))
+          .then(_ => api.bucket("default").collection("plop").getProperties())
           .then(({data}) => data.schema)
           .should.become(schema);
       });
 
       it("should update a collection metas", () => {
         return api.updateCollection({id: "plop", isMeta: true}, {schema})
-          .then(_ => api.getCollection("plop"))
+          .then(_ => api.bucket("default").collection("plop").getProperties())
           .should.eventually.have.property("data")
           .to.have.property("isMeta").eql(true);
       });
@@ -148,7 +148,7 @@ describe("Integration tests", () => {
       it("should allow patching a collection", () => {
         return api.updateCollection({id: "plop"}, {schema})
           .then(_ => api.updateCollection({id: "plop"}, {patch: true}))
-          .then(_ => api.getCollection("plop"))
+          .then(_ => api.bucket("default").collection("plop").getProperties())
           .then(({data}) => data.schema)
           .should.become(schema);
       });
@@ -174,34 +174,6 @@ describe("Integration tests", () => {
         return api.listBuckets()
           .then(buckets => buckets.map(bucket => bucket.id))
           .should.become(["b1", "b2"]);
-      });
-    });
-
-    describe("#getCollection", () => {
-      let collectionData;
-
-      beforeEach(() => {
-        return api.bucket("default").createCollection("foo")
-          .then(_ => api.getCollection("foo"))
-          .then(res => collectionData = res);
-      });
-
-      it("should retrieve collection id", () => {
-        expect(collectionData)
-          .to.have.property("data")
-          .to.have.property("id").eql("foo");
-      });
-
-      it("should retrieve collection last_modified", () => {
-        expect(collectionData)
-          .to.have.property("data")
-          .to.have.property("last_modified").gt(0);
-      });
-
-      it("should retrieve collection permissions", () => {
-        expect(collectionData)
-          .to.have.property("permissions")
-          .to.have.property("write").to.be.an("array");
       });
     });
 

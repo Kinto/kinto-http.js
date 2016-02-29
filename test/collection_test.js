@@ -6,6 +6,7 @@ import sinon from "sinon";
 import KintoClient from "../src";
 import Bucket from "../src/bucket";
 import Collection from "../src/collection";
+import * as requests from "../src/requests";
 
 
 chai.use(chaiAsPromised);
@@ -27,6 +28,33 @@ describe("Collection", () => {
 
   afterEach(() => {
     sandbox.restore();
+  });
+
+  function getBlogPostsCollection(options) {
+    return new Bucket(client, "blog").collection("posts", options);
+  }
+
+  /** @test {Collection#getProperties} */
+  describe("#getProperties()", () => {
+    it("should execute expected request", () => {
+      sandbox.stub(client, "execute").returns(Promise.resolve());
+
+      getBlogPostsCollection().getProperties();
+
+      sinon.assert.calledWithMatch(client.execute, {
+        path: "/buckets/blog/collections/posts",
+      });
+    });
+
+    it("should resolve with response data", () => {
+      const data = {data: true};
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: data
+      }));
+
+      return getBlogPostsCollection().getProperties()
+        .should.become(data);
+    });
   });
 
   describe("#getPermissions()", () => {

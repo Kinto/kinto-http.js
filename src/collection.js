@@ -1,4 +1,6 @@
 import { omit, toDataObj } from "./utils";
+import * as requests from "./requests";
+import endpoint from "./endpoint";
 
 
 /**
@@ -62,6 +64,7 @@ export default class Collection {
       ...this.options,
       ...options,
       headers,
+      // XXX soon to be removed once we've migrated everything from KintoClient
       bucket: this.bucket.name
     };
   }
@@ -91,8 +94,12 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   getProperties(options) {
-    const reqOptions = this._collOptions(options);
-    return this.client.getCollection(this.name, reqOptions);
+    const { headers } = this._collOptions(options);
+    return this.client.execute({
+      path: endpoint("collection", this.bucket.name, this.name),
+      headers
+    })
+      .then(res => res.json);
   }
 
   /**

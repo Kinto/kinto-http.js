@@ -379,29 +379,6 @@ export default class KintoClient {
   }
 
   /**
-   * Retrieves information for a given collection.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String}   id              The collection name.
-   * @param  {Object}   options         The options object.
-   * @param  {String}   options.bucket  The bucket name option.
-   * @param  {Object}   options.headers The headers object option.
-   * @return {Promise<Object, Error>}
-   */
-  getCollection(id, options={}) {
-    const { bucket, headers } = {
-      ...this.defaultReqOptions,
-      ...options
-    };
-    return this.execute({
-      path: endpoint("collection", bucket, id),
-      headers: {...this.defaultReqOptions.headers, ...headers}
-    }).then(res => res.json);
-  }
-
-  /**
    * Updates a collection.
    *
    * Note: Reserved for internal use only.
