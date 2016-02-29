@@ -57,6 +57,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#getPermissions} */
   describe("#getPermissions()", () => {
     beforeEach(() => {
       sandbox.stub(coll, "getProperties").returns(Promise.resolve({
@@ -70,6 +71,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#setPermissions} */
   describe("#setPermissions()", () => {
     beforeEach(() => {
       sandbox.stub(client, "updateCollection");
@@ -100,6 +102,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#getSchema} */
   describe("#getSchema()", () => {
     const schema = {title: "schema"};
 
@@ -115,6 +118,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#setSchema} */
   describe("#setSchema()", () => {
     const schema = {title: "schema"};
 
@@ -147,6 +151,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#getMetadata} */
   describe("#getMetadata()", () => {
     beforeEach(() => {
       sandbox.stub(coll, "getProperties").returns(Promise.resolve({
@@ -191,6 +196,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#createRecord} */
   describe("#createRecord()", () => {
     const record = {title: "foo"};
 
@@ -206,6 +212,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#updateRecord} */
   describe("#updateRecord()", () => {
     const record = {id: 2, title: "foo"};
 
@@ -221,6 +228,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#deleteRecord} */
   describe("#deleteRecord()", () => {
     it("should delete a record", () => {
       sandbox.stub(client, "deleteRecord");
@@ -245,6 +253,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#getRecord} */
   describe("#getRecord()", () => {
     it("should retrieve a record", () => {
       sandbox.stub(client, "getRecord");
@@ -258,6 +267,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#listRecords} */
   describe("#listRecords()", () => {
     beforeEach(() => {
       sandbox.stub(client, "listRecords").returns(Promise.resolve({
@@ -281,6 +291,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#batch} */
   describe("#batch()", () => {
     it("should batch operations", () => {
       sandbox.stub(client, "batch");

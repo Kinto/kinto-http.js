@@ -65,6 +65,7 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#collection} */
   describe("#collection()", () => {
     it("should return a Collection instance", () => {
       expect(getBlogBucket().collection("posts"))
