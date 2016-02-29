@@ -307,17 +307,25 @@ describe("Collection", () => {
   /** @test {Collection#listRecords} */
   describe("#listRecords()", () => {
     beforeEach(() => {
-      sandbox.stub(client, "listRecords").returns(Promise.resolve({
-        data: [{a: 1}]
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: [{a: 1}]}
       }));
     });
 
-    it("should list records", () => {
+    it("should execute expected request", () => {
+      coll.listRecords();
+
+      sinon.assert.calledWithMatch(client.execute, {
+        path: "/buckets/blog/collections/posts/records?_sort=-last_modified",
+        headers: {Foo: "Bar", Baz: "Qux"},
+      });
+    });
+
+    it("should sort records", () => {
       coll.listRecords({sort: "title"});
 
-      sinon.assert.calledWith(client.listRecords, "posts", {
-        bucket: "blog",
-        sort: "title",
+      sinon.assert.calledWithMatch(client.execute, {
+        path: "/buckets/blog/collections/posts/records?_sort=title",
         headers: {Foo: "Bar", Baz: "Qux"},
       });
     });

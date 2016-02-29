@@ -138,33 +138,13 @@ describe("Integration tests", () => {
       });
     });
 
-    describe("#createRecord", () => {
-      it("should create a record", () => {
-        return api.createRecord("blog", {title: "foo"})
-          .then(_ => api.listRecords("blog"))
-          .then(({data}) => {
-            expect(data[0].title).eql("foo");
-          });
-      });
-
-      describe("In batch", () => {
-        it("should create a record", () => {
-          return api.batch(batch => batch.createRecord("blog", {title: "foo"}))
-            .then(_ => api.listRecords("blog"))
-            .then(({data}) => {
-              expect(data[0].title).eql("foo");
-            });
-        });
-      });
-    });
-
     describe("#updateRecord", () => {
       it("should update an existing record", () => {
         return api.createRecord("blog", {title: "foo"})
           .then(({data}) => api.updateRecord("blog", {id: data.id, title: "bar"}))
-          .then(_ => api.listRecords("blog"))
-          .then(({data}) => {
-            expect(data[0].title).eql("bar");
+          .then(_ => api.bucket("default").collection("blog").listRecords())
+          .then((records) => {
+            expect(records[0].title).eql("bar");
           });
       });
 
@@ -172,10 +152,10 @@ describe("Integration tests", () => {
         return api.createRecord("blog", {title: "foo", blah: 42})
           .then(({data}) => api.updateRecord("blog", {id: data.id, blah: 43},
                                              {patch: true}))
-          .then(_ => api.listRecords("blog"))
-          .then(({data}) => {
-            expect(data[0].title).eql("foo");
-            expect(data[0].blah).eql(43);
+          .then(_ => api.bucket("default").collection("blog").listRecords())
+          .then((records) => {
+            expect(records[0].title).eql("foo");
+            expect(records[0].blah).eql(43);
           });
       });
 
@@ -194,9 +174,9 @@ describe("Integration tests", () => {
             .then(({data}) => api.batch(batch => {
               return batch.updateRecord("blog", {id: data.id, title: "bar"});
             }))
-            .then(_ => api.listRecords("blog"))
-            .then(({data}) => {
-              expect(data[0].title).eql("bar");
+            .then(_ => api.bucket("default").collection("blog").listRecords())
+            .then((records) => {
+              expect(records[0].title).eql("bar");
             });
         });
       });
@@ -211,8 +191,8 @@ describe("Integration tests", () => {
             batch.createRecord("blog", {title: "art1"});
             batch.createRecord("blog", {title: "art2"});
           }, {bucket: "custom"})
-            .then(_ => api.listRecords("blog", {bucket: "custom"}))
-            .then(res => res.data.map(x => x.title))
+            .then(_ => api.bucket("custom").collection("blog").listRecords())
+            .then(records => records.map(x => x.title))
             .should.become(["art2", "art1"]);
         });
       });
@@ -226,8 +206,7 @@ describe("Integration tests", () => {
               batch.createRecord("blog", {title: "art" + i}, {bucket: "custom"});
             }
           })
-            .then(_ => api.listRecords("blog", {bucket: "custom"}))
-            .then(res => res.data)
+            .then(_ => api.bucket("custom").collection("blog").listRecords())
             .should.eventually.have.length.of(27);
         });
       });
@@ -287,55 +266,6 @@ describe("Integration tests", () => {
               expect(results.published).to.have.length.of(26);
             });
           });
-        });
-      });
-    });
-
-    describe("#listRecords", function() {
-      const fixtures = [
-        {title: "art1"},
-        {title: "art2"},
-        {title: "art3"},
-      ];
-
-      describe("Default bucket", () => {
-        beforeEach(() => {
-          return api.batch(batch => {
-            // note: collections are automatically created on default bucket
-            for (const record of fixtures) {
-              batch.createRecord("blog", record);
-            }
-          });
-        });
-
-        it("should return every records", () => {
-          return api.listRecords("blog")
-            .then((res) => res.data.map((r) => r.title))
-            .should.eventually.become(["art3", "art2", "art1"]);
-        });
-
-        it("should order records by field", () => {
-          return api.listRecords("blog", {sort: "title"})
-            .then((res) => res.data.map((r) => r.title))
-            .should.eventually.become(["art1", "art2", "art3"]);
-        });
-      });
-
-      describe("Custom bucket", () => {
-        beforeEach(() => {
-          return api.batch(batch => {
-            batch.createBucket("custom");
-            batch.createCollection("blog", {bucket: "custom"});
-            for (const record of fixtures) {
-              batch.createRecord("blog", record, {bucket: "custom"});
-            }
-          });
-        });
-
-        it("should accept a custom bucket option", () => {
-          return api.listRecords("blog", {bucket: "custom"})
-            .then((res) => res.data.map((r) => r.title))
-            .should.eventually.become(["art3", "art2", "art1"]);
         });
       });
     });
@@ -782,6 +712,15 @@ describe("Integration tests", () => {
                 .then(_ => coll.listRecords())
                 .then(records => records.map(record => record.title))
                 .should.become(["foo"]);
+            });
+
+            it("should order records by field", () => {
+              return Promise.all(["art3", "art1", "art2"].map((title) => {
+                return coll.createRecord({title});
+              }))
+                .then(_ => coll.listRecords({sort: "title"}))
+                .then((records) => records.map((r) => r.title))
+                .should.eventually.become(["art1", "art2", "art3"]);
             });
           });
 

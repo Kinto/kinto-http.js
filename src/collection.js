@@ -238,14 +238,25 @@ export default class Collection {
   /**
    * Lists records from the current collection.
    *
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
+   * @param  {Object}   options         The options object.
+   * @param  {Object}   options.headers The headers object option.
+   * @param  {String}   options.sort    The sort field, prefixed with `-` for
+   * descending. Default: `-last_modified`.
    * @return {Promise<Array<Object>, Error>}
    */
-  listRecords(options) {
-    const reqOptions = this._collOptions(options);
-    return this.client.listRecords(this.name, reqOptions)
-      .then(res => res.data);
+  listRecords(options={}) {
+    const { sort } = {
+      sort: "-last_modified",
+      ...options
+    };
+    const path = endpoint("records", this.bucket.name, this.name);
+    // XXX When we'll add support for more qs parameters, we should use node's
+    // url/querystring modules instead.
+    const querystring = `?_sort=${sort}`;
+    return this.client.execute({
+      path: path + querystring,
+      ...this._collOptions(options),
+    }).then(res => res.json && res.json.data);
   }
 
   /**

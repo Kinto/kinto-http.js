@@ -595,21 +595,6 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#listRecords} */
-  describe("#listRecords()", () => {
-    beforeEach(() => {
-      sandbox.stub(api, "execute").returns(Promise.resolve());
-    });
-
-    it("should execute expected request", () => {
-      api.listRecords("foo");
-
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets/default/collections/foo/records?_sort=-last_modified",
-      });
-    });
-  });
-
   /** @test {KintoClient#createBucket} */
   describe("#createBucket", () => {
     beforeEach(() => {

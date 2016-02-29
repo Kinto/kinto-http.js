@@ -379,37 +379,6 @@ export default class KintoClient {
   }
 
   /**
-   * Get a list of records for a given collection from the server.
-   *
-   * Note: Reserved for internal use only.
-   * Note: Because of a bug on the server, the order of records is not
-   * predictible, so it's forced in the default options here.
-   * See https://github.com/Kinto/kinto/issues/434
-   *
-   * @ignore
-   * @param  {String}   collName        The collection name.
-   * @param  {Object}   options         The options object.
-   * @param  {String}   options.bucket  The bucket name option.
-   * @param  {Object}   options.headers The headers object option.
-   * @param  {String}   options.sort    The sort field (prefixed with `-` for
-   * descending)
-   * @return {Promise<Object, Error>}
-   */
-  listRecords(collName, options={}) {
-    const { bucket, sort, headers } = {
-      ...this.defaultReqOptions,
-      sort: "-last_modified",
-      ...options
-    };
-    const path = endpoint("records", bucket, collName);
-    const querystring = `?_sort=${sort}`;
-    return this.execute({
-      path: path + querystring,
-      headers: {...this.defaultReqOptions.headers, ...headers},
-    }).then(res => res.json);
-  }
-
-  /**
    * Creates a record in a given collection.
    *
    * Note: Reserved for internal use only.
