@@ -189,7 +189,8 @@ export default class Collection {
    */
   createRecord(record, options) {
     const reqOptions = this._collOptions(options);
-    return this.client.createRecord(this.name, record, reqOptions);
+    const request = requests.createRecord(this.name, record, reqOptions);
+    return this.client.execute(request).then(res => res.json);
   }
 
   /**

@@ -227,15 +227,45 @@ describe("Collection", () => {
   describe("#createRecord()", () => {
     const record = {title: "foo"};
 
-    it("should create a record", () => {
-      sandbox.stub(client, "createRecord");
+    beforeEach(() => {
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: 1}
+      }));
+    });
+
+    it("should create the expected request", () => {
+      sandbox.stub(requests, "createRecord");
 
       coll.createRecord(record);
 
-      sinon.assert.calledWith(client.createRecord, "posts", record, {
+      sinon.assert.calledWith(requests.createRecord, "posts", record, {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
       });
+    });
+
+    it("should accept a safe option", () => {
+      sandbox.stub(requests, "createRecord");
+
+      coll.createRecord(record, {safe: true});
+
+      sinon.assert.calledWithMatch(requests.createRecord, "posts", record, {
+        safe: true
+      });
+    });
+
+    it("should execute the expected request", () => {
+      return coll.createRecord(record)
+        .then(() => {
+          sinon.assert.calledWithMatch(client.execute, {
+            path: "/buckets/blog/collections/posts/records"
+          });
+        });
+    });
+
+    it("should resolve with response body", () => {
+      return coll.createRecord(record)
+        .should.become({data: 1});
     });
   });
 

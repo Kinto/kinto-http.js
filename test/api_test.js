@@ -674,64 +674,6 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#createRecord} */
-  describe("#createRecord()", () => {
-    const record = {title: "bar"};
-
-    beforeEach(() => {
-      sandbox.stub(requests, "createRecord");
-      sandbox.stub(api, "execute").returns(Promise.resolve());
-    });
-
-    it("should execute expected request", () => {
-      api.createRecord("foo", record);
-
-      sinon.assert.calledWithExactly(requests.createRecord, "foo", record, {
-        bucket: "default",
-        headers: {},
-        safe: false,
-      });
-    });
-
-    it("should accept a safe option", () => {
-      api.createRecord("foo", record, {safe: true});
-
-      sinon.assert.calledWithMatch(requests.createRecord, "foo", record, {
-        safe: true
-      });
-    });
-
-    it("should use instance default bucket option", () => {
-      api.defaultReqOptions.bucket = "custom";
-
-      api.createRecord("foo", record);
-
-      sinon.assert.calledWithMatch(requests.createRecord, "foo", record, {
-        bucket: "custom"
-      });
-    });
-
-    it("should allow overriding the default instance bucket option", () => {
-      api.defaultReqOptions.bucket = "custom";
-
-      api.createRecord("foo", record, {bucket: "myblog"});
-
-      sinon.assert.calledWithMatch(requests.createRecord, "foo", record, {
-        bucket: "myblog"
-      });
-    });
-
-    it("should extend request headers with optional ones", () => {
-      api.defaultReqOptions.headers = {Foo: "Bar"};
-
-      api.createRecord("foo", record, {headers: {Baz: "Qux"}});
-
-      sinon.assert.calledWithMatch(requests.createRecord, "foo", record, {
-        headers: {Foo: "Bar", Baz: "Qux"}
-      });
-    });
-  });
-
   /** @test {KintoClient#updateRecord} */
   describe("#updateRecord()", () => {
     const record = {id: 1, title: "bar"};

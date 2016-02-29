@@ -140,7 +140,7 @@ describe("Integration tests", () => {
 
     describe("#updateRecord", () => {
       it("should update an existing record", () => {
-        return api.createRecord("blog", {title: "foo"})
+        return api.bucket("default").collection("blog").createRecord({title: "foo"})
           .then(({data}) => api.updateRecord("blog", {id: data.id, title: "bar"}))
           .then(_ => api.bucket("default").collection("blog").listRecords())
           .then((records) => {
@@ -149,7 +149,7 @@ describe("Integration tests", () => {
       });
 
       it("should allow patching a record", () => {
-        return api.createRecord("blog", {title: "foo", blah: 42})
+        return api.bucket("default").collection("blog").createRecord({title: "foo", blah: 42})
           .then(({data}) => api.updateRecord("blog", {id: data.id, blah: 43},
                                              {patch: true}))
           .then(_ => api.bucket("default").collection("blog").listRecords())
@@ -170,7 +170,7 @@ describe("Integration tests", () => {
 
       describe("In batch", () => {
         it("should update an existing record", () => {
-          return api.createRecord("blog", {title: "foo"})
+          return api.bucket("default").collection("blog").createRecord({title: "foo"})
             .then(({data}) => api.batch(batch => {
               return batch.updateRecord("blog", {id: data.id, title: "bar"});
             }))
