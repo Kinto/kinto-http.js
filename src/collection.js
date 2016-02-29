@@ -35,7 +35,14 @@ export default class Collection {
      * @ignore
      * @type {Object}
      */
-    this.options = options;
+    this.options = {
+      ...this.bucket.options,
+      ...options,
+      headers: {
+        ...this.bucket.options && this.bucket.options.headers,
+        ...options.headers
+      }
+    };
   }
 
   /**
@@ -48,12 +55,10 @@ export default class Collection {
    */
   _collOptions(options={}) {
     const headers = {
-      ...this.bucket.options && this.bucket.options.headers,
       ...this.options && this.options.headers,
       ...options.headers
     };
     return {
-      ...this.bucket.options,
       ...this.options,
       ...options,
       headers,
