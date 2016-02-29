@@ -273,15 +273,58 @@ describe("Collection", () => {
   describe("#updateRecord()", () => {
     const record = {id: 2, title: "foo"};
 
-    it("should update a record", () => {
-      sandbox.stub(client, "updateRecord");
+    beforeEach(() => {
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: 1}
+      }));
+    });
+
+    it("should create the expected request", () => {
+      sandbox.stub(requests, "updateRecord");
 
       coll.updateRecord(record);
 
-      sinon.assert.calledWith(client.updateRecord, "posts", record, {
+      sinon.assert.calledWith(requests.updateRecord, "posts", record, {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
       });
+    });
+
+    it("should accept a safe option", () => {
+      sandbox.stub(requests, "updateRecord");
+
+      coll.updateRecord({...record, last_modified: 42}, {safe: true});
+
+      sinon.assert.calledWithMatch(requests.updateRecord, "posts", record, {
+        safe: true,
+      });
+    });
+
+    it("should accept a patch option", () => {
+      sandbox.stub(requests, "updateRecord");
+
+      coll.updateRecord(record, {patch: true});
+
+      sinon.assert.calledWithMatch(requests.updateRecord, "posts", record, {
+        patch: true
+      });
+    });
+
+    it("should update a record", () => {
+      sandbox.stub(requests, "updateRecord");
+
+      coll.updateRecord(record);
+
+      sinon.assert.calledWith(requests.updateRecord, "posts", record, {
+        bucket: "blog",
+        headers: {Foo: "Bar", Baz: "Qux"},
+      });
+    });
+
+
+    it("should resolve with response body", () => {
+      return coll.updateRecord(record)
+        .should.become({data: 1});
     });
   });
 

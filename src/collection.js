@@ -204,7 +204,8 @@ export default class Collection {
    */
   updateRecord(record, options) {
     const reqOptions = this._collOptions(options);
-    return this.client.updateRecord(this.name, record, reqOptions);
+    const request = requests.updateRecord(this.name, record, reqOptions);
+    return this.client.execute(request).then(res => res.json);
   }
 
   /**

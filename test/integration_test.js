@@ -138,50 +138,6 @@ describe("Integration tests", () => {
       });
     });
 
-    describe("#updateRecord", () => {
-      it("should update an existing record", () => {
-        return api.bucket("default").collection("blog").createRecord({title: "foo"})
-          .then(({data}) => api.updateRecord("blog", {id: data.id, title: "bar"}))
-          .then(_ => api.bucket("default").collection("blog").listRecords())
-          .then((records) => {
-            expect(records[0].title).eql("bar");
-          });
-      });
-
-      it("should allow patching a record", () => {
-        return api.bucket("default").collection("blog").createRecord({title: "foo", blah: 42})
-          .then(({data}) => api.updateRecord("blog", {id: data.id, blah: 43},
-                                             {patch: true}))
-          .then(_ => api.bucket("default").collection("blog").listRecords())
-          .then((records) => {
-            expect(records[0].title).eql("foo");
-            expect(records[0].blah).eql(43);
-          });
-      });
-
-      it("should create the record if it doesn't exist yet", () => {
-        const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
-
-        return api.updateRecord("blog", {id, title: "blah"})
-          .then(res => api.bucket("default").collection("blog").getRecord(res.data.id))
-          .should.eventually.have.property("data")
-                         .to.have.property("title").eql("blah");
-      });
-
-      describe("In batch", () => {
-        it("should update an existing record", () => {
-          return api.bucket("default").collection("blog").createRecord({title: "foo"})
-            .then(({data}) => api.batch(batch => {
-              return batch.updateRecord("blog", {id: data.id, title: "bar"});
-            }))
-            .then(_ => api.bucket("default").collection("blog").listRecords())
-            .then((records) => {
-              expect(records[0].title).eql("bar");
-            });
-        });
-      });
-    });
-
     describe("#batch", () => {
       describe("No chunked requests", () => {
         it("should allow batching operations", () => {
@@ -660,6 +616,26 @@ describe("Integration tests", () => {
                 .then(_ => coll.listRecords())
                 .then((records) => records[0].title)
                 .should.become("mod");
+            });
+
+            it("should patch a record", () => {
+              return coll.createRecord({title: "foo", blah: 42})
+                .then(({data}) => coll.updateRecord({id: data.id, blah: 43},
+                                                    {patch: true}))
+                .then(_ => coll.listRecords())
+                .then((records) => {
+                  expect(records[0].title).eql("foo");
+                  expect(records[0].blah).eql(43);
+                });
+            });
+
+            it("should create the record if it doesn't exist yet", () => {
+              const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
+
+              return coll.updateRecord({id, title: "blah"})
+                .then(res => coll.getRecord(res.data.id))
+                .should.eventually.have.property("data")
+                               .to.have.property("title").eql("blah");
             });
 
             describe("Safe option", () => {
