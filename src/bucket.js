@@ -142,19 +142,20 @@ export default class Bucket {
   /**
    * Recplaces all existing bucket permissions with the ones provided.
    *
-   * @param  {Object} permissions     The permissions object.
-   * @param  {Object} options         The options object
-   * @param  {Object} options.headers The headers object option.
-   * @param  {Object} options.last_modified The last_modified option.
-   * @param  {Boolean}  options.safe  The safe option.
+   * @param  {Object}  permissions           The permissions object.
+   * @param  {Object}  options               The options object
+   * @param  {Object}  options               The options object.
+   * @param  {Boolean} options.safe          The safe option.
+   * @param  {Object}  options.headers       The headers object option.
+   * @param  {Object}  options.last_modified The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  setPermissions(permissions, options) {
-    const reqOptions = this._bucketOptions(options);
-    return this.client.updateBucket({
+  setPermissions(permissions, options={}) {
+    return this.client.execute(requests.updateBucket({
       id: this.name,
-      last_modified: options && options.last_modified
-    }, {...reqOptions, permissions});
+      last_modified: options.last_modified
+    }, {...this._bucketOptions(options), permissions}))
+      .then(res => res.json);
   }
 
   /**

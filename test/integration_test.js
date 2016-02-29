@@ -97,36 +97,6 @@ describe("Integration tests", () => {
       });
     });
 
-    describe("#updateBucket()", () => {
-      it("should update a bucket", () => {
-        return api.createBucket("foo")
-          .then(_ => api.updateBucket({id: "foo"}, {
-            permissions: {read: ["github:n1k0"]}
-          }))
-          .then(_ => api.bucket("foo").getProperties())
-          .then(res => res.permissions.read)
-          .should.become(["github:n1k0"]);
-      });
-
-      it("should create the bucket if it doesn't exist yet", () => {
-        return api.updateBucket({id: "foo"})
-          .then(_ => api.listBuckets())
-          .then(buckets => buckets.map(bucket => bucket.id))
-          .should.eventually.include("foo");
-      });
-
-      describe("Safe option", () => {
-        it("should raise a conflict error when resource has changed", () => {
-          return api.createBucket("foo")
-            .then(({data}) => api.updateBucket({
-              id: data.id,
-              last_modified: data.last_modified - 1000
-            }, {safe: true}))
-            .should.be.rejectedWith(Error, /412 Precondition Failed/);
-        });
-      });
-    });
-
     describe("#deleteBucket()", () => {
       let last_modified;
 

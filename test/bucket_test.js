@@ -278,15 +278,26 @@ describe("Bucket", () => {
 
   /** @test {Bucket#setPermissions} */
   describe("#setPermissions()", () => {
+    const fakePermissions = {
+      read: [],
+      write: []
+    };
+
     beforeEach(() => {
-      sandbox.stub(client, "updateBucket");
+      sandbox.stub(requests, "updateBucket");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {
+          data: {},
+          permissions: fakePermissions
+        }
+      }));
     });
 
     it("should set permissions", () => {
-      getBlogBucket().setPermissions("fakeperms");
+      getBlogBucket().setPermissions(fakePermissions);
 
-      sinon.assert.calledWithMatch(client.updateBucket, {id: "blog"}, {
-        permissions: "fakeperms"
+      sinon.assert.calledWithMatch(requests.updateBucket, {id: "blog"}, {
+        permissions: fakePermissions
       });
     });
 
@@ -296,10 +307,10 @@ describe("Bucket", () => {
         safe: true,
       });
 
-      bucket.setPermissions("fakeperms", {headers: {Baz: "Qux"}});
+      bucket.setPermissions(fakePermissions, {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(client.updateBucket, {id: "blog"}, {
-        permissions: "fakeperms",
+      sinon.assert.calledWithMatch(requests.updateBucket, {id: "blog"}, {
+        permissions: fakePermissions,
         headers: {Foo: "Bar", Baz: "Qux"},
         safe: true,
       });
@@ -311,13 +322,18 @@ describe("Bucket", () => {
         safe: true,
       });
 
-      bucket.setPermissions("fakeperms", {last_modified: 42});
+      bucket.setPermissions(fakePermissions, {last_modified: 42});
 
-      sinon.assert.calledWithMatch(client.updateBucket, {id: "blog"}, {
-        permissions: "fakeperms",
+      sinon.assert.calledWithMatch(requests.updateBucket, {id: "blog"}, {
+        permissions: fakePermissions,
         safe: true,
         last_modified: 42
       });
+    });
+
+    it("should resolve with response data", () => {
+      return getBlogBucket().setPermissions(fakePermissions)
+        .should.eventually.have.property("permissions").eql(fakePermissions);
     });
   });
 

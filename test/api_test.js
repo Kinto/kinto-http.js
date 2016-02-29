@@ -865,67 +865,6 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#updateBucket} */
-  describe("#updateBucket", () => {
-    beforeEach(() => {
-      sandbox.stub(requests, "updateBucket");
-      sandbox.stub(api, "execute").returns(Promise.resolve());
-    });
-
-    it("should execute expected request", () => {
-      api.updateBucket({id: "foo"});
-
-      sinon.assert.calledWithMatch(requests.updateBucket, {id: "foo"}, {
-        headers: {},
-        safe: false,
-      });
-    });
-
-    it("should accept a safe option", () => {
-      api.updateBucket({id: "foo"}, {safe: true});
-
-      sinon.assert.calledWithMatch(requests.updateBucket, {id: "foo"}, {
-        safe: true
-      });
-    });
-
-    it("should use instance default bucket option", () => {
-      api.defaultReqOptions.bucket = "custom";
-
-      api.updateBucket({id: "foo"});
-
-      sinon.assert.calledWithMatch(requests.updateBucket, {id: "foo"}, {
-        bucket: "custom"
-      });
-    });
-
-    it("should allow overriding the default instance bucket option", () => {
-      api.defaultReqOptions.bucket = "custom";
-
-      api.updateBucket({id: "foo"}, {bucket: "myblog"});
-
-      sinon.assert.calledWithMatch(requests.updateBucket, {id: "foo"}, {
-        bucket: "myblog"
-      });
-    });
-
-    it("should extend request headers with optional ones", () => {
-      api.defaultReqOptions.headers = {Foo: "Bar"};
-
-      api.updateBucket({id: "foo"}, {headers: {Baz: "Qux"}});
-
-      sinon.assert.calledWithMatch(requests.updateBucket, {id: "foo"}, {
-        headers: {Foo: "Bar", Baz: "Qux"}
-      });
-    });
-
-    it("should send metadata along the request", () => {
-      api.updateBucket("foo", {a: 1});
-
-      sinon.assert.calledWithMatch(requests.updateBucket, "foo", {a: 1});
-    });
-  });
-
   /** @test {KintoClient#createRecord} */
   describe("#createRecord()", () => {
     const record = {title: "bar"};
