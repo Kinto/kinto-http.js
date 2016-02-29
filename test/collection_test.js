@@ -282,15 +282,25 @@ describe("Collection", () => {
 
   /** @test {Collection#getRecord} */
   describe("#getRecord()", () => {
-    it("should retrieve a record", () => {
-      sandbox.stub(client, "getRecord");
+    beforeEach(() => {
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: 1}
+      }));
+    });
 
+    it("should execute expected request", () => {
       coll.getRecord(1);
 
-      sinon.assert.calledWith(client.getRecord, "posts", 1, {
+      sinon.assert.calledWith(client.execute, {
         bucket: "blog",
+        path: "/buckets/blog/collections/posts/records/1",
         headers: {Foo: "Bar", Baz: "Qux"},
       });
+    });
+
+    it("should retrieve a record", () => {
+      return coll.getRecord(1)
+        .should.become({data: 1});
     });
   });
 

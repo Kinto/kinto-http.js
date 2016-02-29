@@ -183,7 +183,7 @@ describe("Integration tests", () => {
         const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
 
         return api.updateRecord("blog", {id, title: "blah"})
-          .then(res => api.getRecord("blog", res.data.id))
+          .then(res => api.bucket("default").collection("blog").getRecord(res.data.id))
           .should.eventually.have.property("data")
                          .to.have.property("title").eql("blah");
       });
@@ -337,15 +337,6 @@ describe("Integration tests", () => {
             .then((res) => res.data.map((r) => r.title))
             .should.eventually.become(["art3", "art2", "art1"]);
         });
-      });
-    });
-
-    describe("#getRecord()", () => {
-      it("should retrieve a record by its id", () => {
-        return api.createRecord("blog", {title: "blah"})
-          .then(res => api.getRecord("blog", res.data.id))
-          .should.eventually.have.property("data")
-                          .to.have.property("title").eql("blah");
       });
     });
   });

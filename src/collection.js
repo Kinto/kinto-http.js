@@ -229,8 +229,10 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   getRecord(id, options) {
-    const reqOptions = this._collOptions(options);
-    return this.client.getRecord(this.name, id, reqOptions);
+    return this.client.execute({
+      path: endpoint("record", this.bucket.name, this.name, id),
+      ...this._collOptions(options),
+    }).then(res => res.json);
   }
 
   /**

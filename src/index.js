@@ -379,30 +379,6 @@ export default class KintoClient {
   }
 
   /**
-   * Retrieve a record from a collection by its id.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String}   collName        The collection name.
-   * @param  {String}   id              The record id.
-   * @param  {Object}   options         The options object.
-   * @param  {String}   options.bucket  The bucket name option.
-   * @param  {Object}   options.headers The headers object option.
-   * @return {Promise<Object, Error>}
-   */
-  getRecord(collName, id, options={}) {
-    const { bucket, headers } = {
-      ...this.defaultReqOptions,
-      ...options
-    };
-    return this.execute({
-      path: endpoint("record", bucket, collName, id),
-      headers: {...this.defaultReqOptions.headers, ...headers},
-    }).then(res => res.json);
-  }
-
-  /**
    * Get a list of records for a given collection from the server.
    *
    * Note: Reserved for internal use only.
