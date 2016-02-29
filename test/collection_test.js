@@ -330,23 +330,40 @@ describe("Collection", () => {
 
   /** @test {Collection#deleteRecord} */
   describe("#deleteRecord()", () => {
+    beforeEach(() => {
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: 1}
+      }));
+    });
+
     it("should delete a record", () => {
-      sandbox.stub(client, "deleteRecord");
+      sandbox.stub(requests, "deleteRecord");
 
       coll.deleteRecord("1");
 
-      sinon.assert.calledWith(client.deleteRecord, "posts", {id: "1"}, {
+      sinon.assert.calledWith(requests.deleteRecord, "posts", {id: "1"}, {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
       });
     });
 
+    it("should accept a safe option", () => {
+      sandbox.stub(requests, "deleteRecord");
+
+      coll.deleteRecord("1", {safe: true, last_modified: 42});
+
+      sinon.assert.calledWithMatch(requests.deleteRecord, "posts", {id: "1"}, {
+        safe: true,
+        last_modified: 42
+      });
+    });
+
     it("should delete a record using a record object", () => {
-      sandbox.stub(client, "deleteRecord");
+      sandbox.stub(requests, "deleteRecord");
 
       coll.deleteRecord({id: "1"});
 
-      sinon.assert.calledWith(client.deleteRecord, "posts", {id: "1"}, {
+      sinon.assert.calledWith(requests.deleteRecord, "posts", {id: "1"}, {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
       });

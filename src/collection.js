@@ -196,10 +196,11 @@ export default class Collection {
   /**
    * Updates a record in current collection.
    *
-   * @param  {Object} record          The record to update.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @param  {Boolean}  options.safe  The safe option.
+   * @param  {Object}  record                The record to update.
+   * @param  {Object}  options               The options object.
+   * @param  {Object}  options.headers       The headers object option.
+   * @param  {Boolean} options.safe          The safe option.
+   * @param  {Number}  options.last_modified The last_modified option.
    * @return {Promise<Object, Error>}
    */
   updateRecord(record, options) {
@@ -215,11 +216,14 @@ export default class Collection {
    * @param  {Object}        options         The options object.
    * @param  {Object}        options.headers The headers object option.
    * @param  {Boolean}       options.safe    The safe option.
+   * @param  {Number}        options.last_modified The last_modified option.
    * @return {Promise<Object, Error>}
    */
   deleteRecord(record, options) {
     const reqOptions = this._collOptions(options);
-    return this.client.deleteRecord(this.name, toDataObj(record), reqOptions);
+    const request = requests.deleteRecord(this.name, toDataObj(record),
+                                          reqOptions);
+    return this.client.execute(request).then(res => res.json);
   }
 
   /**

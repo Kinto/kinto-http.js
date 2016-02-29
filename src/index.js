@@ -377,27 +377,4 @@ export default class KintoClient {
     return this.execute(requests.deleteBucket(_bucket, reqOptions))
       .then(res => res.json);
   }
-
-  /**
-   * Deletes a record in a given collection.
-   *
-   * Note: Reserved for internal use only.
-   *
-   * @ignore
-   * @param  {String}   collName             The collection name.
-   * @param  {Object}   record               The record to delete.
-   * @param  {String}   record.id            The record id.
-   * @param  {Number}   record.last_modified The record last_modified.
-   * @param  {Object}   options              The options object.
-   * @param  {Boolean}  options.safe         The safe option.
-   * @param  {String}   options.bucket       The bucket name option.
-   * @param  {Object}   options.headers      The headers object option.
-   * the `safe` option is used.
-   * @return {Promise<Object, Error>}
-   */
-  deleteRecord(collName, record, options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteRecord(collName, record, reqOptions))
-      .then(res => res.json);
-  }
 }
