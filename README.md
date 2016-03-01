@@ -630,6 +630,7 @@ client.bucket("blog").collection("posts")
 #### Options
 
 - `sort`: The order field (default: `-last_modified`);
+- `filters`: An object defining the filters to apply; read more about [what's supported](http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/resource.html#filtering);
 - `headers`: Custom headers object to send along the HTTP request;
 - `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.

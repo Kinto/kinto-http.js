@@ -424,6 +424,28 @@ describe("Collection", () => {
       return coll.listRecords()
         .should.become([{a: 1}]);
     });
+
+    describe("Filtering", () => {
+      it("should generate the expected filtering query string", () => {
+        coll.listRecords({sort: "x", filters: {min_y: 2, not_z: 3}});
+
+        const expectedQS = "min_y=2&not_z=3&_sort=x";
+        sinon.assert.calledWithMatch(client.execute, {
+          path: "/buckets/blog/collections/posts/records?" + expectedQS,
+          headers: {Foo: "Bar", Baz: "Qux"},
+        });
+      });
+
+      it("shouldn't need an explicit sort parameter", () => {
+        coll.listRecords({filters: {min_y: 2, not_z: 3}});
+
+        const expectedQS = "min_y=2&not_z=3&_sort=-last_modified";
+        sinon.assert.calledWithMatch(client.execute, {
+          path: "/buckets/blog/collections/posts/records?" + expectedQS,
+          headers: {Foo: "Bar", Baz: "Qux"},
+        });
+      });
+    });
   });
 
   /** @test {Collection#batch} */

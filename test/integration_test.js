@@ -18,7 +18,10 @@ const TEST_KINTO_SERVER = "http://0.0.0.0:8888/v1";
 describe("Integration tests", () => {
   let sandbox, server, api;
 
-  before(() => server = new KintoServer(TEST_KINTO_SERVER));
+  before(function() {
+    this.timeout(20000);
+    server = new KintoServer(TEST_KINTO_SERVER);
+  });
 
   after(() => server.killAll());
 
@@ -40,7 +43,10 @@ describe("Integration tests", () => {
   afterEach(() => sandbox.restore());
 
   describe("Default server configuration", () => {
-    before(() => server.start());
+    before(function() {
+      this.timeout(20000);
+      server.start();
+    });
 
     after(() => server.stop());
 
@@ -148,7 +154,7 @@ describe("Integration tests", () => {
             batch.createRecord("blog", {title: "art2"});
           }, {bucket: "custom"})
             .then(_ => api.bucket("custom").collection("blog").listRecords())
-            .then(records => records.map(x => x.title))
+            .then(records => records.map(record => record.title))
             .should.become(["art2", "art1"]);
         });
       });
@@ -228,7 +234,10 @@ describe("Integration tests", () => {
   });
 
   describe("Flushed server", function() {
-    before(() => server.start());
+    before(function() {
+      this.timeout(20000);
+      server.start();
+    });
 
     after(() => server.stop());
 
@@ -242,7 +251,11 @@ describe("Integration tests", () => {
 
   describe("Backed off server", () => {
     const backoffSeconds = 10;
-    before(() => server.start({CLIQUET_BACKOFF: backoffSeconds}));
+
+    before(function() {
+      this.timeout(20000);
+      server.start({CLIQUET_BACKOFF: backoffSeconds});
+    });
 
     after(() => server.stop());
 
@@ -302,7 +315,10 @@ describe("Integration tests", () => {
   });
 
   describe("Chainable API", () => {
-    before(() => server.start());
+    before(function() {
+      this.timeout(20000);
+      server.start();
+    });
 
     after(() => server.stop());
 
@@ -695,8 +711,31 @@ describe("Integration tests", () => {
                 return coll.createRecord({title});
               }))
                 .then(_ => coll.listRecords({sort: "title"}))
-                .then((records) => records.map((r) => r.title))
+                .then((records) => records.map((record) => record.title))
                 .should.eventually.become(["art1", "art2", "art3"]);
+            });
+
+            describe("Filtering", () => {
+              beforeEach(() => {
+                return coll.batch(batch => {
+                  batch.createRecord({name: "paul", age: 28});
+                  batch.createRecord({name: "jess", age: 54});
+                  batch.createRecord({name: "john", age: 33});
+                  batch.createRecord({name: "rené", age: 24});
+                });
+              });
+
+              it("should filter records", () => {
+                return coll.listRecords({sort: "age", filters: {min_age: 30}})
+                  .then(records => records.map(record => record.name))
+                  .should.become(["john", "jess"]);
+              });
+
+              it("should properly escape unicode filters", () => {
+                return coll.listRecords({filters: {name: "rené"}})
+                  .then(records => records.map(record => record.name))
+                  .should.become(["rené"]);
+              });
             });
           });
 
