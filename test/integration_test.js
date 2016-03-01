@@ -154,7 +154,7 @@ describe("Integration tests", () => {
             batch.createRecord("blog", {title: "art2"});
           }, {bucket: "custom"})
             .then(_ => api.bucket("custom").collection("blog").listRecords())
-            .then(records => records.map(x => x.title))
+            .then(records => records.map(record => record.title))
             .should.become(["art2", "art1"]);
         });
       });
@@ -711,7 +711,7 @@ describe("Integration tests", () => {
                 return coll.createRecord({title});
               }))
                 .then(_ => coll.listRecords({sort: "title"}))
-                .then((records) => records.map((r) => r.title))
+                .then((records) => records.map((record) => record.title))
                 .should.eventually.become(["art1", "art2", "art3"]);
             });
 
@@ -721,13 +721,20 @@ describe("Integration tests", () => {
                   batch.createRecord({name: "paul", age: 28});
                   batch.createRecord({name: "jess", age: 54});
                   batch.createRecord({name: "john", age: 33});
+                  batch.createRecord({name: "rené", age: 24});
                 });
               });
 
               it("should filter records", () => {
                 return coll.listRecords({sort: "age", filters: {min_age: 30}})
-                  .then(records => records.map(x => x.name))
+                  .then(records => records.map(record => record.name))
                   .should.become(["john", "jess"]);
+              });
+
+              it("should properly escape unicode filters", () => {
+                return coll.listRecords({filters: {name: "rené"}})
+                  .then(records => records.map(record => record.name))
+                  .should.become(["rené"]);
               });
             });
           });
