@@ -15,33 +15,61 @@ export default class KintoServer {
     this.options = Object.assign({}, DEFAULT_OPTIONS, options);
   }
 
+  _retryRequest(url, options, attempt=1) {
+    const { maxAttempts } = this.options;
+    return fetch(url, options)
+      .then(res => {
+        if ([200, 202, 410].indexOf(res.status) === -1) {
+          throw new Error("Unable to start server, HTTP " + res.status);
+        }
+      })
+      .catch(err => {
+        if (attempt < maxAttempts) {
+          return new Promise(resolve => {
+            setTimeout(_ => {
+              resolve(this._retryRequest(url, options, attempt + 1));
+            }, 100);
+          });
+        }
+        throw new Error(`Max attempts number reached (${maxAttempts}); ${err}`);
+      });
+  }
+
   start(env) {
     if (this.process) {
       throw new Error("Server is already started.");
     }
-    return new Promise(resolve => {
-      // Add the provided environment variables to the child process environment.
-      // Keeping parent's environment is needed so that pserve's executable
-      // can be found (with PATH) if KINTO_PSERVE_EXECUTABLE env variable was
-      // not provided.
-      env = Object.assign({}, process.env, env);
-      this.process = spawn(
-        this.options.pservePath,
-        [this.options.kintoConfigPath],
-        {env, detached: true}
-      );
-      this.process.stderr.on("data", data => {
-        this.logs.push(data);
-      });
-      this.process.on("close", code => {
-        if (code && code > 0) {
-          throw new Error("Server errors encountered:\n" +
-            this.logs.map(line => line.toString()).join(""));
-        }
-      });
-      // Allow some time for the server to start.
-      setTimeout(resolve, 1000);
+    // Add the provided environment variables to the child process environment.
+    // Keeping parent's environment is needed so that pserve's executable
+    // can be found (with PATH) if KINTO_PSERVE_EXECUTABLE env variable was
+    // not provided.
+    this.logs = [];
+    env = Object.assign({}, process.env, env);
+    this.process = spawn(
+      this.options.pservePath,
+      [this.options.kintoConfigPath],
+      {env, detached: true}
+    );
+    this.process.stderr.on("data", data => {
+      this.logs.push(data);
     });
+    this.process.on("close", code => {
+      if (code && code > 0) {
+        throw new Error("Server errors encountered:\n" +
+          this.logs.map(line => line.toString()).join(""));
+      }
+    });
+    return this.ping();
+  }
+
+  ping() {
+    const endpoint = `${this.url}/`;
+    return this._retryRequest(endpoint, {}, 1);
+  }
+
+  flush(attempt = 1) {
+    const endpoint = `${this.url}/__flush__`;
+    return this._retryRequest(endpoint, {method: "POST"}, {}, 1);
   }
 
   stop() {
@@ -50,26 +78,6 @@ export default class KintoServer {
     return new Promise(resolve => {
       setTimeout(() => resolve(), 500);
     });
-  }
-
-  flush(attempt = 1) {
-    return fetch(`${this.url}/__flush__`, {method: "POST"})
-      .then(res => {
-        if ([202, 410].indexOf(res.status) === -1) {
-          throw new Error("Unable to flush test server.");
-        }
-      })
-      .catch(err => {
-        // Prevent race condition where integration tests start while server
-        // isn't running yet.
-        if (/ECONNREFUSED/.test(err.message) &&
-            attempt < this.options.maxAttempts) {
-          return new Promise(resolve => {
-            setTimeout(_ => resolve(this.flush(attempt++)), 250);
-          });
-        }
-        throw err;
-      });
   }
 
   killAll() {
