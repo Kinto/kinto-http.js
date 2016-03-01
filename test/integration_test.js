@@ -152,7 +152,7 @@ describe("Integration tests", () => {
             batch.createRecord("blog", {title: "art2"});
           }, {bucket: "custom"})
             .then(_ => api.bucket("custom").collection("blog").listRecords())
-            .then(records => records.map(record => record.title))
+            .then(({data}) => data.map(record => record.title))
             .should.become(["art2", "art1"]);
         });
       });
@@ -167,7 +167,8 @@ describe("Integration tests", () => {
             }
           })
             .then(_ => api.bucket("custom").collection("blog").listRecords())
-            .should.eventually.have.length.of(27);
+            .should.eventually.have.property("data")
+                           .to.have.length.of(27);
         });
       });
 
@@ -306,6 +307,40 @@ describe("Integration tests", () => {
       it("should reject with a 410 Gone when hard EOL is received", () => {
         return api.fetchServerSettings()
           .should.be.rejectedWith(Error, /HTTP 410 Gone: Service deprecated/);
+      });
+    });
+  });
+
+  describe("Limited pagination", () => {
+    before(() => {
+      return server.start({KINTO_PAGINATE_BY: 1});
+    });
+
+    after(() => server.stop());
+
+    beforeEach(() => server.flush());
+
+    describe("Limited configured server pagination", () => {
+      let collection;
+
+      beforeEach(() => {
+        collection = api.bucket("default").collection("posts");
+        return collection.batch(batch => {
+          batch.createRecord({n: 1});
+          batch.createRecord({n: 2});
+        });
+      });
+
+      it("should fetch one results page", () => {
+        return collection.listRecords()
+          .then(({data}) => data.map(record => record.n))
+          .should.eventually.have.length.of(1);
+      });
+
+      it("should fetch all available pages", () => {
+        return collection.listRecords({pages: Infinity})
+          .then(({data}) => data.map(record => record.n))
+          .should.eventually.have.length.of(2);
       });
     });
   });
@@ -477,7 +512,7 @@ describe("Integration tests", () => {
             batch.createRecord("comments", {content: "yo"});
           })
             .then(_ => bucket.collection("comments").listRecords())
-            .then(comments => comments.map(comment => comment.content).sort())
+            .then(({data}) => data.map(comment => comment.content).sort())
             .should.become(["plop", "yo"]);
         });
 
@@ -625,7 +660,7 @@ describe("Integration tests", () => {
                 .createRecord({title: "foo"})
                 .then(({data}) => coll.updateRecord({...data, title: "mod"}))
                 .then(_ => coll.listRecords())
-                .then((records) => records[0].title)
+                .then(({data}) => data[0].title)
                 .should.become("mod");
             });
 
@@ -634,9 +669,9 @@ describe("Integration tests", () => {
                 .then(({data}) => coll.updateRecord({id: data.id, blah: 43},
                                                     {patch: true}))
                 .then(_ => coll.listRecords())
-                .then((records) => {
-                  expect(records[0].title).eql("foo");
-                  expect(records[0].blah).eql(43);
+                .then(({data}) => {
+                  expect(data[0].title).eql("foo");
+                  expect(data[0].blah).eql(43);
                 });
             });
 
@@ -668,7 +703,7 @@ describe("Integration tests", () => {
                 .createRecord({title: "foo"})
                 .then(({data}) => coll.deleteRecord(data.id))
                 .then(_ => coll.listRecords())
-                .should.become([]);
+                .should.eventually.have.property("data").eql([]);
             });
 
             describe("Safe option", () => {
@@ -697,7 +732,7 @@ describe("Integration tests", () => {
               return coll
                 .createRecord({title: "foo"})
                 .then(_ => coll.listRecords())
-                .then(records => records.map(record => record.title))
+                .then(({data}) => data.map(record => record.title))
                 .should.become(["foo"]);
             });
 
@@ -706,7 +741,7 @@ describe("Integration tests", () => {
                 return coll.createRecord({title});
               }))
                 .then(_ => coll.listRecords({sort: "title"}))
-                .then((records) => records.map((record) => record.title))
+                .then(({data}) => data.map(record => record.title))
                 .should.eventually.become(["art1", "art2", "art3"]);
             });
 
@@ -722,14 +757,77 @@ describe("Integration tests", () => {
 
               it("should filter records", () => {
                 return coll.listRecords({sort: "age", filters: {min_age: 30}})
-                  .then(records => records.map(record => record.name))
+                  .then(({data}) => data.map(record => record.name))
                   .should.become(["john", "jess"]);
               });
 
               it("should properly escape unicode filters", () => {
                 return coll.listRecords({filters: {name: "rené"}})
-                  .then(records => records.map(record => record.name))
+                  .then(({data}) => data.map(record => record.name))
                   .should.become(["rené"]);
+              });
+            });
+
+            describe("Pagination", () => {
+              beforeEach(() => {
+                return coll.batch(batch => {
+                  for (let i = 1; i <= 3; i++) {
+                    batch.createRecord({n: i});
+                  }
+                });
+              });
+
+              it("should not paginate by default", () => {
+                return coll.listRecords()
+                  .then(({data}) => data.map(record => record.n))
+                  .should.become([3, 2, 1]);
+              });
+
+              it("should paginate by chunks", () => {
+                return coll.listRecords({limit: 2})
+                  .then(({data}) => data.map(record => record.n))
+                  .should.become([3, 2]);
+              });
+
+              it("should provide a next method to load next page", () => {
+                return coll.listRecords({limit: 2})
+                  .then(res => res.next())
+                  .then(({data}) => data.map(record => record.n))
+                  .should.become([1]);
+              });
+
+              it("should resolve with an empty array on exhausted pagination", () => {
+                return coll.listRecords({limit: 2}) // 1st page of 2 records
+                  .then(res => res.next())          // 2nd page of 1 record
+                  .then(res => res.next())          // No next page
+                  .should.be.rejectedWith(Error, /Pagination exhausted./);
+              });
+
+              it("should retrieve all pages", () => {
+                // Note: Server has no limit by default, so here we get all the
+                // records.
+                return coll.listRecords()
+                  .then(({data}) => data.map(record => record.n))
+                  .should.become([3, 2, 1]);
+              });
+
+              it("should retrieve specified number of pages", () => {
+                return coll.listRecords({limit: 1, pages: 2})
+                  .then(({data}) => data.map(record => record.n))
+                  .should.become([3, 2]);
+              });
+
+              it("should allow fetching next page after last page if any", () => {
+                return coll.listRecords({limit: 1, pages: 1}) // 1 record
+                  .then(({data, next}) => next())             // 2 records
+                  .then(({data}) => data.map(record => record.n))
+                  .should.become([3, 2]);
+              });
+
+              it("should should retrieve all existing pages", () => {
+                return coll.listRecords({limit: 1, pages: Infinity})
+                  .then(({data}) => data.map(record => record.n))
+                  .should.become([3, 2, 1]);
               });
             });
           });
@@ -741,7 +839,7 @@ describe("Integration tests", () => {
                 batch.createRecord({title: "b"});
               })
                 .then(_ => coll.listRecords({sort: "title"}))
-                .then(records => records.map(record => record.title))
+                .then(({data}) => data.map(record => record.title))
                 .should.become(["a", "b"]);
             });
           });

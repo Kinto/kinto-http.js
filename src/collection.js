@@ -1,6 +1,4 @@
-import { stringify as qsify} from "querystring";
-
-import { omit, toDataBody } from "./utils";
+import { omit, toDataBody, qsify } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -262,20 +260,66 @@ export default class Collection {
    * - `{exclude_fieldname: "0,1"}`
    *
    * @see http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/resource.html#filtering
+   *
+   * Paginating is done by passing a `limit` option, then calling the `next()`
+   * method from the resolved result object to fetch the next page, if any.
+   *
    * @param  {Object}   options         The options object.
    * @param  {Object}   options.headers The headers object option.
    * @param  {Object}   options.filters The filters object.
    * @param  {String}   options.sort    The sort field.
-   * @return {Promise<Array<Object>, Error>}
+   * @param  {String}   options.limit   The limit field.
+   * @param  {String}   options.pages   The number of result pages to aggregate.
+   * @return {Promise<Object, Error>}
    */
   listRecords(options={}) {
-    const { sort, filters } = {sort: "-last_modified", ...options};
+    const { http } = this.client;
+    const { sort, filters, limit, pages } = {sort: "-last_modified", ...options};
+    const collHeaders = this.options.headers;
     const path = endpoint("records", this.bucket.name, this.name);
-    const querystring = qsify({...filters, _sort: sort});
+    const querystring = qsify({...filters, _sort: sort, _limit: limit});
+    let results = [];
+    let current = 0;
+
+    const next = function(nextPage) {
+      if (!nextPage) {
+        throw new Error("Pagination exhausted.");
+      }
+      return processNextPage(nextPage);
+    };
+
+    const processNextPage = (nextPage) => {
+      return http.request(nextPage, {headers: collHeaders})
+        .then(handleResponse);
+    };
+
+    const pageResults = (results, nextPage) => {
+      return {
+        data: results,
+        next: next.bind(null, nextPage)
+      };
+    };
+
+    const handleResponse = ({headers, json}) => {
+      const nextPage = headers.get("Next-Page");
+      if (!pages) {
+        return pageResults(json.data, nextPage);
+      }
+      // Aggregate new results with previous ones
+      results = results.concat(json.data);
+      current += 1;
+      if (current >= pages || !nextPage) {
+        // Pagination exhausted
+        return pageResults(results, nextPage);
+      }
+      // Follow next page
+      return processNextPage(nextPage);
+    };
+
     return this.client.execute({
       path: path + "?" + querystring,
       ...this._collOptions(options),
-    }).then(res => res.json && res.json.data);
+    }).then(handleResponse);
   }
 
   /**
