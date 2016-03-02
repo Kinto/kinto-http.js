@@ -91,7 +91,7 @@ export default class Bucket {
       path: endpoint("collections", this.name),
       headers: {...this.options.headers, ...options.headers}
     })
-      .then(res => res.json && res.json.data);
+      .then(res => res.json);
   }
 
   /**

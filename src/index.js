@@ -343,7 +343,7 @@ export default class KintoClient {
       path: endpoint("buckets"),
       headers: {...this.defaultReqOptions.headers, ...options.headers}
     })
-      .then(res => res.json && res.json.data);
+      .then(res => res.json);
   }
 
   /**

@@ -573,8 +573,12 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#listBuckets} */
   describe("#listBuckets()", () => {
+    const data = [{id: "a"}, {id: "b"}];
+
     beforeEach(() => {
-      sandbox.stub(api, "execute").returns(Promise.resolve());
+      sandbox.stub(api, "execute").returns(Promise.resolve({
+        json: {data}
+      }));
     });
 
     it("should execute expected request", () => {
@@ -592,6 +596,11 @@ describe("KintoClient", () => {
       sinon.assert.calledWithMatch(api.execute, {
         headers: {Foo: "Bar", Baz: "Qux"}
       });
+    });
+
+    it("should resolve with a result object", () => {
+      return api.listBuckets()
+        .should.eventually.have.property("data").eql(data);
     });
   });
 

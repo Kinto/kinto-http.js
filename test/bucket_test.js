@@ -120,7 +120,7 @@ describe("Bucket", () => {
 
     it("should return the list of collections", () => {
       return getBlogBucket().listCollections()
-        .should.become(data);
+        .should.eventually.have.property("data").eql(data);
     });
   });
 
