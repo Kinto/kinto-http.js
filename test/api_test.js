@@ -69,7 +69,7 @@ describe("KintoClient", () => {
     });
 
     it("should validate protocol version", () => {
-      expect(() => new KintoClient(`http://test/v999`))
+      expect(() => new KintoClient("http://test/v999"))
         .to.Throw(Error, /^Unsupported protocol version/);
     });
 
