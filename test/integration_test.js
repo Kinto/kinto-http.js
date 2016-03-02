@@ -112,7 +112,7 @@ describe("Integration tests", () => {
       it("should delete a bucket", () => {
         return api.deleteBucket("foo")
           .then(_ => api.listBuckets())
-          .then(buckets => buckets.map(bucket => bucket.id))
+          .then(({data}) => data.map(bucket => bucket.id))
           .should.eventually.not.include("foo");
       });
 
@@ -137,7 +137,7 @@ describe("Integration tests", () => {
 
       it("should retrieve the list of buckets", () => {
         return api.listBuckets()
-          .then(buckets => buckets.map(bucket => bucket.id))
+          .then(({data}) => data.map(bucket => bucket.id))
           .should.become(["b1", "b2"]);
       });
     });
@@ -393,7 +393,7 @@ describe("Integration tests", () => {
       describe(".listCollections()", () => {
         it("should list existing collections", () => {
           return bucket.listCollections()
-            .then(colls => colls.map(coll => coll.id))
+            .then(({data}) => data.map(coll => coll.id))
             .should.become(["b1", "b2"]);
         });
       });
@@ -429,7 +429,7 @@ describe("Integration tests", () => {
         it("should create a named collection", () => {
           return bucket.createCollection("foo")
             .then(_ => bucket.listCollections())
-            .then(colls => colls.map(coll => coll.id))
+            .then(({data}) => data.map(coll => coll.id))
             .should.eventually.include("foo");
         });
 
@@ -439,7 +439,7 @@ describe("Integration tests", () => {
           return bucket.createCollection()
             .then(res => generated = res.data.id)
             .then(_ => bucket.listCollections())
-            .then(c => expect(c.some(x => x.id === generated)).eql(true));
+            .then(({data}) => expect(data.some(x => x.id === generated)).eql(true));
         });
 
         describe("Safe option", () => {
@@ -488,7 +488,7 @@ describe("Integration tests", () => {
           return bucket.createCollection("foo")
             .then(_ => bucket.deleteCollection("foo"))
             .then(_ => bucket.listCollections())
-            .then(colls => colls.map(coll => coll.id))
+            .then(({data}) => data.map(coll => coll.id))
             .should.eventually.not.include("foo");
         });
 
