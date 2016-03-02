@@ -194,7 +194,7 @@ describe("batch module", () => {
     });
 
     describe("Heterogeneous combinations", () => {
-      let _requests, responses, results;
+      let _requests, results;
 
       beforeEach(() => {
         _requests = [
@@ -203,7 +203,7 @@ describe("batch module", () => {
           requests.createRecord("foo", {id: 3}),
           requests.createRecord("foo", {id: 4}),
         ];
-        responses = [
+        const responses = [
           {status: 500, path: "path1", body: {err: 1}},
           {status: 200, body: {data: {foo: "bar"}}},
           {status: 404, body: {data: {missing: true}}},

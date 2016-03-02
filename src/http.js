@@ -81,12 +81,12 @@ export default class HTTP {
    * @return {Promise}
    */
   request(url, options={headers:{}}) {
-    let response, status, statusText, headers, _timeoutId, hasTimedout;
+    let response, status, statusText, headers, hasTimedout;
     // Ensure default request headers are always set
     options.headers = Object.assign({}, HTTP.DEFAULT_REQUEST_HEADERS, options.headers);
     options.mode = this.requestMode;
     return new Promise((resolve, reject) => {
-      _timeoutId = setTimeout(() => {
+      const _timeoutId = setTimeout(() => {
         hasTimedout = true;
         reject(new Error("Request timeout."));
       }, this.timeout);

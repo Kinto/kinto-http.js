@@ -3,9 +3,9 @@
  * @type {Object}
  */
 const ENDPOINTS = {
-  root:                   () => `/`,
-  batch:                  () => `/batch`,
-  buckets:                () => `/buckets`,
+  root:                   () => "/",
+  batch:                  () => "/batch",
+  buckets:                () => "/buckets",
   bucket:           (bucket) => `/buckets/${bucket}`,
   collections:      (bucket) => `${ENDPOINTS.bucket(bucket)}/collections`,
   collection: (bucket, coll) => `${ENDPOINTS.bucket(bucket)}/collections/${coll}`,
