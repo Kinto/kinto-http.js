@@ -7,11 +7,37 @@ A JavaScript HTTP Client for the [Kinto](http://kinto-storage.org/) API.
 
 Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-client/).
 
-Public CDN files:
+## Installation
+
+In the browser, you can load prebuilt scripts hosted on npmcdn:
 
 - [kinto-client.js](https://npmcdn.com/kinto-client/dist/kinto-client.js)
 - [kinto-client.min.js](https://npmcdn.com/kinto-client/dist/kinto-client.min.js)
 - [kinto-client.noshim.js](https://npmcdn.com/kinto-client/dist/kinto-client.noshim.js)
+
+```html
+<script src="http://npmcdn.com/kinto-client@0.2.3/dist/kinto-client.min.js"></script>
+```
+
+In nodejs:
+
+```
+$ npm install kinto-client --save
+```
+
+Then (ES6):
+
+```js
+import KintoClient from "kinto-client";
+```
+
+Or (ES5):
+
+```js
+var KintoClient = require("kinto-client").default;
+```
+
+Note that this HTTP client can be transparently used server side or in a regular browser page.
 
 ## Usage
 
