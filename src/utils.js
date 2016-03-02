@@ -1,3 +1,5 @@
+import { stringify as toQuerystring } from "querystring";
+
 /**
  * Returns the specified string with double quotes.
  *
@@ -94,4 +96,15 @@ export function toDataBody(value) {
     return {id: value};
   }
   throw new Error("Invalid collection argument.");
+}
+
+/**
+ * Transforms an object into an URL query string, stripping out any undefined
+ * values.
+ *
+ * @param  {Object} obj
+ * @return {String}
+ */
+export function qsify(obj) {
+  return toQuerystring(JSON.parse(JSON.stringify(obj)));
 }

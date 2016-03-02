@@ -602,22 +602,26 @@ client.bucket("blog").collection("posts")
 Sample result:
 
 ```js
-[
-  {
-    "content": "True.",
-    "last_modified": 1456183930780,
-    "id": "a89dd4b2-d597-4192-bc2b-834116244d29",
-    "title": "I love cheese"
-  },
-  {
-    "content": "Yo",
-    "last_modified": 1456183914275,
-    "id": "63c1805a-565a-46cc-bfb3-007dfad54065",
-    "title": "Another post"
-  }
-]
-
+{
+  next: <Function>,
+  data: [
+    {
+      "content": "True.",
+      "last_modified": 1456183930780,
+      "id": "a89dd4b2-d597-4192-bc2b-834116244d29",
+      "title": "I love cheese"
+    },
+    {
+      "content": "Yo",
+      "last_modified": 1456183914275,
+      "id": "63c1805a-565a-46cc-bfb3-007dfad54065",
+      "title": "Another post"
+    }
+  ]
+}
 ```
+
+#### Sorting
 
 By default, records are listed by `last_modified` descending order. You can set the `sort` option to order by another field:
 
@@ -627,9 +631,58 @@ client.bucket("blog").collection("posts")
   .then(result => ...);
 ```
 
+#### Pagination
+
+By default, all records returned by the server are retrieved. To specify a max number of records to retrieve, you can use the `limit` option:
+
+```js
+client.bucket("blog").collection("posts")
+  .listRecords({limit: 20})
+  .then(result => ...);
+```
+
+To retrieve the next page of records, just call `next()` from the result object obtained. If no next page is available, `next()` throws an error you can catch to exit the flow:
+
+```js
+let getNextPage;
+
+client.bucket("blog").collection("posts")
+  .listRecords({limit: 20})
+  .then(({data, next}) => {
+    console.log("Page 1", data);
+    getNextPage = next;
+  });
+```
+
+Later down the flow:
+
+```js
+getNextPage()
+  .then(({data, next}) => {
+    console.log("Page 2", data);
+  })
+  .catch(_ => {
+    console.log("No more pages.");
+  });
+```
+
+Last, if you just want to retrieve and aggregate a given number of result pages, instead of dealing with calling `next()` recursively you can simply specify the `pages` option:
+
+```js
+client.bucket("blog").collection("posts")
+  .listRecords({limit: 20, pages: 3})
+  .then(({data, next}) => ...); // A maximum of 60 records will be retrieved here
+```
+
+> ##### Notes
+>
+> If you plan on fetching all the available pages, you can set the `pages` option to `Infinity`. Be aware that for large datasets this strategy can possibly issue an important amount of HTTP requests.
+
 #### Options
 
 - `sort`: The order field (default: `-last_modified`);
+- `pages`: The number of result pages to retrieve (default: `1`);
+- `limit`: The number of records to retrieve per page: unset by default, uses default server configuration;
 - `filters`: An object defining the filters to apply; read more about [what's supported](http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/resource.html#filtering);
 - `headers`: Custom headers object to send along the HTTP request;
 - `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);

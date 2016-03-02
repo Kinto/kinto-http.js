@@ -396,36 +396,53 @@ describe("Collection", () => {
 
   /** @test {Collection#listRecords} */
   describe("#listRecords()", () => {
-    beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: [{a: 1}]}
-      }));
-    });
+    let headersgetSpy;
 
-    it("should execute expected request", () => {
-      coll.listRecords();
-
-      sinon.assert.calledWithMatch(client.execute, {
-        path: "/buckets/blog/collections/posts/records?_sort=-last_modified",
-        headers: {Foo: "Bar", Baz: "Qux"},
+    describe("No pagination", () => {
+      beforeEach(() => {
+        sandbox.stub(client, "execute").returns(Promise.resolve({
+          json: {data: [{a: 1}]},
+          headers: {get: () => {}}
+        }));
       });
-    });
 
-    it("should sort records", () => {
-      coll.listRecords({sort: "title"});
+      it("should execute expected request", () => {
+        coll.listRecords();
 
-      sinon.assert.calledWithMatch(client.execute, {
-        path: "/buckets/blog/collections/posts/records?_sort=title",
-        headers: {Foo: "Bar", Baz: "Qux"},
+        sinon.assert.calledWithMatch(client.execute, {
+          path: "/buckets/blog/collections/posts/records?_sort=-last_modified",
+          headers: {Foo: "Bar", Baz: "Qux"},
+        });
       });
-    });
 
-    it("should resolve with records list", () => {
-      return coll.listRecords()
-        .should.become([{a: 1}]);
+      it("should sort records", () => {
+        coll.listRecords({sort: "title"});
+
+        sinon.assert.calledWithMatch(client.execute, {
+          path: "/buckets/blog/collections/posts/records?_sort=title",
+          headers: {Foo: "Bar", Baz: "Qux"},
+        });
+      });
+
+      it("should resolve with records list", () => {
+        return coll.listRecords()
+          .should.eventually.have.property("data").eql([{a: 1}]);
+      });
+
+      it("should resolve with a next() function", () => {
+        return coll.listRecords()
+          .should.eventually.have.property("next").to.be.a("function");
+      });
     });
 
     describe("Filtering", () => {
+      beforeEach(() => {
+        sandbox.stub(client, "execute").returns(Promise.resolve({
+          json: {data: []},
+          headers: {get: () => {}}
+        }));
+      });
+
       it("should generate the expected filtering query string", () => {
         coll.listRecords({sort: "x", filters: {min_y: 2, not_z: 3}});
 
@@ -444,6 +461,57 @@ describe("Collection", () => {
           path: "/buckets/blog/collections/posts/records?" + expectedQS,
           headers: {Foo: "Bar", Baz: "Qux"},
         });
+      });
+    });
+
+    describe("Pagination", () => {
+      it("should issue a request with the specified limit applied", () => {
+        sandbox.stub(client, "execute").returns(Promise.resolve({
+          json: {data: []},
+          headers: {get: headersgetSpy}
+        }));
+
+        coll.listRecords({limit: 2});
+
+        const expectedQS = "_sort=-last_modified&_limit=2";
+        sinon.assert.calledWithMatch(client.execute, {
+          path: "/buckets/blog/collections/posts/records?" + expectedQS,
+          headers: {Foo: "Bar", Baz: "Qux"},
+        });
+      });
+
+      it("should query for next page", () => {
+        const { http } = coll.client;
+        headersgetSpy = sandbox.stub().returns("http://next-page/");
+        sandbox.stub(client, "execute").returns(Promise.resolve({
+          json: {data: []},
+          headers: {get: headersgetSpy}
+        }));
+        sandbox.stub(http, "request").returns(Promise.resolve({
+          headers: {get: () => {}},
+          json: {data: []}
+        }));
+
+        return coll.listRecords({limit: 2, pages: 2})
+          .then(_ => {
+            sinon.assert.calledWith(http.request, "http://next-page/");
+          });
+      });
+
+      it("should aggregate paginated results", () => {
+        const { http } = coll.client;
+        sandbox.stub(http, "request")
+          .onFirstCall().returns(Promise.resolve({
+            headers: {get: () => "http://next-page/"},
+            json: {data: [1, 2]}
+          }))
+          .onSecondCall().returns(Promise.resolve({
+            headers: {get: () => {}},
+            json: {data: [3]}
+          }));
+
+        return coll.listRecords({limit: 2, pages: 2})
+          .should.eventually.have.property("data").eql([1, 2, 3]);
       });
     });
   });

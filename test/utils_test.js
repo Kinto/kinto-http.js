@@ -2,7 +2,7 @@
 
 import chai, { expect } from "chai";
 
-import { quote, unquote, partition, pMap, omit } from "../src/utils";
+import { quote, unquote, partition, pMap, omit, qsify } from "../src/utils";
 
 chai.should();
 chai.config.includeStack = true;
@@ -79,6 +79,7 @@ describe("Utils", () => {
     });
   });
 
+  /** @test {omit} */
   describe("#omit", () => {
     it("should omit provided a single key", () => {
       expect(omit({a: 1, b: 2}, "a")).eql({b: 2});
@@ -90,6 +91,17 @@ describe("Utils", () => {
 
     it("should return source if no key is specified", () => {
       expect(omit({a: 1, b: 2})).eql({a: 1, b: 2});
+    });
+  });
+
+  /** @test {qsify} */
+  describe("#qsify", () => {
+    it("should generate a query string from an object", () => {
+      expect(qsify({a: 1, b: 2})).eql("a=1&b=2");
+    });
+
+    it("should strip out undefined values", () => {
+      expect(qsify({a: undefined, b: 2})).eql("b=2");
     });
   });
 });
