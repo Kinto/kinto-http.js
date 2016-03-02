@@ -18,8 +18,7 @@ const TEST_KINTO_SERVER = "http://0.0.0.0:8888/v1";
 describe("Integration tests", () => {
   let sandbox, server, api;
 
-  before(function() {
-    this.timeout(20000);
+  before(() => {
     server = new KintoServer(TEST_KINTO_SERVER);
   });
 
@@ -43,9 +42,8 @@ describe("Integration tests", () => {
   afterEach(() => sandbox.restore());
 
   describe("Default server configuration", () => {
-    before(function() {
-      this.timeout(20000);
-      server.start();
+    before(() => {
+      return server.start();
     });
 
     after(() => server.stop());
@@ -234,9 +232,8 @@ describe("Integration tests", () => {
   });
 
   describe("Flushed server", function() {
-    before(function() {
-      this.timeout(20000);
-      server.start();
+    before(() => {
+      return server.start();
     });
 
     after(() => server.stop());
@@ -252,9 +249,8 @@ describe("Integration tests", () => {
   describe("Backed off server", () => {
     const backoffSeconds = 10;
 
-    before(function() {
-      this.timeout(20000);
-      server.start({CLIQUET_BACKOFF: backoffSeconds});
+    before(() => {
+      return server.start({CLIQUET_BACKOFF: backoffSeconds});
     });
 
     after(() => server.stop());
@@ -315,9 +311,8 @@ describe("Integration tests", () => {
   });
 
   describe("Chainable API", () => {
-    before(function() {
-      this.timeout(20000);
-      server.start();
+    before(() => {
+      return server.start();
     });
 
     after(() => server.stop());
