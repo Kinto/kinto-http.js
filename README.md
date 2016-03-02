@@ -16,7 +16,7 @@ In the browser, you can load prebuilt scripts hosted on npmcdn:
 - [kinto-client.noshim.js](https://npmcdn.com/kinto-client/dist/kinto-client.noshim.js)
 
 ```html
-<script src="http://npmcdn.com/kinto-client@0.2.3/dist/kinto-client.min.js"></script>
+<script src="https://npmcdn.com/kinto-client/dist/kinto-client.min.js"></script>
 ```
 
 In nodejs:
