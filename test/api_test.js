@@ -4,7 +4,6 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { EventEmitter } from "events";
-import { quote } from "../src/utils";
 import { fakeServerResponse } from "./test_utils.js";
 import KintoClient, { SUPPORTED_PROTOCOL_VERSION as SPV } from "../src";
 import * as requests from "../src/requests";
@@ -108,14 +107,14 @@ describe("KintoClient", () => {
       sandbox.stub(root, "fetch").returns(
         fakeServerResponse(200, {}, {Backoff: "1000"}));
 
-      return api.fetchChangesSince()
+      return api.listBuckets()
         .then(_ => expect(api.backoff).eql(1000000));
     });
 
     it("should provide no remaining backoff time when none is set", () => {
       sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {}, {}));
 
-      return api.fetchChangesSince()
+      return api.listBuckets()
         .then(_ => expect(api.backoff).eql(0));
     });
   });
@@ -159,109 +158,6 @@ describe("KintoClient", () => {
 
       api.fetchServerSettings();
       sinon.assert.notCalled(fetch);
-    });
-  });
-
-  /** @test {KintoClient#fetchChangesSince} */
-  describe("#fetchChangesSince", () => {
-    it("should fetch server settings", () => {
-      sandbox.stub(api, "fetchServerSettings")
-        .returns(Promise.resolve({foo: 42}));
-
-      api.fetchChangesSince("blog", "articles");
-
-      sinon.assert.calledOnce(api.fetchServerSettings);
-    });
-
-    describe("Request", () => {
-      beforeEach(() => {
-        sandbox.stub(root, "fetch")
-          // fetch server Settings
-          .onFirstCall().returns(fakeServerResponse(200, {}, {}))
-          // fetch latest changes
-          .onSecondCall().returns(fakeServerResponse(200, {data: []}, {}));
-      });
-
-      it("should merge instance option headers", () => {
-        api.defaultReqOptions.headers = {Foo: "Bar"};
-        return api.fetchChangesSince("blog", "articles", {lastModified: 42})
-          .then(_ => expect(fetch.secondCall.args[1].headers.Foo).eql("Bar"));
-      });
-
-      it("should request server changes since last modified", () =>{
-        return api.fetchChangesSince("blog", "articles", {lastModified: 42})
-          .then(_ => expect(fetch.secondCall.args[0]).to.match(/\?_since=42/));
-      });
-
-      it("should attach an If-None-Match header if lastModified is provided", () =>{
-        return api.fetchChangesSince("blog", "articles", {lastModified: 42})
-          .then(_ => expect(fetch.secondCall.args[1].headers["If-None-Match"]).eql(quote(42)));
-      });
-
-      it("should merge provided headers with default ones", () => {
-        const options = {lastModified: 42, headers: {Foo: "bar"}};
-        return api.fetchChangesSince("blog", "articles", options)
-          .then(_ => expect(fetch.secondCall.args[1].headers).eql({
-            "Foo": "bar",
-            "Accept": "application/json",
-            "Content-Type": "application/json",
-            "If-None-Match": quote(42),
-          }));
-      });
-    });
-
-    describe("Response", () => {
-      it("should resolve with a result object", () => {
-        sandbox.stub(root, "fetch").returns(
-          fakeServerResponse(200, {data: []}, {"ETag": quote(41)}));
-
-        return api.fetchChangesSince("blog", "articles", { lastModified: 42 })
-          .should.eventually.become({
-            lastModified: 41,
-            changes: []
-          });
-      });
-
-      it("should resolve with no changes if HTTP 304 is received", () => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(304, {}));
-
-        return api.fetchChangesSince("blog", "articles", {lastModified: 42})
-          .should.eventually.become({lastModified: 42, changes: []});
-      });
-
-      it("should reject on any HTTP status >= 400", () => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(401, {}));
-
-        return api.fetchChangesSince("blog", "articles")
-          .should.eventually.be.rejectedWith(Error, /HTTP 401/);
-      });
-
-      it("should reject with detailed error message", () => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(401, {
-          errno: 105
-        }));
-
-        return api.fetchChangesSince("blog", "articles")
-          .should.eventually.be.rejectedWith(Error, /HTTP 401(.*)Invalid Authorization Token/);
-      });
-
-      it("should expose json response body to err object on rejection", () => {
-        const response = {errno: 105, message: "Dude."};
-
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(401, response));
-
-        return api.fetchChangesSince("blog", "articles")
-          .catch(err => err.data)
-          .should.eventually.become(response);
-      });
-
-      it("should reject on server flushed", () => {
-        sandbox.stub(root, "fetch").returns(
-          fakeServerResponse(200, {data: []}, {ETag: quote(43)}));
-
-        return api.fetchChangesSince("blog", "articles", {lastModified: 42})
-          .should.be.rejectedWith(Error, /Server has been flushed/);
-      });
     });
   });
 

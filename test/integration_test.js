@@ -232,21 +232,6 @@ describe("Integration tests", () => {
     });
   });
 
-  describe("Flushed server", function() {
-    before(() => {
-      return server.start();
-    });
-
-    after(() => server.stop());
-
-    beforeEach(() => server.flush());
-
-    it("should reject calls when a server flush is detected", () => {
-      return api.fetchChangesSince("default", "tasks", {lastModified: 1})
-        .should.be.rejectedWith(Error, "Server has been flushed");
-    });
-  });
-
   describe("Backed off server", () => {
     const backoffSeconds = 10;
 
@@ -260,7 +245,7 @@ describe("Integration tests", () => {
 
     it("should appropriately populate the backoff property", () => {
       // Issuing a first api call to retrieve backoff information
-      return api.fetchChangesSince("default", "tasks")
+      return api.listBuckets()
         .then(() => expect(Math.round(api.backoff / 1000)).eql(backoffSeconds));
     });
   });
@@ -765,6 +750,35 @@ describe("Integration tests", () => {
                 return coll.listRecords({filters: {name: "rené"}})
                   .then(({data}) => data.map(record => record.name))
                   .should.become(["rené"]);
+              });
+
+              it("should resolve with collection last_modified value", () => {
+                return coll.listRecords()
+                  .should.eventually.have.property("last_modified")
+                                    .to.be.a("string");
+              });
+            });
+
+            describe("Changes", () => {
+              let ts1, ts2;
+
+              beforeEach(() => {
+                return coll.listRecords()
+                  .then(({last_modified}) => ts1 = last_modified)
+                  .then(_ => coll.createRecord({n: 1}))
+                  .then(_ => coll.listRecords())
+                  .then(({last_modified}) => ts2 = last_modified)
+                  .then(_ => coll.createRecord({n: 2}));
+              });
+
+              it("should retrieve all records modified since provided timestamp", () => {
+                return coll.listRecords({since: ts1})
+                  .should.eventually.have.property("data").to.have.length.of(2);
+              });
+
+              it("should only list changes made after the provided timestamp", () => {
+                return coll.listRecords({since: ts2})
+                  .should.eventually.have.property("data").to.have.length.of(1);
               });
             });
 

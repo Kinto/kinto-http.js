@@ -3,7 +3,7 @@
 import "isomorphic-fetch";
 import { EventEmitter } from "events";
 
-import { quote, unquote, partition, pMap, omit } from "./utils.js";
+import { partition, pMap, omit } from "./utils.js";
 import HTTP from "./http.js";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
@@ -204,55 +204,6 @@ export default class KintoClient {
       .then(res => {
         this.serverSettings = res.json.settings;
         return this.serverSettings;
-      });
-  }
-
-  /**
-   * Fetches latest changes from the remote server.
-   *
-   * @param  {String} bucketName  The bucket name.
-   * @param  {String} collName    The collection name.
-   * @param  {Object} options     The options object.
-   * @param  {Boolean} options.safe    The safe option.
-   * @param  {String}  options.bucket  The bucket name option.
-   * @param  {Object}  options.headers The headers object option.
-   * @return {Promise}
-   */
-  fetchChangesSince(bucketName, collName, options={lastModified: null, headers: {}}) {
-    const recordsUrl = endpoint("records", bucketName, collName);
-    let queryString = "";
-    const headers = {...this.defaultReqOptions.headers, ...options.headers};
-
-    if (options.lastModified) {
-      queryString = "?_since=" + options.lastModified;
-      headers["If-None-Match"] = quote(options.lastModified);
-    }
-
-    return this.fetchServerSettings()
-      .then(_ => this.execute({path: recordsUrl + queryString, headers}))
-      .then(res => {
-        // If HTTP 304, nothing has changed
-        if (res.status === 304) {
-          return {
-            lastModified: options.lastModified,
-            changes: []
-          };
-        }
-        // XXX: ETag are supposed to be opaque and stored «as-is».
-        // Extract response data
-        let etag = res.headers.get("ETag");  // e.g. '"42"'
-        etag = etag ? parseInt(unquote(etag), 10) : options.lastModified;
-        const records = res.json.data;
-
-        // Check if server was flushed
-        const localSynced = options.lastModified;
-        const serverChanged = etag > options.lastModified;
-        const emptyCollection = records ? records.length === 0 : true;
-        if (localSynced && serverChanged && emptyCollection) {
-          throw Error("Server has been flushed.");
-        }
-
-        return {lastModified: etag, changes: records};
       });
   }
 

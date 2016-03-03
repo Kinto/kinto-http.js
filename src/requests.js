@@ -1,5 +1,4 @@
 import endpoint from "./endpoint";
-import { quote } from "./utils.js";
 
 
 const requestDefaults = {
@@ -23,7 +22,7 @@ function concurrencyCheck(safe, last_modified) {
   if (!last_modified) {
     throw new Error("Safe concurrency check requires a last_modified value.");
   }
-  return {"If-Match": quote(last_modified)};
+  return {"If-Match": `"${last_modified}"`};
 }
 
 /**
