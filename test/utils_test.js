@@ -2,33 +2,12 @@
 
 import chai, { expect } from "chai";
 
-import { quote, unquote, partition, pMap, omit, qsify } from "../src/utils";
+import { partition, pMap, omit, qsify } from "../src/utils";
 
 chai.should();
 chai.config.includeStack = true;
 
 describe("Utils", () => {
-  /** @test {quote} */
-  describe("#quote", () => {
-    it("should add quotes to provided string", () => {
-      const quoted = quote("42");
-      expect(quoted).eql("\"42\"");
-    });
-  });
-
-  /** @test {unquote} */
-  describe("#unquote", () => {
-    it("should remove quotes to provided string", () => {
-      const unquoted = unquote("\"42\"");
-      expect(unquoted).eql("42");
-    });
-
-    it("should return the same string is not quoted", () => {
-      const unquoted = unquote("42");
-      expect(unquoted).eql("42");
-    });
-  });
-
   /** @test {partition} */
   describe("#partition", () => {
     it("should chunk array", () => {

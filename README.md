@@ -634,6 +634,7 @@ Sample result:
 
 ```js
 {
+  last_modified: "\"1456183930780\"",
   next: <Function>,
   data: [
     {
@@ -652,6 +653,8 @@ Sample result:
 }
 ```
 
+Note the root `last_modified` value which is the [collection's timestamp](http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/timestamps.html). This value is opaque and should be reused as is, eg. passing it as a `since` option (see the *Options* section below).
+
 #### Sorting
 
 By default, records are listed by `last_modified` descending order. You can set the `sort` option to order by another field:
@@ -659,7 +662,17 @@ By default, records are listed by `last_modified` descending order. You can set 
 ```js
 client.bucket("blog").collection("posts")
   .listRecords({sort: "title"})
-  .then(result => ...);
+  .then(({data, next}) => {
+```
+
+#### Polling for changes
+
+To retrieve the list of records modified since a given timestamp, use the `since` option:
+
+```js
+client.bucket("blog").collection("posts")
+  .listRecords({since: "\"1456183930780\""})
+  .then(({data, next}) => {
 ```
 
 #### Pagination
@@ -669,7 +682,7 @@ By default, all records returned by the server are retrieved. To specify a max n
 ```js
 client.bucket("blog").collection("posts")
   .listRecords({limit: 20})
-  .then(result => ...);
+  .then(({data, next}) => {
 ```
 
 To retrieve the next page of records, just call `next()` from the result object obtained. If no next page is available, `next()` throws an error you can catch to exit the flow:
@@ -717,7 +730,7 @@ client.bucket("blog").collection("posts")
 - `filters`: An object defining the filters to apply; read more about [what's supported](http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/resource.html#filtering);
 - `headers`: Custom headers object to send along the HTTP request;
 - `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
-- `last_modified`: The last timestamp we know the resource has been updated on the server.
+- `since`: The ETag header value received from the last response from the server.
 
 ### Batching operations
 

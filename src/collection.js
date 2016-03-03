@@ -270,16 +270,25 @@ export default class Collection {
    * @param  {String}   options.sort    The sort field.
    * @param  {String}   options.limit   The limit field.
    * @param  {String}   options.pages   The number of result pages to aggregate.
+   * @param  {Number}   options.since   Only retrieve records modified since the
+   * provided timestamp.
    * @return {Promise<Object, Error>}
    */
   listRecords(options={}) {
     const { http } = this.client;
-    const { sort, filters, limit, pages } = {sort: "-last_modified", ...options};
+    const { sort, filters, limit, pages, since } = {
+      sort: "-last_modified",
+      ...options
+    };
     const collHeaders = this.options.headers;
     const path = endpoint("records", this.bucket.name, this.name);
-    const querystring = qsify({...filters, _sort: sort, _limit: limit});
-    let results = [];
-    let current = 0;
+    const querystring = qsify({
+      ...filters,
+      _sort: sort,
+      _limit: limit,
+      _since: since,
+    });
+    let results = [], current = 0;
 
     const next = function(nextPage) {
       if (!nextPage) {
@@ -293,8 +302,9 @@ export default class Collection {
         .then(handleResponse);
     };
 
-    const pageResults = (results, nextPage) => {
+    const pageResults = (results, nextPage, etag) => {
       return {
+        last_modified: etag,
         data: results,
         next: next.bind(null, nextPage)
       };
@@ -302,15 +312,17 @@ export default class Collection {
 
     const handleResponse = ({headers, json}) => {
       const nextPage = headers.get("Next-Page");
+      // ETag are supposed to be opaque and stored «as-is».
+      const etag = headers.get("ETag");
       if (!pages) {
-        return pageResults(json.data, nextPage);
+        return pageResults(json.data, nextPage, etag);
       }
       // Aggregate new results with previous ones
       results = results.concat(json.data);
       current += 1;
       if (current >= pages || !nextPage) {
         // Pagination exhausted
-        return pageResults(results, nextPage);
+        return pageResults(results, nextPage, etag);
       }
       // Follow next page
       return processNextPage(nextPage);

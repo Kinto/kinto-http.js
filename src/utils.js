@@ -1,28 +1,6 @@
 import { stringify as toQuerystring } from "querystring";
 
 /**
- * Returns the specified string with double quotes.
- *
- * @private
- * @param  {String} str  A string to quote.
- * @return {String}
- */
-export function quote(str) {
-  return `"${str}"`;
-}
-
-/**
- * Trim double quotes from specified string.
- *
- * @private
- * @param  {String} str  A string to unquote.
- * @return {String}
- */
-export function unquote(str) {
-  return str.replace(/^"/, "").replace(/"$/, "");
-}
-
-/**
  * Chunks an array into n pieces.
  *
  * @private

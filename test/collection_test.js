@@ -397,12 +397,19 @@ describe("Collection", () => {
   /** @test {Collection#listRecords} */
   describe("#listRecords()", () => {
     let headersgetSpy;
+    const ETag = "\"42\"";
 
     describe("No pagination", () => {
       beforeEach(() => {
         sandbox.stub(client, "execute").returns(Promise.resolve({
           json: {data: [{a: 1}]},
-          headers: {get: () => {}}
+          headers: {
+            get: (name) => {
+              if (name === "ETag") {
+                return ETag;
+              }
+            }
+          }
         }));
       });
 
@@ -432,6 +439,20 @@ describe("Collection", () => {
       it("should resolve with a next() function", () => {
         return coll.listRecords()
           .should.eventually.have.property("next").to.be.a("function");
+      });
+
+      it("should support the since option", () => {
+        coll.listRecords({since: ETag});
+
+        const qs = "_sort=-last_modified&_since=%2242%22";
+        sinon.assert.calledWithMatch(client.execute, {
+          path: "/buckets/blog/collections/posts/records?" + qs,
+        });
+      });
+
+      it("should resolve with the collection last_modified cast as int value", () => {
+        return coll.listRecords()
+          .should.eventually.have.property("last_modified").eql(ETag);
       });
     });
 
