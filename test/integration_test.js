@@ -15,8 +15,11 @@ chai.config.includeStack = true;
 
 const TEST_KINTO_SERVER = "http://0.0.0.0:8888/v1";
 
-describe("Integration tests", () => {
+describe("Integration tests", function() {
   let sandbox, server, api;
+
+  // Disabling test timeouts until pserve gets decent startup time.
+  this.timeout(0);
 
   before(() => {
     server = new KintoServer(TEST_KINTO_SERVER);
@@ -620,21 +623,37 @@ describe("Integration tests", () => {
           });
 
           describe(".createRecord()", () => {
-            it("should create a record", () => {
-              return coll
-                .createRecord({title: "foo"})
-                .should.eventually.have.property("data")
-                    .to.have.property("title").eql("foo");
+            describe("No record id provided", () => {
+              it("should create a record", () => {
+                return coll
+                  .createRecord({title: "foo"})
+                  .should.eventually.have.property("data")
+                      .to.have.property("title").eql("foo");
+              });
+
+              describe("Safe option", () => {
+                it("should check for existing record", () => {
+                  return coll.createRecord({title: "foo"})
+                    .then(({data}) => coll.createRecord({
+                      id: data.id,
+                      title: "foo"
+                    }, {safe: true}))
+                    .should.be.rejectedWith(Error, /412 Precondition Failed/);
+                });
+              });
             });
 
-            describe("Safe option", () => {
-              it("should check for existing record", () => {
-                return coll.createRecord({title: "foo"})
-                  .then(({data}) => coll.createRecord({
-                    id: data.id,
-                    title: "foo"
-                  }, {safe: true}))
-                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+            describe("Record id provided", () => {
+              const record = {
+                id: "37f727ed-c8c4-461b-80ac-de874992165c",
+                title: "foo"
+              };
+
+              it("should create a record", () => {
+                return coll
+                  .createRecord(record)
+                  .should.eventually.have.property("data")
+                      .to.have.property("title").eql("foo");
               });
             });
           });

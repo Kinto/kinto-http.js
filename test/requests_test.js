@@ -293,46 +293,89 @@ describe("requests module", () => {
   });
 
   describe("createRecord()", () => {
-    const record = {title: "foo"};
-
     it("should throw if collName is missing", () => {
       expect(() => requests.createRecord())
         .to.Throw(Error, /required/);
     });
 
-    it("should return a record creation request", () => {
-      expect(requests.createRecord("foo", record)).eql({
-        body: {
-          permissions: {},
-          data: record
-        },
-        headers: {},
-        method: "POST",
-        path: "/buckets/default/collections/foo/records",
+    describe("No record id provided", () => {
+      const record = {title: "foo"};
+
+      it("should return a record creation request", () => {
+        expect(requests.createRecord("foo", record)).eql({
+          body: {
+            permissions: {},
+            data: record
+          },
+          headers: {},
+          method: "POST",
+          path: "/buckets/default/collections/foo/records",
+        });
+      });
+
+      it("should accept a bucket option", () => {
+        expect(requests.createRecord("foo", record, {bucket: "custom"}))
+          .to.have.property("path")
+          .eql("/buckets/custom/collections/foo/records");
+      });
+
+      it("should accept a headers option", () => {
+        expect(requests.createRecord("foo", record, {headers: {Foo: "Bar"}}))
+          .to.have.property("headers").eql({Foo: "Bar"});
+      });
+
+      it("should accept a permissions option", () => {
+        const permissions = {read: ["github:n1k0"]};
+        expect(requests.createRecord("foo", record, {permissions}))
+          .to.have.property("body")
+          .to.have.property("permissions").eql(permissions);
+      });
+
+      it("should support a safe option", () => {
+        expect(requests.createRecord("foo", record, {safe: true}))
+          .to.have.property("headers")
+          .to.have.property("If-None-Match").eql("*");
       });
     });
 
-    it("should accept a bucket option", () => {
-      expect(requests.createRecord("foo", record, {bucket: "custom"}))
-        .to.have.property("path").eql("/buckets/custom/collections/foo/records");
-    });
+    describe("Record id provided", () => {
+      const record = {id: "37f727ed-c8c4-461b-80ac-de874992165c", title: "foo"};
 
-    it("should accept a headers option", () => {
-      expect(requests.createRecord("foo", record, {headers: {Foo: "Bar"}}))
-        .to.have.property("headers").eql({Foo: "Bar"});
-    });
+      it("should return a record creation request", () => {
+        expect(requests.createRecord("foo", record)).eql({
+          body: {
+            permissions: {},
+            data: record
+          },
+          headers: {},
+          method: "PUT",
+          path: `/buckets/default/collections/foo/records/${record.id}`,
+        });
+      });
 
-    it("should accept a permissions option", () => {
-      const permissions = {read: ["github:n1k0"]};
-      expect(requests.createRecord("foo", record, {permissions}))
-        .to.have.property("body")
-        .to.have.property("permissions").eql(permissions);
-    });
+      it("should accept a bucket option", () => {
+        expect(requests.createRecord("foo", record, {bucket: "custom"}))
+          .to.have.property("path")
+          .eql(`/buckets/custom/collections/foo/records/${record.id}`);
+      });
 
-    it("should support a safe option", () => {
-      expect(requests.createRecord("foo", record, {safe: true}))
-        .to.have.property("headers")
-        .to.have.property("If-None-Match").eql("*");
+      it("should accept a headers option", () => {
+        expect(requests.createRecord("foo", record, {headers: {Foo: "Bar"}}))
+          .to.have.property("headers").eql({Foo: "Bar"});
+      });
+
+      it("should accept a permissions option", () => {
+        const permissions = {read: ["github:n1k0"]};
+        expect(requests.createRecord("foo", record, {permissions}))
+          .to.have.property("body")
+          .to.have.property("permissions").eql(permissions);
+      });
+
+      it("should support a safe option", () => {
+        expect(requests.createRecord("foo", record, {safe: true}))
+          .to.have.property("headers")
+          .to.have.property("If-None-Match").eql("*");
+      });
     });
   });
 
