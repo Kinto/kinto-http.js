@@ -194,8 +194,11 @@ export function createRecord(collName, record, options = {}) {
     ...options
   };
   return {
-    method: "POST",
-    path: endpoint("records", bucket, collName),
+    // Note: Safe POST using a record id would fail.
+    // see https://github.com/Kinto/kinto/issues/489
+    method: record.id ? "PUT" : "POST",
+    path:   record.id ? endpoint("record", bucket, collName, record.id) :
+                        endpoint("records", bucket, collName),
     headers: {...headers, ...doNotOverwrite(safe)},
     body: {
       data: record,
