@@ -140,7 +140,7 @@ describe("Integration tests", function() {
 
       it("should retrieve the list of buckets", () => {
         return api.listBuckets()
-          .then(({data}) => data.map(bucket => bucket.id))
+          .then(({data}) => data.map(bucket => bucket.id).sort())
           .should.become(["b1", "b2"]);
       });
     });
@@ -381,7 +381,7 @@ describe("Integration tests", function() {
       describe(".listCollections()", () => {
         it("should list existing collections", () => {
           return bucket.listCollections()
-            .then(({data}) => data.map(coll => coll.id))
+            .then(({data}) => data.map(coll => coll.id).sort())
             .should.become(["b1", "b2"]);
         });
       });
@@ -689,12 +689,29 @@ describe("Integration tests", function() {
             });
 
             describe("Safe option", () => {
-              it("should perform concurrency checks", () => {
+              const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
+
+              it("should perform concurrency checks with last_modified", () => {
                 return coll.createRecord({title: "foo"})
                   .then(({data}) => coll.updateRecord({
                     id: data.id,
                     title: "foo",
                     last_modified: 1,
+                  }, {safe: true}))
+                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+              });
+
+              it("should create a non-existent resource when safe is true", () => {
+                return coll.updateRecord({id, title: "foo"}, {safe: true})
+                  .should.eventually.have.property("data")
+                                 .to.have.property("title").eql("foo");
+              });
+
+              it("should not override existing data with no last_modified", () => {
+                return coll.createRecord({title: "foo"})
+                  .then(({data}) => coll.updateRecord({
+                    id: data.id,
+                    title: "foo",
                   }, {safe: true}))
                   .should.be.rejectedWith(Error, /412 Precondition Failed/);
               });
