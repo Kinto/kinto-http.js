@@ -167,7 +167,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 #### Notes
@@ -368,7 +368,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 ### Retrieving the collection schema
@@ -435,7 +435,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 #### Notes
@@ -473,7 +473,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 ### Getting collection metadata
@@ -526,7 +526,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-XXX
+- `safe`: Whether to override existing resource if it already exists and if an id is provided (default: `false`)
 
 ### Retrieving an existing record
 
@@ -594,7 +594,7 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided; otherwise ensures the record won't be overridden if it already exists on the server (default: `false`).
+- `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
 
 ### Deleting record
 
@@ -620,7 +620,7 @@ Sample result:
 
 - `headers`: Custom headers object to send along the HTTP request;
 - `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
-- `last_modified`: The last timestamp we know the resource has been updated on the server.
+- `last_modified`: When `safe` is true, the last timestamp we know the resource has been updated on the server.
 
 ### Listing records
 
@@ -728,9 +728,8 @@ client.bucket("blog").collection("posts")
 - `pages`: The number of result pages to retrieve (default: `1`);
 - `limit`: The number of records to retrieve per page: unset by default, uses default server configuration;
 - `filters`: An object defining the filters to apply; read more about [what's supported](http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/resource.html#filtering);
-- `headers`: Custom headers object to send along the HTTP request;
-- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `since`: The ETag header value received from the last response from the server.
+- `headers`: Custom headers object to send along the HTTP request;
 
 ### Batching operations
 
@@ -881,7 +880,7 @@ client.bucket("blog", {safe: true})
 
 The `safe` option can be used:
 
-- when creating a new resource, to ensure that any already existing record matching the provided ID won't be overridden if it exists on the server;
+- when creating or updating a resource, to ensure that any already existing record matching the provided ID won't be overridden if it exists on the server;
 - when updating or deleting a resource, to ensure it won't be overridden remotely if it has changed in the meanwhile on the server (requires a `last_modified` value to be provided).
 
 ### Safe creations
@@ -906,6 +905,8 @@ client.bucket("blog")
 ```
 
 If this record has been modified on the server already, meaning its `last_modified` is greater than the one we provide , we'll get a `412` error response.
+
+If no `last_modified` value is provided at all, a safe update will simply guarantee that an existing resource with the provided ID won't be overriden.
 
 ### Safe deletions
 

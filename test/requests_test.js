@@ -188,9 +188,10 @@ describe("requests module", () => {
         .to.have.property("data").eql({id: "foo", a: 1});
     });
 
-    it("should raise for safe with no last_modified passed", () => {
-      expect(() => requests.updateCollection({id: "foo"}, {safe: true}))
-        .to.Throw(Error, /requires a last_modified/);
+    it("should support a safe option with no last_modified passed", () => {
+      expect(requests.updateCollection({id: "foo"}, {safe: true}))
+        .to.have.property("headers")
+        .to.have.property("If-None-Match").eql("*");
     });
 
     it("should support a safe option with a last_modified passed", () => {
@@ -274,11 +275,6 @@ describe("requests module", () => {
         .to.have.property("data").eql({id: "foo", a: 1});
     });
 
-    it("should raise for safe with no last_modified passed", () => {
-      expect(() => requests.updateBucket({id: "foo"}, {safe: true}))
-        .to.Throw(Error, /requires a last_modified/);
-    });
-
     it("should support a safe option with a resource last_modified", () => {
       expect(requests.updateBucket({id: "foo", last_modified: 42}, {safe: true}))
         .to.have.property("headers")
@@ -289,6 +285,12 @@ describe("requests module", () => {
       expect(requests.updateBucket({id: "foo"}, {safe: true, last_modified: 42}))
         .to.have.property("headers")
         .to.have.property("If-Match").eql("\"42\"");
+    });
+
+    it("should support a safe option with no last_modified", () => {
+      expect(requests.updateBucket({id: "foo"}, {safe: true}))
+        .to.have.property("headers")
+        .to.have.property("If-None-Match").eql("*");
     });
   });
 
@@ -422,9 +424,10 @@ describe("requests module", () => {
     });
 
     describe("should add cache headers when the safe option is true", () => {
-      it("should raise for safe with no last_modified passed", () => {
-        expect(() => requests.updateRecord("foo", record, {safe: true}))
-          .to.Throw(Error, /requires a last_modified/);
+      it("for a record with no last_modified set", () => {
+        expect(requests.updateRecord("foo", record, {safe: true}))
+          .to.have.property("headers")
+          .eql({"If-None-Match": "*"});
       });
 
       it("for a record with last_modified set", () => {

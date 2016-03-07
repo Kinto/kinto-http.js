@@ -11,18 +11,14 @@ const requestDefaults = {
   patch: false,
 };
 
-function doNotOverwrite(safe) {
-  return safe ? {"If-None-Match": "*"} : {};
-}
-
-function concurrencyCheck(safe, last_modified) {
+function safeHeader(safe, last_modified) {
   if (!safe) {
     return {};
   }
-  if (!last_modified) {
-    throw new Error("Safe concurrency check requires a last_modified value.");
+  if (last_modified) {
+    return {"If-Match": `"${last_modified}"`};
   }
-  return {"If-Match": `"${last_modified}"`};
+  return {"If-None-Match": "*"};
 }
 
 /**
@@ -38,7 +34,7 @@ export function createBucket(bucketName, options = {}) {
   return {
     method: "PUT",
     path: endpoint("bucket", bucketName),
-    headers: {...headers, ...doNotOverwrite(safe)},
+    headers: {...headers, ...safeHeader(safe)},
     body: {
       // XXX We can't pass the data option just yet, see Kinto/kinto/issues/239
       permissions
@@ -65,7 +61,7 @@ export function updateBucket(bucket, options = {}) {
     path: endpoint("bucket", bucket.id),
     headers: {
       ...headers,
-      ...concurrencyCheck(safe, last_modified || bucket.last_modified)
+      ...safeHeader(safe, last_modified || bucket.last_modified)
     },
     body: {
       data: bucket,
@@ -84,14 +80,18 @@ export function deleteBucket(bucket, options = {}) {
   if (!bucket.id) {
     throw new Error("A bucket id is required.");
   }
-  const { headers, safe, last_modified} = {...requestDefaults, ...options};
+  const { headers, safe, last_modified} = {
+    ...requestDefaults,
+    last_modified: bucket.last_modified,
+    ...options
+  };
+  if (safe && !last_modified) {
+    throw new Error("Safe concurrency check requires a last_modified value.");
+  }
   return {
     method: "DELETE",
     path: endpoint("bucket", bucket.id),
-    headers: {
-      ...headers,
-      ...concurrencyCheck(safe, last_modified || bucket.last_modified)
-    },
+    headers: {...headers, ...safeHeader(safe, last_modified)},
     body: {
       data: bucket
     }
@@ -112,7 +112,7 @@ export function createCollection(id, options = {}) {
   return {
     method: id ? "PUT" : "POST",
     path,
-    headers: {...headers, ...doNotOverwrite(safe)},
+    headers: {...headers, ...safeHeader(safe)},
     body: {data, permissions}
   };
 }
@@ -146,7 +146,7 @@ export function updateCollection(collection, options = {}) {
     path: endpoint("collection", bucket, collection.id),
     headers: {
       ...headers,
-      ...concurrencyCheck(safe, last_modified || collection.last_modified)
+      ...safeHeader(safe, last_modified || collection.last_modified)
     },
     body: {
       data: collectionData,
@@ -167,15 +167,16 @@ export function deleteCollection(collection, options = {}) {
   }
   const { bucket, headers, safe, last_modified } = {
     ...requestDefaults,
+    last_modified: collection.last_modified,
     ...options
   };
+  if (safe && !last_modified) {
+    throw new Error("Safe concurrency check requires a last_modified value.");
+  }
   return {
     method: "DELETE",
     path: endpoint("collection", bucket, collection.id),
-    headers: {
-      ...headers,
-      ...concurrencyCheck(safe, last_modified || collection.last_modified)
-    },
+    headers: {...headers, ...safeHeader(safe, last_modified)},
     body: {
       data: collection
     }
@@ -199,7 +200,7 @@ export function createRecord(collName, record, options = {}) {
     method: record.id ? "PUT" : "POST",
     path:   record.id ? endpoint("record", bucket, collName, record.id) :
                         endpoint("records", bucket, collName),
-    headers: {...headers, ...doNotOverwrite(safe)},
+    headers: {...headers, ...safeHeader(safe)},
     body: {
       data: record,
       permissions
@@ -226,7 +227,7 @@ export function updateRecord(collName, record, options = {}) {
     path: endpoint("record", bucket, collName, record.id),
     headers: {
       ...headers,
-      ...concurrencyCheck(safe, last_modified || record.last_modified)
+      ...safeHeader(safe, last_modified || record.last_modified)
     },
     body: {
       data: record,
@@ -250,15 +251,16 @@ export function deleteRecord(collName, record, options = {}) {
   }
   const { bucket, headers, safe, last_modified } = {
     ...requestDefaults,
+    last_modified: record.last_modified,
     ...options
   };
+  if (safe && !last_modified) {
+    throw new Error("Safe concurrency check requires a last_modified value.");
+  }
   return {
     method: "DELETE",
     path: endpoint("record", bucket, collName, record.id),
-    headers: {
-      ...headers,
-      ...concurrencyCheck(safe, last_modified || record.last_modified)
-    },
+    headers: {...headers, ...safeHeader(safe, last_modified)},
     body: {
       data: record
     }
