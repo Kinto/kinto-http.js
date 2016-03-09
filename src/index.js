@@ -71,11 +71,11 @@ export default class KintoClient {
      */
     this.remote = remote;
     /**
-     * Current server settings, retrieved from the server.
+     * Current server information.
      * @ignore
-     * @type {Object}
+     * @type {Object|null}
      */
-    this.serverSettings = null;
+    this.serverInfo = null;
     /**
      * The event emitter instance. Should comply with the `EventEmitter`
      * interface.
@@ -192,21 +192,60 @@ export default class KintoClient {
   }
 
   /**
+   * Retrieves server information and persist them locally. This operation is
+   * usually performed a single time during the instance lifecycle.
+   *
+   * @return {Promise<Object, Error>}
+   */
+  fetchServerInfo() {
+    if (this.serverInfo) {
+      return Promise.resolve(this.serverInfo);
+    }
+    return this.http.request(this.remote + endpoint("root"), {
+      headers: this.defaultReqOptions.headers
+    })
+      .then(({json}) => {
+        this.serverInfo = json;
+        return this.serverInfo;
+      });
+  }
+
+  /**
    * Retrieves Kinto server settings.
    *
    * @return {Promise<Object, Error>}
    */
   fetchServerSettings() {
-    if (this.serverSettings) {
-      return Promise.resolve(this.serverSettings);
-    }
-    return this.http.request(this.remote + endpoint("root"), {
-      headers: this.defaultReqOptions.headers
-    })
-      .then(res => {
-        this.serverSettings = res.json.settings;
-        return this.serverSettings;
-      });
+    return this.fetchServerInfo().then(({settings}) => settings);
+  }
+
+  /**
+   * Retrieve server capabilities information.
+   *
+   * @return {Promise<Object, Error>}
+   */
+  fetchServerCapabilities() {
+    return this.fetchServerInfo().then(({capabilities}) => capabilities);
+  }
+
+  /**
+   * Retrieve authenticated user information.
+   *
+   * @return {Promise<Object, Error>}
+   */
+  fetchUser() {
+    return this.fetchServerInfo().then(({user}) => user);
+  }
+
+  /**
+   * Retrieve authenticated user information.
+   *
+   * @return {Promise<Object, Error>}
+   */
+  fetchHTTPApiVersion() {
+    return this.fetchServerInfo().then(({http_api_version}) => {
+      return http_api_version;
+    });
   }
 
   /**
