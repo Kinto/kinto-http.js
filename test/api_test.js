@@ -188,7 +188,7 @@ describe("KintoClient", () => {
 
       it("should ensure server settings are fetched", () => {
         return api.batch(batch => batch.createCollection())
-          .then(_ => sinon.assert.calledOnce(api.fetchServerSettings));
+          .then(_ => sinon.assert.called(api.fetchServerSettings));
       });
 
       describe("empty request list", () => {

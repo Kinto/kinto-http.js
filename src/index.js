@@ -200,7 +200,9 @@ export default class KintoClient {
     if (this.serverSettings) {
       return Promise.resolve(this.serverSettings);
     }
-    return this.execute({path: endpoint("root")})
+    return this.http.request(this.remote + endpoint("root"), {
+      headers: this.defaultReqOptions.headers
+    })
       .then(res => {
         this.serverSettings = res.json.settings;
         return this.serverSettings;
@@ -269,17 +271,20 @@ export default class KintoClient {
   }
 
   /**
-   * Executes an atomic request.
+   * Executes an atomic HTTP request.
    *
    * @private
    * @param  {Object} request The request object.
    * @return {Promise<Object, Error>}
    */
   execute(request) {
-    return this.http.request(this.remote + request.path, {
-      ...request,
-      body: JSON.stringify(request.body)
-    });
+    return this.fetchServerSettings()
+      .then(_ => {
+        return this.http.request(this.remote + request.path, {
+          ...request,
+          body: JSON.stringify(request.body)
+        });
+      });
   }
 
   /**

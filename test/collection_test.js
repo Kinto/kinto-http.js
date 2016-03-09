@@ -522,11 +522,17 @@ describe("Collection", () => {
       it("should aggregate paginated results", () => {
         const { http } = coll.client;
         sandbox.stub(http, "request")
+          // settings retrieval
           .onFirstCall().returns(Promise.resolve({
+            json: {settings: {}}
+          }))
+          // first page
+          .onSecondCall().returns(Promise.resolve({
             headers: {get: () => "http://next-page/"},
             json: {data: [1, 2]}
           }))
-          .onSecondCall().returns(Promise.resolve({
+          // second page
+          .onThirdCall().returns(Promise.resolve({
             headers: {get: () => {}},
             json: {data: [3]}
           }));
