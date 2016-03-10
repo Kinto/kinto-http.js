@@ -111,3 +111,31 @@ export function checkVersion(version, min, max) {
     throw new Error(msg);
   }
 }
+
+/**
+ * Generates a decorator function ensuring a version check is performed against
+ * the provided requirements before executing it.
+ *
+ * @param  {String} min The required min version (inclusive).
+ * @param  {String} max The required max version (inclusive).
+ * @return {Function}
+ */
+export function support(min, max) {
+  return function(target, key, descriptor) {
+    const fn = descriptor.value;
+    return {
+      configurable: true,
+      get() {
+        const wrappedMethod = (...args) => {
+          return this.ensureSupported(min, max).then(fn.apply(this, args));
+        };
+        Object.defineProperty(this, key, {
+          value: wrappedMethod,
+          configurable: true,
+          writable: true
+        });
+        return wrappedMethod;
+      }
+    };
+  };
+}

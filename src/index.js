@@ -3,7 +3,7 @@
 import "isomorphic-fetch";
 import { EventEmitter } from "events";
 
-import { partition, pMap, omit, checkVersion } from "./utils";
+import { partition, pMap, omit, checkVersion, support } from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
@@ -398,12 +398,10 @@ export default class KintoClient {
    * @param  {Object}  options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
+  @support("1.4", "2.0")
   deleteBuckets(options={}) {
-    return this.ensureSupported("1.4", "2.0")
-      .then(_ => {
-        const reqOptions = this._getRequestOptions(options);
-        return this.execute(requests.deleteBuckets(reqOptions));
-      })
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(requests.deleteBuckets(reqOptions))
       .then(res => res.json);
   }
 }
