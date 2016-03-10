@@ -86,3 +86,35 @@ export function toDataBody(value) {
 export function qsify(obj) {
   return toQuerystring(JSON.parse(JSON.stringify(obj)));
 }
+
+/**
+ * Checks if a version is within the provided range.
+ *
+ * @param  {String} version The version to check.
+ * @param  {String} min     The minimum version (inclusive).
+ * @param  {String} max     The minimum version (exclusive).
+ * @throws {Error} If the version is outside of the provided range.
+ */
+export function checkVersion(version, min, max) {
+  function extract(str) {
+    return str.split(".").map(x => parseInt(x, 10));
+  }
+
+  const [verMajor, verMinor] = extract(version);
+  const [minMajor, minMinor] = extract(min);
+  const [maxMajor, maxMinor] = extract(max);
+
+  const msg = `Version ${version} doesn't match ${min} <= x < ${max}`;
+
+  if (verMajor < minMajor) {
+    throw new Error(msg);
+  }
+  if (verMinor < minMinor) {
+    throw new Error(msg);
+  }
+  if (verMajor >= maxMajor) {
+    if (verMinor >= maxMinor) {
+      throw new Error(msg);
+    }
+  }
+}

@@ -3,7 +3,7 @@
 import "isomorphic-fetch";
 import { EventEmitter } from "events";
 
-import { partition, pMap, omit } from "./utils";
+import { partition, pMap, omit, checkVersion } from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
@@ -149,6 +149,25 @@ export default class KintoClient {
     this.events.on("backoff", backoffMs => {
       this._backoffReleaseTime = backoffMs;
     });
+  }
+
+  /**
+   * Conditionnaly executes provided function if current server http_api_version
+   * supports it and returns a Promise resolving with its result when the
+   * condition is satisfied, rejects when it's not.
+   *
+   * @ignore
+   * @param  {String}   min  The minimum protocol version required (inclusive).
+   * @param  {String}   max  The maximum protocol version required (exclusive).
+   * @param  {Function} fn   The function to resolve with.
+   * @return {Promise<Object, Error>}
+   */
+  ensureSupported(min, max, fn) {
+    return this.fetchHTTPApiVersion()
+      .then(currentVersion => {
+        checkVersion(currentVersion, min, max);
+        return fn();
+      });
   }
 
   /**

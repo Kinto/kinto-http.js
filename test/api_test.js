@@ -214,6 +214,41 @@ describe("KintoClient", () => {
     });
   });
 
+  /** @test {KintoClient#ensureSupported} */
+  describe("#ensureSupported()", () => {
+    describe("Supported http_api_version", () => {
+      it("should execute a function when http_api_version is supported", () => {
+        api.serverInfo = {http_api_version: "1.4"};
+        const spy = sandbox.spy();
+
+        return api.ensureSupported("1.0", "2.0", spy)
+          .then(_ => {
+            sinon.assert.called(spy);
+          });
+      });
+    });
+
+    describe("Unsupported http_api_version version", () => {
+      beforeEach(() => {
+        api.serverInfo = {http_api_version: "1.3"};
+      });
+
+      it("should reject when http_api_version is not supported", () => {
+        return api.ensureSupported("1.4", "2.0", () => {})
+          .should.be.rejectedWith(Error,
+            "Version 1.3 doesn't match 1.4 <= x < 2.0");
+      });
+
+      it("should not execute a function when http_api_version is not supported", () => {
+        const spy = sandbox.spy();
+
+        return api.ensureSupported("1.4", "2.0", spy)
+          .catch(_ => {
+            sinon.assert.notCalled(spy);
+          });
+      });
+    });
+  });
 
   /** @test {KintoClient#batch} */
   describe("#batch", () => {
