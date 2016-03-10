@@ -84,18 +84,22 @@ describe("Utils", () => {
     });
   });
 
-  describe("#checkVersion", () => {
+  describe.only("#checkVersion", () => {
     it("should accept a version within provided range", () => {
       checkVersion("1.0", "1.0", "2.0");
       checkVersion("1.10", "1.0", "2.0");
       checkVersion("1.10", "1.9", "2.0");
       checkVersion("2.1", "1.0", "2.2");
+      checkVersion("2.1", "1.2", "2.2");
+      checkVersion("1.4", "1.4", "2.0");
     });
 
     it("should not accept a version oustide provided range", () => {
       expect(() => checkVersion("0.9", "1.0", "2.0")).to.Throw(Error);
       expect(() => checkVersion("2.0", "1.0", "2.0")).to.Throw(Error);
       expect(() => checkVersion("2.1", "1.0", "2.0")).to.Throw(Error);
+      expect(() => checkVersion("3.9", "1.0", "2.10")).to.Throw(Error);
+      expect(() => checkVersion("1.3", "1.4", "2.0")).to.Throw(Error);
     });
   });
 });

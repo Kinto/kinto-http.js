@@ -109,10 +109,15 @@ export function checkVersion(version, min, max) {
   if (verMajor < minMajor) {
     throw new Error(msg);
   }
-  if (verMinor < minMinor) {
-    throw new Error(msg);
+  if (verMajor === minMajor) {
+    if (verMinor < minMinor) {
+      throw new Error(msg);
+    }
   }
   if (verMajor >= maxMajor) {
+    if (verMajor > maxMajor) {
+      throw new Error(msg);
+    }
     if (verMinor >= maxMinor) {
       throw new Error(msg);
     }
