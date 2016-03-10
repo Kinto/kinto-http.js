@@ -53,11 +53,36 @@ describe("Integration tests", function() {
 
     beforeEach(() => server.flush());
 
-    describe("Settings", () => {
+    describe("Server properties", () => {
       it("should retrieve server settings", () => {
         return api.fetchServerSettings()
-          .then(_ => api.serverSettings)
           .should.eventually.have.property("batch_max_requests").eql(25);
+      });
+
+      it("should retrieve server capabilities", () => {
+        return api.fetchServerCapabilities()
+          .then(capabilities => {
+            expect(capabilities).to.be.an("object");
+
+            // Kinto protocol 1.4 exposes capability descriptions
+            Object.keys(capabilities).forEach(capability => {
+              const capabilityObj = capabilities[capability];
+              expect(capabilityObj).to.have.key("url", "description");
+            });
+          });
+      });
+
+      it("should retrieve user information", () => {
+        return api.fetchUser()
+          .then(user => {
+            expect(user.id).to.match(/^basicauth:/);
+            expect(user.bucket).to.have.length.of(36);
+          });
+      });
+
+      it("should retrieve current API version", () => {
+        return api.fetchHTTPApiVersion()
+          .should.eventually.match(/^\d\.\d+$/);
       });
     });
 

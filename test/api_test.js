@@ -134,32 +134,86 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#fetchServerSettings} */
-  describe("#fetchServerSettings", () => {
-    it("should retrieve server settings on first request made", () => {
-      sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {
-        settings: {"cliquet.batch_max_requests": 25}
-      }));
+  /** @test {KintoClient#fetchServerInfo} */
+  describe("#fetchServerInfo", () => {
+    const fakeServerInfo = {fake: true};
 
-      return api.fetchServerSettings()
-        .should.eventually.become({"cliquet.batch_max_requests": 25});
+    it("should retrieve server settings on first request made", () => {
+      sandbox.stub(root, "fetch")
+        .returns(fakeServerResponse(200, fakeServerInfo));
+
+      return api.fetchServerInfo()
+        .should.eventually.become(fakeServerInfo);
     });
 
     it("should store server settings into the serverSettings property", () => {
       api.serverSettings = {a: 1};
       sandbox.stub(root, "fetch");
 
-      api.fetchServerSettings();
+      api.fetchServerInfo();
     });
 
     it("should not fetch server settings if they're cached already", () => {
-      api.serverSettings = {a: 1};
+      api.serverInfo = fakeServerInfo;
       sandbox.stub(root, "fetch");
 
-      api.fetchServerSettings();
+      api.fetchServerInfo();
       sinon.assert.notCalled(fetch);
     });
   });
+
+  /** @test {KintoClient#fetchServerSettings} */
+  describe("#fetchServerSettings()", () => {
+    const fakeServerInfo = {settings: {fake: true}};
+
+    it("should retrieve server settings", () => {
+      sandbox.stub(root, "fetch")
+        .returns(fakeServerResponse(200, fakeServerInfo));
+
+      return api.fetchServerSettings()
+        .should.eventually.have.property("fake").eql(true);
+    });
+  });
+
+  /** @test {KintoClient#fetchServerCapabilities} */
+  describe("#fetchServerCapabilities()", () => {
+    const fakeServerInfo = {capabilities: {fake: true}};
+
+    it("should retrieve server capabilities", () => {
+      sandbox.stub(root, "fetch")
+        .returns(fakeServerResponse(200, fakeServerInfo));
+
+      return api.fetchServerCapabilities()
+        .should.eventually.have.property("fake").eql(true);
+    });
+  });
+
+  /** @test {KintoClient#fetchUser} */
+  describe("#fetchUser()", () => {
+    const fakeServerInfo = {user: {fake: true}};
+
+    it("should retrieve user information", () => {
+      sandbox.stub(root, "fetch")
+        .returns(fakeServerResponse(200, fakeServerInfo));
+
+      return api.fetchUser()
+        .should.eventually.have.property("fake").eql(true);
+    });
+  });
+
+  /** @test {KintoClient#fetchHTTPApiVersion} */
+  describe("#fetchHTTPApiVersion()", () => {
+    const fakeServerInfo = {http_api_version: {fake: true}};
+
+    it("should retrieve current API version", () => {
+      sandbox.stub(root, "fetch")
+        .returns(fakeServerResponse(200, fakeServerInfo));
+
+      return api.fetchHTTPApiVersion()
+        .should.eventually.have.property("fake").eql(true);
+    });
+  });
+
 
   /** @test {KintoClient#batch} */
   describe("#batch", () => {
