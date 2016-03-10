@@ -671,5 +671,12 @@ describe("KintoClient", () => {
           });
         });
     });
+
+    it("should reject if http_api_version mismatches", () => {
+      api.serverInfo = {http_api_version: "1.3"};
+
+      return api.deleteBuckets()
+        .should.be.rejectedWith(Error, /Version/);
+    });
   });
 });
