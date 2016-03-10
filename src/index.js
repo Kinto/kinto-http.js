@@ -152,9 +152,9 @@ export default class KintoClient {
   }
 
   /**
-   * Conditionnaly executes provided function if current server http_api_version
-   * supports it and returns a Promise resolving with its result when the
-   * condition is satisfied, rejects when it's not.
+   * Checks if current server http_api_version matches the provided min and max
+   * version requirements; returns a Promise resolving when the version is
+   * within range, rejecting when it's not.
    *
    * @ignore
    * @param  {String}   min  The minimum protocol version required (inclusive).
@@ -162,12 +162,9 @@ export default class KintoClient {
    * @param  {Function} fn   The function to resolve with.
    * @return {Promise<Object, Error>}
    */
-  ensureSupported(min, max, fn) {
+  ensureSupported(min, max) {
     return this.fetchHTTPApiVersion()
-      .then(currentVersion => {
-        checkVersion(currentVersion, min, max);
-        return fn();
-      });
+      .then(version => checkVersion(version, min, max));
   }
 
   /**
@@ -396,14 +393,17 @@ export default class KintoClient {
    * Deletes all buckets on the server.
    *
    * @ignore
-   * @param  {Object}        options         The options object.
-   * @param  {Boolean}       options.safe    The safe option.
-   * @param  {Object}        options.headers The headers object option.
+   * @param  {Object}  options         The options object.
+   * @param  {Boolean} options.safe    The safe option.
+   * @param  {Object}  options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
   deleteBuckets(options={}) {
-    const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteBuckets(reqOptions))
+    return this.ensureSupported("1.4", "2.0")
+      .then(_ => {
+        const reqOptions = this._getRequestOptions(options);
+        return this.execute(requests.deleteBuckets(reqOptions));
+      })
       .then(res => res.json);
   }
 }

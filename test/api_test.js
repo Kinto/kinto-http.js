@@ -216,37 +216,17 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#ensureSupported} */
   describe("#ensureSupported()", () => {
-    describe("Supported http_api_version", () => {
-      it("should execute a function when http_api_version is supported", () => {
-        api.serverInfo = {http_api_version: "1.4"};
-        const spy = sandbox.spy();
-
-        return api.ensureSupported("1.0", "2.0", spy)
-          .then(_ => {
-            sinon.assert.called(spy);
-          });
-      });
+    it("should resolve when http_api_version is supported", () => {
+      api.serverInfo = {http_api_version: "1.4"};
+      return api.ensureSupported("1.0", "2.0")
+        .should.be.fulfilled;
     });
 
-    describe("Unsupported http_api_version version", () => {
-      beforeEach(() => {
-        api.serverInfo = {http_api_version: "1.3"};
-      });
-
-      it("should reject when http_api_version is not supported", () => {
-        return api.ensureSupported("1.4", "2.0", () => {})
-          .should.be.rejectedWith(Error,
-            "Version 1.3 doesn't match 1.4 <= x < 2.0");
-      });
-
-      it("should not execute a function when http_api_version is not supported", () => {
-        const spy = sandbox.spy();
-
-        return api.ensureSupported("1.4", "2.0", spy)
-          .catch(_ => {
-            sinon.assert.notCalled(spy);
-          });
-      });
+    it("should reject when http_api_version is not supported", () => {
+      api.serverInfo = {http_api_version: "1.3"};
+      return api.ensureSupported("1.4", "2.0")
+        .should.be.rejectedWith(Error,
+          "Version 1.3 doesn't match 1.4 <= x < 2.0");
     });
   });
 
@@ -671,35 +651,41 @@ describe("KintoClient", () => {
   /** @test {KintoClient#deleteBuckets} */
   describe("#deleteBuckets()", () => {
     beforeEach(() => {
+      api.serverInfo = {http_api_version: "1.4"};
       sandbox.stub(requests, "deleteBuckets");
-      sandbox.stub(api, "execute").returns(Promise.resolve());
+      sandbox.stub(api, "execute").returns(Promise.resolve({
+        json: {}
+      }));
     });
 
     it("should execute expected request", () => {
-      api.deleteBuckets();
-
-      sinon.assert.calledWithMatch(requests.deleteBuckets, {
-        headers: {},
-        safe: false,
-      });
+      return api.deleteBuckets()
+        .then(_ => {
+          sinon.assert.calledWithMatch(requests.deleteBuckets, {
+            headers: {},
+            safe: false,
+          });
+        });
     });
 
     it("should accept a safe option", () => {
-      api.deleteBuckets({safe: true});
-
-      sinon.assert.calledWithMatch(requests.deleteBuckets, {
-        safe: true
-      });
+      return api.deleteBuckets({safe: true})
+        .then(_ => {
+          sinon.assert.calledWithMatch(requests.deleteBuckets, {
+            safe: true
+          });
+        });
     });
 
     it("should extend request headers with optional ones", () => {
       api.defaultReqOptions.headers = {Foo: "Bar"};
 
-      api.deleteBuckets({headers: {Baz: "Qux"}});
-
-      sinon.assert.calledWithMatch(requests.deleteBuckets, {
-        headers: {Foo: "Bar", Baz: "Qux"}
-      });
+      return api.deleteBuckets({headers: {Baz: "Qux"}})
+        .then(_ => {
+          sinon.assert.calledWithMatch(requests.deleteBuckets, {
+            headers: {Foo: "Bar", Baz: "Qux"}
+          });
+        });
     });
   });
 });
