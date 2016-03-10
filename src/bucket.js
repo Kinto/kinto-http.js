@@ -1,6 +1,5 @@
 import { toDataBody } from "./utils";
 import Collection from "./collection";
-import * as requests from "./requests";
 import endpoint from "./endpoint";
 
 
@@ -108,7 +107,7 @@ export default class Bucket {
    */
   createCollection(id, options) {
     const reqOptions = this._bucketOptions(options);
-    const request = requests.createCollection(id, reqOptions);
+    const request = this.client.requests.createCollection(id, reqOptions);
     return this.client.execute(request).then(res => res.json);
   }
 
@@ -123,7 +122,10 @@ export default class Bucket {
    */
   deleteCollection(collection, options) {
     const reqOptions = this._bucketOptions(options);
-    const request = requests.deleteCollection(toDataBody(collection), reqOptions);
+    const request = this.client.requests.deleteCollection(
+      toDataBody(collection),
+      reqOptions
+    );
     return this.client.execute(request).then(res => res.json);
   }
 
@@ -151,7 +153,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options={}) {
-    return this.client.execute(requests.updateBucket({
+    return this.client.execute(this.client.requests.updateBucket({
       id: this.name,
       last_modified: options.last_modified
     }, {...this._bucketOptions(options), permissions}))

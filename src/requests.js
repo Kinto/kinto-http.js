@@ -98,6 +98,25 @@ export function deleteBucket(bucket, options = {}) {
   };
 }
 
+
+/**
+ * @private
+ */
+export function deleteBuckets(options = {}) {
+  const { headers, safe, last_modified} = {
+    ...requestDefaults,
+    ...options
+  };
+  if (safe && !last_modified) {
+    throw new Error("Safe concurrency check requires a last_modified value.");
+  }
+  return {
+    method: "DELETE",
+    path: endpoint("buckets"),
+    headers: {...headers, ...safeHeader(safe, last_modified)},
+  };
+}
+
 /**
  * @private
  */
