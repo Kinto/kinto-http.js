@@ -100,23 +100,14 @@ export function checkVersion(version, min, max) {
   const [verMajor, verMinor] = extract(version);
   const [minMajor, minMinor] = extract(min);
   const [maxMajor, maxMinor] = extract(max);
-
   const msg = `Version ${version} doesn't match ${min} <= x < ${max}`;
-
-  if (verMajor < minMajor) {
+  const checks = [
+    verMajor < minMajor,
+    verMajor === minMajor && verMinor < minMinor,
+    verMajor > maxMajor,
+    verMajor === maxMajor && verMinor >= maxMinor,
+  ];
+  if (checks.some(x => x)) {
     throw new Error(msg);
-  }
-  if (verMajor === minMajor) {
-    if (verMinor < minMinor) {
-      throw new Error(msg);
-    }
-  }
-  if (verMajor >= maxMajor) {
-    if (verMajor > maxMajor) {
-      throw new Error(msg);
-    }
-    if (verMinor >= maxMinor) {
-      throw new Error(msg);
-    }
   }
 }
