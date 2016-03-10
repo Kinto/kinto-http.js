@@ -84,7 +84,7 @@ describe("Utils", () => {
     });
   });
 
-  describe.only("#checkVersion", () => {
+  describe("#checkVersion", () => {
     it("should accept a version within provided range", () => {
       checkVersion("1.0", "1.0", "2.0");
       checkVersion("1.10", "1.0", "2.0");

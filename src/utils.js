@@ -96,10 +96,7 @@ export function qsify(obj) {
  * @throws {Error} If the version is outside of the provided range.
  */
 export function checkVersion(version, min, max) {
-  function extract(str) {
-    return str.split(".").map(x => parseInt(x, 10));
-  }
-
+  const extract = (str) => str.split(".").map(x => parseInt(x, 10));
   const [verMajor, verMinor] = extract(version);
   const [minMajor, minMinor] = extract(min);
   const [maxMajor, maxMinor] = extract(max);
