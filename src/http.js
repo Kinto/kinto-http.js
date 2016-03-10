@@ -1,6 +1,6 @@
 "use strict";
 
-import ERROR_CODES from "./errors.js";
+import ERROR_CODES from "./errors";
 
 /**
  * Enhanced HTTP client for the Kinto protocol.

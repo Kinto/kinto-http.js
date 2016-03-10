@@ -3,8 +3,8 @@
 import "isomorphic-fetch";
 import { EventEmitter } from "events";
 
-import { partition, pMap, omit } from "./utils.js";
-import HTTP from "./http.js";
+import { partition, pMap, omit } from "./utils";
+import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
 import { createBatch, aggregate } from "./batch";
