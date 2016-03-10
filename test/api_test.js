@@ -667,4 +667,39 @@ describe("KintoClient", () => {
       });
     });
   });
+
+  /** @test {KintoClient#deleteBuckets} */
+  describe("#deleteBuckets()", () => {
+    beforeEach(() => {
+      sandbox.stub(requests, "deleteBuckets");
+      sandbox.stub(api, "execute").returns(Promise.resolve());
+    });
+
+    it("should execute expected request", () => {
+      api.deleteBuckets();
+
+      sinon.assert.calledWithMatch(requests.deleteBuckets, {
+        headers: {},
+        safe: false,
+      });
+    });
+
+    it("should accept a safe option", () => {
+      api.deleteBuckets({safe: true});
+
+      sinon.assert.calledWithMatch(requests.deleteBuckets, {
+        safe: true
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      api.defaultReqOptions.headers = {Foo: "Bar"};
+
+      api.deleteBuckets({headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.deleteBuckets, {
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
+    });
+  });
 });
