@@ -176,10 +176,7 @@ export function deleteCollection(collection, options = {}) {
   return {
     method: "DELETE",
     path: endpoint("collection", bucket, collection.id),
-    headers: {...headers, ...safeHeader(safe, last_modified)},
-    body: {
-      data: collection
-    }
+    headers: {...headers, ...safeHeader(safe, last_modified)}
   };
 }
 
