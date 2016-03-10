@@ -214,22 +214,6 @@ describe("KintoClient", () => {
     });
   });
 
-  /** @test {KintoClient#ensureSupported} */
-  describe("#ensureSupported()", () => {
-    it("should resolve when http_api_version is supported", () => {
-      api.serverInfo = {http_api_version: "1.4"};
-      return api.ensureSupported("1.0", "2.0")
-        .should.be.fulfilled;
-    });
-
-    it("should reject when http_api_version is not supported", () => {
-      api.serverInfo = {http_api_version: "1.3"};
-      return api.ensureSupported("1.4", "2.0")
-        .should.be.rejectedWith(Error,
-          "Version 1.3 doesn't match 1.4 <= x < 2.0");
-    });
-  });
-
   /** @test {KintoClient#batch} */
   describe("#batch", () => {
     beforeEach(() => {
