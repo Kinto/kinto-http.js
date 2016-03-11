@@ -91,8 +91,8 @@ export function qsify(obj) {
  * Checks if a version is within the provided range.
  *
  * @param  {String} version    The version to check.
- * @param  {String} minVersion The minimum version (inclusive).
- * @param  {String} maxVersion The minimum version (exclusive).
+ * @param  {String} minVersion The minimum supported version (inclusive).
+ * @param  {String} maxVersion The minimum supported version (exclusive).
  * @throws {Error} If the version is outside of the provided range.
  */
 export function checkVersion(version, minVersion, maxVersion) {
