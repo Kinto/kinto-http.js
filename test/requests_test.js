@@ -204,7 +204,6 @@ describe("requests module", () => {
   describe("deleteCollection()", () => {
     it("should return a collection deletion request when an id is provided", () => {
       expect(requests.deleteCollection({id: "foo"})).eql({
-        body: {data: {id: "foo"}},
         headers: {},
         method: "DELETE",
         path: "/buckets/default/collections/foo",
