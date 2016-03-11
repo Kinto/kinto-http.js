@@ -12,6 +12,7 @@ export default class KintoServer {
     this.url = url;
     this.process = null;
     this.logs = [];
+    this.http_api_version = null;
     this.options = Object.assign({}, DEFAULT_OPTIONS, options);
   }
 
@@ -22,6 +23,7 @@ export default class KintoServer {
         if ([200, 202, 410].indexOf(res.status) === -1) {
           throw new Error("Unable to start server, HTTP " + res.status);
         }
+        return res;
       })
       .catch(err => {
         if (attempt < maxAttempts) {
@@ -64,7 +66,9 @@ export default class KintoServer {
 
   ping() {
     const endpoint = `${this.url}/`;
-    return this._retryRequest(endpoint, {}, 1);
+    return this._retryRequest(endpoint, {}, 1)
+      .then(res => res.json())
+      .then(json => this.http_api_version = json.http_api_version);
   }
 
   flush(attempt = 1) {

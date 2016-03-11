@@ -86,3 +86,58 @@ export function toDataBody(value) {
 export function qsify(obj) {
   return toQuerystring(JSON.parse(JSON.stringify(obj)));
 }
+
+/**
+ * Checks if a version is within the provided range.
+ *
+ * @param  {String} version    The version to check.
+ * @param  {String} minVersion The minimum supported version (inclusive).
+ * @param  {String} maxVersion The minimum supported version (exclusive).
+ * @throws {Error} If the version is outside of the provided range.
+ */
+export function checkVersion(version, minVersion, maxVersion) {
+  const extract = (str) => str.split(".").map(x => parseInt(x, 10));
+  const [verMajor, verMinor] = extract(version);
+  const [minMajor, minMinor] = extract(minVersion);
+  const [maxMajor, maxMinor] = extract(maxVersion);
+  const checks = [
+    verMajor < minMajor,
+    verMajor === minMajor && verMinor < minMinor,
+    verMajor > maxMajor,
+    verMajor === maxMajor && verMinor >= maxMinor,
+  ];
+  if (checks.some(x => x)) {
+    throw new Error(`Version ${version} doesn't satisfy ` +
+                    `${minVersion} <= x < ${maxVersion}`);
+  }
+}
+
+/**
+ * Generates a decorator function ensuring a version check is performed against
+ * the provided requirements before executing it.
+ *
+ * @param  {String} min The required min version (inclusive).
+ * @param  {String} max The required max version (inclusive).
+ * @return {Function}
+ */
+export function support(min, max) {
+  return function(target, key, descriptor) {
+    const fn = descriptor.value;
+    return {
+      configurable: true,
+      get() {
+        const wrappedMethod = (...args) => {
+          return this.fetchHTTPApiVersion()
+            .then(version => checkVersion(version, min, max))
+            .then(Promise.resolve(fn.apply(this, args)));
+        };
+        Object.defineProperty(this, key, {
+          value: wrappedMethod,
+          configurable: true,
+          writable: true
+        });
+        return wrappedMethod;
+      }
+    };
+  };
+}

@@ -6,8 +6,10 @@ import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 
 import Api from "../src";
+import { checkVersion } from "../src/utils";
 import { EventEmitter } from "events";
 import KintoServer from "./server_utils";
+import { delayedPromise } from "./test_utils";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -152,6 +154,33 @@ describe("Integration tests", function() {
           })
             .should.be.rejectedWith(Error, /412 Precondition Failed/);
         });
+      });
+    });
+
+    describe("#deleteBuckets()", () => {
+      before(function() {
+        try {
+          checkVersion(server.http_api_version, "1.4", "2.0");
+        } catch(err) {
+          this.skip();
+        }
+      });
+
+      beforeEach(() => {
+        return api.batch(batch => {
+          batch.createBucket("b1");
+          batch.createBucket("b2");
+        });
+      });
+
+      it("should delete all buckets", () => {
+        return api.deleteBuckets()
+          // Note: Server tends to take a lot of time to perform this operation,
+          // so we're delaying check a little.
+          .then(_ => delayedPromise(50))
+          .then(_ => api.listBuckets())
+          .then(({data}) => data)
+          .should.become([]);
       });
     });
 

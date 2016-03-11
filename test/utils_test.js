@@ -2,7 +2,14 @@
 
 import chai, { expect } from "chai";
 
-import { partition, pMap, omit, qsify } from "../src/utils";
+import {
+  partition,
+  pMap,
+  omit,
+  qsify,
+  checkVersion,
+  support
+} from "../src/utils";
 
 chai.should();
 chai.config.includeStack = true;
@@ -81,6 +88,76 @@ describe("Utils", () => {
 
     it("should strip out undefined values", () => {
       expect(qsify({a: undefined, b: 2})).eql("b=2");
+    });
+  });
+
+  describe("#checkVersion", () => {
+    it("should accept a version within provided range", () => {
+      checkVersion("1.0", "1.0", "2.0");
+      checkVersion("1.10", "1.0", "2.0");
+      checkVersion("1.10", "1.9", "2.0");
+      checkVersion("2.1", "1.0", "2.2");
+      checkVersion("2.1", "1.2", "2.2");
+      checkVersion("1.4", "1.4", "2.0");
+    });
+
+    it("should not accept a version oustide provided range", () => {
+      expect(() => checkVersion("0.9", "1.0", "2.0")).to.Throw(Error);
+      expect(() => checkVersion("2.0", "1.0", "2.0")).to.Throw(Error);
+      expect(() => checkVersion("2.1", "1.0", "2.0")).to.Throw(Error);
+      expect(() => checkVersion("3.9", "1.0", "2.10")).to.Throw(Error);
+      expect(() => checkVersion("1.3", "1.4", "2.0")).to.Throw(Error);
+    });
+  });
+
+  describe("@support", () => {
+    it("should return a function", () => {
+      expect(support()).to.be.a("function");
+    });
+
+    it("should make decorated method checking the version", () => {
+      class FakeClient {
+        fetchHTTPApiVersion() {
+          return Promise.resolve(); // simulates a successful checkVersion call
+        }
+
+        @support()
+        test() {
+          return Promise.resolve();
+        }
+      }
+
+      return new FakeClient().test().should.be.fullfilled;
+    });
+
+    it("should make decorated method resolve on version match", () => {
+      class FakeClient {
+        fetchHTTPApiVersion() {
+          return Promise.resolve(); // simulates a successful checkVersion call
+        }
+
+        @support()
+        test() {
+          return Promise.resolve();
+        }
+      }
+
+      return new FakeClient().test().should.be.fullfilled;
+    });
+
+    it("should make decorated method rejecting on version mismatch", () => {
+      class FakeClient {
+        fetchHTTPApiVersion() {
+          return Promise.reject(); // simulates a failing checkVersion call
+        }
+
+        @support()
+        test() {
+          return Promise.resolve();
+        }
+      }
+
+      return new FakeClient().test().should.be.rejected;
     });
   });
 });

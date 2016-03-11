@@ -214,7 +214,6 @@ describe("KintoClient", () => {
     });
   });
 
-
   /** @test {KintoClient#batch} */
   describe("#batch", () => {
     beforeEach(() => {
@@ -630,6 +629,54 @@ describe("KintoClient", () => {
       sinon.assert.calledWithMatch(requests.deleteBucket, {id: "plop"}, {
         headers: {Foo: "Bar", Baz: "Qux"}
       });
+    });
+  });
+
+  /** @test {KintoClient#deleteBuckets} */
+  describe("#deleteBuckets()", () => {
+    beforeEach(() => {
+      api.serverInfo = {http_api_version: "1.4"};
+      sandbox.stub(requests, "deleteBuckets");
+      sandbox.stub(api, "execute").returns(Promise.resolve({
+        json: {}
+      }));
+    });
+
+    it("should execute expected request", () => {
+      return api.deleteBuckets()
+        .then(_ => {
+          sinon.assert.calledWithMatch(requests.deleteBuckets, {
+            headers: {},
+            safe: false,
+          });
+        });
+    });
+
+    it("should accept a safe option", () => {
+      return api.deleteBuckets({safe: true})
+        .then(_ => {
+          sinon.assert.calledWithMatch(requests.deleteBuckets, {
+            safe: true
+          });
+        });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      api.defaultReqOptions.headers = {Foo: "Bar"};
+
+      return api.deleteBuckets({headers: {Baz: "Qux"}})
+        .then(_ => {
+          sinon.assert.calledWithMatch(requests.deleteBuckets, {
+            headers: {Foo: "Bar", Baz: "Qux"}
+          });
+        });
+    });
+
+    it("should reject if http_api_version mismatches", () => {
+      api.serverInfo = {http_api_version: "1.3"};
+
+      return api.deleteBuckets()
+        .should.be.rejectedWith(Error, /Version/);
     });
   });
 });

@@ -16,3 +16,9 @@ export function fakeServerResponse(status, json, headers={}) {
     }
   });
 }
+
+export function delayedPromise(ms) {
+  return new Promise(resolve => {
+    setTimeout(() => resolve(), ms);
+  });
+}
