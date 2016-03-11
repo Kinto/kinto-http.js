@@ -91,10 +91,7 @@ export function deleteBucket(bucket, options = {}) {
   return {
     method: "DELETE",
     path: endpoint("bucket", bucket.id),
-    headers: {...headers, ...safeHeader(safe, last_modified)},
-    body: {
-      data: bucket
-    }
+    headers: {...headers, ...safeHeader(safe, last_modified)}
   };
 }
 
@@ -257,9 +254,6 @@ export function deleteRecord(collName, record, options = {}) {
   return {
     method: "DELETE",
     path: endpoint("record", bucket, collName, record.id),
-    headers: {...headers, ...safeHeader(safe, last_modified)},
-    body: {
-      data: record
-    }
+    headers: {...headers, ...safeHeader(safe, last_modified)}
   };
 }

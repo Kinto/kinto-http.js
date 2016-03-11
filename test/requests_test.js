@@ -48,7 +48,6 @@ describe("requests module", () => {
   describe("deleteBucket()", () => {
     it("should return a bucket deletion request when an id is provided", () => {
       expect(requests.deleteBucket({id: "foo"})).eql({
-        body: {data: {id: "foo"}},
         headers: {},
         method: "DELETE",
         path: "/buckets/foo",
@@ -451,7 +450,6 @@ describe("requests module", () => {
 
     it("should return a record creation request", () => {
       expect(requests.deleteRecord("foo", {id: 42})).eql({
-        body: {data: {id: 42}},
         headers: {},
         method: "DELETE",
         path: "/buckets/default/collections/foo/records/42",
