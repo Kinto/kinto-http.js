@@ -90,17 +90,16 @@ export function qsify(obj) {
 /**
  * Checks if a version is within the provided range.
  *
- * @param  {String} version The version to check.
- * @param  {String} min     The minimum version (inclusive).
- * @param  {String} max     The minimum version (exclusive).
+ * @param  {String} version    The version to check.
+ * @param  {String} minVersion The minimum version (inclusive).
+ * @param  {String} maxVersion The minimum version (exclusive).
  * @throws {Error} If the version is outside of the provided range.
  */
-export function checkVersion(version, min, max) {
+export function checkVersion(version, minVersion, maxVersion) {
   const extract = (str) => str.split(".").map(x => parseInt(x, 10));
   const [verMajor, verMinor] = extract(version);
-  const [minMajor, minMinor] = extract(min);
-  const [maxMajor, maxMinor] = extract(max);
-  const msg = `Version ${version} doesn't match ${min} <= x < ${max}`;
+  const [minMajor, minMinor] = extract(minVersion);
+  const [maxMajor, maxMinor] = extract(maxVersion);
   const checks = [
     verMajor < minMajor,
     verMajor === minMajor && verMinor < minMinor,
@@ -108,7 +107,8 @@ export function checkVersion(version, min, max) {
     verMajor === maxMajor && verMinor >= maxMinor,
   ];
   if (checks.some(x => x)) {
-    throw new Error(msg);
+    throw new Error(`Version ${version} doesn't satisfy ` +
+                    `${minVersion} <= x < ${maxVersion}`);
   }
 }
 
