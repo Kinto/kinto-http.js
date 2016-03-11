@@ -1,5 +1,4 @@
 import { omit, toDataBody, qsify } from "./utils";
-import * as requests from "./requests";
 import endpoint from "./endpoint";
 
 
@@ -79,7 +78,10 @@ export default class Collection {
   _updateAttributes(options={}) {
     const collection = toDataBody(this.name);
     const reqOptions = this._collOptions(options);
-    const request = requests.updateCollection(collection, reqOptions);
+    const request = this.client.requests.updateCollection(
+      collection,
+      reqOptions
+    );
     return this.client.execute(request).then(res => res.json);
   }
 
@@ -189,7 +191,11 @@ export default class Collection {
    */
   createRecord(record, options) {
     const reqOptions = this._collOptions(options);
-    const request = requests.createRecord(this.name, record, reqOptions);
+    const request = this.client.requests.createRecord(
+      this.name,
+      record,
+      reqOptions
+    );
     return this.client.execute(request).then(res => res.json);
   }
 
@@ -205,7 +211,11 @@ export default class Collection {
    */
   updateRecord(record, options) {
     const reqOptions = this._collOptions(options);
-    const request = requests.updateRecord(this.name, record, reqOptions);
+    const request = this.client.requests.updateRecord(
+      this.name,
+      record,
+      reqOptions
+    );
     return this.client.execute(request).then(res => res.json);
   }
 
@@ -221,8 +231,11 @@ export default class Collection {
    */
   deleteRecord(record, options) {
     const reqOptions = this._collOptions(options);
-    const request = requests.deleteRecord(this.name, toDataBody(record),
-                                          reqOptions);
+    const request = this.client.requests.deleteRecord(
+      this.name,
+      toDataBody(record),
+      reqOptions
+    );
     return this.client.execute(request).then(res => res.json);
   }
 

@@ -6,9 +6,10 @@ import { EventEmitter } from "events";
 import { partition, pMap, omit, support } from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
-import * as requests from "./requests";
 import { createBatch, aggregate } from "./batch";
 import Bucket from "./bucket";
+import * as requests from "./requests";
+import getCapabilitiesHandler from "./capabilities";
 
 
 /**
@@ -91,6 +92,8 @@ export default class KintoClient {
      */
     this.http = new HTTP(this.events, {requestMode: options.requestMode});
     this._registerHTTPEvents();
+    const handler = getCapabilitiesHandler(this.version);
+    this.requests = new Proxy(requests, handler);
   }
 
   /**
@@ -352,7 +355,7 @@ export default class KintoClient {
    */
   createBucket(bucketName, options={}) {
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.createBucket(bucketName, reqOptions))
+    return this.execute(this.requests.createBucket(bucketName, reqOptions))
       .then(res => res.json);
   }
 
@@ -369,7 +372,21 @@ export default class KintoClient {
   deleteBucket(bucket, options={}) {
     const _bucket = typeof bucket === "object" ? bucket : {id: bucket};
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteBucket(_bucket, reqOptions))
+    return this.execute(this.requests.deleteBucket(_bucket, reqOptions))
+      .then(res => res.json);
+  }
+
+  /**
+   * Delete all authorized buckets.
+   *
+   * @param  {Object}        options         The options object.
+   * @param  {Boolean}       options.safe    The safe option.
+   * @param  {Object}        options.headers The headers object option.
+   * @return {Promise<Object, Error>}
+   */
+  deleteBuckets(options={}) {
+    const reqOptions = this._getRequestOptions(options);
+    return this.execute(this.requests.deleteBuckets(reqOptions))
       .then(res => res.json);
   }
 
