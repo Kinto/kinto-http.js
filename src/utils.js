@@ -129,7 +129,7 @@ export function support(min, max) {
         const wrappedMethod = (...args) => {
           return this.fetchHTTPApiVersion()
             .then(version => checkVersion(version, min, max))
-            .then(fn.apply(this, args));
+            .then(Promise.resolve(fn.apply(this, args)));
         };
         Object.defineProperty(this, key, {
           value: wrappedMethod,
