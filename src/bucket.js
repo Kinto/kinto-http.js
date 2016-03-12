@@ -33,6 +33,10 @@ export default class Bucket {
      * @type {Object}
      */
     this.options = options;
+    /**
+     * @ignore
+     */
+    this._isBatch = !!options.batch;
   }
 
   /**
@@ -47,7 +51,13 @@ export default class Bucket {
       ...this.options && this.options.headers,
       ...options.headers
     };
-    return {...this.options, ...options, headers, bucket: this.name};
+    return {
+      ...this.options,
+      ...options,
+      headers,
+      bucket: this.name,
+      batch: this._isBatch
+    };
   }
 
   /**
@@ -75,8 +85,7 @@ export default class Bucket {
     return this.client.execute({
       path: endpoint("bucket", this.name),
       headers: {...this.options.headers, ...options.headers}
-    })
-      .then(res => res.json);
+    });
   }
 
   /**
@@ -90,8 +99,7 @@ export default class Bucket {
     return this.client.execute({
       path: endpoint("collections", this.name),
       headers: {...this.options.headers, ...options.headers}
-    })
-      .then(res => res.json);
+    });
   }
 
   /**
@@ -109,7 +117,7 @@ export default class Bucket {
   createCollection(id, options) {
     const reqOptions = this._bucketOptions(options);
     const request = requests.createCollection(id, reqOptions);
-    return this.client.execute(request).then(res => res.json);
+    return this.client.execute(request);
   }
 
   /**
@@ -124,7 +132,7 @@ export default class Bucket {
   deleteCollection(collection, options) {
     const reqOptions = this._bucketOptions(options);
     const request = requests.deleteCollection(toDataBody(collection), reqOptions);
-    return this.client.execute(request).then(res => res.json);
+    return this.client.execute(request);
   }
 
   /**
@@ -154,8 +162,7 @@ export default class Bucket {
     return this.client.execute(requests.updateBucket({
       id: this.name,
       last_modified: options.last_modified
-    }, {...this._bucketOptions(options), permissions}))
-      .then(res => res.json);
+    }, {...this._bucketOptions(options), permissions}));
   }
 
   /**

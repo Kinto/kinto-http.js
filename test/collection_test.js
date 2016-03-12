@@ -48,9 +48,7 @@ describe("Collection", () => {
 
     it("should resolve with response data", () => {
       const data = {data: true};
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: data
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve(data));
 
       return getBlogPostsCollection().getAttributes()
         .should.become(data);
@@ -77,9 +75,7 @@ describe("Collection", () => {
 
     beforeEach(() => {
       sandbox.stub(requests, "updateCollection");
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({}));
     });
 
     it("should set permissions", () => {
@@ -134,9 +130,7 @@ describe("Collection", () => {
 
     beforeEach(() => {
       sandbox.stub(requests, "updateCollection");
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: 1}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
     });
 
     it("should set the collection schema", () => {
@@ -186,9 +180,7 @@ describe("Collection", () => {
   describe("#setMetadata()", () => {
     beforeEach(() => {
       sandbox.stub(requests, "updateCollection");
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: 1}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
     });
 
     it("should set the metadata", () => {
@@ -228,9 +220,7 @@ describe("Collection", () => {
     const record = {title: "foo"};
 
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: 1}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
     });
 
     it("should create the expected request", () => {
@@ -274,9 +264,7 @@ describe("Collection", () => {
     const record = {id: 2, title: "foo"};
 
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: 1}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
     });
 
     it("should create the expected request", () => {
@@ -331,9 +319,7 @@ describe("Collection", () => {
   /** @test {Collection#deleteRecord} */
   describe("#deleteRecord()", () => {
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: 1}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
     });
 
     it("should delete a record", () => {
@@ -373,9 +359,7 @@ describe("Collection", () => {
   /** @test {Collection#getRecord} */
   describe("#getRecord()", () => {
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: 1}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
     });
 
     it("should execute expected request", () => {

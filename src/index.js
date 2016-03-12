@@ -3,11 +3,11 @@
 import "isomorphic-fetch";
 import { EventEmitter } from "events";
 
-import { partition, pMap, omit, support } from "./utils";
+import { partition, pMap, omit, support, nobatch } from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
-import { createBatch, aggregate } from "./batch";
+import { aggregate } from "./batch";
 import Bucket from "./bucket";
 
 
@@ -63,6 +63,10 @@ export default class KintoClient {
       headers: options.headers || {},
       safe:    !!options.safe,
     };
+
+    this._options = options;
+    this._requests = [];
+    this._isBatch = !!options.batch;
 
     // public properties
     /**
@@ -183,6 +187,7 @@ export default class KintoClient {
     return {
       ...this.defaultReqOptions,
       ...options,
+      batch: this._isBatch,
       // Note: headers should never be overriden but extended
       headers: {
         ...this.defaultReqOptions.headers,
@@ -215,6 +220,7 @@ export default class KintoClient {
    *
    * @return {Promise<Object, Error>}
    */
+  @nobatch("This operation is not supported within a batch operation.")
   fetchServerSettings() {
     return this.fetchServerInfo().then(({settings}) => settings);
   }
@@ -224,6 +230,7 @@ export default class KintoClient {
    *
    * @return {Promise<Object, Error>}
    */
+  @nobatch("This operation is not supported within a batch operation.")
   fetchServerCapabilities() {
     return this.fetchServerInfo().then(({capabilities}) => capabilities);
   }
@@ -233,6 +240,7 @@ export default class KintoClient {
    *
    * @return {Promise<Object, Error>}
    */
+  @nobatch("This operation is not supported within a batch operation.")
   fetchUser() {
     return this.fetchServerInfo().then(({user}) => user);
   }
@@ -242,6 +250,7 @@ export default class KintoClient {
    *
    * @return {Promise<Object, Error>}
    */
+  @nobatch("This operation is not supported within a batch operation.")
   fetchHTTPApiVersion() {
     return this.fetchServerInfo().then(({http_api_version}) => {
       return http_api_version;
@@ -278,7 +287,7 @@ export default class KintoClient {
           }
         })
           // we only care about the responses
-          .then(res => res.json.responses);
+          .then(({responses}) => responses);
       });
   }
 
@@ -297,13 +306,30 @@ export default class KintoClient {
    * (default: `false`).
    * @return {Promise<Object, Error>}
    */
+  @nobatch("Can't use batch within a batch!")
   batch(fn, options={}) {
-    const batch = createBatch(this._getRequestOptions(options));
-    fn(batch);
-    return this._batchRequests(batch.requests, options)
+    const rootBatch = new KintoClient(this.remote, {
+      ...this._options,
+      ...this._getRequestOptions(options),
+      batch: true
+    });
+    let bucketBatch, collBatch;
+    if (options.bucket) {
+      bucketBatch = rootBatch.bucket(options.bucket);
+      if (options.collection) {
+        collBatch = bucketBatch.collection(options.collection);
+      }
+    }
+    const batchClient = collBatch || bucketBatch || rootBatch;
+    try {
+      fn(batchClient);
+    } catch(err) {
+      return Promise.reject(err);
+    }
+    return this._batchRequests(rootBatch._requests, options)
       .then((responses) => {
         if (options.aggregate) {
-          return aggregate(responses, batch.requests);
+          return aggregate(responses, rootBatch._requests);
         }
         return responses;
       });
@@ -313,17 +339,31 @@ export default class KintoClient {
    * Executes an atomic HTTP request.
    *
    * @private
-   * @param  {Object} request The request object.
+   * @param  {Object}  request     The request object.
+   * @param  {Object}  options     The options object.
+   * @param  {Boolean} options.raw Resolve with full response object, including
+   * json body and headers (Default: `false`, so only the json body is
+   * retrieved).
    * @return {Promise<Object, Error>}
    */
-  execute(request) {
-    return this.fetchServerSettings()
+  execute(request, options={raw: false}) {
+    // If we're within a batch, add the request to the stack to send at once.
+    if (this._isBatch) {
+      this._requests.push(request);
+      // Resolve with a message in case people attempt at consuming the result
+      // from within a batch operation.
+      const msg = "This result is generated from within a batch " +
+                  "operation and should not be consumed.";
+      return Promise.resolve(options.raw ? {json: msg} : msg);
+    }
+    const promise = this.fetchServerSettings()
       .then(_ => {
         return this.http.request(this.remote + request.path, {
           ...request,
           body: JSON.stringify(request.body)
         });
       });
+    return options.raw ? promise : promise.then(({json}) => json);
   }
 
   /**
@@ -337,8 +377,7 @@ export default class KintoClient {
     return this.execute({
       path: endpoint("buckets"),
       headers: {...this.defaultReqOptions.headers, ...options.headers}
-    })
-      .then(res => res.json);
+    });
   }
 
   /**
@@ -352,8 +391,7 @@ export default class KintoClient {
    */
   createBucket(bucketName, options={}) {
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.createBucket(bucketName, reqOptions))
-      .then(res => res.json);
+    return this.execute(requests.createBucket(bucketName, reqOptions));
   }
 
   /**
@@ -369,8 +407,7 @@ export default class KintoClient {
   deleteBucket(bucket, options={}) {
     const _bucket = typeof bucket === "object" ? bucket : {id: bucket};
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteBucket(_bucket, reqOptions))
-      .then(res => res.json);
+    return this.execute(requests.deleteBucket(_bucket, reqOptions));
   }
 
   /**
@@ -385,7 +422,6 @@ export default class KintoClient {
   @support("1.4", "2.0")
   deleteBuckets(options={}) {
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteBuckets(reqOptions))
-      .then(res => res.json);
+    return this.execute(requests.deleteBuckets(reqOptions));
   }
 }

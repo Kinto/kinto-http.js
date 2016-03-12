@@ -127,7 +127,7 @@ describe("KintoClient", () => {
     });
 
     it("should propagate default req options to bucket instance", () => {
-      const options = {safe: true, headers: {Foo: "Bar"}};
+      const options = {safe: true, headers: {Foo: "Bar"}, batch: false};
 
       expect(api.bucket("foo", options))
         .to.have.property("options").eql(options);
@@ -223,9 +223,9 @@ describe("KintoClient", () => {
     });
 
     function executeBatch(fixtures, options) {
-      return api.batch(batch => {
+      return api.bucket("default").collection("blog").batch(batch => {
         for (const article of fixtures) {
-          batch.createRecord("blog", article);
+          batch.createRecord(article);
         }
       }, options);
     }
@@ -240,7 +240,7 @@ describe("KintoClient", () => {
       });
 
       it("should ensure server settings are fetched", () => {
-        return api.batch(batch => batch.createCollection())
+        return api.batch(batch => batch.createBucket("blog"))
           .then(_ => sinon.assert.called(api.fetchServerSettings));
       });
 
@@ -261,9 +261,9 @@ describe("KintoClient", () => {
 
         beforeEach(() => {
           api.defaultReqOptions.headers = {Authorization: "Basic plop"};
-          return api.batch(batch => {
+          return api.bucket("default").collection("blog").batch(batch => {
             for (const article of fixtures) {
-              batch.createRecord("blog", article);
+              batch.createRecord(article);
             }
           }, {headers: {Foo: "Bar"}})
             .then(_ => {
@@ -300,9 +300,9 @@ describe("KintoClient", () => {
         ];
 
         it("should forward the safe option to resulting requests", () => {
-          return api.batch(batch => {
+          return api.bucket("default").collection("blog").batch(batch => {
             for (const article of fixtures) {
-              batch.createRecord("blog", article);
+              batch.createRecord(article);
             }
           }, {safe: true})
             .then(_ => {
@@ -525,9 +525,7 @@ describe("KintoClient", () => {
     const data = [{id: "a"}, {id: "b"}];
 
     beforeEach(() => {
-      sandbox.stub(api, "execute").returns(Promise.resolve({
-        json: {data}
-      }));
+      sandbox.stub(api, "execute").returns(Promise.resolve({data}));
     });
 
     it("should execute expected request", () => {

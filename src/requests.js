@@ -1,6 +1,5 @@
 import endpoint from "./endpoint";
 
-
 const requestDefaults = {
   safe: false,
   // check if we should set default content type here

@@ -1,97 +1,12 @@
 import chai, { expect } from "chai";
 
 import * as requests from "../src/requests";
-import { createBatch, aggregate } from "../src/batch";
+import { aggregate } from "../src/batch";
 
 chai.should();
 chai.config.includeStack = true;
 
 describe("batch module", () => {
-  const fixtures = [{title: "art1"}, {title: "art2"}];
-
-  describe("createBatch()", () => {
-    it("should create a batch object", () => {
-      expect(createBatch()).to.be.an("object");
-    });
-
-    it("should implement all the requests functions", () => {
-      expect(createBatch()).to.include.keys(Object.keys(requests));
-    });
-
-    describe("Options support", () => {
-      let batch;
-
-      it("should support a headers option", () => {
-        batch = createBatch({headers: {Foo: "Bar"}});
-        for (const article of fixtures) {
-          batch.createRecord("foo", article);
-        }
-        expect(batch.requests[0]).to.have.property("headers").eql({Foo: "Bar"});
-      });
-
-      it("should support a collection option", () => {
-        batch = createBatch({collection: "plop"});
-        for (const article of fixtures) {
-          batch.createRecord(article);
-        }
-        expect(batch.requests[0])
-          .to.have.property("path")
-          .eql("/buckets/default/collections/plop/records");
-      });
-    });
-
-    describe("get requests()", () => {
-      let batch;
-
-      beforeEach(() => {
-        batch = createBatch();
-        for (const article of fixtures) {
-          batch.createRecord("foo", article);
-        }
-      });
-
-      it("should stack request objects into a requests property", () => {
-        expect(batch.requests).to.have.length.of(2);
-      });
-
-      it("should contain the expected request objects", () => {
-        expect(batch.requests)
-          .eql(fixtures.map(article => requests.createRecord("foo", article)));
-      });
-    });
-  });
-
-  describe("safe option", () => {
-    it("should ensure request methods are passed the safe option", () => {
-      const batch = createBatch({safe: true});
-
-      batch.createRecord("foo", {title: "bar"});
-
-      expect(batch.requests[0])
-        .to.have.property("headers").eql({"If-None-Match": "*"});
-    });
-  });
-
-  describe("bucket option", () => {
-    it("should ensure request methods are passed the bucket option", () => {
-      const batch = createBatch({bucket: "custom"});
-
-      batch.createRecord("foo", {title: "bar"});
-
-      expect(batch.requests[0])
-        .to.have.property("path").match(/custom/);
-    });
-
-    it("should allow subrequest to override the bucket option", () => {
-      const batch = createBatch({bucket: "custom"});
-
-      batch.createRecord("foo", {title: "bar"}, {bucket: "default"});
-
-      expect(batch.requests[0])
-        .to.have.property("path").match(/default/);
-    });
-  });
-
   describe("aggregate()", () => {
     it("should throw if responses length doesn't match requests one", () => {
       expect(() => aggregate([1], [1, 2]))

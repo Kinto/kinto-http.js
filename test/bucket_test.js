@@ -56,9 +56,7 @@ describe("Bucket", () => {
 
     it("should resolve with response data", () => {
       const data = {data: true};
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: data
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve(data));
 
       return getBlogBucket().getAttributes()
         .should.become(data);
@@ -87,6 +85,7 @@ describe("Bucket", () => {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
         safe: false,
+        batch: false,
       });
     });
   });
@@ -96,9 +95,7 @@ describe("Bucket", () => {
     const data = [{id: "a"}, {id: "b"}];
 
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve(data));
     });
 
     it("should list bucket collections", () => {
@@ -120,7 +117,7 @@ describe("Bucket", () => {
 
     it("should return the list of collections", () => {
       return getBlogBucket().listCollections()
-        .should.eventually.have.property("data").eql(data);
+        .should.become(data);
     });
   });
 
@@ -154,7 +151,7 @@ describe("Bucket", () => {
       it("should create a named collection", () => {
         getBlogBucket().createCollection("foo");
 
-        sinon.assert.calledWith(requests.createCollection, "foo", {
+        sinon.assert.calledWithMatch(requests.createCollection, "foo", {
           bucket: "blog",
           headers: {},
         });
@@ -166,7 +163,7 @@ describe("Bucket", () => {
           safe: true,
         }).createCollection("foo", {headers: {Baz: "Qux"}});
 
-        sinon.assert.calledWithExactly(requests.createCollection, "foo", {
+        sinon.assert.calledWithMatch(requests.createCollection, "foo", {
           bucket: "blog",
           headers: {Foo: "Bar", Baz: "Qux"},
           safe: true,
@@ -178,7 +175,7 @@ describe("Bucket", () => {
       it("should create an unnamed collection", () => {
         getBlogBucket().createCollection();
 
-        sinon.assert.calledWith(requests.createCollection, undefined, {
+        sinon.assert.calledWithMatch(requests.createCollection, undefined, {
           bucket: "blog",
           headers: {},
         });
@@ -190,7 +187,7 @@ describe("Bucket", () => {
           safe: true,
         }).createCollection({}, {headers: {Baz: "Qux"}});
 
-        sinon.assert.calledWithExactly(requests.createCollection, {}, {
+        sinon.assert.calledWithMatch(requests.createCollection, {}, {
           bucket: "blog",
           headers: {Foo: "Bar", Baz: "Qux"},
           safe: true,
@@ -211,7 +208,7 @@ describe("Bucket", () => {
     it("should delete a collection", () => {
       getBlogBucket().deleteCollection("todelete");
 
-      sinon.assert.calledWith(requests.deleteCollection, {id: "todelete"}, {
+      sinon.assert.calledWithMatch(requests.deleteCollection, {id: "todelete"}, {
         bucket: "blog",
         headers: {},
       });
@@ -223,7 +220,7 @@ describe("Bucket", () => {
         safe: true,
       }).deleteCollection("todelete", {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithExactly(requests.deleteCollection, {id: "todelete"}, {
+      sinon.assert.calledWithMatch(requests.deleteCollection, {id: "todelete"}, {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
         safe: true,
@@ -287,10 +284,8 @@ describe("Bucket", () => {
     beforeEach(() => {
       sandbox.stub(requests, "updateBucket");
       sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {
-          data: {},
-          permissions: fakePermissions
-        }
+        data: {},
+        permissions: fakePermissions
       }));
     });
 
@@ -352,6 +347,7 @@ describe("Bucket", () => {
       sinon.assert.calledWith(client.batch, fn, {
         bucket: "blog",
         headers: {},
+        batch: false,
       });
     });
 
@@ -363,10 +359,11 @@ describe("Bucket", () => {
         safe: true,
       }).batch(fn, {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithExactly(client.batch, fn, {
+      sinon.assert.calledWith(client.batch, fn, {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
         safe: true,
+        batch: false,
       });
     });
   });
