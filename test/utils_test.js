@@ -8,7 +8,8 @@ import {
   omit,
   qsify,
   checkVersion,
-  support
+  support,
+  nobatch
 } from "../src/utils";
 
 chai.should();
@@ -158,6 +159,61 @@ describe("Utils", () => {
       }
 
       return new FakeClient().test().should.be.rejected;
+    });
+
+    it("should check for an attached client instance", () => {
+      class FakeClient {
+        constructor() {
+          this.client = {
+            fetchHTTPApiVersion() {
+              return Promise.reject(); // simulates a failing checkVersion call
+            }
+          };
+        }
+
+        @support()
+        test() {
+          return Promise.resolve();
+        }
+      }
+
+      return new FakeClient().test().should.be.rejected;
+    });
+  });
+
+  describe("@nobatch", () => {
+    it("should return a function", () => {
+      expect(nobatch()).to.be.a("function");
+    });
+
+    it("should make decorated method pass when not in batch", () => {
+      class FakeClient {
+        constructor() {
+          this._isBatch = false;
+        }
+
+        @nobatch("error")
+        test() {
+          return Promise.resolve();
+        }
+      }
+
+      return new FakeClient().test().should.be.fullfilled;
+    });
+
+    it("should make decorated method to throw if in batch", () => {
+      class FakeClient {
+        constructor() {
+          this._isBatch = true;
+        }
+
+        @nobatch("error")
+        test() {
+          return Promise.resolve();
+        }
+      }
+
+      expect(() => new FakeClient().test()).to.Throw(Error, "error");
     });
   });
 });

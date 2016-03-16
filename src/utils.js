@@ -127,9 +127,42 @@ export function support(min, max) {
       configurable: true,
       get() {
         const wrappedMethod = (...args) => {
-          return this.fetchHTTPApiVersion()
+          // "this" is the current instance which its method is decorated.
+          const client = "client" in this ? this.client : this;
+          return client.fetchHTTPApiVersion()
             .then(version => checkVersion(version, min, max))
             .then(Promise.resolve(fn.apply(this, args)));
+        };
+        Object.defineProperty(this, key, {
+          value: wrappedMethod,
+          configurable: true,
+          writable: true
+        });
+        return wrappedMethod;
+      }
+    };
+  };
+}
+
+/**
+ * Generates a decorator function ensuring an operation is not performed from
+ * within a batch request.
+ *
+ * @param  {String} message The error message to throw.
+ * @return {Function}
+ */
+export function nobatch(message) {
+  return function(target, key, descriptor) {
+    const fn = descriptor.value;
+    return {
+      configurable: true,
+      get() {
+        const wrappedMethod = (...args) => {
+          // "this" is the current instance which its method is decorated.
+          if (this._isBatch) {
+            throw new Error(message);
+          }
+          return fn.apply(this, args);
         };
         Object.defineProperty(this, key, {
           value: wrappedMethod,

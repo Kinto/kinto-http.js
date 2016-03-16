@@ -45,6 +45,10 @@ export default class Collection {
         ...options.headers
       }
     };
+    /**
+     * @ignore
+     */
+    this._isBatch = !!options.batch;
   }
 
   /**
@@ -80,7 +84,7 @@ export default class Collection {
     const collection = toDataBody(this.name);
     const reqOptions = this._collOptions(options);
     const request = requests.updateCollection(collection, reqOptions);
-    return this.client.execute(request).then(res => res.json);
+    return this.client.execute(request);
   }
 
   /**
@@ -95,7 +99,7 @@ export default class Collection {
     return this.client.execute({
       path: endpoint("collection", this.bucket.name, this.name),
       headers
-    }).then(res => res.json);
+    });
   }
 
   /**
@@ -190,7 +194,7 @@ export default class Collection {
   createRecord(record, options) {
     const reqOptions = this._collOptions(options);
     const request = requests.createRecord(this.name, record, reqOptions);
-    return this.client.execute(request).then(res => res.json);
+    return this.client.execute(request);
   }
 
   /**
@@ -206,7 +210,7 @@ export default class Collection {
   updateRecord(record, options) {
     const reqOptions = this._collOptions(options);
     const request = requests.updateRecord(this.name, record, reqOptions);
-    return this.client.execute(request).then(res => res.json);
+    return this.client.execute(request);
   }
 
   /**
@@ -223,7 +227,7 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     const request = requests.deleteRecord(this.name, toDataBody(record),
                                           reqOptions);
-    return this.client.execute(request).then(res => res.json);
+    return this.client.execute(request);
   }
 
   /**
@@ -238,7 +242,7 @@ export default class Collection {
     return this.client.execute({
       path: endpoint("record", this.bucket.name, this.name, id),
       ...this._collOptions(options),
-    }).then(res => res.json);
+    });
   }
 
   /**
@@ -331,7 +335,7 @@ export default class Collection {
     return this.client.execute({
       path: path + "?" + querystring,
       ...this._collOptions(options),
-    }).then(handleResponse);
+    }, {raw: true}).then(handleResponse);
   }
 
   /**

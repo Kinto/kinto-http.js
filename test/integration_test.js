@@ -55,6 +55,34 @@ describe("Integration tests", function() {
 
     beforeEach(() => server.flush());
 
+    // XXX move this to batch tests
+    describe("new batch", () => {
+      it("should support root batch", () => {
+        return api.batch(batch => {
+          const bucket = batch.bucket("default");
+          bucket.createCollection("posts");
+          const coll = bucket.collection("posts");
+          coll.createRecord({a: 1});
+          coll.createRecord({a: 2});
+        })
+          .then(_ => api.bucket("default").collection("posts").listRecords())
+          .then(res => res.data)
+          .should.eventually.have.length.of(2);
+      });
+
+      it("should support bucket batch", () => {
+        return api.bucket("default").batch(batch => {
+          batch.createCollection("posts");
+          const coll = batch.collection("posts");
+          coll.createRecord({a: 1});
+          coll.createRecord({a: 2});
+        })
+          .then(_ => api.bucket("default").collection("posts").listRecords())
+          .then(res => res.data)
+          .should.eventually.have.length.of(2);
+      });
+    });
+
     describe("Server properties", () => {
       it("should retrieve server settings", () => {
         return api.fetchServerSettings()
@@ -204,10 +232,12 @@ describe("Integration tests", function() {
         it("should allow batching operations", () => {
           return api.batch(batch => {
             batch.createBucket("custom");
-            batch.createCollection("blog");
-            batch.createRecord("blog", {title: "art1"});
-            batch.createRecord("blog", {title: "art2"});
-          }, {bucket: "custom"})
+            const bucket = batch.bucket("custom");
+            bucket.createCollection("blog");
+            const coll = bucket.collection("blog");
+            coll.createRecord({title: "art1"});
+            coll.createRecord({title: "art2"});
+          })
             .then(_ => api.bucket("custom").collection("blog").listRecords())
             .then(({data}) => data.map(record => record.title))
             .should.become(["art2", "art1"]);
@@ -218,9 +248,11 @@ describe("Integration tests", function() {
         it("should allow batching by chunks", () => {
           return api.batch(batch => {
             batch.createBucket("custom");
-            batch.createCollection("blog", {bucket: "custom"});
+            const bucket = batch.bucket("custom");
+            bucket.createCollection("blog");
+            const coll = bucket.collection("blog");
             for (let i=1; i<=27; i++) {
-              batch.createRecord("blog", {title: "art" + i}, {bucket: "custom"});
+              coll.createRecord({title: "art" + i});
             }
           })
             .then(_ => api.bucket("custom").collection("blog").listRecords())
@@ -237,9 +269,11 @@ describe("Integration tests", function() {
             beforeEach(() => {
               return api.batch(batch => {
                 batch.createBucket("custom");
-                batch.createCollection("blog", {bucket: "custom"});
-                batch.createRecord("blog", {title: "art1"}, {bucket: "custom"});
-                batch.createRecord("blog", {title: "art2"}, {bucket: "custom"});
+                const bucket = batch.bucket("custom");
+                bucket.createCollection("blog");
+                const coll = bucket.collection("blog");
+                coll.createRecord({title: "art1"});
+                coll.createRecord({title: "art2"});
               }, {aggregate: true})
                 .then(_results => results = _results);
             });
@@ -263,9 +297,9 @@ describe("Integration tests", function() {
             let results;
 
             beforeEach(() => {
-              return api.batch(batch => {
+              return api.bucket("default").collection("blog").batch(batch => {
                 for (let i=1; i<=26; i++) {
-                  batch.createRecord("blog", {title: "art" + i});
+                  batch.createRecord({title: "art" + i});
                 }
               }, {aggregate: true})
                 .then(_results => results = _results);
@@ -400,15 +434,12 @@ describe("Integration tests", function() {
       let bucket;
 
       beforeEach(() => {
+        bucket = api.bucket("custom");
         return api.createBucket("custom")
-          // XXX replace with bucket.batch() when it's implemented
-          .then(_ => api.batch(batch => {
+          .then(_ => bucket.batch(batch => {
             batch.createCollection("b1");
             batch.createCollection("b2");
-          }, {bucket: "custom"}))
-          .then(_ => {
-            bucket = api.bucket("custom");
-          });
+          }));
       });
 
       describe(".getAttributes()", () => {
@@ -550,8 +581,9 @@ describe("Integration tests", function() {
         it("should allow batching operations for current bucket", () => {
           return bucket.batch(batch => {
             batch.createCollection("comments");
-            batch.createRecord("comments", {content: "plop"});
-            batch.createRecord("comments", {content: "yo"});
+            const coll = batch.collection("comments");
+            coll.createRecord({content: "plop"});
+            coll.createRecord({content: "yo"});
           })
             .then(_ => bucket.collection("comments").listRecords())
             .then(({data}) => data.map(comment => comment.content).sort())
