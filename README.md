@@ -7,6 +7,40 @@ A JavaScript HTTP Client for the [Kinto](http://kinto-storage.org/) API.
 
 Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-client/).
 
+## Table of Contents
+
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [Buckets](#buckets)
+     - [Listing buckets](#listing-buckets)
+     - [Creating a new bucket](#creating-a-new-bucket)
+     - [Selecting a bucket](#selecting-a-bucket)
+     - [Getting bucket permissions](#getting-bucket-permissions)
+     - [Setting bucket permissions](#setting-bucket-permissions)
+     - [Deleting a bucket](#deleting-a-bucket)
+     - [Creating a collection](#creating-a-collection)
+     - [Listing bucket collections](#listing-bucket-collections)
+     - [Deleting a collection](#deleting-a-collection)
+  - [Collections](#collections)
+     - [Selecting a collection](#selecting-a-collection)
+     - [Setting the JSON schema for a collection](#setting-the-json-schema-for-a-collection)
+     - [Retrieving the collection schema](#retrieving-the-collection-schema)
+     - [Setting collection permissions](#setting-collection-permissions)
+     - [Setting collection metadata](#setting-collection-metadata)
+     - [Getting collection metadata](#getting-collection-metadata)
+     - [Creating a new record](#creating-a-new-record)
+     - [Retrieving an existing record](#retrieving-an-existing-record)
+     - [Updating an existing record](#updating-an-existing-record)
+     - [Deleting record](#deleting-record)
+     - [Listing records](#listing-records)
+     - [Batching operations](#batching-operations)
+  - [Options](#options)
+  - [The safe option explained](#the-safe-option-explained)
+     - [Safe creations](#safe-creations)
+     - [Safe updates](#safe-updates)
+     - [Safe deletions](#safe-deletions)
+
+---
 
 ## Installation
 

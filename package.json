@@ -9,6 +9,7 @@
     "dist-dev": "browserify -s KintoClient -d -e src/index.js -o dist/kinto-client.js -t [ babelify --sourceMapRelative . ]",
     "dist-noshim": "browserify -s KintoClient -g uglifyify --ignore isomorphic-fetch --ignore babel-polyfill -e src/index.js -o dist/kinto-client.noshim.js -t [ babelify --sourceMapRelative . ]",
     "dist-prod": "browserify -s KintoClient -g uglifyify -e src/index.js -o dist/kinto-client.min.js -t [ babelify --sourceMapRelative . ]",
+    "prepublish": "node_modules/.bin/toctoc -w -d 2 README.md",
     "publish-to-npm": "npm run build && npm run dist && npm publish",
     "report-coverage": "npm run test-cover && ./node_modules/coveralls/bin/coveralls.js < ./coverage/lcov.info",
     "tdd": "babel-node node_modules/.bin/_mocha --watch 'test/**/*_test.js'",
@@ -60,6 +61,7 @@
     "eslint": "2.2.0",
     "mocha": "^2.3.4",
     "sinon": "^1.17.2",
+    "toctoc": "^0.2.2",
     "uglifyify": "^3.0.1",
     "uuid": "^2.0.1"
   }
