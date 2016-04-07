@@ -90,6 +90,18 @@ describe("Utils", () => {
     it("should strip out undefined values", () => {
       expect(qsify({a: undefined, b: 2})).eql("b=2");
     });
+
+    it("should join comma-separated values", () => {
+      expect(qsify({a: [1, 2], b: 2})).eql("a=1&a=2&b=2");
+    });
+
+    it("should map boolean as lowercase string", () => {
+      expect(qsify({a: [true, 2], b: false})).eql("a=true&a=2&b=false");
+    });
+
+    it("should escaped values", () => {
+      expect(qsify({a: ["é", "ə"], b: "&"})).eql("a=%C3%A9&a=%C9%99&b=%26");
+    });
   });
 
   describe("#checkVersion", () => {

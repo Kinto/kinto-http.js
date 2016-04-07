@@ -1,5 +1,3 @@
-import { stringify as toQuerystring } from "querystring";
-
 /**
  * Chunks an array into n pieces.
  *
@@ -84,7 +82,18 @@ export function toDataBody(value) {
  * @return {String}
  */
 export function qsify(obj) {
-  return toQuerystring(JSON.parse(JSON.stringify(obj)));
+  const sep = "&";
+  const encode = (v) => encodeURIComponent(typeof v === "boolean" ? String(v) : v);
+  const stripUndefined = (o) => JSON.parse(JSON.stringify(o));
+  const stripped = stripUndefined(obj);
+  return Object.keys(stripped).map((k) => {
+    const ks = encode(k) + "=";
+    if (Array.isArray(stripped[k])) {
+      return stripped[k].map((v) => ks + encode(v)).join(sep);
+    } else {
+      return ks + encode(stripped[k]);
+    }
+  }).join(sep);
 }
 
 /**
