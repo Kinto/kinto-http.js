@@ -1,4 +1,18 @@
 {
-  "presets": ["es2015", "decorators-legacy"],
-  "plugins": ["transform-object-rest-spread"]
+  "env": {
+    "development": {
+      "presets": ["es2015"],
+      "plugins": [
+        "babel-plugin-transform-decorators-legacy",
+        "transform-object-rest-spread",
+      ]
+    },
+    "firefox": {
+      "plugins": [
+        "babel-plugin-transform-decorators-legacy",
+        "transform-es2015-modules-commonjs",
+        "transform-object-rest-spread"
+      ]
+    }
+  }
 }
