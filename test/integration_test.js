@@ -24,7 +24,7 @@ describe("Integration tests", function() {
   this.timeout(0);
 
   before(() => {
-    server = new KintoServer(TEST_KINTO_SERVER);
+    server = new KintoServer(TEST_KINTO_SERVER, {maxAttempts: 200});
   });
 
   after(() => server.killAll());
