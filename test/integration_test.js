@@ -8,7 +8,7 @@ import sinon from "sinon";
 import Api from "../src";
 import { checkVersion } from "../src/utils";
 import { EventEmitter } from "events";
-import KintoServer from "./server_utils";
+import KintoServer from "kinto-node-test-server";
 import { delayedPromise } from "./test_utils";
 
 chai.use(chaiAsPromised);

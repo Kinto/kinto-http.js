@@ -60,6 +60,7 @@
     "esdoc-es7-plugin": "0.0.3",
     "esdoc-importpath-plugin": "0.0.1",
     "eslint": "2.2.0",
+    "kinto-node-test-server": "0.0.1",
     "mocha": "^2.3.4",
     "sinon": "^1.17.2",
     "toctoc": "^0.2.2",
