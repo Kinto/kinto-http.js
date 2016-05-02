@@ -66,5 +66,8 @@
     "toctoc": "^0.2.2",
     "uglifyify": "^3.0.1",
     "uuid": "^2.0.1"
+  },
+  "engines": {
+    "node": ">=6"
   }
 }
