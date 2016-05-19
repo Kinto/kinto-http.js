@@ -327,7 +327,7 @@ describe("Integration tests", function() {
     const backoffSeconds = 10;
 
     before(() => {
-      return server.start({CLIQUET_BACKOFF: backoffSeconds});
+      return server.start({KINTO_BACKOFF: backoffSeconds});
     });
 
     after(() => server.stop());
@@ -348,9 +348,9 @@ describe("Integration tests", function() {
       before(() => {
         const tomorrow = new Date(new Date().getTime() + 86400000).toJSON().slice(0, 10);
         return server.start({
-          CLIQUET_EOS: tomorrow,
-          CLIQUET_EOS_URL: "http://www.perdu.com",
-          CLIQUET_EOS_MESSAGE: "Boom",
+          KINTO_EOS: tomorrow,
+          KINTO_EOS_URL: "http://www.perdu.com",
+          KINTO_EOS_MESSAGE: "Boom",
         });
       });
 
@@ -370,9 +370,9 @@ describe("Integration tests", function() {
       before(() => {
         const lastWeek = new Date(new Date().getTime() - (7 * 86400000)).toJSON().slice(0, 10);
         return server.start({
-          CLIQUET_EOS: lastWeek,
-          CLIQUET_EOS_URL: "http://www.perdu.com",
-          CLIQUET_EOS_MESSAGE: "Boom",
+          KINTO_EOS: lastWeek,
+          KINTO_EOS_URL: "http://www.perdu.com",
+          KINTO_EOS_MESSAGE: "Boom",
         });
       });
 
