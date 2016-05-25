@@ -477,6 +477,15 @@ describe("Integration tests", function() {
             .then(({data}) => data)
             .should.eventually.have.property("a").eql(1);
         });
+
+        it("should patch existing data for the bucket", () => {
+          return bucket.setData({a: 1})
+            .then(() => bucket.setData({b: 2}, {patch: true}))
+            .then(({data}) => {
+              expect(data.a).eql(1);
+              expect(data.b).eql(2);
+            });
+        });
       });
 
       describe(".listCollections()", () => {

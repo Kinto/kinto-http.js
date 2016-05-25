@@ -174,6 +174,7 @@ Sample result:
 
 #### Options
 
+- `patch`: Patches existing bucket data instead of replacing them (default: `false`)
 - `headers`: Custom headers object to send along the HTTP request
 - `safe`: Whether to override existing resource if it already exists (default: `false`)
 

@@ -90,8 +90,12 @@ export default class Bucket {
 
   /**
    * Set bucket data.
-   * @param {Object} metadata The bucket meta
-   * @param {Object} options  [description]
+   * @param  {Object}   data            The bucket data object.
+   * @param  {Object}   options         The options object.
+   * @param  {Object}   options.headers The headers object option.
+   * @param  {Boolean}  options.safe    The safe option.
+   * @param  {Boolean}  options.patch   The patch option.
+   * @return {Promise<Object, Error>}
    */
   setData(data, options={}) {
     const reqOptions = {...this._bucketOptions(options)};

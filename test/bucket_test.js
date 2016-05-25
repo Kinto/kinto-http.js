@@ -78,6 +78,14 @@ describe("Bucket", () => {
       }, {headers: {}});
     });
 
+    it("should handle the patch option", () => {
+      getBlogBucket().setData({a: 1}, {patch: true});
+
+      sinon.assert.calledWithMatch(requests.updateBucket, {id: "blog", a: 1}, {
+        patch: true,
+      });
+    });
+
     it("should handle the safe option", () => {
       getBlogBucket().setData({a: 1}, {safe: true, last_modified: 42});
 
