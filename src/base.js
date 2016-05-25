@@ -383,6 +383,7 @@ export default class KintoClientBase {
    *
    * @param  {String}   bucketName      The bucket name.
    * @param  {Object}   options         The options object.
+   * @param  {Boolean}  options.data    The bucket data option.
    * @param  {Boolean}  options.safe    The safe option.
    * @param  {Object}   options.headers The headers object option.
    * @return {Promise<Object, Error>}

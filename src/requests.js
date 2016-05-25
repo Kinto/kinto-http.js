@@ -29,13 +29,16 @@ export function createBucket(bucketName, options = {}) {
   }
   // Note that we simply ignore any "bucket" option passed here, as the one
   // we're interested in is the one provided as a required argument.
-  const { headers, permissions, safe } = {...requestDefaults, ...options};
+  const { data={}, headers, permissions, safe } = {
+    ...requestDefaults,
+    ...options,
+  };
   return {
     method: "PUT",
     path: endpoint("bucket", bucketName),
     headers: {...headers, ...safeHeader(safe)},
     body: {
-      // XXX We can't pass the data option just yet, see Kinto/kinto/issues/239
+      data,
       permissions
     }
   };

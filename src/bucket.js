@@ -89,6 +89,17 @@ export default class Bucket {
   }
 
   /**
+   * Set bucket data.
+   * @param {Object} metadata The bucket meta
+   * @param {Object} options  [description]
+   */
+  setData(data, options={}) {
+    const reqOptions = {...this._bucketOptions(options)};
+    const request = requests.updateBucket({...data, id: this.name}, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
    * Retrieves the list of collections in the current bucket.
    *
    * @param  {Object} options         The options object.

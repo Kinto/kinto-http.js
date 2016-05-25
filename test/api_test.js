@@ -568,6 +568,16 @@ describe("KintoClient", () => {
       });
     });
 
+    it("should accept a data option", () => {
+      api.createBucket("foo", {data: {a: 1}});
+
+      sinon.assert.calledWithMatch(requests.createBucket, "foo", {
+        data: {a: 1},
+        headers: {},
+        safe: false,
+      });
+    });
+
     it("should accept a safe option", () => {
       api.createBucket("foo", {safe: true});
 
