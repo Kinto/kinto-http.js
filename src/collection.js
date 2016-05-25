@@ -253,7 +253,7 @@ export default class Collection {
    * - The field to order the results by, prefixed with `-` for descending.
    * Default: `-last_modified`.
    *
-   * @see http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/resource.html#sorting
+   * @see http://kinto.readthedocs.io/en/stable/core/api/resource.html#sorting
    *
    * Filtering is done by passing a `filters` option object:
    *
@@ -263,7 +263,7 @@ export default class Collection {
    * - `{not_fieldname: 0}`
    * - `{exclude_fieldname: "0,1"}`
    *
-   * @see http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/resource.html#filtering
+   * @see http://kinto.readthedocs.io/en/stable/core/api/resource.html#filtering
    *
    * Paginating is done by passing a `limit` option, then calling the `next()`
    * method from the resolved result object to fetch the next page, if any.

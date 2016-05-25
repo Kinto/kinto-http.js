@@ -687,7 +687,7 @@ Sample result:
 }
 ```
 
-Note the root `last_modified` value which is the [collection's timestamp](http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/timestamps.html). This value is opaque and should be reused as is, eg. passing it as a `since` option (see the *Options* section below).
+Note the root `last_modified` value which is the [collection's timestamp](http://kinto.readthedocs.io/en/stable/core/api/timestamps.html). This value is opaque and should be reused as is, eg. passing it as a `since` option (see the *Options* section below).
 
 #### Sorting
 
@@ -761,7 +761,7 @@ client.bucket("blog").collection("posts")
 - `sort`: The order field (default: `-last_modified`);
 - `pages`: The number of result pages to retrieve (default: `1`);
 - `limit`: The number of records to retrieve per page: unset by default, uses default server configuration;
-- `filters`: An object defining the filters to apply; read more about [what's supported](http://kinto.readthedocs.org/en/latest/api/1.x/cliquet/resource.html#filtering);
+- `filters`: An object defining the filters to apply; read more about [what's supported](http://kinto.readthedocs.io/en/stable/core/api/resource.html#filtering);
 - `since`: The ETag header value received from the last response from the server.
 - `headers`: Custom headers object to send along the HTTP request;
 
