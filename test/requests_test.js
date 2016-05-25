@@ -14,6 +14,7 @@ describe("requests module", () => {
     it("should return a bucket creation request", () => {
       expect(requests.createBucket("foo")).eql({
         body: {
+          data: {},
           permissions: {}
         },
         headers: {},

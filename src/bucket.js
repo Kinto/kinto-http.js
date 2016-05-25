@@ -89,6 +89,21 @@ export default class Bucket {
   }
 
   /**
+   * Set bucket data.
+   * @param  {Object}   data            The bucket data object.
+   * @param  {Object}   options         The options object.
+   * @param  {Object}   options.headers The headers object option.
+   * @param  {Boolean}  options.safe    The safe option.
+   * @param  {Boolean}  options.patch   The patch option.
+   * @return {Promise<Object, Error>}
+   */
+  setData(data, options={}) {
+    const reqOptions = {...this._bucketOptions(options)};
+    const request = requests.updateBucket({...data, id: this.name}, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
    * Retrieves the list of collections in the current bucket.
    *
    * @param  {Object} options         The options object.

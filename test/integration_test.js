@@ -135,6 +135,14 @@ describe("Integration tests", function() {
                         .to.have.property("write").to.be.a("array");
         });
 
+        describe("data option", () => {
+          it("should create bucket data", () => {
+            return api.createBucket("foo", {data: {a: 1}})
+              .should.eventually.have.property("data")
+                             .to.have.property("a").eql(1);
+          });
+        });
+
         describe("Safe option", () => {
           it("should not override existing bucket", () => {
             return api.createBucket("foo", {safe: true})
@@ -460,6 +468,23 @@ describe("Integration tests", function() {
         it("should have permissions exposed", () => {
           expect(result).to.have.property("permissions")
             .to.have.property("write").to.have.length.of(1);
+        });
+      });
+
+      describe(".setData()", () => {
+        it("should post data to the bucket", () => {
+          return bucket.setData({a: 1})
+            .then(({data}) => data)
+            .should.eventually.have.property("a").eql(1);
+        });
+
+        it("should patch existing data for the bucket", () => {
+          return bucket.setData({a: 1})
+            .then(() => bucket.setData({b: 2}, {patch: true}))
+            .then(({data}) => {
+              expect(data.a).eql(1);
+              expect(data.b).eql(2);
+            });
         });
       });
 

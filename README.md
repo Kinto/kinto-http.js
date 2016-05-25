@@ -15,6 +15,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-client
      - [Listing buckets](#listing-buckets)
      - [Creating a new bucket](#creating-a-new-bucket)
      - [Selecting a bucket](#selecting-a-bucket)
+     - [Setting bucket data](#setting-bucket-data)
      - [Getting bucket permissions](#getting-bucket-permissions)
      - [Setting bucket permissions](#setting-bucket-permissions)
      - [Deleting a bucket](#deleting-a-bucket)
@@ -137,6 +138,7 @@ Sample result:
 
 #### Options
 
+- `data`: Arbitrary data to attach to the bucket
 - `headers`: Custom headers object to send along the HTTP request
 - `safe`: Whether to override existing resource if it already exists (default: `false`)
 
@@ -145,6 +147,36 @@ Sample result:
 ```js
 client.bucket("blog");
 ```
+
+### Setting bucket data
+
+```js
+client.bucket("blog").setData({foo: "bar"})
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+  "data": {
+    "last_modified": 1456182336242,
+    "id": "blog",
+    "foo": "bar"
+  },
+  "permissions": {
+    "write": [
+      "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"
+    ]
+  }
+}
+```
+
+#### Options
+
+- `patch`: Patches existing bucket data instead of replacing them (default: `false`)
+- `headers`: Custom headers object to send along the HTTP request
+- `safe`: Whether to override existing resource if it already exists (default: `false`)
 
 ### Getting bucket permissions
 

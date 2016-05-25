@@ -63,6 +63,49 @@ describe("Bucket", () => {
     });
   });
 
+  describe("#setData()", () => {
+    beforeEach(() => {
+      sandbox.stub(requests, "updateBucket");
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
+    });
+
+    it("should set the bucket data", () => {
+      getBlogBucket().setData({a: 1});
+
+      sinon.assert.calledWithMatch(requests.updateBucket, {
+        id: "blog",
+        a: 1
+      }, {headers: {}});
+    });
+
+    it("should handle the patch option", () => {
+      getBlogBucket().setData({a: 1}, {patch: true});
+
+      sinon.assert.calledWithMatch(requests.updateBucket, {id: "blog", a: 1}, {
+        patch: true,
+      });
+    });
+
+    it("should handle the safe option", () => {
+      getBlogBucket().setData({a: 1}, {safe: true, last_modified: 42});
+
+      sinon.assert.calledWithMatch(requests.updateBucket, {
+        id: "blog",
+        a: 1,
+      }, {
+        headers: {},
+        safe: true,
+        last_modified: 42,
+      });
+    });
+
+    it("should resolve with json result", () => {
+      return getBlogBucket().setData({a: 1})
+        .should.become({data: 1});
+    });
+  });
+
+
   /** @test {Bucket#collection} */
   describe("#collection()", () => {
     it("should return a Collection instance", () => {
