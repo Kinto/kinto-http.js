@@ -129,7 +129,6 @@ const kinto = new KintoClient("https://my.server.tld/v1", {
 });
 ```
 
-
 ## Server information
 
 A Kinto server exposes some of its internal settings, information about authenticated user, the HTTP API version and the API capabilities (e.g. plugins).
@@ -176,6 +175,7 @@ Sample result:
 - `fetchServerCapabilities([options])`: API capabilities
 - `fetchUser()`: authenticated user information
 - `fetchHTTPApiVersion([options])`: HTTP API version
+
 
 ## Buckets
 
@@ -241,6 +241,28 @@ Sample result:
 ```js
 client.bucket("blog");
 ```
+
+### Getting bucket data
+
+```js
+client.bucket("blog").getData()
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+  "last_modified": 1456182336242,
+  "id": "blog",
+  "foo": "bar"
+}
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request
+
 
 ### Setting bucket data
 
@@ -478,6 +500,82 @@ client.bucket("blog").collection("posts")
   .then(result => ...);
 ```
 
+### Getting collection data
+
+```js
+client.bucket("blog").collection("posts").getData()
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+  "last_modified": 1456183561206,
+  "id": "posts",
+  "preferedAuthor": "@chucknorris"
+}
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request
+
+### Setting collection data
+
+```js
+client.bucket("blog").collection("posts")
+  .setData({preferedAuthor: "@chucknorris"})
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+  "data": {
+    "last_modified": 1456183561206,
+    "id": "posts",
+    "preferedAuthor": "@chucknorris"
+  },
+  "permissions": {
+    "write": [
+      "github:bob",
+      "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8",
+      "github:john"
+    ]
+  }
+}
+```
+
+#### Options
+
+- `patch`: Patches the existing data instead of replacing them (default: `false`)
+- `headers`: Custom headers object to send along the HTTP request;
+- `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
+- `last_modified`: The last timestamp we know the resource has been updated on the server.
+
+### Getting collection permissions
+
+```js
+client.bucket("blog").collection("posts").getPermissions()
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+  "write": [
+    "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8",
+  ]
+}
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request
+
 ### Setting collection permissions
 
 ```js
@@ -519,60 +617,6 @@ Sample result:
 - This operation replaces any previously set permissions;
 - Owners will always keep their `write` permission bit, as per the Kinto protocol.
 
-### Setting collection data
-
-```js
-client.bucket("blog").collection("posts")
-  .setData({preferedAuthor: "@chucknorris"})
-  .then(result => ...);
-```
-
-Sample result:
-
-```js
-{
-  "data": {
-    "last_modified": 1456183561206,
-    "id": "posts",
-    "preferedAuthor": "@chucknorris"
-  },
-  "permissions": {
-    "write": [
-      "github:bob",
-      "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8",
-      "github:john"
-    ]
-  }
-}
-```
-
-#### Options
-
-- `patch`: Patches the existing data instead of replacing them (default: `false`)
-- `headers`: Custom headers object to send along the HTTP request;
-- `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
-- `last_modified`: The last timestamp we know the resource has been updated on the server.
-
-### Getting collection data
-
-```js
-client.bucket("blog").collection("posts").getData()
-  .then(result => ...);
-```
-
-Sample result:
-
-```js
-{
-  "last_modified": 1456183561206,
-  "id": "posts",
-  "preferedAuthor": "@chucknorris"
-}
-```
-
-#### Options
-
-- `headers`: Custom headers object to send along the HTTP request
 
 ### Creating a new record
 
