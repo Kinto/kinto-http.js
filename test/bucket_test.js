@@ -293,6 +293,55 @@ describe("Bucket", () => {
     });
   });
 
+
+  /** @test {Bucket#createGroup} */
+  describe.only("#createGroup", () => {
+    beforeEach(() => {
+      sandbox.stub(requests, "createGroup");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: {}}
+      }));
+    });
+
+    it("should accept a safe option", () => {
+      getBlogBucket().createGroup("foo", [], {safe: true});
+
+      sinon.assert.calledWithMatch(requests.createGroup, "foo", [], {
+        safe: true
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      getBlogBucket({headers: {Foo: "Bar"}})
+        .createGroup("foo", [], {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.createGroup, "foo", [], {
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
+    });
+
+    it("should create a group with empty list of members", () => {
+      getBlogBucket().createGroup("foo");
+
+      sinon.assert.calledWithMatch(requests.createGroup, "foo", [], {
+        headers: {},
+      });
+    });
+
+    it("should create a group with optional data and permissions", () => {
+      const group = {
+        data: {age: 21},
+        permissions: {write: ["github:leplatrem"]}
+      };
+      getBlogBucket().createGroup("foo", [], group);
+
+      sinon.assert.calledWithMatch(requests.createGroup, "foo", [], {
+        ...group,
+        headers: {},
+      });
+    });
+  });
+
   /** @test {Bucket#getPermissions} */
   describe("#getPermissions()", () => {
     beforeEach(() => {

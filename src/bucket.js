@@ -175,6 +175,24 @@ export default class Bucket {
   }
 
   /**
+   * Creates a new group in current bucket.
+   *
+   * @param  {String|undefined}  id        The group id.
+   * @param  {Array<String>}     members   The list of principals.
+   * @param  {Object}  options             The options object.
+   * @param  {Object}  options.data        The data object.
+   * @param  {Object}  options.permissions The permissions object.
+   * @param  {Boolean} options.safe        The safe option.
+   * @param  {Object}  options.headers     The headers object option.
+   * @return {Promise<Object, Error>}
+   */
+  createGroup(id, members=[], options) {
+    const reqOptions = this._bucketOptions(options);
+    const request = requests.createGroup(id, members, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
    * Retrieves the list of permissions for this bucket.
    *
    * @param  {Object} options         The options object.

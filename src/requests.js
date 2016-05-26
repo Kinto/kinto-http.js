@@ -84,3 +84,26 @@ export function deleteRequest(path, options={}) {
     headers: {...headers, ...safeHeader(safe, last_modified)}
   };
 }
+
+/**
+ * @private
+ */
+export function createGroup(id, members, options={}) {
+  const { bucket, headers, permissions, data, safe } = {
+    ...requestDefaults,
+    ...options
+  };
+  const path = endpoint("group", bucket, id);
+  return {
+    method: "PUT",
+    path,
+    headers: {...headers, ...safeHeader(safe)},
+    body: {
+      data: {
+        ...data,
+        members
+      },
+      permissions
+    }
+  };
+}
