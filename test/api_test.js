@@ -79,6 +79,16 @@ describe("KintoClient", () => {
         .eql(requestMode);
     });
 
+    it("should keep the default timeout in the child HTTP instance", () => {
+      expect(new KintoClient(sampleRemote).http.timeout).eql(5000);
+    });
+
+    it("should propagate the timeout option to the child HTTP instance", () => {
+      const timeout = 1000;
+      expect(new KintoClient(sampleRemote, {timeout}).http.timeout)
+        .eql(timeout);
+    });
+
     it("should create an event emitter if none is provided", () => {
       expect(new KintoClient(sampleRemote).events)
         .to.be.an.instanceOf(EventEmitter);

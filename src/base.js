@@ -41,6 +41,7 @@ export default class KintoClientBase {
    * `"default"`)
    * @param  {String}  options.requestMode The HTTP request mode (from ES6 fetch
    * spec).
+   * @param  {Number}  options.timeout     The requests timeout in ms (default: `5000`).
    */
   constructor(remote, options={}) {
     if (typeof(remote) !== "string" || !remote.length) {
@@ -86,12 +87,13 @@ export default class KintoClientBase {
      */
     this.events = options.events;
 
+    const {requestMode, timeout} = options;
     /**
      * The HTTP instance.
      * @ignore
      * @type {HTTP}
      */
-    this.http = new HTTP(this.events, {requestMode: options.requestMode});
+    this.http = new HTTP(this.events, {requestMode, timeout});
     this._registerHTTPEvents();
   }
 
