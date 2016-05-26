@@ -99,8 +99,6 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   setData(data, options={}) {
-    // Note: patching allows preventing overridding the schema, which lives
-    // within the "data" namespace.
     return this.client.execute(requests.updateCollection({
       ...data,
       id: this.name,

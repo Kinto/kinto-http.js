@@ -123,7 +123,6 @@ export function createCollection(id, options={}) {
     ...requestDefaults,
     ...options
   };
-  // XXX checks that provided data can't override schema when provided
   const path = id ? endpoint("collection", bucket, id) :
                     endpoint("collections", bucket);
   return {
