@@ -126,7 +126,7 @@ export default class Bucket {
    * @param  {Boolean} options.safe        The safe option.
    * @param  {Object}  options.headers     The headers object option.
    * @param  {Object}  options.permissions The permissions object.
-   * @param  {Object}  options.data        The metadadata object.
+   * @param  {Object}  options.data        The data object.
    * @param  {Object}  options.schema      The JSONSchema object.
    * @return {Promise<Object, Error>}
    */
