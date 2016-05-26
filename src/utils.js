@@ -71,7 +71,7 @@ export function toDataBody(value) {
   if (typeof value === "string") {
     return {id: value};
   }
-  throw new Error("Invalid collection argument.");
+  throw new Error("Invalid argument.");
 }
 
 /**

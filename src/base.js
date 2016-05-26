@@ -1,6 +1,6 @@
 "use strict";
 
-import { partition, pMap, omit, support, nobatch } from "./utils";
+import { partition, pMap, omit, support, nobatch, toDataBody } from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
@@ -408,9 +408,8 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   deleteBucket(bucket, options={}) {
-    const _bucket = typeof bucket === "object" ? bucket : {id: bucket};
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteBucket(_bucket, reqOptions));
+    return this.execute(requests.deleteBucket(toDataBody(bucket), reqOptions));
   }
 
   /**
