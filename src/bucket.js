@@ -188,7 +188,12 @@ export default class Bucket {
    */
   createGroup(id, members=[], options={}) {
     const reqOptions = this._bucketOptions(options);
-    const request = requests.createGroup(id, members, reqOptions);
+    const group = {
+      ...options.data,
+      id,
+      members
+    };
+    const request = requests.createGroup(group, reqOptions);
     return this.client.execute(request);
   }
 
@@ -206,6 +211,10 @@ export default class Bucket {
    */
   updateGroup(group, options={}) {
     const reqOptions = this._bucketOptions(options);
+    group = {
+      ...options.data,
+      ...group
+    };
     const request = requests.updateGroup(group, reqOptions);
     return this.client.execute(request);
   }
