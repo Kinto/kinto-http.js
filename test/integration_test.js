@@ -467,18 +467,25 @@ describe("Integration tests", function() {
       });
 
       describe(".setData()", () => {
+        beforeEach(() => {
+          return bucket.setPermissions({"read": ["github:jon"]});
+        });
+
         it("should post data to the bucket", () => {
           return bucket.setData({a: 1})
-            .then(({data}) => data)
-            .should.eventually.have.property("a").eql(1);
+            .then(({data, permissions}) => {
+              expect(data.a).eql(1);
+              expect(permissions.read).to.include("github:jon");
+            });
         });
 
         it("should patch existing data for the bucket", () => {
           return bucket.setData({a: 1})
             .then(() => bucket.setData({b: 2}, {patch: true}))
-            .then(({data}) => {
+            .then(({data, permissions}) => {
               expect(data.a).eql(1);
               expect(data.b).eql(2);
+              expect(permissions.read).to.include("github:jon");
             });
         });
 
@@ -506,10 +513,16 @@ describe("Integration tests", function() {
         });
 
         describe(".setPermissions()", () => {
+          beforeEach(() => {
+            return bucket.setData({a: 1});
+          });
+
           it("should set bucket permissions", () => {
             return bucket.setPermissions({read: ["github:n1k0"]})
-              .then(_ => bucket.getPermissions())
-              .should.eventually.have.property("read").eql(["github:n1k0"]);
+              .then(({data, permissions}) => {
+                expect(data.a).eql(1);
+                expect(permissions.read).eql(["github:n1k0"]);
+              });
           });
 
           describe("Safe option", () => {
@@ -647,11 +660,16 @@ describe("Integration tests", function() {
           });
 
           describe(".setPermissions()", () => {
+            beforeEach(() => {
+              return coll.setData({a: 1});
+            });
+
             it("should set typed permissions", () => {
               return coll.setPermissions({read: ["github:n1k0"]})
-                .then(_ => coll.getPermissions())
-                .should.eventually.have.property("read")
-                .eql(["github:n1k0"]);
+                .then(({data, permissions}) => {
+                  expect(data.a).eql(1);
+                  expect(permissions.read).eql(["github:n1k0"]);
+                });
             });
 
             describe("Safe option", () => {
@@ -674,10 +692,16 @@ describe("Integration tests", function() {
           });
 
           describe(".setData()", () => {
+            beforeEach(() => {
+              return coll.setPermissions({"read": ["github:n1k0"]});
+            });
+
             it("should set collection data", () => {
               return coll.setData({signed: true})
-                .then(_ => coll.getData())
-                .should.eventually.have.property("signed").eql(true);
+                .then(({data, permissions}) => {
+                  expect(data.signed).eql(true);
+                  expect(permissions.read).to.include("github:n1k0");
+                });
             });
 
             describe("Safe option", () => {
