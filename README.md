@@ -11,6 +11,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-client
 
   - [Installation](#installation)
   - [Usage](#usage)
+  - [Server information](#server-information)
   - [Buckets](#buckets)
      - [Listing buckets](#listing-buckets)
      - [Creating a new bucket](#creating-a-new-bucket)
