@@ -1,6 +1,6 @@
 "use strict";
 
-import chai from "chai";
+import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import KintoClient from "../src";
@@ -432,6 +432,11 @@ describe("Collection", () => {
         sinon.assert.calledWithMatch(client.execute, {
           path: "/buckets/blog/collections/posts/records?" + qs,
         });
+      });
+
+      it("should throw if the since option is invalid", () => {
+        expect(() => coll.listRecords({since: 123}))
+        .to.Throw(Error, /Invalid value for since \(123\), should be ETag value/);
       });
 
       it("should resolve with the collection last_modified cast as int value", () => {
