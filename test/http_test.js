@@ -252,16 +252,18 @@ describe("HTTP class", () => {
 
     describe("Retry-After header handling", () => {
       beforeEach(() => {
+        // Make Date#getTime always returning 1000000, for predictability
+        sandbox.stub(Date.prototype, "getTime").returns(1000 * 1000);
         sandbox.stub(events, "emit");
       });
 
       it("should emit a retry-after event when Retry-After is set", () => {
         sandbox.stub(root, "fetch").returns(
-          fakeServerResponse(200, {}, {"Retry-After": "5"}));
+          fakeServerResponse(200, {}, {"Retry-After": "1000"}));
 
         return http.request("/").then(_ => {
           expect(events.emit.lastCall.args[0]).eql("retry-after");
-          expect(events.emit.lastCall.args[1]).eql(5);
+          expect(events.emit.lastCall.args[1]).eql(2000000);
         });
       });
     });

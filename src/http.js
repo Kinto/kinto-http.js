@@ -177,7 +177,7 @@ export default class HTTP {
     if (!retryAfter) {
       return;
     }
-    retryAfter = parseInt(retryAfter, 10);
+    retryAfter = (new Date().getTime()) + (parseInt(retryAfter, 10) * 1000);
     this.events.emit("retry-after", retryAfter);
   }
 }

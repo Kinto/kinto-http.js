@@ -1074,13 +1074,14 @@ client.events.on("deprecated", function(event) {
 
 When an error occurs on server, a `Retry-After` HTTP header indicates the duration in seconds that clients should wait before retrying the request.
 
-The `retry-after` event notifies what's the duration to wait in seconds until before performing another operation:
+The `retry-after` event notifies what is the timestamp you should wait until before performing another operation:
 
 ```js
 const client = new KintoClient();
 
-client.events.on("retry-after", function(duration) {
-  alert(`Wait ${duration} before retry`);
+client.events.on("retry-after", function(releaseTime) {
+  const releaseDate = new Date(releaseTime).toLocaleString();
+  alert(`Wait until ${releaseDate} to retry`);
 });
 ```
 
