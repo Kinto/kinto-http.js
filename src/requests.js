@@ -107,3 +107,56 @@ export function createGroup(id, members, options={}) {
     }
   };
 }
+
+/**
+ * @private
+ */
+export function updateGroup(group, options={}) {
+  if (typeof group !== "object") {
+    throw new Error("A group object is required.");
+  }
+  if (!group.id) {
+    throw new Error("A group id is required.");
+  }
+  const { bucket, headers, permissions, safe, patch, last_modified } = {
+    ...requestDefaults,
+    ...options
+  };
+  return {
+    method: patch ? "PATCH" : "PUT",
+    path: endpoint("group", bucket, group.id),
+    headers: {
+      ...headers,
+      ...safeHeader(safe, last_modified || group.last_modified)
+    },
+    body: {
+      data: group,
+      permissions
+    }
+  };
+}
+
+/**
+ * @private
+ */
+export function deleteGroup(group, options={}) {
+  if (typeof group !== "object") {
+    throw new Error("A group object is required.");
+  }
+  if (!group.id) {
+    throw new Error("A group id is required.");
+  }
+  const { bucket, headers, safe, last_modified } = {
+    ...requestDefaults,
+    last_modified: group.last_modified,
+    ...options
+  };
+  if (safe && !last_modified) {
+    throw new Error("Safe concurrency check requires a last_modified value.");
+  }
+  return {
+    method: "DELETE",
+    path: endpoint("group", bucket, group.id),
+    headers: {...headers, ...safeHeader(safe, last_modified)}
+  };
+}

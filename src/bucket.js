@@ -186,9 +186,42 @@ export default class Bucket {
    * @param  {Object}  options.headers     The headers object option.
    * @return {Promise<Object, Error>}
    */
-  createGroup(id, members=[], options) {
+  createGroup(id, members=[], options={}) {
     const reqOptions = this._bucketOptions(options);
     const request = requests.createGroup(id, members, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
+   * Creates a new group in current bucket.
+   *
+   * @param  {String|undefined}  id        The group id.
+   * @param  {Array<String>}     members   The list of principals.
+   * @param  {Object}  options             The options object.
+   * @param  {Object}  options.data        The data object.
+   * @param  {Object}  options.permissions The permissions object.
+   * @param  {Boolean} options.safe        The safe option.
+   * @param  {Object}  options.headers     The headers object option.
+   * @return {Promise<Object, Error>}
+   */
+  updateGroup(group, options={}) {
+    const reqOptions = this._bucketOptions(options);
+    const request = requests.updateGroup(group, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
+   * Deletes a group from the current bucket.
+   *
+   * @param  {Object|String} group       The group to delete.
+   * @param  {Object}    options         The options object.
+   * @param  {Object}    options.headers The headers object option.
+   * @param  {Boolean}   options.safe    The safe option.
+   * @return {Promise<Object, Error>}
+   */
+  deleteGroup(group, options={}) {
+    const reqOptions = this._bucketOptions(options);
+    const request = requests.deleteGroup(toDataBody(group), reqOptions);
     return this.client.execute(request);
   }
 

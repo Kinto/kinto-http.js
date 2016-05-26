@@ -7,6 +7,7 @@ const ENDPOINTS = {
   batch:                  () => "/batch",
   bucket:           (bucket) => "/buckets" + (bucket ? `/${bucket}` : ""),
   collection: (bucket, coll) => `${ENDPOINTS.bucket(bucket)}/collections` + (coll ? `/${coll}` : ""),
+  group:     (bucket, group) => `${ENDPOINTS.bucket(bucket)}/groups` + (group ? `/${group}` : ""),
   record: (bucket, coll, id) => `${ENDPOINTS.collection(bucket, coll)}/records` + (id ? `/${id}` : ""),
 };
 

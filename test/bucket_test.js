@@ -295,7 +295,7 @@ describe("Bucket", () => {
 
 
   /** @test {Bucket#createGroup} */
-  describe.only("#createGroup", () => {
+  describe("#createGroup", () => {
     beforeEach(() => {
       sandbox.stub(requests, "createGroup");
       sandbox.stub(client, "execute").returns(Promise.resolve({
@@ -338,6 +338,101 @@ describe("Bucket", () => {
       sinon.assert.calledWithMatch(requests.createGroup, "foo", [], {
         ...group,
         headers: {},
+      });
+    });
+  });
+
+  /** @test {Bucket#updateGroup} */
+  describe("#updateGroup", () => {
+    beforeEach(() => {
+      sandbox.stub(requests, "updateGroup");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: {}}
+      }));
+    });
+
+    it("should accept a patch option", () => {
+      getBlogBucket().updateGroup({id: "foo", members: []}, {patch: true});
+
+      sinon.assert.calledWithMatch(requests.updateGroup, {id: "foo", members: []}, {
+        patch: true
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      getBlogBucket({headers: {Foo: "Bar"}})
+        .updateGroup({id: "foo", members: []}, {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.updateGroup, {id: "foo", members: []}, {
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
+    });
+
+    it("should update the group from first argument", () => {
+      getBlogBucket().updateGroup({id: "foo", members: []});
+
+      sinon.assert.calledWithMatch(requests.updateGroup, {id: "foo", members: []});
+    });
+
+    it("should update the group with optional data and permissions", () => {
+      const group = {
+        data: {age: 21},
+        permissions: {write: ["github:leplatrem"]}
+      };
+      getBlogBucket().updateGroup({id: "foo", members: []}, group);
+
+      sinon.assert.calledWithMatch(requests.updateGroup, {id: "foo", members: []}, {
+        ...group,
+        headers: {},
+      });
+    });
+  });
+
+  /** @test {Bucket#updateGroup} */
+  describe("#deleteGroup", () => {
+    beforeEach(() => {
+      sandbox.stub(requests, "deleteGroup");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: {data: {}}
+      }));
+    });
+
+    it("should delete a group", () => {
+      getBlogBucket().deleteGroup("todelete");
+
+      sinon.assert.calledWithMatch(requests.deleteGroup, {id: "todelete"}, {
+        bucket: "blog",
+        headers: {},
+      });
+    });
+
+    it("should merge default options", () => {
+      getBlogBucket({
+        headers: {Foo: "Bar"},
+        safe: true,
+      }).deleteGroup("todelete", {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.deleteGroup, {id: "todelete"}, {
+        bucket: "blog",
+        headers: {Foo: "Bar", Baz: "Qux"},
+        safe: true,
+      });
+    });
+
+    it("should accept a safe option", () => {
+      getBlogBucket().deleteGroup("todelete", {safe: true});
+
+      sinon.assert.calledWithMatch(requests.deleteGroup, {id: "todelete"}, {
+        safe: true
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      getBlogBucket({headers: {Foo: "Bar"}})
+        .deleteGroup("todelete", {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.deleteGroup, {id: "todelete"}, {
+        headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
   });
