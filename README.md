@@ -88,6 +88,53 @@ const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
 - `timeout`: The requests timeout in ms (default: `5000`)
 
 
+## Server information
+
+A Kinto server exposes some of its internal settings, information about authenticated user, the HTTP API version and the API capabilities (e.g. plugins).
+
+```js
+client.fetchServerInfo([options])
+  .then(({data}) => ...);
+```
+
+Sample result:
+
+```js
+{
+    "project_name": "kinto",
+    "project_version": "3.0.2",
+    "url": "http://0.0.0.0:8889/v1/",
+    "project_docs": "https://kinto.readthedocs.io/",
+    "http_api_version": "1.6",
+    "settings": {
+        "batch_max_requests": 25,
+        "readonly": false
+    },
+    "user": {
+        "bucket": "2f9b1aaa-552d-48e8-1b78-371dd08688b3",
+        "id": "basicauth:f505765817a6b4ea46278be0620ddedd83b10f71f7695683719fe001cf0871d7"
+    },
+    "capabilities": {
+        "default_bucket": {
+            "description": "The default bucket is an alias for a personal bucket where collections are created implicitly.",
+            "url": "http://kinto.readthedocs.io/en/latest/api/1.x/buckets.html#personal-bucket-default"
+        }
+    }
+}
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request
+
+
+#### Helpers
+
+- `fetchServerSettings([options])`: server settings
+- `fetchServerCapabilities([options])`: API capabilities
+- `fetchUser()`: authenticated user information
+- `fetchHTTPApiVersion([options])`: HTTP API version
+
 ## Buckets
 
 ### Listing buckets

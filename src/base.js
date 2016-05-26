@@ -200,14 +200,16 @@ export default class KintoClientBase {
    * Retrieves server information and persist them locally. This operation is
    * usually performed a single time during the instance lifecycle.
    *
+   * @param  {Object}  options The request options.
+   *
    * @return {Promise<Object, Error>}
    */
-  fetchServerInfo() {
+  fetchServerInfo(options={}) {
     if (this.serverInfo) {
       return Promise.resolve(this.serverInfo);
     }
     return this.http.request(this.remote + endpoint("root"), {
-      headers: this.defaultReqOptions.headers
+      headers: {...this.defaultReqOptions.headers, ...options.headers}
     })
       .then(({json}) => {
         this.serverInfo = json;
@@ -221,8 +223,8 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchServerSettings() {
-    return this.fetchServerInfo().then(({settings}) => settings);
+  fetchServerSettings(options={}) {
+    return this.fetchServerInfo(options).then(({settings}) => settings);
   }
 
   /**
@@ -231,8 +233,8 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchServerCapabilities() {
-    return this.fetchServerInfo().then(({capabilities}) => capabilities);
+  fetchServerCapabilities(options={}) {
+    return this.fetchServerInfo(options).then(({capabilities}) => capabilities);
   }
 
   /**
@@ -241,8 +243,8 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchUser() {
-    return this.fetchServerInfo().then(({user}) => user);
+  fetchUser(options={}) {
+    return this.fetchServerInfo(options).then(({user}) => user);
   }
 
   /**
@@ -251,8 +253,8 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchHTTPApiVersion() {
-    return this.fetchServerInfo().then(({http_api_version}) => {
+  fetchHTTPApiVersion(options={}) {
+    return this.fetchServerInfo(options).then(({http_api_version}) => {
       return http_api_version;
     });
   }
