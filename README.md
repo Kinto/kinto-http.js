@@ -85,7 +85,48 @@ const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
 
 #### Options
 
-- `timeout`: The requests timeout in ms (default: `5000`)
+- `safe`: Adds concurrency headers to every requests. (default: `true`)
+- `events`: The events handler. If none provided an `EventEmitter` instance will be created.
+- `headers`: The key-value headers to pass to each request. (default: `{}`)
+- `bucket`: The default bucket to use. (default: `"default"`)
+- `requestMode`: The HTTP [CORS](https://fetch.spec.whatwg.org/#concept-request-mode) mode. (default: `"cors"`)
+- `timeout`: The requests timeout in milliseconds. (default: `5000`)
+
+
+## Authentication
+
+Authenticating against a Kinto server can be achieved by adding an `Authorization` header to the request.
+
+By default Kinto server supports Basic Auth authentication, but others mechanisms can be activated such as OAuth (eg. [Firefox Account](https://accounts.firefox.com/))
+
+### Using Basic Auth
+
+Simply provide an `Authorization` header option to the `Kinto` constructor:
+
+```js
+const secretString = `${username}:${password}`;
+const kinto = new KintoClient("https://my.server.tld/v1", {
+  headers: {
+    Authorization: "Basic " + btoa(secretString)
+  }
+});
+```
+
+> #### Notes
+>
+> - As explained in the [server docs](http://kinto.readthedocs.io/en/stable/api/1.x/authentication.html#basic-auth), any string is accepted. You're not obliged to use the `username:password` format.
+
+### Using an OAuth Bearer Token
+
+As for Basic Auth, once you have retrieved a valid OAuth Bearer Token, simply pass it in an `Authorization` header:
+
+```js
+const kinto = new KintoClient("https://my.server.tld/v1", {
+  headers: {
+    Authorization: `Bearer ` + oauthBearerToken)
+  }
+});
+```
 
 
 ## Buckets
