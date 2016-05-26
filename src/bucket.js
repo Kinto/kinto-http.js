@@ -188,12 +188,13 @@ export default class Bucket {
    */
   createGroup(id, members=[], options={}) {
     const reqOptions = this._bucketOptions(options);
-    const group = {
+    const data = {
       ...options.data,
       id,
       members
     };
-    const request = requests.createGroup(group, reqOptions);
+    const permissions = options.permissions;
+    const request = requests.createGroup({data, permissions}, reqOptions);
     return this.client.execute(request);
   }
 
@@ -211,11 +212,12 @@ export default class Bucket {
    */
   updateGroup(group, options={}) {
     const reqOptions = this._bucketOptions(options);
-    group = {
+    const data = {
       ...options.data,
       ...group
     };
-    const request = requests.updateGroup(group, reqOptions);
+    const permissions = options.permissions;
+    const request = requests.updateGroup({data, permissions}, reqOptions);
     return this.client.execute(request);
   }
 

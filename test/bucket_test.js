@@ -306,26 +306,26 @@ describe("Bucket", () => {
     it("should accept a safe option", () => {
       getBlogBucket().createGroup("foo", [], {safe: true});
 
-      sinon.assert.calledWithMatch(requests.createGroup, {id: "foo", members: []}, {
-        safe: true
-      });
+      sinon.assert.calledWithMatch(requests.createGroup,
+        {data: {id: "foo", members: []}},
+        {safe: true});
     });
 
     it("should extend request headers with optional ones", () => {
       getBlogBucket({headers: {Foo: "Bar"}})
         .createGroup("foo", [], {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(requests.createGroup, {id: "foo", members: []}, {
-        headers: {Foo: "Bar", Baz: "Qux"}
-      });
+      sinon.assert.calledWithMatch(requests.createGroup,
+        {data: {id: "foo", members: []}},
+        {headers: {Foo: "Bar", Baz: "Qux"}});
     });
 
     it("should create a group with empty list of members", () => {
       getBlogBucket().createGroup("foo");
 
-      sinon.assert.calledWithMatch(requests.createGroup, {id: "foo", members: []}, {
-        headers: {},
-      });
+      sinon.assert.calledWithMatch(requests.createGroup,
+        {data: {id: "foo", members: []}},
+        {headers: {}});
     });
 
     it("should create a group with optional data and permissions", () => {
@@ -335,10 +335,10 @@ describe("Bucket", () => {
       };
       getBlogBucket().createGroup("foo", [], group);
 
-      sinon.assert.calledWithMatch(requests.createGroup, {id: "foo", members: [], age: 21}, {
-        ...group,
-        headers: {},
-      });
+      sinon.assert.calledWithMatch(requests.createGroup,
+        {data: {id: "foo", members: [], age: 21},
+         permissions: group.permissions},
+        {headers: {}});
     });
   });
 
@@ -354,24 +354,26 @@ describe("Bucket", () => {
     it("should accept a patch option", () => {
       getBlogBucket().updateGroup({id: "foo", members: []}, {patch: true});
 
-      sinon.assert.calledWithMatch(requests.updateGroup, {id: "foo", members: []}, {
-        patch: true
-      });
+      sinon.assert.calledWithMatch(requests.updateGroup,
+        {data: {id: "foo", members: []}},
+        {patch: true});
     });
 
     it("should extend request headers with optional ones", () => {
       getBlogBucket({headers: {Foo: "Bar"}})
         .updateGroup({id: "foo", members: []}, {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(requests.updateGroup, {id: "foo", members: []}, {
-        headers: {Foo: "Bar", Baz: "Qux"}
+      sinon.assert.calledWithMatch(requests.updateGroup,
+        {data: {id: "foo", members: []}},
+        {headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
 
     it("should update the group from first argument", () => {
       getBlogBucket().updateGroup({id: "foo", members: []});
 
-      sinon.assert.calledWithMatch(requests.updateGroup, {id: "foo", members: []});
+      sinon.assert.calledWithMatch(requests.updateGroup,
+        {data: {id: "foo", members: []}});
     });
 
     it("should update the group with optional data and permissions", () => {
@@ -381,10 +383,10 @@ describe("Bucket", () => {
       };
       getBlogBucket().updateGroup({id: "foo", members: []}, group);
 
-      sinon.assert.calledWithMatch(requests.updateGroup, {id: "foo", members: [], age: 21}, {
-        ...group,
-        headers: {},
-      });
+      sinon.assert.calledWithMatch(requests.updateGroup,
+        {data: {id: "foo", members: [], age: 21},
+         permissions: group.permissions},
+        {headers: {}});
     });
   });
 

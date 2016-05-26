@@ -88,24 +88,24 @@ export function deleteRequest(path, options={}) {
 /**
  * @private
  */
-export function createGroup(group, options={}) {
-  if (typeof group !== "object") {
+export function createGroup({data, permissions}, options={}) {
+  if (typeof data !== "object") {
     throw new Error("A group object is required.");
   }
-  if (!group.id) {
+  if (!data.id) {
     throw new Error("A group id is required.");
   }
-  const { bucket, headers, permissions, safe } = {
+  const { bucket, headers, safe } = {
     ...requestDefaults,
     ...options
   };
-  const path = endpoint("group", bucket, group.id);
+  const path = endpoint("group", bucket, data.id);
   return {
     method: "PUT",
     path,
     headers: {...headers, ...safeHeader(safe)},
     body: {
-      data: group,
+      data,
       permissions
     }
   };
@@ -114,26 +114,26 @@ export function createGroup(group, options={}) {
 /**
  * @private
  */
-export function updateGroup(group, options={}) {
-  if (typeof group !== "object") {
+export function updateGroup({data, permissions}, options={}) {
+  if (typeof data !== "object") {
     throw new Error("A group object is required.");
   }
-  if (!group.id) {
+  if (!data.id) {
     throw new Error("A group id is required.");
   }
-  const { bucket, headers, permissions, safe, patch, last_modified } = {
+  const { bucket, headers, safe, patch, last_modified } = {
     ...requestDefaults,
     ...options
   };
   return {
     method: patch ? "PATCH" : "PUT",
-    path: endpoint("group", bucket, group.id),
+    path: endpoint("group", bucket, data.id),
     headers: {
       ...headers,
-      ...safeHeader(safe, last_modified || group.last_modified)
+      ...safeHeader(safe, last_modified || data.last_modified)
     },
     body: {
-      data: group,
+      data,
       permissions
     }
   };
