@@ -107,6 +107,7 @@ export default class HTTP {
         statusText = res.statusText;
         this._checkForDeprecationHeader(headers);
         this._checkForBackoffHeader(status, headers);
+        this._checkForRetryAfterHeader(status, headers);
         return res.text();
       })
       // Check if we have a body; if so parse it as JSON.
@@ -169,5 +170,14 @@ export default class HTTP {
       backoffMs = 0;
     }
     this.events.emit("backoff", backoffMs);
+  }
+
+  _checkForRetryAfterHeader(status, headers) {
+    let retryAfter = headers.get("Retry-After");
+    if (!retryAfter) {
+      return;
+    }
+    retryAfter = (new Date().getTime()) + (parseInt(retryAfter, 10) * 1000);
+    this.events.emit("retry-after", retryAfter);
   }
 }

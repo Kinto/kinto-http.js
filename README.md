@@ -1082,3 +1082,57 @@ client.bucket("blog")
     last_modified: 1456184189160
   });
 ```
+
+
+## Events
+
+The `KintoClient` exposes an `events` property you can subscribe public events from. That `events` property implements nodejs' [EventEmitter interface](https://nodejs.org/api/events.html#events_class_events_eventemitter).
+
+
+### The `backoff` event
+
+Triggered when a `Backoff` HTTP header has been received from the last received response from the server, meaning clients should hold on performing further requests during a given amount of time.
+
+The `backoff` event notifies what's the backoff release timestamp you should wait until before performing another operation:
+
+```js
+const client = new KintoClient();
+
+client.events.on("backoff", function(releaseTime) {
+  const releaseDate = new Date(releaseTime).toLocaleString();
+  alert(`Backed off; wait until ${releaseDate} to retry`);
+});
+```
+
+### The `deprecated` event
+
+Triggered when an `Alert` HTTP header is received from the server, meaning that a feature has been deprecated; the `event` argument received by the event listener contains the following deprecation information:
+
+- `type`: The type of deprecation, which in ou case is always `soft-eol` (`hard-eol` alerts trigger an `HTTP 410 Gone` error);
+- `message`: The deprecation alert message;
+- `url`: The URL you can get information about the related deprecation policy.
+
+```js
+const client = new KintoClient();
+
+client.events.on("deprecated", function(event) {
+  console.log(event.message);
+});
+```
+
+### The `retry-after` event
+
+When an error occurs on server, a `Retry-After` HTTP header indicates the duration in seconds that clients should wait before retrying the request.
+
+The `retry-after` event notifies what is the timestamp you should wait until before performing another operation:
+
+```js
+const client = new KintoClient();
+
+client.events.on("retry-after", function(releaseTime) {
+  const releaseDate = new Date(releaseTime).toLocaleString();
+  alert(`Wait until ${releaseDate} to retry`);
+});
+```
+
+> #### Note: Eventually, we would like to automate the retry behaviour for requests. See https://github.com/Kinto/kinto-client/issues/34
