@@ -543,6 +543,7 @@ Sample result:
 
 #### Options
 
+- `patch`: Patches the existing data instead of replacing them (default: `false`)
 - `headers`: Custom headers object to send along the HTTP request;
 - `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
@@ -664,6 +665,7 @@ Sample result:
 
 #### Options
 
+- `patch`: Patches the existing record instead of replacing it (default: `false`)
 - `headers`: Custom headers object to send along the HTTP request;
 - `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
 
