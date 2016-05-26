@@ -49,20 +49,18 @@ export default class HTTP {
     }
     this.events = events;
 
-    options = Object.assign({}, HTTP.defaultOptions, options);
-
     /**
      * The request mode.
      * @see  https://fetch.spec.whatwg.org/#requestmode
      * @type {String}
      */
-    this.requestMode = options.requestMode;
+    this.requestMode = options.requestMode || HTTP.defaultOptions.requestMode;
 
     /**
      * The request timeout.
      * @type {Number}
      */
-    this.timeout = options.timeout;
+    this.timeout = options.timeout || HTTP.defaultOptions.timeout;
   }
 
   /**

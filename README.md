@@ -83,6 +83,11 @@ A client instance is created using the `KintoClient` constructor, passing it the
 const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
 ```
 
+#### Options
+
+- `timeout`: The requests timeout in ms (default: `5000`)
+
+
 ## Buckets
 
 ### Listing buckets
