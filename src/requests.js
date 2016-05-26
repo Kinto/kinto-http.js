@@ -23,7 +23,7 @@ function safeHeader(safe, last_modified) {
 /**
  * @private
  */
-export function createBucket(bucketName, options = {}) {
+export function createBucket(bucketName, options={}) {
   if (!bucketName) {
     throw new Error("A bucket name is required.");
   }
@@ -47,7 +47,7 @@ export function createBucket(bucketName, options = {}) {
 /**
  * @private
  */
-export function updateBucket(bucket, options = {}) {
+export function updateBucket(bucket, options={}) {
   if (typeof bucket !== "object") {
     throw new Error("A bucket object is required.");
   }
@@ -75,7 +75,7 @@ export function updateBucket(bucket, options = {}) {
 /**
  * @private
  */
-export function deleteBucket(bucket, options = {}) {
+export function deleteBucket(bucket, options={}) {
   if (typeof bucket !== "object") {
     throw new Error("A bucket object is required.");
   }
@@ -100,7 +100,7 @@ export function deleteBucket(bucket, options = {}) {
 /**
  * @private
  */
-export function deleteBuckets(options = {}) {
+export function deleteBuckets(options={}) {
   const { headers, safe, last_modified} = {
     ...requestDefaults,
     ...options
@@ -118,7 +118,7 @@ export function deleteBuckets(options = {}) {
 /**
  * @private
  */
-export function createCollection(id, options = {}) {
+export function createCollection(id, options={}) {
   const { bucket, headers, permissions, data, safe } = {
     ...requestDefaults,
     ...options
@@ -137,7 +137,7 @@ export function createCollection(id, options = {}) {
 /**
  * @private
  */
-export function updateCollection(collection, options = {}) {
+export function updateCollection(collection, options={}) {
   if (typeof collection !== "object") {
     throw new Error("A collection object is required.");
   }
@@ -148,16 +148,10 @@ export function updateCollection(collection, options = {}) {
     bucket,
     headers,
     permissions,
-    schema,
-    metadata,
     safe,
     patch,
     last_modified
   } = {...requestDefaults, ...options};
-  const collectionData = {...metadata, ...collection};
-  if (options.schema) {
-    collectionData.schema = schema;
-  }
   return {
     method: patch ? "PATCH" : "PUT",
     path: endpoint("collection", bucket, collection.id),
@@ -166,7 +160,7 @@ export function updateCollection(collection, options = {}) {
       ...safeHeader(safe, last_modified || collection.last_modified)
     },
     body: {
-      data: collectionData,
+      data: collection,
       permissions
     }
   };
@@ -175,7 +169,7 @@ export function updateCollection(collection, options = {}) {
 /**
  * @private
  */
-export function deleteCollection(collection, options = {}) {
+export function deleteCollection(collection, options={}) {
   if (typeof collection !== "object") {
     throw new Error("A collection object is required.");
   }
@@ -200,7 +194,7 @@ export function deleteCollection(collection, options = {}) {
 /**
  * @private
  */
-export function createRecord(collName, record, options = {}) {
+export function createRecord(collName, record, options={}) {
   if (!collName) {
     throw new Error("A collection name is required.");
   }
@@ -225,7 +219,7 @@ export function createRecord(collName, record, options = {}) {
 /**
  * @private
  */
-export function updateRecord(collName, record, options = {}) {
+export function updateRecord(collName, record, options={}) {
   if (!collName) {
     throw new Error("A collection name is required.");
   }
@@ -253,7 +247,7 @@ export function updateRecord(collName, record, options = {}) {
 /**
  * @private
  */
-export function deleteRecord(collName, record, options = {}) {
+export function deleteRecord(collName, record, options={}) {
   if (!collName) {
     throw new Error("A collection name is required.");
   }

@@ -267,7 +267,7 @@ export default class KintoClientBase {
    * @param  {Object} options  The options object.
    * @return {Promise<Object, Error>}
    */
-  _batchRequests(requests, options = {}) {
+  _batchRequests(requests, options={}) {
     const headers = {...this.defaultReqOptions.headers, ...options.headers};
     if (!requests.length) {
       return Promise.resolve([]);

@@ -1,4 +1,4 @@
-import { omit, toDataBody, qsify } from "./utils";
+import { toDataBody, qsify } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -74,32 +74,37 @@ export default class Collection {
   }
 
   /**
-   * Updates current collection properties.
-   *
-   * @private
-   * @param  {Object} options  The request options.
-   * @return {Promise<Object, Error>}
-   */
-  _updateAttributes(options={}) {
-    const collection = toDataBody(this.name);
-    const reqOptions = this._collOptions(options);
-    const request = requests.updateCollection(collection, reqOptions);
-    return this.client.execute(request);
-  }
-
-  /**
-   * Retrieves collection properties.
+   * Retrieves collection data.
    *
    * @param  {Object} options         The options object.
    * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getAttributes(options) {
+  getData(options={}) {
     const { headers } = this._collOptions(options);
     return this.client.execute({
       path: endpoint("collection", this.bucket.name, this.name),
       headers
-    });
+    })
+    .then(res => res.data);
+  }
+
+  /**
+   * Set collection data.
+   * @param  {Object}   data            The collection data object.
+   * @param  {Object}   options         The options object.
+   * @param  {Object}   options.headers The headers object option.
+   * @param  {Boolean}  options.safe    The safe option.
+   * @param  {Boolean}  options.patch   The patch option.
+   * @return {Promise<Object, Error>}
+   */
+  setData(data, options={}) {
+    // Note: patching allows preventing overridding the schema, which lives
+    // within the "data" namespace.
+    return this.client.execute(requests.updateCollection({
+      ...data,
+      id: this.name,
+    }, {...this._collOptions(options)}));
   }
 
   /**
@@ -109,9 +114,13 @@ export default class Collection {
    * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getPermissions(options) {
-    return this.getAttributes(options)
-      .then(res => res.permissions);
+  getPermissions(options={}) {
+    const { headers } = this._collOptions(options);
+    return this.client.execute({
+      path: endpoint("collection", this.bucket.name, this.name),
+      headers
+    })
+    .then(res => res.permissions);
   }
 
   /**
@@ -124,62 +133,11 @@ export default class Collection {
    * @param  {Number}   options.last_modified The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  setPermissions(permissions, options) {
-    return this._updateAttributes({...options, permissions});
-  }
-
-  /**
-   * Retrieves the JSON schema for this collection, if any.
-   *
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @return {Promise<Object|null, Error>}
-   */
-  getSchema(options) {
-    return this.getAttributes(options)
-      .then(res => res.data && res.data.schema || null);
-  }
-
-  /**
-   * Sets the JSON schema for this collection.
-   *
-   * @param  {Object}   schema          The JSON schema object.
-   * @param  {Object}   options         The options object.
-   * @param  {Object}   options.headers The headers object option.
-   * @param  {Boolean}  options.safe    The safe option.
-   * @param  {Number}   options.last_modified The last_modified option.
-   * @return {Promise<Object|null, Error>}
-   */
-  setSchema(schema, options) {
-    return this._updateAttributes({...options, schema});
-  }
-
-  /**
-   * Retrieves metadata attached to current collection.
-   *
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @return {Promise<Object, Error>}
-   */
-  getMetadata(options) {
-    return this.getAttributes(options)
-      .then(({data}) => omit(data, "schema"));
-  }
-
-  /**
-   * Sets metadata for current collection.
-   *
-   * @param  {Object}   metadata        The metadata object.
-   * @param  {Object}   options         The options object.
-   * @param  {Object}   options.headers The headers object option.
-   * @param  {Boolean}  options.safe  The safe option.
-   * @param  {Number}   options.last_modified The last_modified option.
-   * @return {Promise<Object, Error>}
-   */
-  setMetadata(metadata, options) {
-    // Note: patching allows preventing overridding the schema, which lives
-    // within the "data" namespace.
-    return this._updateAttributes({...options, metadata, patch: true});
+  setPermissions(permissions, options={}) {
+    return this.client.execute(requests.updateCollection({
+      id: this.name,
+      last_modified: options.last_modified
+    }, {...this._collOptions(options), permissions}));
   }
 
   /**
@@ -191,7 +149,7 @@ export default class Collection {
    * @param  {Boolean}  options.safe  The safe option.
    * @return {Promise<Object, Error>}
    */
-  createRecord(record, options) {
+  createRecord(record, options={}) {
     const reqOptions = this._collOptions(options);
     const request = requests.createRecord(this.name, record, reqOptions);
     return this.client.execute(request);
@@ -207,7 +165,7 @@ export default class Collection {
    * @param  {Number}  options.last_modified The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  updateRecord(record, options) {
+  updateRecord(record, options={}) {
     const reqOptions = this._collOptions(options);
     const request = requests.updateRecord(this.name, record, reqOptions);
     return this.client.execute(request);
@@ -223,7 +181,7 @@ export default class Collection {
    * @param  {Number}        options.last_modified The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  deleteRecord(record, options) {
+  deleteRecord(record, options={}) {
     const reqOptions = this._collOptions(options);
     const request = requests.deleteRecord(this.name, toDataBody(record),
                                           reqOptions);
@@ -238,7 +196,7 @@ export default class Collection {
    * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getRecord(id, options) {
+  getRecord(id, options={}) {
     return this.client.execute({
       path: endpoint("record", this.bucket.name, this.name, id),
       ...this._collOptions(options),
@@ -348,7 +306,7 @@ export default class Collection {
    * @param  {Boolean}  options.aggregate  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
-  batch(fn, options) {
+  batch(fn, options={}) {
     const reqOptions = this._collOptions(options);
     return this.client.batch(fn, {
       ...reqOptions,

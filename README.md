@@ -478,90 +478,6 @@ client.bucket("blog").collection("posts")
   .then(result => ...);
 ```
 
-### Setting the [JSON schema](http://json-schema.org/) for a collection
-
-```js
-const schema = {
-  type: "object",
-  required: ["title", "content"],
-  properties: {
-    title: {type: "string"},
-    content: {type: "string"}
-  }
-};
-
-client.bucket("blog").collection("posts").setSchema(schema)
-  .then(result => ...);
-```
-
-Sample result:
-
-```js
-{
-  "data": {
-    "last_modified": 1456183376428,
-    "id": "posts",
-    "schema": {
-      "required": [
-        "title",
-        "content"
-      ],
-      "type": "object",
-      "properties": {
-        "content": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        }
-      }
-    }
-  },
-  "permissions": {
-    "write": [
-      "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"
-    ]
-  }
-}
-```
-
-#### Options
-
-- `headers`: Custom headers object to send along the HTTP request;
-- `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
-- `last_modified`: The last timestamp we know the resource has been updated on the server.
-
-### Retrieving the collection schema
-
-```js
-client.bucket("blog").collection("posts").getSchema()
-  .then(result => ...);
-```
-
-Sample result:
-
-```js
-{
-  "required": [
-    "title",
-    "content"
-  ],
-  "type": "object",
-  "properties": {
-    "content": {
-      "type": "string"
-    },
-    "title": {
-      "type": "string"
-    }
-  }
-}
-```
-
-#### Options
-
-- `headers`: Custom headers object to send along the HTTP request;
-
 ### Setting collection permissions
 
 ```js
@@ -603,11 +519,11 @@ Sample result:
 - This operation replaces any previously set permissions;
 - Owners will always keep their `write` permission bit, as per the Kinto protocol.
 
-### Setting collection metadata
+### Setting collection data
 
 ```js
 client.bucket("blog").collection("posts")
-  .setMetadata({preferedAuthor: "@chucknorris"})
+  .setData({preferedAuthor: "@chucknorris"})
   .then(result => ...);
 ```
 
@@ -637,10 +553,10 @@ Sample result:
 - `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
-### Getting collection metadata
+### Getting collection data
 
 ```js
-client.bucket("blog").collection("posts").getMetadata()
+client.bucket("blog").collection("posts").getData()
   .then(result => ...);
 ```
 
