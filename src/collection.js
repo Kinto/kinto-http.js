@@ -284,6 +284,10 @@ export default class Collection {
       sort: "-last_modified",
       ...options
     };
+    // Safety/Consistency check on ETag value.
+    if (since && typeof(since) != "string") {
+      throw new Error(`Invalid value for since (${since}), should be ETag value.`);
+    }
     const collHeaders = this.options.headers;
     const path = endpoint("records", this.bucket.name, this.name);
     const querystring = qsify({
