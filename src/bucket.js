@@ -177,6 +177,19 @@ export default class Bucket {
   /**
    * Creates a new group in current bucket.
    *
+   * @param  {String}  id                  The group id.
+   * @param  {Object}  options             The options object.
+   * @return {Promise<Object, Error>}
+   */
+  getGroup(id, options={}) {
+    const reqOptions = this._bucketOptions(options);
+    const request = requests.getGroup(id, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
+   * Creates a new group in current bucket.
+   *
    * @param  {String|undefined}  id        The group id.
    * @param  {Array<String>}     members   The list of principals.
    * @param  {Object}  options             The options object.

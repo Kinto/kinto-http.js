@@ -88,6 +88,22 @@ export function deleteRequest(path, options={}) {
 /**
  * @private
  */
+export function getGroup(id, options={}) {
+  const { bucket, headers } = {
+    ...requestDefaults,
+    ...options
+  };
+  const path = endpoint("group", bucket, id);
+  return {
+    method: "GET",
+    path,
+    headers: {...headers}
+  };
+}
+
+/**
+ * @private
+ */
 export function createGroup({data, permissions}, options={}) {
   if (typeof data !== "object") {
     throw new Error("A group object is required.");

@@ -293,6 +293,29 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#getGroup} */
+  describe("#getGroup", () => {
+    const fakeGroup = {data: {}, permissions: {}};
+    beforeEach(() => {
+      sandbox.stub(requests, "getGroup");
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        json: fakeGroup
+      }));
+    });
+
+    it("should extend request headers with optional ones", () => {
+      getBlogBucket({headers: {Foo: "Bar"}})
+        .getGroup("foo", {headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(requests.getGroup, "foo",
+        {headers: {Foo: "Bar", Baz: "Qux"}});
+    });
+
+    it("should return the group", () => {
+      getBlogBucket().getGroup("foo")
+        .should.become(fakeGroup);
+    });
+  });
 
   /** @test {Bucket#createGroup} */
   describe("#createGroup", () => {
