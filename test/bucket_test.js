@@ -293,6 +293,37 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#listGroups} */
+  describe.only("#listGroups()", () => {
+    const data = [{id: "a"}, {id: "b"}];
+
+    beforeEach(() => {
+      sandbox.stub(client, "execute").returns(Promise.resolve(data));
+    });
+
+    it("should list bucket groups", () => {
+      getBlogBucket().listGroups();
+
+      sinon.assert.calledWithMatch(client.execute, {
+        path: "/buckets/blog/groups"
+      });
+    });
+
+    it("should merge default options", () => {
+      getBlogBucket({headers: {Foo: "Bar"}})
+        .listGroups({headers: {Baz: "Qux"}});
+
+      sinon.assert.calledWithMatch(client.execute, {
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
+    });
+
+    it("should return the list of groups", () => {
+      return getBlogBucket().listGroups()
+        .should.become(data);
+    });
+  });
+
   /** @test {Bucket#getGroup} */
   describe("#getGroup", () => {
     const fakeGroup = {data: {}, permissions: {}};

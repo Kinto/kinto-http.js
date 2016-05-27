@@ -175,6 +175,20 @@ export default class Bucket {
   }
 
   /**
+   * Retrieves the list of groups in the current bucket.
+   *
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @return {Promise<Array<Object>, Error>}
+   */
+  listGroups(options={}) {
+    return this.client.execute({
+      path: endpoint("groups", this.name),
+      headers: {...this.options.headers, ...options.headers}
+    });
+  }
+
+  /**
    * Creates a new group in current bucket.
    *
    * @param  {String}  id                  The group id.
