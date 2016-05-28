@@ -61,15 +61,15 @@ export function omit(obj, ...keys) {
  * Always returns a resource data object from the provided argument.
  *
  * @private
- * @param  {Object|String} value
+ * @param  {Object|String} resource
  * @return {Object}
  */
-export function toDataBody(value) {
-  if (typeof value === "object") {
-    return value;
+export function toDataBody(resource) {
+  if (typeof resource === "object") {
+    return resource;
   }
-  if (typeof value === "string") {
-    return {id: value};
+  if (typeof resource === "string") {
+    return {id: resource};
   }
   throw new Error("Invalid argument.");
 }
