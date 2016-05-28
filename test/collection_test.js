@@ -34,12 +34,12 @@ describe("Collection", () => {
     return new Bucket(client, "blog").collection("posts", options);
   }
 
-  /** @test {Collection#getAttributes} */
-  describe("#getAttributes()", () => {
+  /** @test {Collection#getData} */
+  describe("#getData()", () => {
     it("should execute expected request", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve());
 
-      getBlogPostsCollection().getAttributes();
+      getBlogPostsCollection().getData();
 
       sinon.assert.calledWithMatch(client.execute, {
         path: "/buckets/blog/collections/posts",
@@ -47,25 +47,25 @@ describe("Collection", () => {
     });
 
     it("should resolve with response data", () => {
-      const data = {data: true};
-      sandbox.stub(client, "execute").returns(Promise.resolve(data));
+      const response = {data: {foo: "bar"}};
+      sandbox.stub(client, "execute").returns(Promise.resolve(response));
 
-      return getBlogPostsCollection().getAttributes()
-        .should.become(data);
+      return getBlogPostsCollection().getData()
+        .should.become({foo: "bar"});
     });
   });
 
   /** @test {Collection#getPermissions} */
   describe("#getPermissions()", () => {
     beforeEach(() => {
-      sandbox.stub(coll, "getAttributes").returns(Promise.resolve({
-        permissions: "fakeperms"
+      sandbox.stub(client, "execute").returns(Promise.resolve({
+        data: {}, permissions: {"write": ["fakeperms"]}
       }));
     });
 
     it("should retrieve permissions", () => {
       return coll.getPermissions()
-        .should.become("fakeperms");
+        .should.become({"write": ["fakeperms"]});
     });
   });
 
@@ -108,110 +108,53 @@ describe("Collection", () => {
     });
   });
 
-  /** @test {Collection#getSchema} */
-  describe("#getSchema()", () => {
-    const schema = {title: "schema"};
-
+  /** @test {Collection#getData} */
+  describe("#getData()", () => {
     beforeEach(() => {
-      sandbox.stub(coll, "getAttributes").returns(Promise.resolve({
-        data: {schema}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: {a: 1}}));
     });
 
-    it("should retrieve the collection schema", () => {
-      return coll.getSchema()
-        .should.become(schema);
-    });
-  });
-
-  /** @test {Collection#setSchema} */
-  describe("#setSchema()", () => {
-    const schema = {title: "schema"};
-
-    beforeEach(() => {
-      sandbox.stub(requests, "updateCollection");
-      sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
-    });
-
-    it("should set the collection schema", () => {
-      coll.setSchema(schema);
-
-      sinon.assert.calledWithMatch(requests.updateCollection, {id: "posts"}, {
-        bucket: "blog",
-        schema,
-        headers: {Foo: "Bar", Baz: "Qux"},
-      });
-    });
-
-    it("should handle the safe option", () => {
-      coll.setSchema(schema, {safe: true, last_modified: 42});
-
-      sinon.assert.calledWithMatch(requests.updateCollection, {
-        id: "posts",
-      }, {
-        bucket: "blog",
-        headers: {Foo: "Bar", Baz: "Qux"},
-        schema,
-        safe: true,
-        last_modified: 42
-      });
-    });
-
-    it("should resolve with json result", () => {
-      return coll.setSchema(schema)
-        .should.become({data: 1});
-    });
-  });
-
-  /** @test {Collection#getMetadata} */
-  describe("#getMetadata()", () => {
-    beforeEach(() => {
-      sandbox.stub(coll, "getAttributes").returns(Promise.resolve({
-        data: {a: 1}
-      }));
-    });
-
-    it("should retrieve metadata", () => {
-      return coll.getMetadata()
+    it("should retrieve data", () => {
+      return coll.getData()
         .should.become({a: 1});
     });
   });
 
-  describe("#setMetadata()", () => {
+  describe("#setData()", () => {
     beforeEach(() => {
       sandbox.stub(requests, "updateCollection");
-      sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: {foo: "bar"}}));
     });
 
-    it("should set the metadata", () => {
-      coll.setMetadata({a: 1});
+    it("should set the data", () => {
+      coll.setData({a: 1});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, {id: "posts"}, {
+      sinon.assert.calledWithMatch(requests.updateCollection,{
+        id: "posts",
+        a: 1,
+      }, {
         bucket: "blog",
-        patch: true,
         headers: {Foo: "Bar", Baz: "Qux"},
-        metadata: {a: 1}
       });
     });
 
     it("should handle the safe option", () => {
-      coll.setMetadata({a: 1}, {safe: true, last_modified: 42});
+      coll.setData({a: 1}, {safe: true, last_modified: 42});
 
       sinon.assert.calledWithMatch(requests.updateCollection, {
         id: "posts",
+        a: 1
       }, {
         bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
-        patch: true,
         safe: true,
         last_modified: 42,
-        metadata: {a: 1}
       });
     });
 
     it("should resolve with json result", () => {
-      return coll.setMetadata({a: 1})
-        .should.become({data: 1});
+      return coll.setData({a: 1})
+        .should.become({data: {foo: "bar"}});
     });
   });
 

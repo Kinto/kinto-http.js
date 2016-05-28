@@ -450,24 +450,19 @@ describe("Integration tests", function() {
           }));
       });
 
-      describe(".getAttributes()", () => {
+      describe(".getData()", () => {
         let result;
 
         beforeEach(() => {
-          return bucket.getAttributes().then(res => result = res);
+          return bucket.getData().then(res => result = res);
         });
 
         it("should retrieve the bucket identifier", () => {
-          expect(result.data).to.have.property("id").eql("custom");
+          expect(result).to.have.property("id").eql("custom");
         });
 
         it("should retrieve bucket last_modified value", () => {
-          expect(result.data).to.have.property("last_modified").to.be.gt(1);
-        });
-
-        it("should have permissions exposed", () => {
-          expect(result).to.have.property("permissions")
-            .to.have.property("write").to.have.length.of(1);
+          expect(result).to.have.property("last_modified").to.be.gt(1);
         });
       });
 
@@ -664,67 +659,24 @@ describe("Integration tests", function() {
             });
           });
 
-          describe(".getSchema()", () => {
-            const schema = {
-              type: "object",
-              properties: {
-                title: {type: "string"}
-              }
-            };
-
-            beforeEach(() => {
-              return coll.setSchema(schema);
-            });
-
-            it("should retrieve collection schema", () => {
-              return coll.getSchema()
-                .should.become(schema);
+          describe(".getData()", () => {
+            it("should retrieve collection data", () => {
+              return coll.setData({signed: true})
+                .then(_ => coll.getData())
+                .should.eventually.have.property("signed").eql(true);
             });
           });
 
-          describe(".setSchema()", () => {
-            const schema = {
-              type: "object",
-              properties: {
-                title: {type: "string"}
-              }
-            };
-
-            it("should set the collection schema", () => {
-              return coll.setSchema(schema)
-                .then(_ => coll.getSchema())
-                .should.become(schema);
+          describe(".setData()", () => {
+            it("should set collection data", () => {
+              return coll.setData({signed: true})
+                .then(_ => coll.getData())
+                .should.eventually.have.property("signed").eql(true);
             });
 
             describe("Safe option", () => {
               it("should perform concurrency checks", () => {
-                return coll.setSchema(schema, {
-                  safe: true,
-                  last_modified: 1
-                })
-                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
-              });
-            });
-          });
-
-          describe(".getMetadata()", () => {
-            it("should retrieve collection metadata", () => {
-              return coll.setMetadata({isMeta: true})
-                .then(_ => coll.getMetadata())
-                .should.eventually.have.property("isMeta").eql(true);
-            });
-          });
-
-          describe(".setMetadata()", () => {
-            it("should set collection metadata", () => {
-              return coll.setMetadata({isMeta: true})
-                .then(_ => coll.getMetadata())
-                .should.eventually.have.property("isMeta").eql(true);
-            });
-
-            describe("Safe option", () => {
-              it("should perform concurrency checks", () => {
-                return coll.setMetadata({isMeta: true}, {
+                return coll.setData({signed: true}, {
                   safe: true,
                   last_modified: 1
                 })

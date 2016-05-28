@@ -154,18 +154,16 @@ describe("requests module", () => {
   });
 
   describe("updateCollection()", () => {
-    const schema = {title: "foo schema"};
-
     it("should require a collection id", () => {
       expect(() => requests.updateCollection())
         .to.Throw(Error, /required/);
     });
 
     it("should return a collection update request", () => {
-      expect(requests.updateCollection({id: "foo"}, {schema})).eql({
+      expect(requests.updateCollection({id: "foo", age: 42})).eql({
         body: {
           permissions: {},
-          data: {id: "foo", schema}
+          data: {id: "foo", age: 42}
         },
         headers: {},
         method: "PUT",
@@ -190,26 +188,13 @@ describe("requests module", () => {
         .to.have.property("permissions").eql(permissions);
     });
 
-    it("should accept a schema option", () => {
-      expect(requests.updateCollection({id: "foo"}, {schema}))
-        .to.have.property("body")
-        .to.have.property("data")
-        .to.have.property("schema").eql(schema);
-    });
-
     it("should accept a patch option", () => {
-      expect(requests.updateCollection({id: "foo"}, {schema, patch: true}))
+      expect(requests.updateCollection({id: "foo"}, {patch: true}))
         .to.have.property("method").eql("PATCH");
     });
 
-    it("should handle metadata from resource body", () => {
+    it("should handle data from resource body", () => {
       expect(requests.updateCollection({id: "foo", a: 1}))
-        .to.have.property("body")
-        .to.have.property("data").eql({id: "foo", a: 1});
-    });
-
-    it("should handle metadata from dedicated option", () => {
-      expect(requests.updateCollection({id: "foo"}, {metadata: {a: 1}}))
         .to.have.property("body")
         .to.have.property("data").eql({id: "foo", a: 1});
     });
@@ -294,7 +279,7 @@ describe("requests module", () => {
         .to.have.property("permissions").eql(permissions);
     });
 
-    it("should handle metadata", () => {
+    it("should handle data", () => {
       expect(requests.updateBucket({id: "foo", a: 1}))
         .to.have.property("body")
         .to.have.property("data").eql({id: "foo", a: 1});

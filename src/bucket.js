@@ -69,23 +69,24 @@ export default class Bucket {
    * @param  {Boolean}  options.safe  The safe option.
    * @return {Collection}
    */
-  collection(name, options) {
+  collection(name, options={}) {
     return new Collection(this.client, this, name, this._bucketOptions(options));
   }
 
 
   /**
-   * Retrieves bucket properties.
+   * Retrieves bucket data.
    *
    * @param  {Object} options         The options object.
    * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getAttributes(options={}) {
+  getData(options={}) {
     return this.client.execute({
       path: endpoint("bucket", this.name),
       headers: {...this.options.headers, ...options.headers}
-    });
+    })
+    .then((res) => res.data);
   }
 
   /**
@@ -125,11 +126,10 @@ export default class Bucket {
    * @param  {Boolean} options.safe        The safe option.
    * @param  {Object}  options.headers     The headers object option.
    * @param  {Object}  options.permissions The permissions object.
-   * @param  {Object}  options.data        The metadadata object.
-   * @param  {Object}  options.schema      The JSONSchema object.
+   * @param  {Object}  options.data        The data object.
    * @return {Promise<Object, Error>}
    */
-  createCollection(id, options) {
+  createCollection(id, options={}) {
     const reqOptions = this._bucketOptions(options);
     const request = requests.createCollection(id, reqOptions);
     return this.client.execute(request);
@@ -144,7 +144,7 @@ export default class Bucket {
    * @param  {Boolean}   options.safe    The safe option.
    * @return {Promise<Object, Error>}
    */
-  deleteCollection(collection, options) {
+  deleteCollection(collection, options={}) {
     const reqOptions = this._bucketOptions(options);
     const request = requests.deleteCollection(toDataBody(collection), reqOptions);
     return this.client.execute(request);
@@ -157,9 +157,12 @@ export default class Bucket {
    * @param  {Object} options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getPermissions(options) {
-    return this.getAttributes(this._bucketOptions(options))
-      .then(res => res.permissions);
+  getPermissions(options={}) {
+    return this.client.execute({
+      path: endpoint("bucket", this.name),
+      headers: {...this.options.headers, ...options.headers}
+    })
+    .then((res) => res.permissions);
   }
 
   /**
@@ -190,7 +193,7 @@ export default class Bucket {
    * @param  {Boolean}  options.aggregate  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
-  batch(fn, options) {
+  batch(fn, options={}) {
     return this.client.batch(fn, this._bucketOptions(options));
   }
 }
