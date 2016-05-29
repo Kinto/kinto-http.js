@@ -481,6 +481,12 @@ describe("Integration tests", function() {
               expect(data.b).eql(2);
             });
         });
+
+        it("should post data to the default bucket", () => {
+          return api.bucket("default").setData({a: 1})
+            .then(({data}) => data)
+            .should.eventually.have.property("a").eql(1);
+        });
       });
 
       describe(".listCollections()", () => {

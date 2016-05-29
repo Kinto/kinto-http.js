@@ -58,6 +58,10 @@ export function updateBucket(bucket, options={}) {
     ...requestDefaults,
     ...options
   };
+  // For default bucket, we need to drop the id from the data object.
+  if (bucket.id === "default") {
+    delete bucket.id;
+  }
   return {
     method: patch ? "PATCH" : "PUT",
     path: endpoint("bucket", bucket.id),
