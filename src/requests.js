@@ -59,12 +59,13 @@ export function updateBucket(bucket, options={}) {
     ...options
   };
   // For default bucket, we need to drop the id from the data object.
+  const bucketId = bucket.id;
   if (bucket.id === "default") {
     delete bucket.id;
   }
   return {
     method: patch ? "PATCH" : "PUT",
-    path: endpoint("bucket", bucket.id),
+    path: endpoint("bucket", bucketId),
     headers: {
       ...headers,
       ...safeHeader(safe, last_modified || bucket.last_modified)
