@@ -616,6 +616,99 @@ describe("Integration tests", function() {
         });
       });
 
+      describe(".createGroup()", () => {
+        it("should create a named group", () => {
+          return bucket.createGroup("foo")
+            .then(_ => bucket.listGroups())
+            .then(({data}) => data.map(group => group.id))
+            .should.eventually.include("foo");
+        });
+
+        it("should create an automatically named group", () => {
+          let generated;
+
+          return bucket.createGroup()
+            .then(res => generated = res.data.id)
+            .then(_ => bucket.listGroups())
+            .then(({data}) => expect(data.some(x => x.id === generated)).eql(true));
+        });
+
+        describe("Safe option", () => {
+          it("should not override existing group", () => {
+            return bucket.createGroup("admins")
+              .then(_ => bucket.createGroup("admins", [], {safe: true}))
+              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          });
+        });
+
+        describe("Permissions option", () => {
+          let result;
+
+          beforeEach(() => {
+            return bucket.createGroup("admins", ["twitter:leplatrem"], {
+              permissions: {
+                read: ["github:n1k0"]
+              }
+            }).then(res => result = res);
+          });
+
+          it("should create a collection having a list of write permissions", () => {
+            expect(result).to.have.property("permissions")
+                          .to.have.property("read").to.eql(["github:n1k0"]);
+            expect(result.data.members).to.include("twitter:leplatrem");
+          });
+        });
+
+        describe("Data option", () => {
+          let result;
+
+          beforeEach(() => {
+            return bucket.createGroup("admins", ["twitter:leplatrem"], {
+              data: {foo: "bar"}
+            }).then(res => result = res);
+          });
+
+          it("should create a collection having the expected data attached", () => {
+            expect(result).to.have.property("data")
+                          .to.have.property("foo").eql("bar");
+            expect(result.data.members).to.include("twitter:leplatrem");
+          });
+        });
+      });
+
+      describe(".getGroup()", () => {
+        it("should get a group", () => {
+          return bucket.createGroup("foo")
+            .then(_ => bucket.getGroup("foo"))
+            .then(({data, permissions}) => {
+              expect(data.id).eql("foo");
+              expect(data.members).eql([]);
+              expect(permissions.write).to.have.length.of(1);
+            });
+        });
+      });
+
+      describe(".deleteGroup()", () => {
+        it("should delete a group", () => {
+          return bucket.createGroup("foo")
+            .then(_ => bucket.deleteGroup("foo"))
+            .then(_ => bucket.listGroups())
+            .then(({data}) => data.map(coll => coll.id))
+            .should.eventually.not.include("foo");
+        });
+
+        describe("Safe option", () => {
+          it("should check for concurrency", () => {
+            return bucket.createGroup("posts")
+              .then(({data}) => bucket.deleteGroup("posts", {
+                safe: true,
+                last_modified: data.last_modified - 1000
+              }))
+              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          });
+        });
+      });
+
       describe(".batch()", () => {
         it("should allow batching operations for current bucket", () => {
           return bucket.batch(batch => {

@@ -294,7 +294,7 @@ describe("Bucket", () => {
   });
 
   /** @test {Bucket#listGroups} */
-  describe.only("#listGroups()", () => {
+  describe("#listGroups()", () => {
     const data = [{id: "a"}, {id: "b"}];
 
     beforeEach(() => {

@@ -108,16 +108,14 @@ export function createGroup({data, permissions}, options={}) {
   if (typeof data !== "object") {
     throw new Error("A group object is required.");
   }
-  if (!data.id) {
-    throw new Error("A group id is required.");
-  }
   const { bucket, headers, safe } = {
     ...requestDefaults,
     ...options
   };
-  const path = endpoint("group", bucket, data.id);
+  const path = data.id ? endpoint("group", bucket, data.id) :
+                         endpoint("groups", bucket);
   return {
-    method: "PUT",
+    method: data.id ? "PUT" : "POST",
     path,
     headers: {...headers, ...safeHeader(safe)},
     body: {
