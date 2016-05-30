@@ -14,8 +14,7 @@ describe("requests module", () => {
     it("should return a bucket creation request", () => {
       expect(requests.createBucket("foo")).eql({
         body: {
-          data: {},
-          permissions: {}
+          data: {}
         },
         headers: {},
         method: "PUT",
@@ -107,10 +106,7 @@ describe("requests module", () => {
   describe("createCollection()", () => {
     it("should return a collection creation request when an id is provided", () => {
       expect(requests.createCollection("foo")).eql({
-        body: {
-          permissions: {},
-          data: {}
-        },
+        body: {},
         headers: {},
         method: "PUT",
         path: "/buckets/default/collections/foo",
@@ -119,10 +115,7 @@ describe("requests module", () => {
 
     it("should return a collection creation request when no id is provided", () => {
       expect(requests.createCollection()).eql({
-        body: {
-          permissions: {},
-          data: {}
-        },
+        body: {},
         headers: {},
         method: "POST",
         path: "/buckets/default/collections",
@@ -162,7 +155,6 @@ describe("requests module", () => {
     it("should return a collection update request", () => {
       expect(requests.updateCollection({id: "foo", age: 42})).eql({
         body: {
-          permissions: {},
           data: {id: "foo", age: 42}
         },
         headers: {},
@@ -257,10 +249,7 @@ describe("requests module", () => {
 
     it("should return a bucket update request", () => {
       expect(requests.updateBucket({id: "foo"})).eql({
-        body: {
-          permissions: {},
-          data: {id: "foo"}
-        },
+        body: {},
         headers: {},
         method: "PUT",
         path: "/buckets/foo",
@@ -316,7 +305,6 @@ describe("requests module", () => {
       it("should return a record creation request", () => {
         expect(requests.createRecord("foo", record)).eql({
           body: {
-            permissions: {},
             data: record
           },
           headers: {},
@@ -356,7 +344,6 @@ describe("requests module", () => {
       it("should return a record creation request", () => {
         expect(requests.createRecord("foo", record)).eql({
           body: {
-            permissions: {},
             data: record
           },
           headers: {},
@@ -402,7 +389,6 @@ describe("requests module", () => {
     it("should return a record creation request", () => {
       expect(requests.updateRecord("foo", record)).eql({
         body: {
-          permissions: {},
           data: record
         },
         headers: {},

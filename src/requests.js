@@ -1,12 +1,13 @@
 import endpoint from "./endpoint";
+import { omit, removeUndefined } from "./utils";
 
 const requestDefaults = {
   safe: false,
   // check if we should set default content type here
   headers: {},
   bucket: "default",
-  permissions: {},
-  data: {},
+  permissions: undefined,
+  data: undefined,
   patch: false,
 };
 
@@ -33,7 +34,7 @@ export function createBucket(bucketName, options={}) {
     ...requestDefaults,
     ...options,
   };
-  return {
+  return removeUndefined({
     method: "PUT",
     path: endpoint("bucket", bucketName),
     headers: {...headers, ...safeHeader(safe)},
@@ -41,7 +42,7 @@ export function createBucket(bucketName, options={}) {
       data,
       permissions
     }
-  };
+  });
 }
 
 /**
@@ -63,7 +64,13 @@ export function updateBucket(bucket, options={}) {
   if (bucket.id === "default") {
     delete bucket.id;
   }
-  return {
+
+  let data = undefined;
+  if (Object.keys(omit(bucket, "id", "last_modified")).length > 0) {
+    data = bucket;
+  }
+
+  return removeUndefined({
     method: patch ? "PATCH" : "PUT",
     path: endpoint("bucket", bucketId),
     headers: {
@@ -71,10 +78,10 @@ export function updateBucket(bucket, options={}) {
       ...safeHeader(safe, last_modified || bucket.last_modified)
     },
     body: {
-      data: bucket,
+      data,
       permissions
     }
-  };
+  });
 }
 
 /**
@@ -130,12 +137,12 @@ export function createCollection(id, options={}) {
   };
   const path = id ? endpoint("collection", bucket, id) :
                     endpoint("collections", bucket);
-  return {
+  return removeUndefined({
     method: id ? "PUT" : "POST",
     path,
     headers: {...headers, ...safeHeader(safe)},
     body: {data, permissions}
-  };
+  });
 }
 
 /**
@@ -156,7 +163,13 @@ export function updateCollection(collection, options={}) {
     patch,
     last_modified
   } = {...requestDefaults, ...options};
-  return {
+
+  let data = undefined;
+  if (Object.keys(omit(collection, "id", "last_modified")).length > 0) {
+    data = collection;
+  }
+
+  return removeUndefined({
     method: patch ? "PATCH" : "PUT",
     path: endpoint("collection", bucket, collection.id),
     headers: {
@@ -164,10 +177,10 @@ export function updateCollection(collection, options={}) {
       ...safeHeader(safe, last_modified || collection.last_modified)
     },
     body: {
-      data: collection,
+      data,
       permissions
     }
-  };
+  });
 }
 
 /**
@@ -206,7 +219,13 @@ export function createRecord(collName, record, options={}) {
     ...requestDefaults,
     ...options
   };
-  return {
+
+  let data = undefined;
+  if (Object.keys(omit(record, "id", "last_modified")).length > 0) {
+    data = record;
+  }
+
+  return removeUndefined({
     // Note: Safe POST using a record id would fail.
     // see https://github.com/Kinto/kinto/issues/489
     method: record.id ? "PUT" : "POST",
@@ -214,10 +233,10 @@ export function createRecord(collName, record, options={}) {
                         endpoint("records", bucket, collName),
     headers: {...headers, ...safeHeader(safe)},
     body: {
-      data: record,
+      data,
       permissions
     }
-  };
+  });
 }
 
 /**
@@ -234,7 +253,13 @@ export function updateRecord(collName, record, options={}) {
     ...requestDefaults,
     ...options
   };
-  return {
+
+  let data = undefined;
+  if (Object.keys(omit(record, "id", "last_modified")).length > 0) {
+    data = record;
+  }
+
+  return removeUndefined({
     method: patch ? "PATCH" : "PUT",
     path: endpoint("record", bucket, collName, record.id),
     headers: {
@@ -242,10 +267,10 @@ export function updateRecord(collName, record, options={}) {
       ...safeHeader(safe, last_modified || record.last_modified)
     },
     body: {
-      data: record,
+      data,
       permissions
     }
-  };
+  });
 }
 
 /**
