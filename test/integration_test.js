@@ -688,6 +688,60 @@ describe("Integration tests", function() {
         });
       });
 
+      describe(".updateGroup()", () => {
+        it("should update a group", () => {
+          return bucket
+            .createGroup("foo")
+            .then(({data}) => bucket.updateGroup({...data, title: "mod"}))
+            .then(_ => bucket.listGroups())
+            .then(({data}) => data[0].title)
+            .should.become("mod");
+        });
+
+        it("should patch a group", () => {
+          return bucket.createGroup("foo", ["github:me"], {data: {title: "foo", blah: 42}})
+            .then(({data}) => bucket.updateGroup({id: data.id, blah: 43},
+                                                 {patch: true}))
+            .then(_ => bucket.listGroups())
+            .then(({data}) => {
+              expect(data[0].title).eql("foo");
+              expect(data[0].members).eql(["github:me"]);
+              expect(data[0].blah).eql(43);
+            });
+        });
+
+        describe("Safe option", () => {
+          const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
+
+          it("should perform concurrency checks with last_modified", () => {
+            return bucket.createGroup("foo")
+              .then(({data}) => bucket.updateGroup({
+                id: data.id,
+                members: ["github:me"],
+                title: "foo",
+                last_modified: 1,
+              }, {safe: true}))
+              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          });
+
+          it("should create a non-existent resource when safe is true", () => {
+            return bucket.updateGroup({id, members: ["all"]}, {safe: true})
+              .should.eventually.have.property("data")
+                             .to.have.property("members").eql(["all"]);
+          });
+
+          it("should not override existing data with no last_modified", () => {
+            return bucket.createGroup("foo")
+              .then(({data}) => bucket.updateGroup({
+                id: data.id,
+                members: [],
+                title: "foo",
+              }, {safe: true}))
+              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          });
+        });
+      });
+
       describe(".deleteGroup()", () => {
         it("should delete a group", () => {
           return bucket.createGroup("foo")
