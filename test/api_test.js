@@ -241,6 +241,16 @@ describe("KintoClient", () => {
       }, options);
     }
 
+    describe("Batch client setup", () => {
+      it("should skip registering HTTP events", () => {
+        const on = sandbox.spy();
+        const api = new KintoClient(FAKE_SERVER_URL, {events: {on}});
+
+        return api.batch(() => {})
+          .then(() => sinon.assert.calledOnce(on));
+      });
+    });
+
     describe("server request", () => {
       let requestBody, requestHeaders;
 
