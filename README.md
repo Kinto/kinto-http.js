@@ -11,34 +11,78 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-client
 
   - [Installation](#installation)
   - [Usage](#usage)
+        - [Options](#options)
   - [Authentication](#authentication)
      - [Using Basic Auth](#using-basic-auth)
+        - [Notes](#notes)
      - [Using an OAuth Bearer Token](#using-an-oauth-bearer-token)
   - [Server information](#server-information)
+        - [Options](#options)
+        - [Helpers](#helpers)
   - [Buckets](#buckets)
      - [Listing buckets](#listing-buckets)
+        - [Options](#options)
      - [Creating a new bucket](#creating-a-new-bucket)
+        - [Options](#options)
      - [Selecting a bucket](#selecting-a-bucket)
      - [Getting bucket data](#getting-bucket-data)
+        - [Options](#options)
      - [Setting bucket data](#setting-bucket-data)
+        - [Options](#options)
      - [Getting bucket permissions](#getting-bucket-permissions)
+        - [Options](#options)
      - [Setting bucket permissions](#setting-bucket-permissions)
+        - [Options](#options)
+        - [Notes](#notes)
      - [Deleting a bucket](#deleting-a-bucket)
+        - [Options](#options)
      - [Creating a collection](#creating-a-collection)
+        - [Named collection](#named-collection)
+        - [With a name generated automatically](#with-a-name-generated-automatically)
+        - [Options](#options)
      - [Listing bucket collections](#listing-bucket-collections)
+        - [Options](#options)
      - [Deleting a collection](#deleting-a-collection)
+        - [Options](#options)
+     - [Creating a group](#creating-a-group)
+        - [Named group](#named-group)
+        - [With a list of members and attributes](#with-a-list-of-members-and-attributes)
+        - [Options](#options)
+     - [Listing bucket groups](#listing-bucket-groups)
+        - [Options](#options)
+     - [Getting a bucket group](#getting-a-bucket-group)
+        - [Options](#options)
+     - [Updating an existing group](#updating-an-existing-group)
+        - [Options](#options)
+     - [Deleting a group](#deleting-a-group)
+        - [Options](#options)
   - [Collections](#collections)
      - [Selecting a collection](#selecting-a-collection)
      - [Getting collection data](#getting-collection-data)
+        - [Options](#options)
      - [Setting collection data](#setting-collection-data)
+        - [Options](#options)
      - [Getting collection permissions](#getting-collection-permissions)
+        - [Options](#options)
      - [Setting collection permissions](#setting-collection-permissions)
+        - [Options](#options)
+        - [Notes](#notes)
      - [Creating a new record](#creating-a-new-record)
+        - [Options](#options)
      - [Retrieving an existing record](#retrieving-an-existing-record)
+        - [Options](#options)
      - [Updating an existing record](#updating-an-existing-record)
+        - [Options](#options)
      - [Deleting record](#deleting-record)
+        - [Options](#options)
      - [Listing records](#listing-records)
+        - [Sorting](#sorting)
+        - [Polling for changes](#polling-for-changes)
+        - [Pagination](#pagination)
+           - [Notes](#notes)
+        - [Options](#options)
      - [Batching operations](#batching-operations)
+        - [Options](#options)
   - [Options](#options)
   - [The safe option explained](#the-safe-option-explained)
      - [Safe creations](#safe-creations)
@@ -48,6 +92,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-client
      - [The backoff event](#the-backoff-event)
      - [The deprecated event](#the-deprecated-event)
      - [The retry-after event](#the-retry-after-event)
+        - [Note: Eventually, we would like to automate the retry behaviour for requests. See https://github.com/Kinto/kinto-client/issues/34](#note-eventually-we-would-like-to-automate-the-retry-behaviour-for-requests-see-https-github-com-kinto-kinto-client-issues-34)
 
 ---
 
@@ -497,6 +542,184 @@ Sample result:
 - `headers`: Custom headers object to send along the HTTP request;
 - `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
+
+### Creating a group
+
+#### Named group
+
+```js
+client.bucket("blog").createGroup("admins")
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+  "data": {
+    "last_modified": 1456183004372,
+    "id": "admins",
+    "members": []
+  },
+  "permissions": {
+    "write": [
+      "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"
+    ]
+  }
+}
+```
+
+#### With a list of members and attributes
+
+```js
+client.bucket("blog").createGroup("admins", ["system.Authenticated"], {data: {pi: 3.14}})
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+  "data": {
+    "last_modified": 1456183004372,
+    "id": "admins",
+    "members": ["system.Authenticated"],
+    "pi": 3.14
+  },
+  "permissions": {
+    "write": [
+      "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"
+    ]
+  }
+}
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request
+- `safe`: Whether to override existing resource if it already exists (default: `false`)
+- `data`: Extra group attributes.
+- `permissions`: Permissions to be set on the created group.
+
+### Listing bucket groups
+
+```js
+client.bucket("blog").listGroups()
+  .then(({data}) => ...);
+```
+
+Sample result:
+
+```js
+{
+  "data": [
+    {
+      "last_modified": 1456183153840,
+      "id": "admins",
+      "members": ["system.Authenticated"],
+      "pi": 3.14
+    },
+    {
+      "last_modified": 1456183159386,
+      "id": "moderators",
+      "members": ["github:lili"]
+    }
+  ]
+}
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request
+
+### Getting a bucket group
+
+```js
+client.bucket("blog").getGroup("admins")
+  .then(({data}) => ...);
+```
+
+Sample result:
+
+```js
+{
+  "data": {
+      "last_modified": 1456183153840,
+      "id": "admins",
+      "members": ["system.Authenticated"],
+      "pi": 3.14
+  }
+}
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request
+
+### Updating an existing group
+
+```js
+const updated = {
+  id: "cb0f7b2b-e78f-41a8-afad-92a56f8c88db",
+  members: ["system.Everyone", "github:lili"],
+  pi: 3.141592
+};
+
+client.bucket("blog").updateGroup(updated, {permissions: {write: ["fxa:35478"]}})
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+  "data": {
+    "last_modified": 1456183778891,
+    "id": "cb0f7b2b-e78f-41a8-afad-92a56f8c88db",
+    "members": ["system.Everyone", "github:lili"],
+    "pi": 3.141592
+  },
+  "permissions": {
+    "write": [
+      "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8",
+      "fxa:35478"
+    ]
+  }
+}
+```
+
+#### Options
+
+- `patch`: Patches the existing record instead of replacing it (default: `false`)
+- `headers`: Custom headers object to send along the HTTP request;
+- `safe`: If `last_modified` is provided, ensures the resource hasn't been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: `false`);
+- `permissions`: Permissions to be set on the group.
+
+### Deleting a group
+
+```js
+client.bucket("blog").deleteGroup("admins")
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+  "data": {
+    "deleted": true,
+    "last_modified": 1456183116571,
+    "id": "admins"
+  }
+}
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request;
+- `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`);
+- `last_modified`: The last timestamp we know the resource has been updated on the server.
+
 
 ## Collections
 
