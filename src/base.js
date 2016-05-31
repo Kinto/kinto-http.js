@@ -150,9 +150,12 @@ export default class KintoClientBase {
    * @private
    */
   _registerHTTPEvents() {
-    this.events.on("backoff", backoffMs => {
-      this._backoffReleaseTime = backoffMs;
-    });
+    // Prevent registering event from a batch client instance
+    if (!this._isBatch) {
+      this.events.on("backoff", backoffMs => {
+        this._backoffReleaseTime = backoffMs;
+      });
+    }
   }
 
   /**
