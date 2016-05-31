@@ -396,8 +396,16 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   createBucket(bucketName, options={}) {
+    if (!bucketName) {
+      throw new Error("A bucket name is required.");
+    }
+    // Note that we simply ignore any "bucket" option passed here, as the one
+    // we're interested in is the one provided as a required argument.
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.createBucket(bucketName, reqOptions));
+    const { data={}, permissions } = reqOptions;
+    data.id = bucketName;
+    const path = endpoint("bucket", bucketName);
+    return this.execute(requests.createRequest(path, { data, permissions }, reqOptions));
   }
 
   /**
@@ -411,8 +419,14 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   deleteBucket(bucket, options={}) {
+    const bucketObj = toDataBody(bucket);
+    if (!bucketObj.id) {
+      throw new Error("A bucket id is required.");
+    }
+    const path = endpoint("bucket", bucketObj.id);
+    options = { last_modified: bucket.last_modified, ...options };
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteBucket(toDataBody(bucket), reqOptions));
+    return this.execute(requests.deleteRequest(path, reqOptions));
   }
 
   /**
@@ -427,6 +441,7 @@ export default class KintoClientBase {
   @support("1.4", "2.0")
   deleteBuckets(options={}) {
     const reqOptions = this._getRequestOptions(options);
-    return this.execute(requests.deleteBuckets(reqOptions));
+    const path = endpoint("buckets");
+    return this.execute(requests.deleteRequest(path, reqOptions));
   }
 }

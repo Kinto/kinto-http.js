@@ -99,10 +99,15 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   setData(data, options={}) {
-    return this.client.execute(requests.updateCollection({
-      ...data,
-      id: this.name,
-    }, {...this._collOptions(options)}));
+    if (typeof data !== "object") {
+      throw new Error("A collection object is required.");
+    }
+    const reqOptions = this._collOptions(options);
+    const { bucket, permissions } = reqOptions;
+
+    const path = endpoint("collection", bucket, this.name);
+    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
+    return this.client.execute(request);
   }
 
   /**
@@ -132,10 +137,15 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options={}) {
-    return this.client.execute(requests.updateCollection({
-      id: this.name,
-      last_modified: options.last_modified
-    }, {...this._collOptions(options), permissions}));
+    if (typeof permissions !== "object") {
+      throw new Error("A permissions object is required.");
+    }
+    const reqOptions = this._collOptions(options);
+    const { bucket } = reqOptions;
+    const path = endpoint("collection", bucket, this.name);
+    const data = { last_modified: options.last_modified };
+    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
+    return this.client.execute(request);
   }
 
   /**
@@ -149,7 +159,11 @@ export default class Collection {
    */
   createRecord(record, options={}) {
     const reqOptions = this._collOptions(options);
-    const request = requests.createRecord(this.name, record, reqOptions);
+    const { bucket, permissions } = reqOptions;
+    // XXX throw if bucket is undefined
+    const path = record.id ? endpoint("record", bucket, this.name, record.id) :
+                             endpoint("records", bucket, this.name);
+    const request = requests.createRequest(path, {data: record, permissions}, reqOptions);
     return this.client.execute(request);
   }
 
@@ -164,8 +178,16 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   updateRecord(record, options={}) {
+    if (typeof record !== "object") {
+      throw new Error("A record object is required.");
+    }
+    if (!record.id) {
+      throw new Error("A record id is required.");
+    }
     const reqOptions = this._collOptions(options);
-    const request = requests.updateRecord(this.name, record, reqOptions);
+    const { bucket, permissions } = reqOptions;
+    const path = endpoint("record", bucket, this.name, record.id);
+    const request = requests.updateRequest(path, {data: record, permissions}, reqOptions);
     return this.client.execute(request);
   }
 
@@ -180,9 +202,14 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   deleteRecord(record, options={}) {
+    const recordObj = toDataBody(record);
+    if (!recordObj.id) {
+      throw new Error("A record id is required.");
+    }
     const reqOptions = this._collOptions(options);
-    const request = requests.deleteRecord(this.name, toDataBody(record),
-                                          reqOptions);
+    const { bucket } = reqOptions;
+    const path = endpoint("record", bucket, this.name, recordObj.id);
+    const request = requests.deleteRequest(path, reqOptions);
     return this.client.execute(request);
   }
 

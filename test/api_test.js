@@ -579,6 +579,10 @@ describe("KintoClient", () => {
       sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
+    it("should throw if bucketName is missing", () => {
+      expect(() => api.createBucket()).to.Throw(Error, /required/);
+    });
+
     it("should execute expected request", () => {
       api.createBucket("foo");
 
