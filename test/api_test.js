@@ -575,7 +575,7 @@ describe("KintoClient", () => {
   /** @test {KintoClient#createBucket} */
   describe("#createBucket", () => {
     beforeEach(() => {
-      sandbox.stub(requests, "createBucket");
+      sandbox.stub(requests, "createRequest");
       sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
@@ -586,7 +586,10 @@ describe("KintoClient", () => {
     it("should execute expected request", () => {
       api.createBucket("foo");
 
-      sinon.assert.calledWithMatch(requests.createBucket, "foo", {
+      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/foo", {
+        data: {id: "foo"},
+        permissions: undefined
+      }, {
         headers: {},
         safe: false,
       });
@@ -595,8 +598,10 @@ describe("KintoClient", () => {
     it("should accept a data option", () => {
       api.createBucket("foo", {data: {a: 1}});
 
-      sinon.assert.calledWithMatch(requests.createBucket, "foo", {
-        data: {a: 1},
+      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/foo", {
+        data: {id: "foo", a: 1},
+        permissions: undefined
+      }, {
         headers: {},
         safe: false,
       });
@@ -605,8 +610,12 @@ describe("KintoClient", () => {
     it("should accept a safe option", () => {
       api.createBucket("foo", {safe: true});
 
-      sinon.assert.calledWithMatch(requests.createBucket, "foo", {
-        safe: true
+      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/foo", {
+        data: {id: "foo"},
+        permissions: undefined
+      }, {
+        headers: {},
+        safe: true,
       });
     });
 
@@ -615,8 +624,12 @@ describe("KintoClient", () => {
 
       api.createBucket("foo", {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(requests.createBucket, "foo", {
-        headers: {Foo: "Bar", Baz: "Qux"}
+      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/foo", {
+        data: {id: "foo"},
+        permissions: undefined
+      }, {
+        headers: {Foo: "Bar", Baz: "Qux"},
+        safe: false,
       });
     });
   });
@@ -624,14 +637,14 @@ describe("KintoClient", () => {
   /** @test {KintoClient#deleteBucket} */
   describe("#deleteBucket()", () => {
     beforeEach(() => {
-      sandbox.stub(requests, "deleteBucket");
+      sandbox.stub(requests, "deleteRequest");
       sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
     it("should execute expected request", () => {
       api.deleteBucket("plop");
 
-      sinon.assert.calledWithMatch(requests.deleteBucket, {id: "plop"}, {
+      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/plop", {
         headers: {},
         safe: false,
       });
@@ -640,7 +653,7 @@ describe("KintoClient", () => {
     it("should accept a bucket object", () => {
       api.deleteBucket({id: "plop"});
 
-      sinon.assert.calledWithMatch(requests.deleteBucket, {id: "plop"}, {
+      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/plop", {
         headers: {},
         safe: false,
       });
@@ -649,7 +662,7 @@ describe("KintoClient", () => {
     it("should accept a safe option", () => {
       api.deleteBucket("plop", {safe: true});
 
-      sinon.assert.calledWithMatch(requests.deleteBucket, {id: "plop"}, {
+      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/plop", {
         safe: true
       });
     });
@@ -659,7 +672,7 @@ describe("KintoClient", () => {
 
       api.deleteBucket("plop", {headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(requests.deleteBucket, {id: "plop"}, {
+      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/plop", {
         headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
@@ -669,7 +682,7 @@ describe("KintoClient", () => {
   describe("#deleteBuckets()", () => {
     beforeEach(() => {
       api.serverInfo = {http_api_version: "1.4"};
-      sandbox.stub(requests, "deleteBuckets");
+      sandbox.stub(requests, "deleteRequest");
       sandbox.stub(api, "execute").returns(Promise.resolve({
         json: {}
       }));
@@ -678,7 +691,7 @@ describe("KintoClient", () => {
     it("should execute expected request", () => {
       return api.deleteBuckets()
         .then(_ => {
-          sinon.assert.calledWithMatch(requests.deleteBuckets, {
+          sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets", {
             headers: {},
             safe: false,
           });
@@ -688,7 +701,7 @@ describe("KintoClient", () => {
     it("should accept a safe option", () => {
       return api.deleteBuckets({safe: true})
         .then(_ => {
-          sinon.assert.calledWithMatch(requests.deleteBuckets, {
+          sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets", {
             safe: true
           });
         });
@@ -699,7 +712,7 @@ describe("KintoClient", () => {
 
       return api.deleteBuckets({headers: {Baz: "Qux"}})
         .then(_ => {
-          sinon.assert.calledWithMatch(requests.deleteBuckets, {
+          sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets", {
             headers: {Foo: "Bar", Baz: "Qux"}
           });
         });

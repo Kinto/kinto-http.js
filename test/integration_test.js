@@ -17,7 +17,7 @@ chai.config.includeStack = true;
 
 const TEST_KINTO_SERVER = "http://0.0.0.0:8888/v1";
 
-describe.only("Integration tests", function() {
+describe("Integration tests", function() {
   let sandbox, server, api;
 
   // Disabling test timeouts until pserve gets decent startup time.
