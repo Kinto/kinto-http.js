@@ -106,6 +106,7 @@ export default class Bucket {
     const bucket = {...data, id: this.name};
 
     // For default bucket, we need to drop the id from the data object.
+    // Bug in Kinto < 3.1.1
     const bucketId = bucket.id;
     if (bucket.id === "default") {
       delete bucket.id;
