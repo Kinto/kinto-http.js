@@ -5,12 +5,9 @@
 const ENDPOINTS = {
   root:                   () => "/",
   batch:                  () => "/batch",
-  buckets:                () => "/buckets",
-  bucket:           (bucket) => `/buckets/${bucket}`,
-  collections:      (bucket) => `${ENDPOINTS.bucket(bucket)}/collections`,
-  collection: (bucket, coll) => `${ENDPOINTS.bucket(bucket)}/collections/${coll}`,
-  records:    (bucket, coll) => `${ENDPOINTS.collection(bucket, coll)}/records`,
-  record: (bucket, coll, id) => `${ENDPOINTS.records(bucket, coll)}/${id}`,
+  bucket:           (bucket) => "/buckets" + (bucket ? `/${bucket}` : ""),
+  collection: (bucket, coll) => `${ENDPOINTS.bucket(bucket)}/collections` + (coll ? `/${coll}` : ""),
+  record: (bucket, coll, id) => `${ENDPOINTS.collection(bucket, coll)}/records` + (id ? `/${id}` : ""),
 };
 
 /**

@@ -1,4 +1,4 @@
-import { toDataBody } from "./utils";
+import { toDataBody, isObject } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
@@ -99,8 +99,23 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   setData(data, options={}) {
+    if (!isObject(data)) {
+      throw new Error("A bucket object is required.");
+    }
+
+    const bucket = {...data, id: this.name};
+
+    // For default bucket, we need to drop the id from the data object.
+    // Bug in Kinto < 3.1.1
+    const bucketId = bucket.id;
+    if (bucket.id === "default") {
+      delete bucket.id;
+    }
+
+    const path = endpoint("bucket", bucketId);
+    const { permissions } = options;
     const reqOptions = {...this._bucketOptions(options)};
-    const request = requests.updateBucket({...data, id: this.name}, reqOptions);
+    const request = requests.updateRequest(path, {data: bucket, permissions}, reqOptions);
     return this.client.execute(request);
   }
 
@@ -113,7 +128,7 @@ export default class Bucket {
    */
   listCollections(options={}) {
     return this.client.execute({
-      path: endpoint("collections", this.name),
+      path: endpoint("collection", this.name),
       headers: {...this.options.headers, ...options.headers}
     });
   }
@@ -131,7 +146,10 @@ export default class Bucket {
    */
   createCollection(id, options={}) {
     const reqOptions = this._bucketOptions(options);
-    const request = requests.createCollection(id, reqOptions);
+    const { permissions, data={} } = reqOptions;
+    data.id = id;
+    const path = endpoint("collection", this.name, id);
+    const request = requests.createRequest(path, {data, permissions}, reqOptions);
     return this.client.execute(request);
   }
 
@@ -145,8 +163,14 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   deleteCollection(collection, options={}) {
-    const reqOptions = this._bucketOptions(options);
-    const request = requests.deleteCollection(toDataBody(collection), reqOptions);
+    const collectionObj = toDataBody(collection);
+    if (!collectionObj.id) {
+      throw new Error("A collection id is required.");
+    }
+    const {id, last_modified} = collectionObj;
+    const reqOptions = this._bucketOptions({ last_modified, ...options });
+    const path = endpoint("collection", this.name, id);
+    const request = requests.deleteRequest(path, reqOptions);
     return this.client.execute(request);
   }
 
@@ -177,10 +201,15 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options={}) {
-    return this.client.execute(requests.updateBucket({
-      id: this.name,
-      last_modified: options.last_modified
-    }, {...this._bucketOptions(options), permissions}));
+    if (!isObject(permissions)) {
+      throw new Error("A permissions object is required.");
+    }
+    const path = endpoint("bucket", this.name);
+    const reqOptions = {...this._bucketOptions(options)};
+    const {last_modified} = options;
+    const data = {last_modified};
+    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
+    return this.client.execute(request);
   }
 
   /**

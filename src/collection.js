@@ -1,4 +1,4 @@
-import { toDataBody, qsify } from "./utils";
+import { toDataBody, qsify, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -68,8 +68,6 @@ export default class Collection {
       ...this.options,
       ...options,
       headers,
-      // XXX soon to be removed once we've migrated everything from KintoClient
-      bucket: this.bucket.name
     };
   }
 
@@ -99,10 +97,15 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   setData(data, options={}) {
-    return this.client.execute(requests.updateCollection({
-      ...data,
-      id: this.name,
-    }, {...this._collOptions(options)}));
+    if (!isObject(data)) {
+      throw new Error("A collection object is required.");
+    }
+    const reqOptions = this._collOptions(options);
+    const { permissions } = reqOptions;
+
+    const path = endpoint("collection", this.bucket.name, this.name);
+    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
+    return this.client.execute(request);
   }
 
   /**
@@ -132,10 +135,14 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options={}) {
-    return this.client.execute(requests.updateCollection({
-      id: this.name,
-      last_modified: options.last_modified
-    }, {...this._collOptions(options), permissions}));
+    if (!isObject(permissions)) {
+      throw new Error("A permissions object is required.");
+    }
+    const reqOptions = this._collOptions(options);
+    const path = endpoint("collection", this.bucket.name, this.name);
+    const data = { last_modified: options.last_modified };
+    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
+    return this.client.execute(request);
   }
 
   /**
@@ -149,7 +156,9 @@ export default class Collection {
    */
   createRecord(record, options={}) {
     const reqOptions = this._collOptions(options);
-    const request = requests.createRecord(this.name, record, reqOptions);
+    const { permissions } = reqOptions;
+    const path = endpoint("record", this.bucket.name, this.name, record.id);
+    const request = requests.createRequest(path, {data: record, permissions}, reqOptions);
     return this.client.execute(request);
   }
 
@@ -164,8 +173,16 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   updateRecord(record, options={}) {
+    if (!isObject(record)) {
+      throw new Error("A record object is required.");
+    }
+    if (!record.id) {
+      throw new Error("A record id is required.");
+    }
     const reqOptions = this._collOptions(options);
-    const request = requests.updateRecord(this.name, record, reqOptions);
+    const { permissions } = reqOptions;
+    const path = endpoint("record", this.bucket.name, this.name, record.id);
+    const request = requests.updateRequest(path, {data: record, permissions}, reqOptions);
     return this.client.execute(request);
   }
 
@@ -180,9 +197,13 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   deleteRecord(record, options={}) {
+    const recordObj = toDataBody(record);
+    if (!recordObj.id) {
+      throw new Error("A record id is required.");
+    }
     const reqOptions = this._collOptions(options);
-    const request = requests.deleteRecord(this.name, toDataBody(record),
-                                          reqOptions);
+    const path = endpoint("record", this.bucket.name, this.name, recordObj.id);
+    const request = requests.deleteRequest(path, reqOptions);
     return this.client.execute(request);
   }
 
@@ -245,7 +266,7 @@ export default class Collection {
       throw new Error(`Invalid value for since (${since}), should be ETag value.`);
     }
     const collHeaders = this.options.headers;
-    const path = endpoint("records", this.bucket.name, this.name);
+    const path = endpoint("record", this.bucket.name, this.name);
     const querystring = qsify({
       ...filters,
       _sort: sort,
@@ -312,6 +333,7 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     return this.client.batch(fn, {
       ...reqOptions,
+      bucket: this.bucket.name,
       collection: this.name,
     });
   }

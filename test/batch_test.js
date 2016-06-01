@@ -28,8 +28,8 @@ describe("batch module", () => {
 
     it("should expose HTTP 500 errors in the errors list", () => {
       const _requests = [
-        requests.createRecord("foo", {id: 1}),
-        requests.createRecord("foo", {id: 2}),
+        requests.createRequest("foo", {data: {id: 1}}),
+        requests.createRequest("foo", {data: {id: 2}}),
       ];
       const responses = [
         {status: 500, path: "path1", body: {err: 1}},
@@ -54,8 +54,8 @@ describe("batch module", () => {
 
     it("should expose HTTP 200<=x<400 responses in the published list", () => {
       const _requests = [
-        requests.createRecord("foo", {id: 1}),
-        requests.createRecord("foo", {id: 2}),
+        requests.createRequest("foo", {data: {id: 1}}),
+        requests.createRequest("foo", {data: {id: 2}}),
       ];
       const responses = [
         {status: 200, body: {data: {id: 1}}},
@@ -69,8 +69,8 @@ describe("batch module", () => {
 
     it("should expose HTTP 404 responses in the skipped list", () => {
       const _requests = [
-        requests.createRecord("foo", {id: 1}),
-        requests.createRecord("foo", {id: 2}),
+        requests.createRequest("foo", {data: {id: 1}}),
+        requests.createRequest("foo", {data: {id: 2}}),
       ];
       const responses = [
         {status: 404, body: _requests[0]},
@@ -84,8 +84,8 @@ describe("batch module", () => {
 
     it("should expose HTTP 412 responses in the conflicts list", () => {
       const _requests = [
-        requests.createRecord("foo", {id: 1}),
-        requests.createRecord("foo", {id: 2}),
+        requests.createRequest("foo", {data: {id: 1}}),
+        requests.createRequest("foo", {data: {id: 2}}),
       ];
       const responses = [
         {status: 412, body: {details: {existing: {remote: true}}}},
@@ -113,10 +113,10 @@ describe("batch module", () => {
 
       beforeEach(() => {
         _requests = [
-          requests.createRecord("foo", {id: 1}),
-          requests.createRecord("foo", {id: 2}),
-          requests.createRecord("foo", {id: 3}),
-          requests.createRecord("foo", {id: 4, a: 1}),
+          requests.createRequest("foo", {data: {id: 1}}),
+          requests.createRequest("foo", {data: {id: 2}}),
+          requests.createRequest("foo", {data: {id: 3}}),
+          requests.createRequest("foo", {data: {id: 4, a: 1}}),
         ];
         const responses = [
           {status: 500, path: "path1", body: {err: 1}},
@@ -148,7 +148,10 @@ describe("batch module", () => {
         expect(results.conflicts).eql([
           {
             type: "outgoing",
-            local: {data: {id: 4, a: 1}},
+            local: {
+              data: {id: 4, a: 1},
+              permissions: undefined
+            },
             remote: {remote: true},
           }
         ]);
