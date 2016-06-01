@@ -74,30 +74,27 @@ describe("Collection", () => {
     const fakePermissions = {read: [], write: []};
 
     beforeEach(() => {
-      sandbox.stub(requests, "updateCollection");
+      sandbox.stub(requests, "updateRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({}));
     });
 
     it("should set permissions", () => {
       coll.setPermissions(fakePermissions);
 
-      sinon.assert.calledWithMatch(requests.updateCollection, {id: "posts"}, {
-        bucket: "blog",
-        permissions: fakePermissions,
-        headers: {Foo: "Bar", Baz: "Qux"},
-      });
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", {
+        data: { last_modified: undefined },
+        permissions: fakePermissions
+      }, {headers: {Foo: "Bar", Baz: "Qux"}});
     });
 
     it("should handle the safe option", () => {
       coll.setPermissions(fakePermissions, {safe: true, last_modified: 42});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, {
-        id: "posts",
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", {
+        data: { last_modified: 42 },
+        permissions: fakePermissions
       }, {
-        bucket: "blog",
-        permissions: fakePermissions,
         headers: {Foo: "Bar", Baz: "Qux"},
-        last_modified: 42,
         safe: true,
       });
     });
@@ -122,18 +119,17 @@ describe("Collection", () => {
 
   describe("#setData()", () => {
     beforeEach(() => {
-      sandbox.stub(requests, "updateCollection");
+      sandbox.stub(requests, "updateRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({data: {foo: "bar"}}));
     });
 
     it("should set the data", () => {
       coll.setData({a: 1});
 
-      sinon.assert.calledWithMatch(requests.updateCollection,{
-        id: "posts",
-        a: 1,
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", {
+        data: {a: 1},
+        permissions: undefined
       }, {
-        bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
       });
     });
@@ -141,11 +137,10 @@ describe("Collection", () => {
     it("should handle the safe option", () => {
       coll.setData({a: 1}, {safe: true, last_modified: 42});
 
-      sinon.assert.calledWithMatch(requests.updateCollection, {
-        id: "posts",
-        a: 1
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", {
+        data: {a: 1},
+        permissions: undefined
       }, {
-        bucket: "blog",
         headers: {Foo: "Bar", Baz: "Qux"},
         safe: true,
         last_modified: 42,
@@ -167,23 +162,27 @@ describe("Collection", () => {
     });
 
     it("should create the expected request", () => {
-      sandbox.stub(requests, "createRecord");
+      sandbox.stub(requests, "createRequest");
 
       coll.createRecord(record);
 
-      sinon.assert.calledWith(requests.createRecord, "posts", record, {
-        bucket: "blog",
-        headers: {Foo: "Bar", Baz: "Qux"},
-      });
+      sinon.assert.calledWith(requests.createRequest, "/buckets/blog/collections/posts/records", {
+        data: record,
+        permissions: undefined
+      }, { headers: {Foo: "Bar", Baz: "Qux"} });
     });
 
     it("should accept a safe option", () => {
-      sandbox.stub(requests, "createRecord");
+      sandbox.stub(requests, "createRequest");
 
       coll.createRecord(record, {safe: true});
 
-      sinon.assert.calledWithMatch(requests.createRecord, "posts", record, {
-        safe: true
+      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/collections/posts/records", {
+        data: record,
+        permissions: undefined
+      }, {
+        safe: true,
+        headers: {Foo: "Bar", Baz: "Qux"}
       });
     });
 
@@ -210,48 +209,46 @@ describe("Collection", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
     });
 
+    it("should throw if record is not an object", () => {
+      expect(() => coll.updateRecord(2)).to.Throw(Error, /required/);
+    });
+
+    it("should throw if id is missing", () => {
+      expect(() => coll.updateRecord({})).to.Throw(Error, /required/);
+    });
+
     it("should create the expected request", () => {
-      sandbox.stub(requests, "updateRecord");
+      sandbox.stub(requests, "updateRequest");
 
       coll.updateRecord(record);
 
-      sinon.assert.calledWith(requests.updateRecord, "posts", record, {
-        bucket: "blog",
-        headers: {Foo: "Bar", Baz: "Qux"},
-      });
+      sinon.assert.calledWith(requests.updateRequest, "/buckets/blog/collections/posts/records/2", {
+        data: record,
+        permissions: undefined
+      }, { headers: {Foo: "Bar", Baz: "Qux"} });
     });
 
     it("should accept a safe option", () => {
-      sandbox.stub(requests, "updateRecord");
+      sandbox.stub(requests, "updateRequest");
 
       coll.updateRecord({...record, last_modified: 42}, {safe: true});
 
-      sinon.assert.calledWithMatch(requests.updateRecord, "posts", record, {
-        safe: true,
-      });
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts/records/2", {
+        data: {...record, last_modified: 42},
+        permissions: undefined
+      }, { safe: true, headers: {Foo: "Bar", Baz: "Qux"} });
     });
 
     it("should accept a patch option", () => {
-      sandbox.stub(requests, "updateRecord");
+      sandbox.stub(requests, "updateRequest");
 
       coll.updateRecord(record, {patch: true});
 
-      sinon.assert.calledWithMatch(requests.updateRecord, "posts", record, {
-        patch: true
-      });
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts/records/2", {
+        data: record,
+        permissions: undefined
+      }, { patch: true, headers: {Foo: "Bar", Baz: "Qux"} });
     });
-
-    it("should update a record", () => {
-      sandbox.stub(requests, "updateRecord");
-
-      coll.updateRecord(record);
-
-      sinon.assert.calledWith(requests.updateRecord, "posts", record, {
-        bucket: "blog",
-        headers: {Foo: "Bar", Baz: "Qux"},
-      });
-    });
-
 
     it("should resolve with response body", () => {
       return coll.updateRecord(record)
@@ -262,38 +259,36 @@ describe("Collection", () => {
   /** @test {Collection#deleteRecord} */
   describe("#deleteRecord()", () => {
     beforeEach(() => {
+      sandbox.stub(requests, "deleteRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({data: 1}));
     });
 
-    it("should delete a record", () => {
-      sandbox.stub(requests, "deleteRecord");
+    it("should throw if id is missing", () => {
+      expect(() => coll.deleteRecord({}))
+        .to.Throw(Error, /required/);
+    });
 
+    it("should delete a record", () => {
       coll.deleteRecord("1");
 
-      sinon.assert.calledWith(requests.deleteRecord, "posts", {id: "1"}, {
-        bucket: "blog",
+      sinon.assert.calledWith(requests.deleteRequest, "/buckets/blog/collections/posts/records/1", {
         headers: {Foo: "Bar", Baz: "Qux"},
       });
     });
 
     it("should accept a safe option", () => {
-      sandbox.stub(requests, "deleteRecord");
-
       coll.deleteRecord("1", {safe: true, last_modified: 42});
 
-      sinon.assert.calledWithMatch(requests.deleteRecord, "posts", {id: "1"}, {
+      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/collections/posts/records/1", {
         safe: true,
         last_modified: 42
       });
     });
 
     it("should delete a record using a record object", () => {
-      sandbox.stub(requests, "deleteRecord");
-
       coll.deleteRecord({id: "1"});
 
-      sinon.assert.calledWith(requests.deleteRecord, "posts", {id: "1"}, {
-        bucket: "blog",
+      sinon.assert.calledWith(requests.deleteRequest, "/buckets/blog/collections/posts/records/1", {
         headers: {Foo: "Bar", Baz: "Qux"},
       });
     });
@@ -309,7 +304,6 @@ describe("Collection", () => {
       coll.getRecord(1);
 
       sinon.assert.calledWith(client.execute, {
-        bucket: "blog",
         path: "/buckets/blog/collections/posts/records/1",
         headers: {Foo: "Bar", Baz: "Qux"},
       });

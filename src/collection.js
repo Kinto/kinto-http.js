@@ -68,8 +68,6 @@ export default class Collection {
       ...this.options,
       ...options,
       headers,
-      // XXX soon to be removed once we've migrated everything from KintoClient
-      bucket: this.bucket.name
     };
   }
 
@@ -103,9 +101,9 @@ export default class Collection {
       throw new Error("A collection object is required.");
     }
     const reqOptions = this._collOptions(options);
-    const { bucket, permissions } = reqOptions;
+    const { permissions } = reqOptions;
 
-    const path = endpoint("collection", bucket, this.name);
+    const path = endpoint("collection", this.bucket.name, this.name);
     const request = requests.updateRequest(path, {data, permissions}, reqOptions);
     return this.client.execute(request);
   }
@@ -141,8 +139,7 @@ export default class Collection {
       throw new Error("A permissions object is required.");
     }
     const reqOptions = this._collOptions(options);
-    const { bucket } = reqOptions;
-    const path = endpoint("collection", bucket, this.name);
+    const path = endpoint("collection", this.bucket.name, this.name);
     const data = { last_modified: options.last_modified };
     const request = requests.updateRequest(path, {data, permissions}, reqOptions);
     return this.client.execute(request);
@@ -159,10 +156,10 @@ export default class Collection {
    */
   createRecord(record, options={}) {
     const reqOptions = this._collOptions(options);
-    const { bucket, permissions } = reqOptions;
+    const { permissions } = reqOptions;
     // XXX throw if bucket is undefined
-    const path = record.id ? endpoint("record", bucket, this.name, record.id) :
-                             endpoint("records", bucket, this.name);
+    const path = record.id ? endpoint("record", this.bucket.name, this.name, record.id) :
+                             endpoint("records", this.bucket.name, this.name);
     const request = requests.createRequest(path, {data: record, permissions}, reqOptions);
     return this.client.execute(request);
   }
@@ -185,8 +182,8 @@ export default class Collection {
       throw new Error("A record id is required.");
     }
     const reqOptions = this._collOptions(options);
-    const { bucket, permissions } = reqOptions;
-    const path = endpoint("record", bucket, this.name, record.id);
+    const { permissions } = reqOptions;
+    const path = endpoint("record", this.bucket.name, this.name, record.id);
     const request = requests.updateRequest(path, {data: record, permissions}, reqOptions);
     return this.client.execute(request);
   }
@@ -207,8 +204,7 @@ export default class Collection {
       throw new Error("A record id is required.");
     }
     const reqOptions = this._collOptions(options);
-    const { bucket } = reqOptions;
-    const path = endpoint("record", bucket, this.name, recordObj.id);
+    const path = endpoint("record", this.bucket.name, this.name, recordObj.id);
     const request = requests.deleteRequest(path, reqOptions);
     return this.client.execute(request);
   }
@@ -339,6 +335,7 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     return this.client.batch(fn, {
       ...reqOptions,
+      bucket: this.bucket.name,
       collection: this.name,
     });
   }
