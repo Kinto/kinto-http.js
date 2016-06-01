@@ -183,7 +183,7 @@ export default class Bucket {
    */
   listGroups(options={}) {
     return this.client.execute({
-      path: endpoint("groups", this.name),
+      path: endpoint("group", this.name),
       headers: {...this.options.headers, ...options.headers}
     });
   }
@@ -196,9 +196,10 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   getGroup(id, options={}) {
-    const reqOptions = this._bucketOptions(options);
-    const request = requests.getGroup(id, reqOptions);
-    return this.client.execute(request);
+    return this.client.execute({
+      path: endpoint("group", this.name, id),
+      headers: {...this.options.headers, ...options.headers}
+    });
   }
 
   /**
@@ -220,8 +221,9 @@ export default class Bucket {
       id,
       members
     };
+    const path = endpoint("group", this.name, id);
     const permissions = options.permissions;
-    const request = requests.createGroup({data, permissions}, reqOptions);
+    const request = requests.createRequest(path, {data, permissions}, reqOptions);
     return this.client.execute(request);
   }
 
@@ -238,13 +240,20 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   updateGroup(group, options={}) {
+    if (!isObject(group)) {
+      throw new Error("A group object is required.");
+    }
+    if (!group.id) {
+      throw new Error("A group id is required.");
+    }
     const reqOptions = this._bucketOptions(options);
     const data = {
       ...options.data,
       ...group
     };
+    const path = endpoint("group", this.name, group.id);
     const permissions = options.permissions;
-    const request = requests.updateGroup({data, permissions}, reqOptions);
+    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
     return this.client.execute(request);
   }
 
@@ -258,8 +267,10 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   deleteGroup(group, options={}) {
+    const groupObj = toDataBody(group);
     const reqOptions = this._bucketOptions(options);
-    const request = requests.deleteGroup(toDataBody(group), reqOptions);
+    const path = endpoint("group", this.name, groupObj.id);
+    const request = requests.deleteRequest(path, reqOptions);
     return this.client.execute(request);
   }
 
