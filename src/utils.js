@@ -65,7 +65,7 @@ export function omit(obj, ...keys) {
  * @return {Object}
  */
 export function toDataBody(resource) {
-  if (typeof resource === "object") {
+  if (isObject(resource)) {
     return resource;
   }
   if (typeof resource === "string") {
@@ -182,4 +182,13 @@ export function nobatch(message) {
       }
     };
   };
+}
+
+/**
+ * Returns true if the specified value is an object (i.e. not an array nor null).
+ * @param  {Object} thing The value to inspect.
+ * @return {bool}
+ */
+export function isObject(thing) {
+  return typeof thing === "object" && thing !== null && !Array.isArray(thing);
 }

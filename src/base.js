@@ -380,7 +380,7 @@ export default class KintoClientBase {
    */
   listBuckets(options={}) {
     return this.execute({
-      path: endpoint("buckets"),
+      path: endpoint("bucket"),
       headers: {...this.defaultReqOptions.headers, ...options.headers}
     });
   }
@@ -388,23 +388,23 @@ export default class KintoClientBase {
   /**
    * Creates a new bucket on the server.
    *
-   * @param  {String}   bucketName      The bucket name.
+   * @param  {String}   id              The bucket name.
    * @param  {Object}   options         The options object.
    * @param  {Boolean}  options.data    The bucket data option.
    * @param  {Boolean}  options.safe    The safe option.
    * @param  {Object}   options.headers The headers object option.
    * @return {Promise<Object, Error>}
    */
-  createBucket(bucketName, options={}) {
-    if (!bucketName) {
-      throw new Error("A bucket name is required.");
+  createBucket(id, options={}) {
+    if (!id) {
+      throw new Error("A bucket id is required.");
     }
     // Note that we simply ignore any "bucket" option passed here, as the one
     // we're interested in is the one provided as a required argument.
     const reqOptions = this._getRequestOptions(options);
     const { data={}, permissions } = reqOptions;
-    data.id = bucketName;
-    const path = endpoint("bucket", bucketName);
+    data.id = id;
+    const path = endpoint("bucket", id);
     return this.execute(requests.createRequest(path, { data, permissions }, reqOptions));
   }
 
@@ -424,8 +424,8 @@ export default class KintoClientBase {
       throw new Error("A bucket id is required.");
     }
     const path = endpoint("bucket", bucketObj.id);
-    options = { last_modified: bucket.last_modified, ...options };
-    const reqOptions = this._getRequestOptions(options);
+    const { last_modified } = { bucketObj };
+    const reqOptions = this._getRequestOptions({ last_modified, ...options });
     return this.execute(requests.deleteRequest(path, reqOptions));
   }
 
@@ -441,7 +441,7 @@ export default class KintoClientBase {
   @support("1.4", "2.0")
   deleteBuckets(options={}) {
     const reqOptions = this._getRequestOptions(options);
-    const path = endpoint("buckets");
+    const path = endpoint("bucket");
     return this.execute(requests.deleteRequest(path, reqOptions));
   }
 }

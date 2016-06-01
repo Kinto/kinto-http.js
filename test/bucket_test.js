@@ -212,7 +212,10 @@ describe("Bucket", () => {
         sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/collections/foo", {
           data: {id: "foo"},
           permissions: undefined
-        }, { headers: {Foo: "Bar", Baz: "Qux"}, safe: true });
+        }, {
+          headers: {Foo: "Bar", Baz: "Qux"},
+          safe: true
+        });
       });
     });
 
@@ -235,7 +238,10 @@ describe("Bucket", () => {
         sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/collections", {
           data: {},
           permissions: undefined
-        }, {headers: {Foo: "Bar", Baz: "Qux"}, safe: true});
+        }, {
+          headers: {Foo: "Bar", Baz: "Qux"},
+          safe: true
+        });
       });
     });
   });

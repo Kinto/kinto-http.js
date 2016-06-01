@@ -1,4 +1,4 @@
-import { toDataBody, qsify } from "./utils";
+import { toDataBody, qsify, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -97,7 +97,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   setData(data, options={}) {
-    if (typeof data !== "object") {
+    if (!isObject(data)) {
       throw new Error("A collection object is required.");
     }
     const reqOptions = this._collOptions(options);
@@ -135,7 +135,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options={}) {
-    if (typeof permissions !== "object") {
+    if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
     const reqOptions = this._collOptions(options);
@@ -157,9 +157,7 @@ export default class Collection {
   createRecord(record, options={}) {
     const reqOptions = this._collOptions(options);
     const { permissions } = reqOptions;
-    // XXX throw if bucket is undefined
-    const path = record.id ? endpoint("record", this.bucket.name, this.name, record.id) :
-                             endpoint("records", this.bucket.name, this.name);
+    const path = endpoint("record", this.bucket.name, this.name, record.id);
     const request = requests.createRequest(path, {data: record, permissions}, reqOptions);
     return this.client.execute(request);
   }
@@ -175,7 +173,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   updateRecord(record, options={}) {
-    if (typeof record !== "object") {
+    if (!isObject(record)) {
       throw new Error("A record object is required.");
     }
     if (!record.id) {
@@ -268,7 +266,7 @@ export default class Collection {
       throw new Error(`Invalid value for since (${since}), should be ETag value.`);
     }
     const collHeaders = this.options.headers;
-    const path = endpoint("records", this.bucket.name, this.name);
+    const path = endpoint("record", this.bucket.name, this.name);
     const querystring = qsify({
       ...filters,
       _sort: sort,

@@ -1,4 +1,4 @@
-import { toDataBody } from "./utils";
+import { toDataBody, isObject } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
@@ -99,7 +99,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   setData(data, options={}) {
-    if (typeof data !== "object") {
+    if (!isObject(data)) {
       throw new Error("A bucket object is required.");
     }
 
@@ -127,7 +127,7 @@ export default class Bucket {
    */
   listCollections(options={}) {
     return this.client.execute({
-      path: endpoint("collections", this.name),
+      path: endpoint("collection", this.name),
       headers: {...this.options.headers, ...options.headers}
     });
   }
@@ -147,8 +147,7 @@ export default class Bucket {
     const reqOptions = this._bucketOptions(options);
     const { permissions, data={} } = reqOptions;
     data.id = id;
-    const path = id ? endpoint("collection", this.name, id) :
-                      endpoint("collections", this.name);
+    const path = endpoint("collection", this.name, id);
     const request = requests.createRequest(path, {data, permissions}, reqOptions);
     return this.client.execute(request);
   }
@@ -167,10 +166,9 @@ export default class Bucket {
     if (!collectionObj.id) {
       throw new Error("A collection id is required.");
     }
-
-    options = { last_modified: collectionObj.last_modified, ...options };
-    const reqOptions = this._bucketOptions(options);
-    const path = endpoint("collection", this.name, collectionObj.id);
+    const {id, last_modified} = collectionObj;
+    const reqOptions = this._bucketOptions({ last_modified, ...options });
+    const path = endpoint("collection", this.name, id);
     const request = requests.deleteRequest(path, reqOptions);
     return this.client.execute(request);
   }
@@ -202,12 +200,13 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options={}) {
-    if (typeof permissions !== "object") {
+    if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
     const path = endpoint("bucket", this.name);
     const reqOptions = {...this._bucketOptions(options)};
-    const data = { last_modified: options.last_modified };
+    const {last_modified} = options;
+    const data = {last_modified};
     const request = requests.updateRequest(path, {data, permissions}, reqOptions);
     return this.client.execute(request);
   }

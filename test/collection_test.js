@@ -210,11 +210,13 @@ describe("Collection", () => {
     });
 
     it("should throw if record is not an object", () => {
-      expect(() => coll.updateRecord(2)).to.Throw(Error, /required/);
+      expect(() => coll.updateRecord(2))
+        .to.Throw(Error, /record object is required/);
     });
 
     it("should throw if id is missing", () => {
-      expect(() => coll.updateRecord({})).to.Throw(Error, /required/);
+      expect(() => coll.updateRecord({}))
+        .to.Throw(Error, /record id is required/);
     });
 
     it("should create the expected request", () => {
@@ -236,7 +238,10 @@ describe("Collection", () => {
       sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts/records/2", {
         data: {...record, last_modified: 42},
         permissions: undefined
-      }, { safe: true, headers: {Foo: "Bar", Baz: "Qux"} });
+      }, {
+        safe: true,
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
     });
 
     it("should accept a patch option", () => {
@@ -247,7 +252,10 @@ describe("Collection", () => {
       sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts/records/2", {
         data: record,
         permissions: undefined
-      }, { patch: true, headers: {Foo: "Bar", Baz: "Qux"} });
+      }, {
+        patch: true,
+        headers: {Foo: "Bar", Baz: "Qux"}
+      });
     });
 
     it("should resolve with response body", () => {
@@ -265,7 +273,7 @@ describe("Collection", () => {
 
     it("should throw if id is missing", () => {
       expect(() => coll.deleteRecord({}))
-        .to.Throw(Error, /required/);
+        .to.Throw(Error, /record id is required/);
     });
 
     it("should delete a record", () => {
