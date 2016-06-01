@@ -148,7 +148,10 @@ describe("batch module", () => {
         expect(results.conflicts).eql([
           {
             type: "outgoing",
-            local: {data: {id: 4, a: 1}},
+            local: {
+              data: {id: 4, a: 1},
+              permissions: undefined
+            },
             remote: {remote: true},
           }
         ]);

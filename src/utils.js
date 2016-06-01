@@ -183,7 +183,3 @@ export function nobatch(message) {
     };
   };
 }
-
-export function removeUndefined(obj) {
-  return JSON.parse(JSON.stringify(obj));
-}

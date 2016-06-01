@@ -13,7 +13,10 @@ describe("requests module", () => {
   describe("createRequest()", () => {
     it("should return a POST creation request", () => {
       expect(requests.createRequest("/foo", {})).eql({
-        body: {},
+        body: {
+          data: undefined,
+          permissions: undefined
+        },
         headers: {},
         method: "POST",
         path: "/foo",
@@ -25,7 +28,8 @@ describe("requests module", () => {
         body: {
           data: {
             id: "foo"
-          }
+          },
+          permissions: undefined
         },
         headers: {},
         method: "PUT",
@@ -82,7 +86,8 @@ describe("requests module", () => {
     it("should return a update request", () => {
       expect(requests.updateRequest("/foo", {data: {id: "foo", age: 42}})).eql({
         body: {
-          data: {id: "foo", age: 42}
+          data: {id: "foo", age: 42},
+          permissions: undefined
         },
         headers: {},
         method: "PUT",

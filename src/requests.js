@@ -1,4 +1,4 @@
-import { omit, removeUndefined } from "./utils";
+import { omit } from "./utils";
 
 const requestDefaults = {
   safe: false,
@@ -27,7 +27,7 @@ export function createRequest(path, {data, permissions}, options={}) {
     ...requestDefaults,
     ...options,
   };
-  return removeUndefined({
+  return {
     method: data && data.id ? "PUT" : "POST",
     path,
     headers: {...headers, ...safeHeader(safe)},
@@ -35,7 +35,7 @@ export function createRequest(path, {data, permissions}, options={}) {
       data,
       permissions
     }
-  });
+  };
 }
 
 /**
@@ -53,7 +53,7 @@ export function updateRequest(path, {data, permissions}, options={}) {
     data = undefined;
   }
 
-  return removeUndefined({
+  return {
     method: patch ? "PATCH" : "PUT",
     path,
     headers: {
@@ -64,7 +64,7 @@ export function updateRequest(path, {data, permissions}, options={}) {
       data,
       permissions
     }
-  });
+  };
 }
 
 /**
