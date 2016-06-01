@@ -116,7 +116,7 @@ describe("batch module", () => {
           requests.createRecord("foo", {id: 1}),
           requests.createRecord("foo", {id: 2}),
           requests.createRecord("foo", {id: 3}),
-          requests.createRecord("foo", {id: 4}),
+          requests.createRecord("foo", {id: 4, a: 1}),
         ];
         const responses = [
           {status: 500, path: "path1", body: {err: 1}},
@@ -148,7 +148,7 @@ describe("batch module", () => {
         expect(results.conflicts).eql([
           {
             type: "outgoing",
-            local: {data: {id: 4}, permissions: {}},
+            local: {data: {id: 4, a: 1}},
             remote: {remote: true},
           }
         ]);
