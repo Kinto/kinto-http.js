@@ -175,6 +175,105 @@ export default class Bucket {
   }
 
   /**
+   * Retrieves the list of groups in the current bucket.
+   *
+   * @param  {Object} options         The options object.
+   * @param  {Object} options.headers The headers object option.
+   * @return {Promise<Array<Object>, Error>}
+   */
+  listGroups(options={}) {
+    return this.client.execute({
+      path: endpoint("group", this.name),
+      headers: {...this.options.headers, ...options.headers}
+    });
+  }
+
+  /**
+   * Creates a new group in current bucket.
+   *
+   * @param  {String}  id                  The group id.
+   * @param  {Object}  options             The options object.
+   * @return {Promise<Object, Error>}
+   */
+  getGroup(id, options={}) {
+    return this.client.execute({
+      path: endpoint("group", this.name, id),
+      headers: {...this.options.headers, ...options.headers}
+    });
+  }
+
+  /**
+   * Creates a new group in current bucket.
+   *
+   * @param  {String|undefined}  id        The group id.
+   * @param  {Array<String>}     members   The list of principals.
+   * @param  {Object}  options             The options object.
+   * @param  {Object}  options.data        The data object.
+   * @param  {Object}  options.permissions The permissions object.
+   * @param  {Boolean} options.safe        The safe option.
+   * @param  {Object}  options.headers     The headers object option.
+   * @return {Promise<Object, Error>}
+   */
+  createGroup(id, members=[], options={}) {
+    const reqOptions = this._bucketOptions(options);
+    const data = {
+      ...options.data,
+      id,
+      members
+    };
+    const path = endpoint("group", this.name, id);
+    const {permissions} = options;
+    const request = requests.createRequest(path, {data, permissions}, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
+   * Updates an existing group in current bucket.
+   *
+   * @param  {Object}  group               The group object.
+   * @param  {Object}  options             The options object.
+   * @param  {Object}  options.data        The data object.
+   * @param  {Object}  options.permissions The permissions object.
+   * @param  {Boolean} options.safe        The safe option.
+   * @param  {Object}  options.headers     The headers object option.
+   * @return {Promise<Object, Error>}
+   */
+  updateGroup(group, options={}) {
+    if (!isObject(group)) {
+      throw new Error("A group object is required.");
+    }
+    if (!group.id) {
+      throw new Error("A group id is required.");
+    }
+    const reqOptions = this._bucketOptions(options);
+    const data = {
+      ...options.data,
+      ...group
+    };
+    const path = endpoint("group", this.name, group.id);
+    const {permissions} = options;
+    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
+   * Deletes a group from the current bucket.
+   *
+   * @param  {Object|String} group       The group to delete.
+   * @param  {Object}    options         The options object.
+   * @param  {Object}    options.headers The headers object option.
+   * @param  {Boolean}   options.safe    The safe option.
+   * @return {Promise<Object, Error>}
+   */
+  deleteGroup(group, options={}) {
+    const groupObj = toDataBody(group);
+    const reqOptions = this._bucketOptions(options);
+    const path = endpoint("group", this.name, groupObj.id);
+    const request = requests.deleteRequest(path, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
    * Retrieves the list of permissions for this bucket.
    *
    * @param  {Object} options         The options object.

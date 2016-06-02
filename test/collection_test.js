@@ -330,6 +330,7 @@ describe("Collection", () => {
 
     describe("No pagination", () => {
       beforeEach(() => {
+        // Since listRecords use `raw: true`, stub with full response:
         sandbox.stub(client, "execute").returns(Promise.resolve({
           json: {data: [{a: 1}]},
           headers: {
