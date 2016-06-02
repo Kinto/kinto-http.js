@@ -27,7 +27,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-client
      - [Creating a collection](#creating-a-collection)
      - [Listing bucket collections](#listing-bucket-collections)
      - [Deleting a collection](#deleting-a-collection)
-     - [Creating a group](#creating-a-group)
+     - [Creating a user group](#creating-a-user-group)
      - [Listing bucket groups](#listing-bucket-groups)
      - [Getting a bucket group](#getting-a-bucket-group)
      - [Updating an existing group](#updating-an-existing-group)
