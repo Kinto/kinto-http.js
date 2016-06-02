@@ -279,6 +279,15 @@ describe("Bucket", () => {
       });
     });
 
+    it("should rely on the provided last_modified for the safe option", () => {
+      getBlogBucket().deleteCollection({id: "todelete", last_modified: 42}, {safe: true});
+
+      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/collections/todelete", {
+        last_modified: 42,
+        safe: true
+      });
+    });
+
     it("should extend request headers with optional ones", () => {
       getBlogBucket({headers: {Foo: "Bar"}})
         .deleteCollection("todelete", {headers: {Baz: "Qux"}});
@@ -481,6 +490,15 @@ describe("Bucket", () => {
       getBlogBucket().deleteGroup("todelete", {safe: true});
 
       sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/groups/todelete", {
+        safe: true
+      });
+    });
+
+    it("should rely on the provided last_modified for the safe option", () => {
+      getBlogBucket().deleteGroup({id: "todelete", last_modified: 42}, {safe: true});
+
+      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/groups/todelete", {
+        last_modified: 42,
         safe: true
       });
     });

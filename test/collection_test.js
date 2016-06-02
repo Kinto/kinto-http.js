@@ -280,24 +280,26 @@ describe("Collection", () => {
       coll.deleteRecord("1");
 
       sinon.assert.calledWith(requests.deleteRequest, "/buckets/blog/collections/posts/records/1", {
+        last_modified: undefined,
         headers: {Foo: "Bar", Baz: "Qux"},
       });
     });
 
     it("should accept a safe option", () => {
-      coll.deleteRecord("1", {safe: true, last_modified: 42});
+      coll.deleteRecord("1", {safe: true});
 
       sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/collections/posts/records/1", {
-        safe: true,
-        last_modified: 42
+        last_modified: undefined,
+        safe: true
       });
     });
 
-    it("should delete a record using a record object", () => {
-      coll.deleteRecord({id: "1"});
+    it("should rely on the provided last_modified for the safe option", () => {
+      coll.deleteRecord({id: "1", last_modified: 42}, {safe: true});
 
-      sinon.assert.calledWith(requests.deleteRequest, "/buckets/blog/collections/posts/records/1", {
-        headers: {Foo: "Bar", Baz: "Qux"},
+      sinon.assert.calledWithMatch(requests.deleteRequest, "buckets/blog/collections/posts/records/1", {
+        last_modified: 42,
+        safe: true
       });
     });
   });

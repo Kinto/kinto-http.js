@@ -267,8 +267,9 @@ export default class Bucket {
    */
   deleteGroup(group, options={}) {
     const groupObj = toDataBody(group);
-    const reqOptions = this._bucketOptions(options);
-    const path = endpoint("group", this.name, groupObj.id);
+    const {id, last_modified} = groupObj;
+    const reqOptions = this._bucketOptions({last_modified, ...options});
+    const path = endpoint("group", this.name, id);
     const request = requests.deleteRequest(path, reqOptions);
     return this.client.execute(request);
   }

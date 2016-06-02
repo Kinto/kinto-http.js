@@ -201,8 +201,9 @@ export default class Collection {
     if (!recordObj.id) {
       throw new Error("A record id is required.");
     }
-    const reqOptions = this._collOptions(options);
-    const path = endpoint("record", this.bucket.name, this.name, recordObj.id);
+    const {id, last_modified} = recordObj;
+    const reqOptions = this._collOptions({ last_modified, ...options });
+    const path = endpoint("record", this.bucket.name, this.name, id);
     const request = requests.deleteRequest(path, reqOptions);
     return this.client.execute(request);
   }
