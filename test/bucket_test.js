@@ -328,9 +328,7 @@ describe("Bucket", () => {
   describe("#getGroup", () => {
     const fakeGroup = {data: {}, permissions: {}};
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: fakeGroup
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve(fakeGroup));
     });
 
     it("should extend request headers with optional ones", () => {
@@ -344,7 +342,7 @@ describe("Bucket", () => {
     });
 
     it("should return the group", () => {
-      getBlogBucket().getGroup("foo")
+      return getBlogBucket().getGroup("foo")
         .should.become(fakeGroup);
     });
   });

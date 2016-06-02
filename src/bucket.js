@@ -222,16 +222,15 @@ export default class Bucket {
       members
     };
     const path = endpoint("group", this.name, id);
-    const permissions = options.permissions;
+    const {permissions} = options;
     const request = requests.createRequest(path, {data, permissions}, reqOptions);
     return this.client.execute(request);
   }
 
   /**
-   * Creates a new group in current bucket.
+   * Updates an existing group in current bucket.
    *
-   * @param  {String|undefined}  id        The group id.
-   * @param  {Array<String>}     members   The list of principals.
+   * @param  {Object}  group               The group object.
    * @param  {Object}  options             The options object.
    * @param  {Object}  options.data        The data object.
    * @param  {Object}  options.permissions The permissions object.
@@ -252,7 +251,7 @@ export default class Bucket {
       ...group
     };
     const path = endpoint("group", this.name, group.id);
-    const permissions = options.permissions;
+    const {permissions} = options;
     const request = requests.updateRequest(path, {data, permissions}, reqOptions);
     return this.client.execute(request);
   }
