@@ -169,9 +169,7 @@ describe("Bucket", () => {
   describe("#createCollection()", () => {
     beforeEach(() => {
       sandbox.stub(requests, "createRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: {}}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: {}}));
     });
 
     it("should accept a safe option", () => {
@@ -250,9 +248,7 @@ describe("Bucket", () => {
   describe("#deleteCollection", () => {
     beforeEach(() => {
       sandbox.stub(requests, "deleteRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: {}}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: {}}));
     });
 
     it("should delete a collection", () => {
@@ -351,9 +347,7 @@ describe("Bucket", () => {
   describe("#createGroup", () => {
     beforeEach(() => {
       sandbox.stub(requests, "createRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: {}}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: {}}));
     });
 
     it("should accept a safe option", () => {
@@ -402,9 +396,7 @@ describe("Bucket", () => {
   describe("#updateGroup", () => {
     beforeEach(() => {
       sandbox.stub(requests, "updateRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: {}}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: {}}));
     });
 
     it("should throw if record is not an object", () => {
@@ -462,9 +454,7 @@ describe("Bucket", () => {
   describe("#deleteGroup", () => {
     beforeEach(() => {
       sandbox.stub(requests, "deleteRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({
-        json: {data: {}}
-      }));
+      sandbox.stub(client, "execute").returns(Promise.resolve({data: {}}));
     });
 
     it("should delete a group", () => {

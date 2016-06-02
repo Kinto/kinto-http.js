@@ -684,9 +684,7 @@ describe("KintoClient", () => {
     beforeEach(() => {
       api.serverInfo = {http_api_version: "1.4"};
       sandbox.stub(requests, "deleteRequest");
-      sandbox.stub(api, "execute").returns(Promise.resolve({
-        json: {}
-      }));
+      sandbox.stub(api, "execute").returns(Promise.resolve({}));
     });
 
     it("should execute expected request", () => {
