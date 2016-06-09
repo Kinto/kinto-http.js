@@ -1,14 +1,14 @@
 {
-  "name": "kinto-client",
-  "version": "0.9.2",
+  "name": "kinto-http",
+  "version": "1.0.0",
   "description": "JavaScript HTTP client for the Kinto API.",
   "main": "lib/index.js",
   "scripts": {
     "build": "babel -d lib/ src/",
     "dist": "mkdir -p dist && rm -f dist/*.* && npm run dist-dev && npm run dist-prod && npm run dist-noshim && npm run dist-fx",
-    "dist-dev": "browserify -s KintoClient -d -e src/index.js -o dist/kinto-client.js -t [ babelify --sourceMapRelative . ]",
-    "dist-noshim": "browserify -s KintoClient -g uglifyify --ignore isomorphic-fetch --ignore babel-polyfill -e src/index.js -o dist/kinto-client.noshim.js -t [ babelify --sourceMapRelative . ]",
-    "dist-prod": "browserify -s KintoClient -g uglifyify -e src/index.js -o dist/kinto-client.min.js -t [ babelify --sourceMapRelative . ]",
+    "dist-dev": "browserify -s KintoClient -d -e src/index.js -o dist/kinto-http.js -t [ babelify --sourceMapRelative . ]",
+    "dist-noshim": "browserify -s KintoClient -g uglifyify --ignore isomorphic-fetch --ignore babel-polyfill -e src/index.js -o dist/kinto-http.noshim.js -t [ babelify --sourceMapRelative . ]",
+    "dist-prod": "browserify -s KintoClient -g uglifyify -e src/index.js -o dist/kinto-http.min.js -t [ babelify --sourceMapRelative . ]",
     "dist-fx": "BABEL_ENV=firefox browserify -s KintoHttpClient --ignore isomorphic-fetch --ignore events --bare -e fx-src/index.js -o temp.jsm -t [ babelify --sourceMapRelative . ] && mkdir -p dist && cp fx-src/jsm_prefix.js dist/moz-kinto-http-client.js && echo \"\n/*\n * Version $npm_package_version - $(git rev-parse --short HEAD)\n */\n\" >> dist/moz-kinto-http-client.js && cat temp.jsm >> dist/moz-kinto-http-client.js && rm temp.jsm",
     "prepublish": "node_modules/.bin/toctoc -w -d 2 README.md",
     "publish-to-npm": "npm run build && npm run dist && npm publish",
@@ -22,7 +22,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kinto/kinto-client.git"
+    "url": "git+https://github.com/Kinto/kinto-http.js.git"
   },
   "keywords": [
     "kinto",
@@ -33,9 +33,9 @@
   "author": "Mozilla <storage-team@mozilla.com>",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/Kinto/kinto-client/issues"
+    "url": "https://github.com/Kinto/kinto-http.js/issues"
   },
-  "homepage": "https://github.com/Kinto/kinto-client#readme",
+  "homepage": "https://github.com/Kinto/kinto-http.js#readme",
   "dependencies": {
     "isomorphic-fetch": "^2.2.1"
   },

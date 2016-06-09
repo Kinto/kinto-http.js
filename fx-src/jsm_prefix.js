@@ -14,7 +14,7 @@
  */
 
 /*
- * This file is generated from kinto-client.js - do not modify directly.
+ * This file is generated from kinto-http.js - do not modify directly.
  */
 
 this.EXPORTED_SYMBOLS = ["KintoHttpClient"];

@@ -1,11 +1,11 @@
-kinto-client
-============
+kinto-http.js
+=============
 
-[![Build Status](https://travis-ci.org/Kinto/kinto-client.svg?branch=master)](https://travis-ci.org/Kinto/kinto-client)
+[![Build Status](https://travis-ci.org/Kinto/kinto-http.js.svg?branch=master)](https://travis-ci.org/Kinto/kinto-http.js)
 
 A JavaScript HTTP Client for the [Kinto](http://kinto-storage.org/) API.
 
-Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-client/).
+Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.js/).
 
 ## Table of Contents
 
@@ -60,30 +60,30 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-client
 
 In the browser, you can load prebuilt scripts hosted on npmcdn:
 
-- [kinto-client.js](https://npmcdn.com/kinto-client/dist/kinto-client.js)
-- [kinto-client.min.js](https://npmcdn.com/kinto-client/dist/kinto-client.min.js)
-- [kinto-client.noshim.js](https://npmcdn.com/kinto-client/dist/kinto-client.noshim.js)
+- [kinto-http.js](https://npmcdn.com/kinto-http.js/dist/kinto-http.js)
+- [kinto-http.min.js](https://npmcdn.com/kinto-http.js/dist/kinto-http.min.js)
+- [kinto-http.noshim.js](https://npmcdn.com/kinto-http.js/dist/kinto-http.noshim.js)
 
 ```html
-<script src="https://npmcdn.com/kinto-client/dist/kinto-client.min.js"></script>
+<script src="https://npmcdn.com/kinto-http.js/dist/kinto-http.min.js"></script>
 ```
 
 In nodejs:
 
 ```
-$ npm install kinto-client --save
+$ npm install kinto-http --save
 ```
 
 Then (ES6):
 
 ```js
-import KintoClient from "kinto-client";
+import KintoClient from "kinto-http.js";
 ```
 
 Or (ES5):
 
 ```js
-var KintoClient = require("kinto-client").default;
+var KintoClient = require("kinto-http.js").default;
 ```
 
 Note that this HTTP client can be transparently used server side or in a regular browser page.
@@ -1335,4 +1335,4 @@ client.events.on("retry-after", function(releaseTime) {
 ```
 
 > #### Note:
-> Eventually, we would like to automate the retry behaviour for requests. See https://github.com/Kinto/kinto-client/issues/34
+> Eventually, we would like to automate the retry behaviour for requests. See https://github.com/Kinto/kinto-http.js/issues/34
