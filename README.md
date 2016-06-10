@@ -77,13 +77,13 @@ $ npm install kinto-http --save
 Then (ES6):
 
 ```js
-import KintoClient from "kinto-http.js";
+import KintoClient from "kinto-http";
 ```
 
 Or (ES5):
 
 ```js
-var KintoClient = require("kinto-http.js").default;
+var KintoClient = require("kinto-http").default;
 ```
 
 Note that this HTTP client can be transparently used server side or in a regular browser page.
