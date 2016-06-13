@@ -9,6 +9,7 @@ import {
   qsify,
   checkVersion,
   support,
+  capable,
   nobatch
 } from "../src/utils";
 
@@ -190,6 +191,76 @@ describe("Utils", () => {
       }
 
       return new FakeClient().test().should.be.rejected;
+    });
+  });
+
+  describe("@capable", () => {
+    it("should return a function", () => {
+      expect(capable()).to.be.a("function");
+    });
+
+    it("should make decorated method checking the capabilities", () => {
+      class FakeClient {
+        fetchServerCapabilities() {
+          return Promise.resolve(); // simulates a successful checkVersion call
+        }
+
+        @capable()
+        test() {
+          return Promise.resolve();
+        }
+      }
+
+      return new FakeClient().test().should.be.fullfilled;
+    });
+
+    it("should make decorated method resolve on capability match", () => {
+      class FakeClient {
+        fetchServerCapabilities() {
+          return Promise.resolve(["default", "attachment", "auth:fxa"]);
+        }
+
+        @capable(["default", "attachment"])
+        test() {
+          return Promise.resolve();
+        }
+      }
+
+      return new FakeClient().test().should.be.fullfilled;
+    });
+
+    it("should make decorated method rejecting on missing capability", () => {
+      class FakeClient {
+        fetchServerCapabilities() {
+          return Promise.resolve(["attachment"]);
+        }
+
+        @capable(["attachment", "default"])
+        test() {
+          return Promise.resolve();
+        }
+      }
+
+      return new FakeClient().test().should.be.rejectedWith(Error, /default not present/);
+    });
+
+    it("should check for an attached client instance", () => {
+      class FakeClient {
+        constructor() {
+          this.client = {
+            fetchServerCapabilities() {
+              return Promise.resolve(["default"]);
+            }
+          };
+        }
+
+        @capable()
+        test() {
+          return Promise.resolve();
+        }
+      }
+
+      return new FakeClient().test().should.be.fullfilled;
     });
   });
 

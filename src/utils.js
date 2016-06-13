@@ -154,6 +154,43 @@ export function support(min, max) {
 }
 
 /**
+ * Generates a decorator function ensuring that the specified capabilities are
+ * available on the server before executing it.
+ *
+ * @param  {Array<String>} capabilities The required capabilities.
+ * @return {Function}
+ */
+export function capable(capabilities) {
+  return function(target, key, descriptor) {
+    const fn = descriptor.value;
+    return {
+      configurable: true,
+      get() {
+        const wrappedMethod = (...args) => {
+          // "this" is the current instance which its method is decorated.
+          const client = "client" in this ? this.client : this;
+          return client.fetchServerCapabilities()
+            .then(available => {
+              const missing = capabilities.filter(c => available.indexOf(c) < 0);
+              if (missing.length > 0) {
+                throw new Error(`Required capabilities ${missing.join(", ")} ` +
+                                "not present on server");
+              }
+            })
+            .then(Promise.resolve(fn.apply(this, args)));
+        };
+        Object.defineProperty(this, key, {
+          value: wrappedMethod,
+          configurable: true,
+          writable: true
+        });
+        return wrappedMethod;
+      }
+    };
+  };
+}
+
+/**
  * Generates a decorator function ensuring an operation is not performed from
  * within a batch request.
  *
