@@ -31,12 +31,10 @@ export default class HTTP {
   /**
    * Constructor.
    *
-   * Options:
-   * - {Number} timeout      The request timeout in ms (default: `5000`).
-   * - {String} requestMode  The HTTP request mode (default: `"cors"`).
-   *
-   * @param {EventEmitter} events  The event handler.
-   * @param {Object}       options The options object.
+   * @param {EventEmitter} events                       The event handler.
+   * @param {Object}       [options={}}                 The options object.
+   * @param {Number}       [options.timeout=5000]       The request timeout in ms (default: `5000`).
+   * @param {String}       [options.requestMode="cors"] The HTTP request mode (default: `"cors"`).
    */
   constructor(events, options={}) {
     // public properties
@@ -66,16 +64,14 @@ export default class HTTP {
   /**
    * Performs an HTTP request to the Kinto server.
    *
-   * Options:
-   * - `{Object} headers` The request headers object (default: {})
-   *
    * Resolves with an objet containing the following HTTP response properties:
    * - `{Number}  status`  The HTTP status code.
    * - `{Object}  json`    The JSON response body.
    * - `{Headers} headers` The response headers object; see the ES6 fetch() spec.
    *
-   * @param  {String} url     The URL.
-   * @param  {Object} options The fetch() options object.
+   * @param  {String} url               The URL.
+   * @param  {Object} [options={}]      The fetch() options object.
+   * @param  {Object} [options.headers] The request headers object (default: {})
    * @return {Promise}
    */
   request(url, options={headers:{}}) {

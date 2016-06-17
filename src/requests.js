@@ -9,6 +9,9 @@ const requestDefaults = {
   patch: false,
 };
 
+/**
+ * @private
+ */
 function safeHeader(safe, last_modified) {
   if (!safe) {
     return {};

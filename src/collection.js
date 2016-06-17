@@ -11,11 +11,12 @@ export default class Collection {
   /**
    * Constructor.
    *
-   * @param  {KintoClient}  client          The client instance.
-   * @param  {Bucket}       bucket          The bucket instance.
-   * @param  {String}       name            The collection name.
-   * @param  {Object}       options.headers The headers object option.
-   * @param  {Boolean}      options.safe    The safe option.
+   * @param  {KintoClient}  client            The client instance.
+   * @param  {Bucket}       bucket            The bucket instance.
+   * @param  {String}       name              The collection name.
+   * @param  {Object}       [options={}]      The options object.
+   * @param  {Object}       [options.headers] The headers object option.
+   * @param  {Boolean}      [options.safe]    The safe option.
    */
   constructor(client, bucket, name, options={}) {
     /**
@@ -56,8 +57,8 @@ export default class Collection {
    * any.
    *
    * @private
-   * @param  {Object} options The options to merge.
-   * @return {Object}         The merged options.
+   * @param  {Object} [options={}] The options to merge.
+   * @return {Object}              The merged options.
    */
   _collOptions(options={}) {
     const headers = {
@@ -74,8 +75,8 @@ export default class Collection {
   /**
    * Retrieves collection data.
    *
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
   getData(options={}) {
@@ -89,11 +90,12 @@ export default class Collection {
 
   /**
    * Set collection data.
-   * @param  {Object}   data            The collection data object.
-   * @param  {Object}   options         The options object.
-   * @param  {Object}   options.headers The headers object option.
-   * @param  {Boolean}  options.safe    The safe option.
-   * @param  {Boolean}  options.patch   The patch option.
+   * @param  {Object}   data                    The collection data object.
+   * @param  {Object}   [options={}]            The options object.
+   * @param  {Object}   [options.headers]       The headers object option.
+   * @param  {Boolean}  [options.safe]          The safe option.
+   * @param  {Boolean}  [options.patch]         The patch option.
+   * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   setData(data, options={}) {
@@ -111,8 +113,8 @@ export default class Collection {
   /**
    * Retrieves the list of permissions for this collection.
    *
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
   getPermissions(options={}) {
@@ -127,11 +129,11 @@ export default class Collection {
   /**
    * Replaces all existing collection permissions with the ones provided.
    *
-   * @param  {Object}   permissions     The permissions object.
-   * @param  {Object}   options         The options object
-   * @param  {Object}   options.headers The headers object option.
-   * @param  {Boolean}  options.safe    The safe option.
-   * @param  {Number}   options.last_modified The last_modified option.
+   * @param  {Object}   permissions             The permissions object.
+   * @param  {Object}   [options={}]            The options object
+   * @param  {Object}   [options.headers]       The headers object option.
+   * @param  {Boolean}  [options.safe]          The safe option.
+   * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options={}) {
@@ -148,10 +150,10 @@ export default class Collection {
   /**
    * Creates a record in current collection.
    *
-   * @param  {Object} record          The record to create.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @param  {Boolean}  options.safe  The safe option.
+   * @param  {Object}  record            The record to create.
+   * @param  {Object}  [options={}]      The options object.
+   * @param  {Object}  [options.headers] The headers object option.
+   * @param  {Boolean} [options.safe]    The safe option.
    * @return {Promise<Object, Error>}
    */
   createRecord(record, options={}) {
@@ -165,11 +167,11 @@ export default class Collection {
   /**
    * Updates a record in current collection.
    *
-   * @param  {Object}  record                The record to update.
-   * @param  {Object}  options               The options object.
-   * @param  {Object}  options.headers       The headers object option.
-   * @param  {Boolean} options.safe          The safe option.
-   * @param  {Number}  options.last_modified The last_modified option.
+   * @param  {Object}  record                  The record to update.
+   * @param  {Object}  [options={}]            The options object.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   updateRecord(record, options={}) {
@@ -189,11 +191,11 @@ export default class Collection {
   /**
    * Deletes a record from the current collection.
    *
-   * @param  {Object|String} record          The record to delete.
-   * @param  {Object}        options         The options object.
-   * @param  {Object}        options.headers The headers object option.
-   * @param  {Boolean}       options.safe    The safe option.
-   * @param  {Number}        options.last_modified The last_modified option.
+   * @param  {Object|String} record                  The record to delete.
+   * @param  {Object}        [options={}]            The options object.
+   * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Boolean}       [options.safe]          The safe option.
+   * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   deleteRecord(record, options={}) {
@@ -211,9 +213,9 @@ export default class Collection {
   /**
    * Retrieves a record from the current collection.
    *
-   * @param  {String} id              The record id to retrieve.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
+   * @param  {String} id                The record id to retrieve.
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
   getRecord(id, options={}) {
@@ -246,14 +248,13 @@ export default class Collection {
    * Paginating is done by passing a `limit` option, then calling the `next()`
    * method from the resolved result object to fetch the next page, if any.
    *
-   * @param  {Object}   options         The options object.
-   * @param  {Object}   options.headers The headers object option.
-   * @param  {Object}   options.filters The filters object.
-   * @param  {String}   options.sort    The sort field.
-   * @param  {String}   options.limit   The limit field.
-   * @param  {String}   options.pages   The number of result pages to aggregate.
-   * @param  {Number}   options.since   Only retrieve records modified since the
-   * provided timestamp.
+   * @param  {Object}   [options={}]                    The options object.
+   * @param  {Object}   [options.headers]               The headers object option.
+   * @param  {Object}   [options.filters=[]]            The filters object.
+   * @param  {String}   [options.sort="-last_modified"] The sort field.
+   * @param  {String}   [options.limit=null]            The limit field.
+   * @param  {String}   [options.pages=1]               The number of result pages to aggregate.
+   * @param  {Number}   [options.since=null]            Only retrieve records modified since the provided timestamp.
    * @return {Promise<Object, Error>}
    */
   listRecords(options={}) {
@@ -323,11 +324,11 @@ export default class Collection {
   /**
    * Performs batch operations at the current collection level.
    *
-   * @param  {Function} fn                 The batch operation function.
-   * @param  {Object}   options            The options object.
-   * @param  {Object}   options.headers    The headers object option.
-   * @param  {Boolean}  options.safe       The safe option.
-   * @param  {Boolean}  options.aggregate  Produces a grouped result object.
+   * @param  {Function} fn                   The batch operation function.
+   * @param  {Object}   [options={}]         The options object.
+   * @param  {Object}   [options.headers]    The headers object option.
+   * @param  {Boolean}  [options.safe]       The safe option.
+   * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
   batch(fn, options={}) {
