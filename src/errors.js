@@ -14,7 +14,7 @@ export default {
   112: "Content-Length header was not provided",
   113: "Request body too large",
   114: "Resource was modified meanwhile",
-  115: "Method not allowed on this end point",
+  115: "Method not allowed on this end point (hint: server may be readonly)",
   116: "Requested version not available on this server",
   117: "Client has sent too many requests",
   121: "Resource access is forbidden for this user",
