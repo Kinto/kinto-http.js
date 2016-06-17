@@ -12,10 +12,11 @@ export default class Bucket {
   /**
    * Constructor.
    *
-   * @param  {KintoClient} client          The client instance.
-   * @param  {String}      name            The bucket name.
-   * @param  {Object}      options.headers The headers object option.
-   * @param  {Boolean}     options.safe    The safe option.
+   * @param  {KintoClient} client            The client instance.
+   * @param  {String}      name              The bucket name.
+   * @param  {Object}      [options={}]      The headers object option.
+   * @param  {Object}      [options.headers] The headers object option.
+   * @param  {Boolean}     [options.safe]    The safe option.
    */
   constructor(client, name, options={}) {
     /**
@@ -43,8 +44,8 @@ export default class Bucket {
    * Merges passed request options with default bucket ones, if any.
    *
    * @private
-   * @param  {Object} options The options to merge.
-   * @return {Object}         The merged options.
+   * @param  {Object} [options={}] The options to merge.
+   * @return {Object}              The merged options.
    */
   _bucketOptions(options={}) {
     const headers = {
@@ -63,10 +64,10 @@ export default class Bucket {
   /**
    * Selects a collection.
    *
-   * @param  {String} name            The collection name.
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
-   * @param  {Boolean}  options.safe  The safe option.
+   * @param  {String}  name              The collection name.
+   * @param  {Object}  [options={}]      The options object.
+   * @param  {Object}  [options.headers] The headers object option.
+   * @param  {Boolean} [options.safe]    The safe option.
    * @return {Collection}
    */
   collection(name, options={}) {
@@ -77,8 +78,8 @@ export default class Bucket {
   /**
    * Retrieves bucket data.
    *
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
   getData(options={}) {
@@ -91,11 +92,12 @@ export default class Bucket {
 
   /**
    * Set bucket data.
-   * @param  {Object}   data            The bucket data object.
-   * @param  {Object}   options         The options object.
-   * @param  {Object}   options.headers The headers object option.
-   * @param  {Boolean}  options.safe    The safe option.
-   * @param  {Boolean}  options.patch   The patch option.
+   * @param  {Object}  data                    The bucket data object.
+   * @param  {Object}  [options={}]            The options object.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Boolean} [options.patch]         The patch option.
+   * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   setData(data, options={}) {
@@ -122,8 +124,8 @@ export default class Bucket {
   /**
    * Retrieves the list of collections in the current bucket.
    *
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Array<Object>, Error>}
    */
   listCollections(options={}) {
@@ -136,12 +138,12 @@ export default class Bucket {
   /**
    * Creates a new collection in current bucket.
    *
-   * @param  {String|undefined}  id        The collection id.
-   * @param  {Object}  options             The options object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {Object}  options.headers     The headers object option.
-   * @param  {Object}  options.permissions The permissions object.
-   * @param  {Object}  options.data        The data object.
+   * @param  {String|undefined}  id          The collection id.
+   * @param  {Object}  [options={}]          The options object.
+   * @param  {Boolean} [options.safe]        The safe option.
+   * @param  {Object}  [options.headers]     The headers object option.
+   * @param  {Object}  [options.permissions] The permissions object.
+   * @param  {Object}  [options.data]        The data object.
    * @return {Promise<Object, Error>}
    */
   createCollection(id, options={}) {
@@ -156,10 +158,11 @@ export default class Bucket {
   /**
    * Deletes a collection from the current bucket.
    *
-   * @param  {Object|String} collection  The collection to delete.
-   * @param  {Object}    options         The options object.
-   * @param  {Object}    options.headers The headers object option.
-   * @param  {Boolean}   options.safe    The safe option.
+   * @param  {Object|String} collection              The collection to delete.
+   * @param  {Object}        [options={}]            The options object.
+   * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Boolean}       [options.safe]          The safe option.
+   * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   deleteCollection(collection, options={}) {
@@ -177,8 +180,8 @@ export default class Bucket {
   /**
    * Retrieves the list of groups in the current bucket.
    *
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Array<Object>, Error>}
    */
   listGroups(options={}) {
@@ -191,8 +194,9 @@ export default class Bucket {
   /**
    * Creates a new group in current bucket.
    *
-   * @param  {String}  id                  The group id.
-   * @param  {Object}  options             The options object.
+   * @param  {String} id                The group id.
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
   getGroup(id, options={}) {
@@ -205,13 +209,13 @@ export default class Bucket {
   /**
    * Creates a new group in current bucket.
    *
-   * @param  {String|undefined}  id        The group id.
-   * @param  {Array<String>}     members   The list of principals.
-   * @param  {Object}  options             The options object.
-   * @param  {Object}  options.data        The data object.
-   * @param  {Object}  options.permissions The permissions object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {Object}  options.headers     The headers object option.
+   * @param  {String|undefined}  id                    The group id.
+   * @param  {Array<String>}     [members=[]]          The list of principals.
+   * @param  {Object}            [options={}]          The options object.
+   * @param  {Object}            [options.data]        The data object.
+   * @param  {Object}            [options.permissions] The permissions object.
+   * @param  {Boolean}           [options.safe]        The safe option.
+   * @param  {Object}            [options.headers]     The headers object option.
    * @return {Promise<Object, Error>}
    */
   createGroup(id, members=[], options={}) {
@@ -230,12 +234,13 @@ export default class Bucket {
   /**
    * Updates an existing group in current bucket.
    *
-   * @param  {Object}  group               The group object.
-   * @param  {Object}  options             The options object.
-   * @param  {Object}  options.data        The data object.
-   * @param  {Object}  options.permissions The permissions object.
-   * @param  {Boolean} options.safe        The safe option.
-   * @param  {Object}  options.headers     The headers object option.
+   * @param  {Object}  group                   The group object.
+   * @param  {Object}  [options={}]            The options object.
+   * @param  {Object}  [options.data]          The data object.
+   * @param  {Object}  [options.permissions]   The permissions object.
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   updateGroup(group, options={}) {
@@ -259,10 +264,11 @@ export default class Bucket {
   /**
    * Deletes a group from the current bucket.
    *
-   * @param  {Object|String} group       The group to delete.
-   * @param  {Object}    options         The options object.
-   * @param  {Object}    options.headers The headers object option.
-   * @param  {Boolean}   options.safe    The safe option.
+   * @param  {Object|String} group                   The group to delete.
+   * @param  {Object}        [options={}]            The options object.
+   * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Boolean}       [options.safe]          The safe option.
+   * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   deleteGroup(group, options={}) {
@@ -277,8 +283,8 @@ export default class Bucket {
   /**
    * Retrieves the list of permissions for this bucket.
    *
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
   getPermissions(options={}) {
@@ -290,14 +296,13 @@ export default class Bucket {
   }
 
   /**
-   * Recplaces all existing bucket permissions with the ones provided.
+   * Replaces all existing bucket permissions with the ones provided.
    *
-   * @param  {Object}  permissions           The permissions object.
-   * @param  {Object}  options               The options object
-   * @param  {Object}  options               The options object.
-   * @param  {Boolean} options.safe          The safe option.
-   * @param  {Object}  options.headers       The headers object option.
-   * @param  {Object}  options.last_modified The last_modified option.
+   * @param  {Object}  permissions             The permissions object.
+   * @param  {Object}  [options={}]            The options object
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   setPermissions(permissions, options={}) {
@@ -315,11 +320,11 @@ export default class Bucket {
   /**
    * Performs batch operations at the current bucket level.
    *
-   * @param  {Function} fn                 The batch operation function.
-   * @param  {Object}   options            The options object.
-   * @param  {Object}   options.headers    The headers object option.
-   * @param  {Boolean}  options.safe       The safe option.
-   * @param  {Boolean}  options.aggregate  Produces a grouped result object.
+   * @param  {Function} fn                   The batch operation function.
+   * @param  {Object}   [options={}]         The options object.
+   * @param  {Object}   [options.headers]    The headers object option.
+   * @param  {Boolean}  [options.safe]       The safe option.
+   * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
   batch(fn, options={}) {

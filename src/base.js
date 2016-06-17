@@ -29,19 +29,14 @@ export default class KintoClientBase {
   /**
    * Constructor.
    *
-   * @param  {String} remote  The remote URL.
-   * @param  {Object}  options The options object.
-   * @param  {Boolean} options.safe        Adds concurrency headers to every
-   * requests (default: `true`).
-   * @param  {EventEmitter} options.events The events handler. If none provided
-   * an `EventEmitter` instance will be created.
-   * @param  {Object}  options.headers     The key-value headers to pass to each
-   * request (default: `{}`).
-   * @param  {String}  options.bucket      The default bucket to use (default:
-   * `"default"`)
-   * @param  {String}  options.requestMode The HTTP request mode (from ES6 fetch
-   * spec).
-   * @param  {Number}  options.timeout     The requests timeout in ms (default: `5000`).
+   * @param  {String}       remote  The remote URL.
+   * @param  {Object}       [options={}]                  The options object.
+   * @param  {Boolean}      [options.safe=true]           Adds concurrency headers to every requests.
+   * @param  {EventEmitter} [options.events=EventEmitter] The events handler instance.
+   * @param  {Object}       [options.headers={}]          The key-value headers to pass to each request.
+   * @param  {String}       [options.bucket="default"]    The default bucket to use.
+   * @param  {String}       [options.requestMode="cors"]  The HTTP request mode (from ES6 fetch spec).
+   * @param  {Number}       [options.timeout=5000]        The requests timeout in ms.
    */
   constructor(remote, options={}) {
     if (typeof(remote) !== "string" || !remote.length) {
@@ -161,11 +156,11 @@ export default class KintoClientBase {
   /**
    * Retrieve a bucket object to perform operations on it.
    *
-   * @param  {String}  name    The bucket name.
-   * @param  {Object}  options The request options.
-   * @param  {Boolean} safe    The resulting safe option.
-   * @param  {String}  bucket  The resulting bucket name option.
-   * @param  {Object}  headers The extended headers object option.
+   * @param  {String}  name              The bucket name.
+   * @param  {Object}  [options={}]      The request options.
+   * @param  {Boolean} [options.safe]    The resulting safe option.
+   * @param  {String}  [options.bucket]  The resulting bucket name option.
+   * @param  {Object}  [options.headers] The extended headers object option.
    * @return {Bucket}
    */
   bucket(name, options={}) {
@@ -180,11 +175,11 @@ export default class KintoClientBase {
    * Note: Headers won't be overriden but merged with instance default ones.
    *
    * @private
-   * @param    {Object} options The request options.
+   * @param    {Object}  [options={}]      The request options.
+   * @property {Boolean} [options.safe]    The resulting safe option.
+   * @property {String}  [options.bucket]  The resulting bucket name option.
+   * @property {Object}  [options.headers] The extended headers object option.
    * @return   {Object}
-   * @property {Boolean} safe    The resulting safe option.
-   * @property {String}  bucket  The resulting bucket name option.
-   * @property {Object}  headers The extended headers object option.
    */
   _getRequestOptions(options={}) {
     return {
@@ -203,8 +198,7 @@ export default class KintoClientBase {
    * Retrieves server information and persist them locally. This operation is
    * usually performed a single time during the instance lifecycle.
    *
-   * @param  {Object}  options The request options.
-   *
+   * @param  {Object}  [options={}] The request options.
    * @return {Promise<Object, Error>}
    */
   fetchServerInfo(options={}) {
@@ -223,6 +217,7 @@ export default class KintoClientBase {
   /**
    * Retrieves Kinto server settings.
    *
+   * @param  {Object}  [options={}] The request options.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
@@ -233,6 +228,7 @@ export default class KintoClientBase {
   /**
    * Retrieve server capabilities information.
    *
+   * @param  {Object}  [options={}] The request options.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
@@ -243,6 +239,7 @@ export default class KintoClientBase {
   /**
    * Retrieve authenticated user information.
    *
+   * @param  {Object}  [options={}] The request options.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
@@ -253,6 +250,7 @@ export default class KintoClientBase {
   /**
    * Retrieve authenticated user information.
    *
+   * @param  {Object}  [options={}] The request options.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
@@ -266,8 +264,8 @@ export default class KintoClientBase {
    * Process batch requests, chunking them according to the batch_max_requests
    * server setting when needed.
    *
-   * @param  {Array}  requests The list of batch subrequests to perform.
-   * @param  {Object} options  The options object.
+   * @param  {Array}  requests     The list of batch subrequests to perform.
+   * @param  {Object} [options={}] The options object.
    * @return {Promise<Object, Error>}
    */
   _batchRequests(requests, options={}) {
@@ -302,13 +300,12 @@ export default class KintoClientBase {
    * Note: Reserved for internal use only.
    *
    * @ignore
-   * @param  {Function} fn      The function to use for describing batch ops.
-   * @param  {Object}   options The options object.
-   * @param  {Boolean}  options.safe      The safe option.
-   * @param  {String}   options.bucket    The bucket name option.
-   * @param  {Object}   options.headers   The headers object option.
-   * @param  {Boolean}  options.aggregate Produces an aggregated result object
-   * (default: `false`).
+   * @param  {Function} fn                        The function to use for describing batch ops.
+   * @param  {Object}   [options={}]              The options object.
+   * @param  {Boolean}  [options.safe]            The safe option.
+   * @param  {String}   [options.bucket]          The bucket name option.
+   * @param  {Object}   [options.headers]         The headers object option.
+   * @param  {Boolean}  [options.aggregate=false] Produces an aggregated result object.
    * @return {Promise<Object, Error>}
    */
   @nobatch("Can't use batch within a batch!")
@@ -344,11 +341,9 @@ export default class KintoClientBase {
    * Executes an atomic HTTP request.
    *
    * @private
-   * @param  {Object}  request     The request object.
-   * @param  {Object}  options     The options object.
-   * @param  {Boolean} options.raw Resolve with full response object, including
-   * json body and headers (Default: `false`, so only the json body is
-   * retrieved).
+   * @param  {Object}  request             The request object.
+   * @param  {Object}  [options={}]        The options object.
+   * @param  {Boolean} [options.raw=false] If true, resolve with full response object, including json body and headers instead of just json.
    * @return {Promise<Object, Error>}
    */
   execute(request, options={raw: false}) {
@@ -374,8 +369,8 @@ export default class KintoClientBase {
   /**
    * Retrieves the list of buckets.
    *
-   * @param  {Object} options         The options object.
-   * @param  {Object} options.headers The headers object option.
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object[], Error>}
    */
   listBuckets(options={}) {
@@ -388,11 +383,11 @@ export default class KintoClientBase {
   /**
    * Creates a new bucket on the server.
    *
-   * @param  {String}   id              The bucket name.
-   * @param  {Object}   options         The options object.
-   * @param  {Boolean}  options.data    The bucket data option.
-   * @param  {Boolean}  options.safe    The safe option.
-   * @param  {Object}   options.headers The headers object option.
+   * @param  {String}   id                The bucket name.
+   * @param  {Object}   [options={}]      The options object.
+   * @param  {Boolean}  [options.data]    The bucket data option.
+   * @param  {Boolean}  [options.safe]    The safe option.
+   * @param  {Object}   [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
   createBucket(id, options={}) {
@@ -412,10 +407,11 @@ export default class KintoClientBase {
    * Deletes a bucket from the server.
    *
    * @ignore
-   * @param  {Object|String} bucket          The bucket to delete.
-   * @param  {Object}        options         The options object.
-   * @param  {Boolean}       options.safe    The safe option.
-   * @param  {Object}        options.headers The headers object option.
+   * @param  {Object|String} bucket                  The bucket to delete.
+   * @param  {Object}        [options={}]            The options object.
+   * @param  {Boolean}       [options.safe]          The safe option.
+   * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   deleteBucket(bucket, options={}) {
@@ -433,9 +429,10 @@ export default class KintoClientBase {
    * Deletes all buckets on the server.
    *
    * @ignore
-   * @param  {Object}  options         The options object.
-   * @param  {Boolean} options.safe    The safe option.
-   * @param  {Object}  options.headers The headers object option.
+   * @param  {Object}  [options={}]            The options object.
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   @support("1.4", "2.0")
