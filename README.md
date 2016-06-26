@@ -86,7 +86,11 @@ Or (ES5):
 var KintoClient = require("kinto-http").default;
 ```
 
-Note that this HTTP client can be transparently used server side or in a regular browser page.
+Note that this HTTP client can be transparently used server side or in a regular browser page. In the browser, creating an instance is achieved that way:
+
+```js
+const client = new KintoClient.default("http://");
+```
 
 ## Usage
 
