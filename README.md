@@ -60,9 +60,9 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
 
 In the browser, you can load prebuilt scripts hosted on npmcdn:
 
-- [kinto-http.js](https://npmcdn.com/kinto-http.js/dist/kinto-http.js)
-- [kinto-http.min.js](https://npmcdn.com/kinto-http.js/dist/kinto-http.min.js)
-- [kinto-http.noshim.js](https://npmcdn.com/kinto-http.js/dist/kinto-http.noshim.js)
+- [kinto-http.js](https://npmcdn.com/kinto-http/dist/kinto-http.js)
+- [kinto-http.min.js](https://npmcdn.com/kinto-http/dist/kinto-http.min.js)
+- [kinto-http.noshim.js](https://npmcdn.com/kinto-http/dist/kinto-http.noshim.js)
 
 ```html
 <script src="https://npmcdn.com/kinto-http.js/dist/kinto-http.min.js"></script>
