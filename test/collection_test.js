@@ -387,9 +387,9 @@ describe("Collection", () => {
         .to.Throw(Error, /Invalid value for since \(123\), should be ETag value/);
       });
 
-      it("should resolve with the collection last_modified cast as int value", () => {
+      it("should resolve with the collection last_modified without quotes", () => {
         return coll.listRecords()
-          .should.eventually.have.property("last_modified").eql(ETag);
+          .should.eventually.have.property("last_modified").eql("42");
       });
     });
 
