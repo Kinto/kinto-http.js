@@ -999,7 +999,7 @@ Sample result:
 
 ```js
 {
-  last_modified: "\"1456183930780\"",
+  last_modified: "1456183930780",
   next: <Function>,
   data: [
     {
@@ -1036,7 +1036,7 @@ To retrieve the list of records modified since a given timestamp, use the `since
 
 ```js
 client.bucket("blog").collection("posts")
-  .listRecords({since: "\"1456183930780\""})
+  .listRecords({since: "1456183930780"})
   .then(({data, next}) => {
 ```
 

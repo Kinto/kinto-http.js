@@ -290,8 +290,10 @@ export default class Collection {
     };
 
     const pageResults = (results, nextPage, etag) => {
+      // ETag string is supposed to be opaque and stored «as-is».
+      // ETag header values are quoted (because of * and W/"foo").
       return {
-        last_modified: etag,
+        last_modified: etag ? etag.replace(/"/g, "") : etag,
         data: results,
         next: next.bind(null, nextPage)
       };
@@ -299,7 +301,6 @@ export default class Collection {
 
     const handleResponse = ({headers, json}) => {
       const nextPage = headers.get("Next-Page");
-      // ETag are supposed to be opaque and stored «as-is».
       const etag = headers.get("ETag");
       if (!pages) {
         return pageResults(json.data, nextPage, etag);
