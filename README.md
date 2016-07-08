@@ -739,8 +739,7 @@ Sample result:
 ### Selecting a collection
 
 ```js
-client.bucket("blog").collection("posts")
-  .then(result => ...);
+const posts = client.bucket("blog").collection("posts");
 ```
 
 ### Getting collection data
