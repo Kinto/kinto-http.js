@@ -62,6 +62,7 @@
     "esdoc-es7-plugin": "0.0.3",
     "esdoc-importpath-plugin": "0.0.1",
     "eslint": "2.2.0",
+    "form-data": "^1.0.0-rc4",
     "jsdom": "^9.4.1",
     "kinto-node-test-server": "0.0.1",
     "mocha": "^2.3.4",

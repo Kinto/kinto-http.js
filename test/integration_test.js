@@ -982,7 +982,8 @@ describe("Integration tests", function() {
           });
 
           describe.only(".addAttachment()", () => {
-            const dataURL = "data:text/plain;name=test.txt;base64," + btoa("test");
+            const input = "test";
+            const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
 
             it("should create a record with an attachment", () => {
               return coll
@@ -991,9 +992,7 @@ describe("Integration tests", function() {
                   console.log(server.logs.toString());
                   throw err;
                 })
-                .should.eventually.have.property("data")
-                               .to.have.property("attachment")
-                                  .to.not.be.null;
+                .should.eventually.have.property("size").eql(input.length);
             });
           });
 

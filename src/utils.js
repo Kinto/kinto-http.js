@@ -1,5 +1,5 @@
 import atob from "atob";
-
+import FormData from "form-data";
 
 /**
  * Chunks an array into n pieces.
@@ -266,8 +266,8 @@ export function extractFileInfo(dataURL) {
   for(let i = 0; i < binary.length; i++) {
     array.push(binary.charCodeAt(i));
   }
-  const blob = new Blob([new Uint8Array(array)], {type});
-  return {name, blob};
+  // const blob = new Blob([new Uint8Array(array)], {type});
+  return {name, type, blob: Buffer.from(new Uint8Array(array))};
 }
 
 /**
@@ -278,11 +278,11 @@ export function extractFileInfo(dataURL) {
  * @return {FormData}
  */
 export function createFormData(dataURL, body) {
-  const {blob, name} = extractFileInfo(dataURL);
+  const {blob, type, name} = extractFileInfo(dataURL);
   const formData = new FormData();
   formData.append("attachment", blob, name);
-  for (const property in body) {
-    formData.append(property, JSON.stringify(body[property]));
-  }
+  // for (const property in body) {
+  //   formData.append(property, JSON.stringify(body[property]));
+  // }
   return formData;
 }
