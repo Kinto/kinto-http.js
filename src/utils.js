@@ -1,3 +1,6 @@
+import atob from "atob";
+
+
 /**
  * Chunks an array into n pieces.
  *
@@ -228,4 +231,58 @@ export function nobatch(message) {
  */
 export function isObject(thing) {
   return typeof thing === "object" && thing !== null && !Array.isArray(thing);
+}
+
+/**
+ * Parses a data url.
+ * @param  {String} dataURL The data url.
+ * @return {Object}
+ */
+export function parseDataURL(dataURL) {
+  const regex = /^data:(.*);base64,(.*)/;
+  const match = dataURL.match(regex);
+  if (!match) {
+    throw new Error(`Invalid data-url: ${String(dataURL).substr(0, 32)}...`);
+  }
+  const props = match[1];
+  const base64 = match[2];
+  const [type, ...rawParams] = props.split(";");
+  const params = rawParams.reduce((acc, param) => {
+    const [key, value] = param.split("=");
+    return {...acc, [key]: value};
+  }, {});
+  return {...params, type, base64};
+}
+
+/**
+ * Extracts file information from a data url.
+ * @param  {String} dataURL The data url.
+ * @return {Object}
+ */
+export function extractFileInfo(dataURL) {
+  const {name, type, base64} = parseDataURL(dataURL);
+  const binary = atob(base64);
+  const array = [];
+  for(let i = 0; i < binary.length; i++) {
+    array.push(binary.charCodeAt(i));
+  }
+  const blob = new Blob([new Uint8Array(array)], {type});
+  return {name, blob};
+}
+
+/**
+ * Creates a FormData instance from a data url and an existing JSON response
+ * body.
+ * @param  {String} dataURL The data url.
+ * @param  {Object} body    The response body.
+ * @return {FormData}
+ */
+export function createFormData(dataURL, body) {
+  const {blob, name} = extractFileInfo(dataURL);
+  const formData = new FormData();
+  formData.append("attachment", blob, name);
+  for (const property in body) {
+    formData.append(property, JSON.stringify(body[property]));
+  }
+  return formData;
 }

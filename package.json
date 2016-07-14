@@ -13,11 +13,11 @@
     "prepublish": "node_modules/.bin/toctoc -w -d 2 README.md",
     "publish-to-npm": "npm run build && npm run dist && npm publish",
     "report-coverage": "npm run test-cover && ./node_modules/coveralls/bin/coveralls.js < ./coverage/lcov.info",
-    "tdd": "babel-node node_modules/.bin/_mocha --watch 'test/**/*_test.js'",
+    "tdd": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js --watch 'test/**/*_test.js'",
     "test": "npm run test-nocover",
     "test-cover": "babel-node node_modules/.bin/babel-istanbul cover --report text $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- 'test/**/*_test.js'",
     "test-cover-html": "babel-node node_modules/.bin/babel-istanbul cover --report html $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- 'test/**/*_test.js' && open coverage/index.html",
-    "test-nocover": "babel-node node_modules/.bin/_mocha 'test/**/*_test.js'",
+    "test-nocover": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js 'test/**/*_test.js'",
     "lint": "eslint src test"
   },
   "repository": {
@@ -37,9 +37,11 @@
   },
   "homepage": "https://github.com/Kinto/kinto-http.js#readme",
   "dependencies": {
-    "isomorphic-fetch": "^2.2.1"
+    "isomorphic-fetch": "^2.2.1",
+    "uuid": "^2.0.1"
   },
   "devDependencies": {
+    "atob": "^2.0.3",
     "babel-cli": "^6.6.5",
     "babel-core": "^6.6.5",
     "babel-eslint": "^5.0.0-beta6",
@@ -60,12 +62,12 @@
     "esdoc-es7-plugin": "0.0.3",
     "esdoc-importpath-plugin": "0.0.1",
     "eslint": "2.2.0",
+    "jsdom": "^9.4.1",
     "kinto-node-test-server": "0.0.1",
     "mocha": "^2.3.4",
     "sinon": "^1.17.2",
     "toctoc": "^0.2.2",
-    "uglifyify": "^3.0.1",
-    "uuid": "^2.0.1"
+    "uglifyify": "^3.0.1"
   },
   "engines": {
     "node": ">=6"

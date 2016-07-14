@@ -1,4 +1,6 @@
-import { toDataBody, qsify, isObject } from "./utils";
+import { v4 as uuid } from "uuid";
+
+import { toDataBody, qsify, isObject, createFormData } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -150,10 +152,11 @@ export default class Collection {
   /**
    * Creates a record in current collection.
    *
-   * @param  {Object}  record            The record to create.
-   * @param  {Object}  [options={}]      The options object.
-   * @param  {Object}  [options.headers] The headers object option.
-   * @param  {Boolean} [options.safe]    The safe option.
+   * @param  {Object}  record                The record to create.
+   * @param  {Object}  [options={}]          The options object.
+   * @param  {Object}  [options.headers]     The headers object option.
+   * @param  {Boolean} [options.safe]        The safe option.
+   * @param  {Object}  [options.permissions] The permissions option.
    * @return {Promise<Object, Error>}
    */
   createRecord(record, options={}) {
@@ -165,6 +168,42 @@ export default class Collection {
   }
 
   /**
+   * XXX to document;
+   * - n'accepter que les data uri car elles contiennent filename
+   * - conseiller d'utiliser new File() et la méthode getAsDataURL pour retrouver
+   * une data uri
+   *
+   * @param  {String}  dataURL                 The data url.
+   * @param  {Object}  [record={}]             The record data.
+   * @param  {Object}  [options={}]            The options object.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Number}  [options.last_modified] The last_modified option.
+   * @param  {Object}  [options.permissions]   The permissions option.
+   * @return {Promise<Object, Error>}
+   */
+  addAttachment(dataURI, record={}, options={}) {
+    const reqOptions = this._collOptions(options);
+    const {permissions} = reqOptions;
+    const id = record.id || uuid.v4();
+    const path = endpoint("attachment", this.bucket.name, this.name, id);
+    const body = {data: record, permissions};
+    const updateRequest = requests.updateRequest(path, body, reqOptions);
+    const formData = createFormData(dataURI, body);
+    const addAttachmentRequest = {
+      ...updateRequest,
+      method: "POST",
+      body: formData
+    };
+    return this.client.execute(addAttachmentRequest, {stringify: false});
+  }
+
+  // TODO
+  removeAttachment(recordId, options={}) {
+
+  }
+
+  /**
    * Updates a record in current collection.
    *
    * @param  {Object}  record                  The record to update.
@@ -172,6 +211,7 @@ export default class Collection {
    * @param  {Object}  [options.headers]       The headers object option.
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Number}  [options.last_modified] The last_modified option.
+   * @param  {Object}  [options.permissions]   The permissions option.
    * @return {Promise<Object, Error>}
    */
   updateRecord(record, options={}) {

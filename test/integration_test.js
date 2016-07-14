@@ -1,6 +1,5 @@
 "use strict";
 
-import btoa from "btoa";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
@@ -24,7 +23,10 @@ describe("Integration tests", function() {
   this.timeout(0);
 
   before(() => {
-    server = new KintoServer(TEST_KINTO_SERVER, {maxAttempts: 200});
+    server = new KintoServer(TEST_KINTO_SERVER, {
+      maxAttempts: 200,
+      kintoConfigPath: __dirname + "/kinto.ini",
+    });
   });
 
   after(() => server.killAll());
@@ -976,6 +978,22 @@ describe("Integration tests", function() {
                   }))
                   .should.be.rejectedWith(Error, /412 Precondition Failed/);
               });
+            });
+          });
+
+          describe.only(".addAttachment()", () => {
+            const dataURL = "data:text/plain;name=test.txt;base64," + btoa("test");
+
+            it("should create a record with an attachment", () => {
+              return coll
+                .addAttachment(dataURL, {foo: "bar"})
+                .catch(err => {
+                  console.log(server.logs.toString());
+                  throw err;
+                })
+                .should.eventually.have.property("data")
+                               .to.have.property("attachment")
+                                  .to.not.be.null;
             });
           });
 
