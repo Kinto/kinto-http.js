@@ -1,6 +1,6 @@
 "use strict";
 
-import { partition, pMap, omit, support, nobatch, toDataBody } from "./utils";
+import { partition, pMap, omit, qsify, support, nobatch, toDataBody } from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
@@ -367,6 +367,70 @@ export default class KintoClientBase {
         });
       });
     return raw ? promise : promise.then(({json}) => json);
+  }
+
+  paginatedList(path, listOptions, httpOptions) {
+    const { sort, filters, limit, pages, since } = {
+      sort: "-last_modified",
+      ...listOptions
+    };
+    // Safety/Consistency check on ETag value.
+    if (since && typeof(since) !== "string") {
+      throw new Error(`Invalid value for since (${since}), should be ETag value.`);
+    }
+
+    const querystring = qsify({
+      ...filters,
+      _sort: sort,
+      _limit: limit,
+      _since: since,
+    });
+    let results = [], current = 0;
+
+    const next = function(nextPage) {
+      if (!nextPage) {
+        throw new Error("Pagination exhausted.");
+      }
+      return processNextPage(nextPage);
+    };
+
+    const processNextPage = (nextPage) => {
+      const {headers} = httpOptions;
+      return this.http.request(nextPage, {headers})
+        .then(handleResponse);
+    };
+
+    const pageResults = (results, nextPage, etag) => {
+      // ETag string is supposed to be opaque and stored «as-is».
+      // ETag header values are quoted (because of * and W/"foo").
+      return {
+        last_modified: etag ? etag.replace(/"/g, "") : etag,
+        data: results,
+        next: next.bind(null, nextPage)
+      };
+    };
+
+    const handleResponse = ({headers, json}) => {
+      const nextPage = headers.get("Next-Page");
+      const etag = headers.get("ETag");
+      if (!pages) {
+        return pageResults(json.data, nextPage, etag);
+      }
+      // Aggregate new results with previous ones
+      results = results.concat(json.data);
+      current += 1;
+      if (current >= pages || !nextPage) {
+        // Pagination exhausted
+        return pageResults(results, nextPage, etag);
+      }
+      // Follow next page
+      return processNextPage(nextPage);
+    };
+
+    return this.execute({
+      path: path + "?" + querystring,
+      ...httpOptions,
+    }, {raw: true}).then(handleResponse);
   }
 
   /**

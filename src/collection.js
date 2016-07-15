@@ -306,68 +306,9 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   listRecords(options={}) {
-    const { http } = this.client;
-    const { sort, filters, limit, pages, since } = {
-      sort: "-last_modified",
-      ...options
-    };
-    // Safety/Consistency check on ETag value.
-    if (since && typeof(since) !== "string") {
-      throw new Error(`Invalid value for since (${since}), should be ETag value.`);
-    }
-    const collHeaders = this.options.headers;
     const path = endpoint("record", this.bucket.name, this.name);
-    const querystring = qsify({
-      ...filters,
-      _sort: sort,
-      _limit: limit,
-      _since: since,
-    });
-    let results = [], current = 0;
-
-    const next = function(nextPage) {
-      if (!nextPage) {
-        throw new Error("Pagination exhausted.");
-      }
-      return processNextPage(nextPage);
-    };
-
-    const processNextPage = (nextPage) => {
-      return http.request(nextPage, {headers: collHeaders})
-        .then(handleResponse);
-    };
-
-    const pageResults = (results, nextPage, etag) => {
-      // ETag string is supposed to be opaque and stored «as-is».
-      // ETag header values are quoted (because of * and W/"foo").
-      return {
-        last_modified: etag ? etag.replace(/"/g, "") : etag,
-        data: results,
-        next: next.bind(null, nextPage)
-      };
-    };
-
-    const handleResponse = ({headers, json}) => {
-      const nextPage = headers.get("Next-Page");
-      const etag = headers.get("ETag");
-      if (!pages) {
-        return pageResults(json.data, nextPage, etag);
-      }
-      // Aggregate new results with previous ones
-      results = results.concat(json.data);
-      current += 1;
-      if (current >= pages || !nextPage) {
-        // Pagination exhausted
-        return pageResults(results, nextPage, etag);
-      }
-      // Follow next page
-      return processNextPage(nextPage);
-    };
-
-    return this.client.execute({
-      path: path + "?" + querystring,
-      ...this._collOptions(options),
-    }, {raw: true}).then(handleResponse);
+    const reqOptions = this._collOptions(options);
+    return this.client.paginatedList(path, options, reqOptions);
   }
 
   /**
