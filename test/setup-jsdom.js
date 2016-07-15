@@ -11,3 +11,7 @@ global.FormData = global.window.FormData;
 // btoa polyfill for tests
 global.btoa = require("btoa");
 global.atob = require("atob");
+
+
+global.FormData = require("form-data");
+global.Blob = function(sequences) { return Buffer.from(sequences[0]); };
