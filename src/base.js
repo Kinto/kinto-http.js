@@ -441,10 +441,9 @@ export default class KintoClientBase {
    * @return {Promise<Object[], Error>}
    */
   listBuckets(options={}) {
-    return this.execute({
-      path: endpoint("bucket"),
-      headers: {...this.defaultReqOptions.headers, ...options.headers}
-    });
+    const path = endpoint("bucket");
+    const reqOptions = this._getRequestOptions(options);
+    return this.paginatedList(path, options, reqOptions);
   }
 
   /**

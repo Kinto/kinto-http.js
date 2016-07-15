@@ -222,18 +222,72 @@ describe("Integration tests", function() {
       });
     });
 
-    describe("#listBuckets", () => {
+    describe.only("#listBuckets", () => {
       beforeEach(() => {
         return api.batch(batch => {
-          batch.createBucket("b1");
-          batch.createBucket("b2");
+          batch.createBucket("b1", {data: {size: 24}});
+          batch.createBucket("b2", {data: {size: 13}});
+          batch.createBucket("b3", {data: {size: 38}});
+          batch.createBucket("b4", {data: {size: -4}});
         });
       });
 
       it("should retrieve the list of buckets", () => {
         return api.listBuckets()
           .then(({data}) => data.map(bucket => bucket.id).sort())
-          .should.become(["b1", "b2"]);
+          .should.become(["b1", "b2", "b3", "b4"]);
+      });
+
+      it("should order buckets by field", () => {
+        return api.listBuckets({sort: "-size"})
+          .then(({data}) => data.map(bucket => bucket.id))
+          .should.eventually.become(["b3", "b1", "b2", "b4"]);
+      });
+
+      describe("Filtering", () => {
+        it("should filter buckets", () => {
+          return api.listBuckets({sort: "size", filters: {min_size: 20}})
+            .then(({data}) => data.map(bucket => bucket.id))
+            .should.become(["b1", "b3"]);
+        });
+
+        it("should resolve with buckets last_modified value", () => {
+          return api.listBuckets()
+            .should.eventually.have.property("last_modified")
+                              .to.be.a("string");
+        });
+
+        it("should retrieve only buckets after provided timestamp", () => {
+          let timestamp;
+          return api.listBuckets()
+            .then(({last_modified}) => {
+              timestamp = last_modified;
+              return api.createBucket("b5");
+            })
+            .then(() => api.listBuckets({since: timestamp}))
+            .should.eventually.have.property("data").to.have.length.of(1);
+        });
+      });
+
+      describe("Pagination", () => {
+        it("should not paginate by default", () => {
+          return api.listBuckets()
+            .then(({data}) => data.map(bucket => bucket.id))
+            .should.become(["b4", "b3", "b2", "b1"]);
+        });
+
+        it("should paginate by chunks", () => {
+          return api.listBuckets({limit: 2})
+            .then(({data}) => data.map(bucket => bucket.id))
+            .should.become(["b4", "b3"]);
+        });
+
+        it("should provide a next method to load next page", () => {
+          return api.listBuckets({limit: 2})
+            .then(res => res.next())
+            .then(({data}) => data.map(bucket => bucket.id))
+            .should.become(["b2", "b1"]);
+        });
       });
     });
 
@@ -447,8 +501,15 @@ describe("Integration tests", function() {
         bucket = api.bucket("custom");
         return api.createBucket("custom")
           .then(_ => bucket.batch(batch => {
-            batch.createCollection("b1");
-            batch.createCollection("b2");
+            batch.createCollection("c1", {data: {size: 24}});
+            batch.createCollection("c2", {data: {size: 13}});
+            batch.createCollection("c3", {data: {size: 38}});
+            batch.createCollection("c4", {data: {size: -4}});
+
+            batch.createGroup("g1", [], {data: {size: 24}});
+            batch.createGroup("g2", [], {data: {size: 13}});
+            batch.createGroup("g3", [], {data: {size: 38}});
+            batch.createGroup("g4", [], {data: {size: -4}});
           }));
       });
 
@@ -498,14 +559,6 @@ describe("Integration tests", function() {
         });
       });
 
-      describe(".listCollections()", () => {
-        it("should list existing collections", () => {
-          return bucket.listCollections()
-            .then(({data}) => data.map(coll => coll.id).sort())
-            .should.become(["b1", "b2"]);
-        });
-      });
-
       describe(".permissions", () => {
         describe(".getPermissions()", () => {
           it("should retrieve bucket permissions", () => {
@@ -535,6 +588,66 @@ describe("Integration tests", function() {
               })
                 .should.be.rejectedWith(Error, /412 Precondition Failed/);
             });
+          });
+        });
+      });
+
+      describe(".listCollections()", () => {
+        it("should retrieve the list of collections", () => {
+          return bucket.listCollections()
+            .then(({data}) => data.map(collection => collection.id).sort())
+            .should.become(["c1", "c2", "c3", "c4"]);
+        });
+
+        it("should order collections by field", () => {
+          return bucket.listCollections({sort: "-size"})
+            .then(({data}) => data.map(collection => collection.id))
+            .should.eventually.become(["c3", "c1", "c2", "c4"]);
+        });
+
+        describe("Filtering", () => {
+          it("should filter collections", () => {
+            return bucket.listCollections({sort: "size", filters: {min_size: 20}})
+              .then(({data}) => data.map(collection => collection.id))
+              .should.become(["c1", "c3"]);
+          });
+
+          it("should resolve with collections last_modified value", () => {
+            return bucket.listCollections()
+              .should.eventually.have.property("last_modified")
+                                .to.be.a("string");
+          });
+
+          it("should retrieve only collections after provided timestamp", () => {
+            let timestamp;
+            return bucket.listCollections()
+              .then(({last_modified}) => {
+                timestamp = last_modified;
+                return bucket.createCollection("c5");
+              })
+              .then(() => bucket.listCollections({since: timestamp}))
+              .should.eventually.have.property("data").to.have.length.of(1);
+          });
+        });
+
+        describe("Pagination", () => {
+          it("should not paginate by default", () => {
+            return bucket.listCollections()
+              .then(({data}) => data.map(collection => collection.id))
+              .should.become(["c4", "c3", "c2", "c1"]);
+          });
+
+          it("should paginate by chunks", () => {
+            return bucket.listCollections({limit: 2})
+              .then(({data}) => data.map(collection => collection.id))
+              .should.become(["c4", "c3"]);
+          });
+
+          it("should provide a next method to load next page", () => {
+            return bucket.listCollections({limit: 2})
+              .then(res => res.next())
+              .then(({data}) => data.map(collection => collection.id))
+              .should.become(["c2", "c1"]);
           });
         });
       });
@@ -614,6 +727,66 @@ describe("Integration tests", function() {
                 last_modified: data.last_modified - 1000
               }))
               .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          });
+        });
+      });
+
+      describe(".listGroups()", () => {
+        it("should retrieve the list of groups", () => {
+          return bucket.listGroups()
+            .then(({data}) => data.map(group => group.id).sort())
+            .should.become(["g1", "g2", "g3", "g4"]);
+        });
+
+        it("should order groups by field", () => {
+          return bucket.listGroups({sort: "-size"})
+            .then(({data}) => data.map(group => group.id))
+            .should.eventually.become(["g3", "g1", "g2", "g4"]);
+        });
+
+        describe("Filtering", () => {
+          it("should filter groups", () => {
+            return bucket.listGroups({sort: "size", filters: {min_size: 20}})
+              .then(({data}) => data.map(group => group.id))
+              .should.become(["g1", "g3"]);
+          });
+
+          it("should resolve with groups last_modified value", () => {
+            return bucket.listGroups()
+              .should.eventually.have.property("last_modified")
+                                .to.be.a("string");
+          });
+
+          it("should retrieve only groups after provided timestamp", () => {
+            let timestamp;
+            return bucket.listGroups()
+              .then(({last_modified}) => {
+                timestamp = last_modified;
+                return bucket.createGroup("g5", []);
+              })
+              .then(() => bucket.listGroups({since: timestamp}))
+              .should.eventually.have.property("data").to.have.length.of(1);
+          });
+        });
+
+        describe("Pagination", () => {
+          it("should not paginate by default", () => {
+            return bucket.listGroups()
+              .then(({data}) => data.map(group => group.id))
+              .should.become(["g4", "g3", "g2", "g1"]);
+          });
+
+          it("should paginate by chunks", () => {
+            return bucket.listGroups({limit: 2})
+              .then(({data}) => data.map(group => group.id))
+              .should.become(["g4", "g3"]);
+          });
+
+          it("should provide a next method to load next page", () => {
+            return bucket.listGroups({limit: 2})
+              .then(res => res.next())
+              .then(({data}) => data.map(group => group.id))
+              .should.become(["g2", "g1"]);
           });
         });
       });
