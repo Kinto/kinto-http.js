@@ -278,7 +278,7 @@ export function extractFileInfo(dataURL) {
  * @return {FormData}
  */
 export function createFormData(dataURL, body) {
-  const {blob, type, name} = extractFileInfo(dataURL);
+  const {blob, name} = extractFileInfo(dataURL);
   const formData = new FormData();
   formData.append("attachment", blob, name);
   // for (const property in body) {
