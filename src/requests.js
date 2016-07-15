@@ -1,9 +1,10 @@
 import { omit } from "./utils";
+import HTTP from "./http";
 
 const requestDefaults = {
   safe: false,
   // check if we should set default content type here
-  headers: {},
+  headers: HTTP.DEFAULT_REQUEST_HEADERS,
   permissions: undefined,
   data: undefined,
   patch: false,
