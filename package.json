@@ -16,8 +16,8 @@
     "report-coverage": "npm run test-cover && ./node_modules/coveralls/bin/coveralls.js < ./coverage/lcov.info",
     "tdd": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js --watch 'test/**/*_test.js'",
     "test": "npm run test-nocover",
-    "test-cover": "babel-node node_modules/.bin/babel-istanbul cover --report text $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- 'test/**/*_test.js'",
-    "test-cover-html": "babel-node node_modules/.bin/babel-istanbul cover --report html $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- 'test/**/*_test.js' && open coverage/index.html",
+    "test-cover": "babel-node node_modules/.bin/babel-istanbul cover --report text $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- --require ./test/setup-jsdom.js 'test/**/*_test.js'",
+    "test-cover-html": "babel-node node_modules/.bin/babel-istanbul cover --report html $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- --require ./test/setup-jsdom.js 'test/**/*_test.js' && open coverage/index.html",
     "test-nocover": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js 'test/**/*_test.js'",
     "lint": "eslint src test"
   },
