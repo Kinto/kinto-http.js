@@ -13,7 +13,6 @@ global.fetch = global.window.fetch = require("isomorphic-fetch");
 global.FormData = require("form-data");
 global.Blob = (sequences) => Buffer.from(sequences[0]);
 
-// btoa polyfill for tests
-global.btoa = require("btoa");
+// atob & btoa polyfill for tests
 global.atob = require("atob");
-
+global.btoa = require("btoa");

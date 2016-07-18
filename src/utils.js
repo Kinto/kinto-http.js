@@ -1,5 +1,3 @@
-import atob from "atob";
-
 /**
  * Chunks an array into n pieces.
  *
