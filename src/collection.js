@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 
-import { toDataBody, qsify, isObject, createFormData } from "./utils";
+import { toDataBody, qsify, omit, isObject, createFormData } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -193,9 +193,11 @@ export default class Collection {
     const addAttachmentRequest = {
       ...updateRequest,
       method: "POST",
+      headers: {...updateRequest.headers, "Content-Type": undefined},
       body: formData
     };
-    return this.client.execute(addAttachmentRequest, {stringify: false});
+    return this.client.execute(addAttachmentRequest, {stringify: false})
+      .then(() => this.getRecord(id));
   }
 
   // TODO

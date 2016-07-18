@@ -99,7 +99,7 @@ describe("Integration tests", function() {
             // Kinto protocol 1.4 exposes capability descriptions
             Object.keys(capabilities).forEach(capability => {
               const capabilityObj = capabilities[capability];
-              expect(capabilityObj).to.have.key("url", "description");
+              expect(capabilityObj).to.include.keys("url", "description");
             });
           });
       });
@@ -981,18 +981,37 @@ describe("Integration tests", function() {
             });
           });
 
-          describe.only(".addAttachment()", () => {
+          describe(".addAttachment()", () => {
             const input = "test";
             const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
 
-            it("should create a record with an attachment", () => {
+            let result;
+
+            beforeEach(() => {
               return coll
-                .addAttachment(dataURL, {foo: "bar"})
-                .catch(err => {
-                  console.log(server.logs.toString());
-                  throw err;
+                .addAttachment(dataURL, {foo: "bar"}, {
+                  permissions: {write: ["github:n1k0"]}
                 })
-                .should.eventually.have.property("size").eql(input.length);
+                .then(res => result = res);
+            });
+
+            it("should create a record with an attachment", () => {
+              expect(result)
+                .to.have.property("data")
+                .to.have.property("attachment")
+                .to.have.property("size").eql(input.length);
+            });
+
+            it("should create a record with provided record data", () => {
+              expect(result)
+                .to.have.property("data")
+                .to.have.property("foo").eql("bar");
+            });
+
+            it("should create a record with provided permissions", () => {
+              expect(result)
+                .to.have.property("permissions")
+                .to.have.property("write").contains("github:n1k0");
             });
           });
 

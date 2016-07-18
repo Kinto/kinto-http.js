@@ -48,7 +48,7 @@ describe("HTTP class", () => {
   describe("#request()", () => {
     describe("Request headers", () => {
       beforeEach(() => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {}, {}));
+        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, {}));
       });
 
       it("should set default headers", () => {
@@ -67,7 +67,7 @@ describe("HTTP class", () => {
 
     describe("Request CORS mode", () => {
       beforeEach(() => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {}, {}));
+        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, {}));
       });
 
       it("should use default CORS mode", () => {
@@ -87,7 +87,7 @@ describe("HTTP class", () => {
 
     describe("Succesful request", () => {
       beforeEach(() => {
-        sandbox.stub(root, "fetch").returns(
+        sandbox.stub(global, "fetch").returns(
           fakeServerResponse(200, {a: 1}, {b: 2}));
       });
 
@@ -112,7 +112,7 @@ describe("HTTP class", () => {
 
     describe("Request timeout", () => {
       it("should timeout the request", () => {
-        sandbox.stub(root, "fetch").returns(
+        sandbox.stub(global, "fetch").returns(
           new Promise(resolve => {
             setTimeout(resolve, 20000);
           }));
@@ -123,7 +123,7 @@ describe("HTTP class", () => {
 
     describe("No content response", () => {
       it("should resolve with null JSON if Content-Length header is missing", () => {
-        sandbox.stub(root, "fetch").returns(
+        sandbox.stub(global, "fetch").returns(
           fakeServerResponse(200, null, {}));
 
         return http.request("/")
@@ -134,7 +134,7 @@ describe("HTTP class", () => {
 
     describe("Malformed JSON response", () => {
       it("should reject with an appropriate message", () => {
-        sandbox.stub(root, "fetch").returns(Promise.resolve({
+        sandbox.stub(global, "fetch").returns(Promise.resolve({
           status: 200,
           headers: {
             get(name) {
@@ -155,7 +155,7 @@ describe("HTTP class", () => {
 
     describe("Business error responses", () => {
       it("should reject on status code > 400", () => {
-        sandbox.stub(root, "fetch").returns(
+        sandbox.stub(global, "fetch").returns(
           fakeServerResponse(400, {
             code: 400,
             details: [
@@ -189,7 +189,7 @@ describe("HTTP class", () => {
       });
 
       it("should handle deprecation header", () => {
-        sandbox.stub(root, "fetch").returns(
+        sandbox.stub(global, "fetch").returns(
           fakeServerResponse(200, {}, {Alert: JSON.stringify(eolObject)}));
 
         return http.request("/")
@@ -201,7 +201,7 @@ describe("HTTP class", () => {
       });
 
       it("should handle deprecation header parse error", () => {
-        sandbox.stub(root, "fetch").returns(
+        sandbox.stub(global, "fetch").returns(
           fakeServerResponse(200, {}, {Alert: "dafuq"}));
 
         return http.request("/")
@@ -213,7 +213,7 @@ describe("HTTP class", () => {
       });
 
       it("should emit a deprecated event on Alert header", () => {
-        sandbox.stub(root, "fetch").returns(
+        sandbox.stub(global, "fetch").returns(
           fakeServerResponse(200, {}, {Alert: JSON.stringify(eolObject)}));
 
         return http.request("/").then(_ => {
@@ -231,7 +231,7 @@ describe("HTTP class", () => {
       });
 
       it("should emit a backoff event on set Backoff header", () => {
-        sandbox.stub(root, "fetch").returns(
+        sandbox.stub(global, "fetch").returns(
           fakeServerResponse(200, {}, {Backoff: "1000"}));
 
         return http.request("/").then(_ => {
@@ -241,7 +241,7 @@ describe("HTTP class", () => {
       });
 
       it("should emit a backoff event on missing Backoff header", () => {
-        sandbox.stub(root, "fetch").returns(fakeServerResponse(200, {}, {}));
+        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, {}));
 
         return http.request("/").then(_ => {
           expect(events.emit.firstCall.args[0]).eql("backoff");
@@ -258,7 +258,7 @@ describe("HTTP class", () => {
       });
 
       it("should emit a retry-after event when Retry-After is set", () => {
-        sandbox.stub(root, "fetch").returns(
+        sandbox.stub(global, "fetch").returns(
           fakeServerResponse(200, {}, {"Retry-After": "1000"}));
 
         return http.request("/").then(_ => {

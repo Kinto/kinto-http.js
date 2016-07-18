@@ -280,8 +280,10 @@ export function createFormData(dataURL, body) {
   const {blob, name} = extractFileInfo(dataURL);
   const formData = new FormData();
   formData.append("attachment", blob, name);
-  // for (const property in body) {
-  //   formData.append(property, JSON.stringify(body[property]));
-  // }
+  for (const property in body) {
+    if (typeof body[property] !== "undefined") {
+      formData.append(property, JSON.stringify(body[property]));
+    }
+  }
   return formData;
 }

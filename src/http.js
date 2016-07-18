@@ -77,6 +77,7 @@ export default class HTTP {
   request(url, options={headers:{}}) {
     let response, status, statusText, headers, hasTimedout;
     // Ensure default request headers are always set
+    options.headers = {...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers};
     options.mode = this.requestMode;
     return new Promise((resolve, reject) => {
       const _timeoutId = setTimeout(() => {
