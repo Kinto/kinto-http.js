@@ -343,10 +343,13 @@ export default class KintoClientBase {
    * @private
    * @param  {Object}  request             The request object.
    * @param  {Object}  [options={}]        The options object.
-   * @param  {Boolean} [options.raw=false] If true, resolve with full response object, including json body and headers instead of just json.
+   * @param  {Boolean} [options.raw=false] If true, resolve with full response
+   * @param  {Boolean} [options.stringify=true] If true, serialize body data to
+   * JSON.
    * @return {Promise<Object, Error>}
    */
-  execute(request, options={raw: false}) {
+  execute(request, options={raw: false, stringify: true}) {
+    const {raw, stringify} = options;
     // If we're within a batch, add the request to the stack to send at once.
     if (this._isBatch) {
       this._requests.push(request);
@@ -354,16 +357,16 @@ export default class KintoClientBase {
       // from within a batch operation.
       const msg = "This result is generated from within a batch " +
                   "operation and should not be consumed.";
-      return Promise.resolve(options.raw ? {json: msg} : msg);
+      return Promise.resolve(raw ? {json: msg} : msg);
     }
     const promise = this.fetchServerSettings()
       .then(_ => {
         return this.http.request(this.remote + request.path, {
           ...request,
-          body: JSON.stringify(request.body)
+          body: stringify ? JSON.stringify(request.body) : request.body,
         });
       });
-    return options.raw ? promise : promise.then(({json}) => json);
+    return raw ? promise : promise.then(({json}) => json);
   }
 
   /**

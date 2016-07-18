@@ -1,4 +1,6 @@
-import { toDataBody, qsify, isObject } from "./utils";
+import { v4 as uuid } from "uuid";
+
+import { capable, toDataBody, qsify, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -150,10 +152,11 @@ export default class Collection {
   /**
    * Creates a record in current collection.
    *
-   * @param  {Object}  record            The record to create.
-   * @param  {Object}  [options={}]      The options object.
-   * @param  {Object}  [options.headers] The headers object option.
-   * @param  {Boolean} [options.safe]    The safe option.
+   * @param  {Object}  record                The record to create.
+   * @param  {Object}  [options={}]          The options object.
+   * @param  {Object}  [options.headers]     The headers object option.
+   * @param  {Boolean} [options.safe]        The safe option.
+   * @param  {Object}  [options.permissions] The permissions option.
    * @return {Promise<Object, Error>}
    */
   createRecord(record, options={}) {
@@ -165,6 +168,47 @@ export default class Collection {
   }
 
   /**
+   * Adds an attachment to a record, creating the record when it doesn't exist.
+   *
+   * @param  {String}  dataURL                 The data url.
+   * @param  {Object}  [record={}]             The record data.
+   * @param  {Object}  [options={}]            The options object.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Number}  [options.last_modified] The last_modified option.
+   * @param  {Object}  [options.permissions]   The permissions option.
+   * @param  {String}  [options.filename]      Force the attachment filename.
+   * @return {Promise<Object, Error>}
+   */
+  @capable(["attachments"])
+  addAttachment(dataURI, record={}, options={}) {
+    const reqOptions = this._collOptions(options);
+    const {permissions} = reqOptions;
+    const id = record.id || uuid.v4();
+    const path = endpoint("attachment", this.bucket.name, this.name, id);
+    const addAttachmentRequest = requests.addAttachmentRequest(path, dataURI, {data: record, permissions}, reqOptions);
+    return this.client.execute(addAttachmentRequest, {stringify: false})
+      .then(() => this.getRecord(id));
+  }
+
+  /**
+   * Removes an attachment from a given record.
+   *
+   * @param  {Object}  recordId                The record id.
+   * @param  {Object}  [options={}]            The options object.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Number}  [options.last_modified] The last_modified option.
+   */
+  @capable(["attachments"])
+  removeAttachment(recordId, options={}) {
+    const reqOptions = this._collOptions(options);
+    const path = endpoint("attachment", this.bucket.name, this.name, recordId);
+    const request = requests.deleteRequest(path, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
    * Updates a record in current collection.
    *
    * @param  {Object}  record                  The record to update.
@@ -172,6 +216,7 @@ export default class Collection {
    * @param  {Object}  [options.headers]       The headers object option.
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Number}  [options.last_modified] The last_modified option.
+   * @param  {Object}  [options.permissions]   The permissions option.
    * @return {Promise<Object, Error>}
    */
   updateRecord(record, options={}) {

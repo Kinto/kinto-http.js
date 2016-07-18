@@ -10,7 +10,9 @@ import {
   checkVersion,
   support,
   capable,
-  nobatch
+  nobatch,
+  parseDataURL,
+  extractFileInfo,
 } from "../src/utils";
 
 chai.should();
@@ -217,10 +219,10 @@ describe("Utils", () => {
     it("should make decorated method resolve on capability match", () => {
       class FakeClient {
         fetchServerCapabilities() {
-          return Promise.resolve(["default", "attachment", "auth:fxa"]);
+          return Promise.resolve({attachments: {}, default: {}, "auth:fxa": {}});
         }
 
-        @capable(["default", "attachment"])
+        @capable(["default", "attachments"])
         test() {
           return Promise.resolve();
         }
@@ -232,10 +234,10 @@ describe("Utils", () => {
     it("should make decorated method rejecting on missing capability", () => {
       class FakeClient {
         fetchServerCapabilities() {
-          return Promise.resolve(["attachment"]);
+          return Promise.resolve({attachments: {}});
         }
 
-        @capable(["attachment", "default"])
+        @capable(["attachments", "default"])
         test() {
           return Promise.resolve();
         }
@@ -249,7 +251,7 @@ describe("Utils", () => {
         constructor() {
           this.client = {
             fetchServerCapabilities() {
-              return Promise.resolve(["default"]);
+              return Promise.resolve({default: {}});
             }
           };
         }
@@ -297,6 +299,42 @@ describe("Utils", () => {
       }
 
       expect(() => new FakeClient().test()).to.Throw(Error, "error");
+    });
+  });
+
+  describe("parseDataURL()", () => {
+    it("should extract expected properties", () => {
+      expect(parseDataURL("data:image/png;encoding=utf-8;name=a.png;base64,b64"))
+        .eql({
+          type: "image/png",
+          name: "a.png",
+          base64: "b64",
+          encoding: "utf-8",
+        });
+    });
+
+    it("should support dataURL without name", () => {
+      expect(parseDataURL("data:image/png;base64,b64"))
+        .eql({
+          type: "image/png",
+          base64: "b64",
+        });
+    });
+
+    it("should throw an error when the data url is invalid", () => {
+      expect(() => expect(parseDataURL("gni")))
+        .to.throw(Error, "Invalid data-url: gni...");
+    });
+  });
+
+  describe("extractFileInfo()", () => {
+    it("should extract file information from a data url", () => {
+      const dataURL = "data:text/plain;name=t.txt;base64," + btoa("test");
+
+      const {blob, name} = extractFileInfo(dataURL);
+
+      expect(blob.length).eql(4);
+      expect(name).eql("t.txt");
     });
   });
 });

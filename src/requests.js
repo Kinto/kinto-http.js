@@ -1,4 +1,5 @@
-import { omit } from "./utils";
+import { omit, createFormData } from "./utils";
+
 
 const requestDefaults = {
   safe: false,
@@ -74,7 +75,7 @@ export function updateRequest(path, {data, permissions}, options={}) {
  * @private
  */
 export function deleteRequest(path, options={}) {
-  const { headers, safe, last_modified} = {
+  const {headers, safe, last_modified} = {
     ...requestDefaults,
     ...options
   };
@@ -85,5 +86,31 @@ export function deleteRequest(path, options={}) {
     method: "DELETE",
     path,
     headers: {...headers, ...safeHeader(safe, last_modified)}
+  };
+}
+
+/**
+ * @private
+ */
+export function addAttachmentRequest(path, dataURI, {data, permissions}={}, options={}) {
+  const {headers, safe} = {...requestDefaults, ...options};
+  const {last_modified} = {...data, ...options };
+  if (safe && !last_modified) {
+    throw new Error("Safe concurrency check requires a last_modified value.");
+  }
+
+  const body = {data, permissions};
+  const formData = createFormData(dataURI, body, options);
+
+  return {
+    method: "POST",
+    path,
+    headers: {
+      ...headers,
+      ...safeHeader(safe, last_modified),
+      // Setting content type as undefined so that it does not use default "application/json".
+      "Content-Type": undefined
+    },
+    body: formData
   };
 }

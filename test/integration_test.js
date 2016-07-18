@@ -1,6 +1,5 @@
 "use strict";
 
-import btoa from "btoa";
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
@@ -24,7 +23,10 @@ describe("Integration tests", function() {
   this.timeout(0);
 
   before(() => {
-    server = new KintoServer(TEST_KINTO_SERVER, {maxAttempts: 200});
+    server = new KintoServer(TEST_KINTO_SERVER, {
+      maxAttempts: 200,
+      kintoConfigPath: __dirname + "/kinto.ini",
+    });
   });
 
   after(() => server.killAll());
@@ -97,7 +99,7 @@ describe("Integration tests", function() {
             // Kinto protocol 1.4 exposes capability descriptions
             Object.keys(capabilities).forEach(capability => {
               const capabilityObj = capabilities[capability];
-              expect(capabilityObj).to.have.key("url", "description");
+              expect(capabilityObj).to.include.keys("url", "description");
             });
           });
       });
@@ -976,6 +978,83 @@ describe("Integration tests", function() {
                   }))
                   .should.be.rejectedWith(Error, /412 Precondition Failed/);
               });
+            });
+          });
+
+          describe(".addAttachment()", () => {
+            describe("With filename", () => {
+              const input = "test";
+              const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
+
+              let result;
+
+              beforeEach(() => {
+                return coll
+                  .addAttachment(dataURL, {foo: "bar"}, {
+                    permissions: {write: ["github:n1k0"]}
+                  })
+                  .then(res => result = res);
+              });
+
+              it("should create a record with an attachment", () => {
+                expect(result)
+                  .to.have.property("data")
+                  .to.have.property("attachment")
+                  .to.have.property("size").eql(input.length);
+              });
+
+              it("should create a record with provided record data", () => {
+                expect(result)
+                  .to.have.property("data")
+                  .to.have.property("foo").eql("bar");
+              });
+
+              it("should create a record with provided permissions", () => {
+                expect(result)
+                  .to.have.property("permissions")
+                  .to.have.property("write").contains("github:n1k0");
+              });
+            });
+
+            describe("Without filename", () => {
+              it("should default filename to 'untitled' if not specified", () => {
+                const dataURL = "data:text/plain;base64," + btoa("blah");
+                return coll
+                  .addAttachment(dataURL)
+                  .should.eventually
+                  .have.property("data")
+                  .have.property("attachment")
+                  .have.property("filename").eql("untitled");
+              });
+
+              it("should allow to specify a filename in options", () => {
+                const dataURL = "data:text/plain;base64," + btoa("blah");
+                return coll
+                  .addAttachment(dataURL, {}, {filename: "MYFILE.DAT"})
+                  .should.eventually
+                  .have.property("data")
+                  .have.property("attachment")
+                  .have.property("filename").eql("MYFILE.DAT");
+              });
+            });
+          });
+
+          describe(".removeAttachment()", () => {
+            const input = "test";
+            const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
+
+            let recordId;
+
+            beforeEach(() => {
+              return coll.addAttachment(dataURL)
+                .then(res => recordId = res.data.id);
+            });
+
+            it("should remove an attachment from a record", () => {
+              return coll.removeAttachment(recordId)
+                .then(() => coll.getRecord(recordId))
+                .should.eventually.have.property("data")
+                               .to.have.property("attachment").eql(null);
             });
           });
 

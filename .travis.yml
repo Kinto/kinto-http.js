@@ -16,6 +16,7 @@ before_install:
 - virtualenv .env
 - if [[ $SERVER && $SERVER != development ]]; then .env/bin/pip install kinto==$SERVER; fi
 - if [[ $SERVER && $SERVER == development ]]; then .env/bin/pip install https://github.com/Kinto/kinto/zipball/master; fi
+- .env/bin/pip install kinto-attachment
 - export KINTO_PSERVE_EXECUTABLE=.env/bin/pserve
 script:
 - npm $ACTION

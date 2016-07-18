@@ -135,4 +135,28 @@ describe("requests module", () => {
         .to.have.property("method").eql("PATCH");
     });
   });
+
+  describe("addAttachmentRequest()", () => {
+    const dataURL = "data:text/plain;name=test.txt;base64," + btoa("hola");
+    it("should return a post request", () => {
+      expect(requests.addAttachmentRequest("/foo", dataURL))
+        .to.have.property("method").eql("POST");
+    });
+
+    it("should accept a headers option", () => {
+      expect(requests.addAttachmentRequest("/foo", dataURL, {}, {headers: {Foo: "Bar"}}))
+        .to.have.property("headers").eql({"Content-Type": undefined, Foo: "Bar"});
+    });
+
+    it("should raise for safe with no last_modified passed", () => {
+      expect(() => requests.addAttachmentRequest("/foo", dataURL, {}, {safe: true}))
+        .to.Throw(Error, /requires a last_modified/);
+    });
+
+    it("should support a safe option with a last_modified option", () => {
+      expect(requests.addAttachmentRequest("/foo", dataURL, {}, {safe: true, last_modified: 42}))
+        .to.have.property("headers")
+        .to.have.property("If-Match").eql("\"42\"");
+    });
+  });
 });

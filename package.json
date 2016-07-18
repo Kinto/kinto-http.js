@@ -5,19 +5,20 @@
   "main": "lib/index.js",
   "scripts": {
     "build": "babel -d lib/ src/",
+    "build:readme": "./node_modules/.bin/toctoc -w -d 2 README.md",
     "dist": "mkdir -p dist && rm -f dist/*.* && npm run dist-dev && npm run dist-prod && npm run dist-noshim && npm run dist-fx",
     "dist-dev": "browserify -s KintoClient -d -e src/index.js -o dist/kinto-http.js -t [ babelify --sourceMapRelative . ]",
     "dist-noshim": "browserify -s KintoClient -g uglifyify --ignore isomorphic-fetch --ignore babel-polyfill -e src/index.js -o dist/kinto-http.noshim.js -t [ babelify --sourceMapRelative . ]",
     "dist-prod": "browserify -s KintoClient -g uglifyify -e src/index.js -o dist/kinto-http.min.js -t [ babelify --sourceMapRelative . ]",
     "dist-fx": "BABEL_ENV=firefox browserify -s KintoHttpClient --ignore isomorphic-fetch --ignore events --bare -e fx-src/index.js -o temp.jsm -t [ babelify --sourceMapRelative . ] && mkdir -p dist && cp fx-src/jsm_prefix.js dist/moz-kinto-http-client.js && echo \"\n/*\n * Version $npm_package_version - $(git rev-parse --short HEAD)\n */\n\" >> dist/moz-kinto-http-client.js && cat temp.jsm >> dist/moz-kinto-http-client.js && rm temp.jsm",
-    "prepublish": "node_modules/.bin/toctoc -w -d 2 README.md",
+    "prepublish": "npm run build:readme",
     "publish-to-npm": "npm run build && npm run dist && npm publish",
     "report-coverage": "npm run test-cover && ./node_modules/coveralls/bin/coveralls.js < ./coverage/lcov.info",
-    "tdd": "babel-node node_modules/.bin/_mocha --watch 'test/**/*_test.js'",
+    "tdd": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js --watch 'test/**/*_test.js'",
     "test": "npm run test-nocover",
-    "test-cover": "babel-node node_modules/.bin/babel-istanbul cover --report text $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- 'test/**/*_test.js'",
-    "test-cover-html": "babel-node node_modules/.bin/babel-istanbul cover --report html $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- 'test/**/*_test.js' && open coverage/index.html",
-    "test-nocover": "babel-node node_modules/.bin/_mocha 'test/**/*_test.js'",
+    "test-cover": "babel-node node_modules/.bin/babel-istanbul cover --report text $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- --require ./test/setup-jsdom.js 'test/**/*_test.js'",
+    "test-cover-html": "babel-node node_modules/.bin/babel-istanbul cover --report html $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- --require ./test/setup-jsdom.js 'test/**/*_test.js' && open coverage/index.html",
+    "test-nocover": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js 'test/**/*_test.js'",
     "lint": "eslint src test"
   },
   "repository": {
@@ -37,9 +38,11 @@
   },
   "homepage": "https://github.com/Kinto/kinto-http.js#readme",
   "dependencies": {
-    "isomorphic-fetch": "^2.2.1"
+    "isomorphic-fetch": "^2.2.1",
+    "uuid": "^2.0.1"
   },
   "devDependencies": {
+    "atob": "^2.0.3",
     "babel-cli": "^6.6.5",
     "babel-core": "^6.6.5",
     "babel-eslint": "^5.0.0-beta6",
@@ -60,12 +63,13 @@
     "esdoc-es7-plugin": "0.0.3",
     "esdoc-importpath-plugin": "0.0.1",
     "eslint": "2.2.0",
+    "form-data": "^1.0.0-rc4",
+    "jsdom": "^9.4.1",
     "kinto-node-test-server": "0.0.1",
     "mocha": "^2.3.4",
     "sinon": "^1.17.2",
     "toctoc": "^0.2.2",
-    "uglifyify": "^3.0.1",
-    "uuid": "^2.0.1"
+    "uglifyify": "^3.0.1"
   },
   "engines": {
     "node": ">=6"
