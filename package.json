@@ -11,7 +11,7 @@
     "dist-noshim": "browserify -s KintoClient -g uglifyify --ignore isomorphic-fetch --ignore babel-polyfill -e src/index.js -o dist/kinto-http.noshim.js -t [ babelify --sourceMapRelative . ]",
     "dist-prod": "browserify -s KintoClient -g uglifyify -e src/index.js -o dist/kinto-http.min.js -t [ babelify --sourceMapRelative . ]",
     "dist-fx": "BABEL_ENV=firefox browserify -s KintoHttpClient --ignore isomorphic-fetch --ignore events --bare -e fx-src/index.js -o temp.jsm -t [ babelify --sourceMapRelative . ] && mkdir -p dist && cp fx-src/jsm_prefix.js dist/moz-kinto-http-client.js && echo \"\n/*\n * Version $npm_package_version - $(git rev-parse --short HEAD)\n */\n\" >> dist/moz-kinto-http-client.js && cat temp.jsm >> dist/moz-kinto-http-client.js && rm temp.jsm",
-    "prepublish": "node_modules/.bin/toctoc -w -d 2 README.md",
+    "prepublish": "npm run build:readme",
     "publish-to-npm": "npm run build && npm run dist && npm publish",
     "report-coverage": "npm run test-cover && ./node_modules/coveralls/bin/coveralls.js < ./coverage/lcov.info",
     "tdd": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js --watch 'test/**/*_test.js'",
