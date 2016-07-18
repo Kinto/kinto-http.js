@@ -1197,9 +1197,7 @@ Sample result:
 
 ## Attachments
 
-If the [attachment](https://github.com/Kinto/kinto-attachment) capability is available from the Kinto server, you can attach files to records. Files must be passed as [data urls](http://dataurl.net/#about).
-
-Data urls can be generated using the [FileReader API](https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL).
+If the [attachment](https://github.com/Kinto/kinto-attachment) capability is available from the Kinto server, you can attach files to records. Files must be passed as [data urls](http://dataurl.net/#about), which can be generated using the [FileReader API](https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL) in the browser.
 
 ### Adding an attachment to a record
 
@@ -1217,7 +1215,10 @@ client.bucket("blog").collection("posts")
 
 ### Deleting an attachment
 
-XXX todo
+```js
+client.bucket("blog").collection("posts")
+  .removeAttachment("22c1319e-7b09-46db-bec4-c240bdf4e3e9");
+```
 
 ## Generic bucket and collection options
 

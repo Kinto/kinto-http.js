@@ -1015,6 +1015,25 @@ describe("Integration tests", function() {
             });
           });
 
+          describe(".removeAttachment()", () => {
+            const input = "test";
+            const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
+
+            let recordId;
+
+            beforeEach(() => {
+              return coll.addAttachment(dataURL)
+                .then(res => recordId = res.data.id);
+            });
+
+            it("should remove an attachment from a record", () => {
+              return coll.removeAttachment(recordId)
+                .then(() => coll.getRecord(recordId))
+                .should.eventually.have.property("data")
+                               .to.have.property("attachment").eql(null);
+            });
+          });
+
           describe(".getRecord()", () => {
             it("should retrieve a record by its id", () => {
               return coll.createRecord({title: "blah"})

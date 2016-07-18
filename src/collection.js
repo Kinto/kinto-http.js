@@ -204,9 +204,20 @@ export default class Collection {
       .then(() => this.getRecord(id));
   }
 
-  // TODO
+  /**
+   * Removes an attachment from a given record.
+   *
+   * @param  {Object}  recordId                The record id.
+   * @param  {Object}  [options={}]            The options object.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Number}  [options.last_modified] The last_modified option.
+   */
   removeAttachment(recordId, options={}) {
-
+    const reqOptions = this._collOptions(options);
+    const path = endpoint("attachment", this.bucket.name, this.name, recordId);
+    const request = requests.deleteRequest(path, reqOptions);
+    return this.client.execute(request);
   }
 
   /**
