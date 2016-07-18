@@ -11,7 +11,8 @@ import {
   support,
   capable,
   nobatch,
-  parseDataURL
+  parseDataURL,
+  extractFileInfo,
 } from "../src/utils";
 
 chai.should();
@@ -323,6 +324,17 @@ describe("Utils", () => {
     it("should throw an error when the data url is invalid", () => {
       expect(() => expect(parseDataURL("gni")))
         .to.throw(Error, "Invalid data-url: gni...");
+    });
+  });
+
+  describe("extractFileInfo()", () => {
+    it("should extract file information from a data url", () => {
+      const dataURL = "data:text/plain;name=t.txt;base64," + btoa("test");
+
+      const {blob, name} = extractFileInfo(dataURL);
+
+      expect(blob.length).eql(4);
+      expect(name).eql("t.txt");
     });
   });
 });
