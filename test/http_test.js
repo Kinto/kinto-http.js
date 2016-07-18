@@ -7,11 +7,10 @@ import { EventEmitter } from "events";
 import { fakeServerResponse } from "./test_utils.js";
 import HTTP from "../src/http.js";
 
+
 chai.use(chaiAsPromised);
 chai.should();
 chai.config.includeStack = true;
-
-const root = typeof window === "object" ? window : global;
 
 /** @test {HTTP} */
 describe("HTTP class", () => {

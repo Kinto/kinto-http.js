@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 
-import { toDataBody, qsify, omit, isObject, createFormData } from "./utils";
+import { toDataBody, qsify, isObject, createFormData } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
