@@ -75,7 +75,7 @@ export function updateRequest(path, {data, permissions}, options={}) {
  * @private
  */
 export function deleteRequest(path, options={}) {
-  const { headers, safe, last_modified} = {
+  const {headers, safe, last_modified} = {
     ...requestDefaults,
     ...options
   };
@@ -93,14 +93,21 @@ export function deleteRequest(path, options={}) {
  * @private
  */
 export function addAttachmentRequest(path, dataURI, {data, permissions}, options={}) {
+  const {headers, safe} = {...requestDefaults, ...options};
+  const {last_modified} = {...data, ...options };
+
   const body = {data, permissions};
   const formData = createFormData(dataURI, body);
-  const postRequest = updateRequest(path, body, options);
+
   return {
-    ...postRequest,
     method: "POST",
-    // Setting content type as undefined so that it does not use default "application/json".
-    headers: {...postRequest.headers, "Content-Type": undefined},
+    path,
+    headers: {
+      ...headers,
+      ...safeHeader(safe, last_modified),
+      // Setting content type as undefined so that it does not use default "application/json".
+      "Content-Type": undefined
+    },
     body: formData
   };
 }
