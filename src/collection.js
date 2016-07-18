@@ -168,6 +168,10 @@ export default class Collection {
   }
 
   /**
+   * Adds an attachment to a record, creating the record when it doesn't exist.
+   *
+   * Note: The attachment must be provided as a data-url.
+   *
    * XXX to document;
    * - n'accepter que les data uri car elles contiennent filename
    * - conseiller d'utiliser new File() et la méthode getAsDataURL pour retrouver
