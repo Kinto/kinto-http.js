@@ -1206,6 +1206,15 @@ client.bucket("blog").collection("posts")
   .addAttachment(dataURL, {title: "First post"});
 ```
 
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request;
+- `safe`: Ensures operations won't override existing resources on the server if their associated `last_modified` value or option are provided; otherwise ensures resources won't be overriden if they already exist on the server;
+- `last_modified`: When `safe` is true, the last timestamp we know the resource has been updated on the server;
+- `permissions`: Permissions to be set on the record;
+- `filename`: Allows to specify the attachment filename, in case the data URI does not contain any, or if the file has to be renamed on upload;
+
+
 ### Updating an attachment
 
 ```js

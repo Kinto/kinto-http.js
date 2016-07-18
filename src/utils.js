@@ -270,14 +270,17 @@ export function extractFileInfo(dataURL) {
 /**
  * Creates a FormData instance from a data url and an existing JSON response
  * body.
- * @param  {String} dataURL The data url.
- * @param  {Object} body    The response body.
+ * @param  {String} dataURL            The data url.
+ * @param  {Object} body               The response body.
+ * @param  {Object} [options={}]       The options object.
+ * @param  {Object} [options.filename] Force attachment file name.
  * @return {FormData}
  */
-export function createFormData(dataURL, body) {
+export function createFormData(dataURL, body, options={}) {
+  const {filename="untitled"} = options;
   const {blob, name} = extractFileInfo(dataURL);
   const formData = new FormData();
-  formData.append("attachment", blob, name);
+  formData.append("attachment", blob, name || filename);
   for (const property in body) {
     if (typeof body[property] !== "undefined") {
       formData.append(property, JSON.stringify(body[property]));

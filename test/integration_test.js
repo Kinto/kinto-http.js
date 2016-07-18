@@ -982,36 +982,60 @@ describe("Integration tests", function() {
           });
 
           describe(".addAttachment()", () => {
-            const input = "test";
-            const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
+            describe("With filename", () => {
+              const input = "test";
+              const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
 
-            let result;
+              let result;
 
-            beforeEach(() => {
-              return coll
-                .addAttachment(dataURL, {foo: "bar"}, {
-                  permissions: {write: ["github:n1k0"]}
-                })
-                .then(res => result = res);
+              beforeEach(() => {
+                return coll
+                  .addAttachment(dataURL, {foo: "bar"}, {
+                    permissions: {write: ["github:n1k0"]}
+                  })
+                  .then(res => result = res);
+              });
+
+              it("should create a record with an attachment", () => {
+                expect(result)
+                  .to.have.property("data")
+                  .to.have.property("attachment")
+                  .to.have.property("size").eql(input.length);
+              });
+
+              it("should create a record with provided record data", () => {
+                expect(result)
+                  .to.have.property("data")
+                  .to.have.property("foo").eql("bar");
+              });
+
+              it("should create a record with provided permissions", () => {
+                expect(result)
+                  .to.have.property("permissions")
+                  .to.have.property("write").contains("github:n1k0");
+              });
             });
 
-            it("should create a record with an attachment", () => {
-              expect(result)
-                .to.have.property("data")
-                .to.have.property("attachment")
-                .to.have.property("size").eql(input.length);
-            });
+            describe("Without filename", () => {
+              it("should default filename to 'untitled' if not specified", () => {
+                const dataURL = "data:text/plain;base64," + btoa("blah");
+                return coll
+                  .addAttachment(dataURL)
+                  .should.eventually
+                  .have.property("data")
+                  .have.property("attachment")
+                  .have.property("filename").eql("untitled");
+              });
 
-            it("should create a record with provided record data", () => {
-              expect(result)
-                .to.have.property("data")
-                .to.have.property("foo").eql("bar");
-            });
-
-            it("should create a record with provided permissions", () => {
-              expect(result)
-                .to.have.property("permissions")
-                .to.have.property("write").contains("github:n1k0");
+              it("should allow to specify a filename in options", () => {
+                const dataURL = "data:text/plain;base64," + btoa("blah");
+                return coll
+                  .addAttachment(dataURL, {}, {filename: "MYFILE.DAT"})
+                  .should.eventually
+                  .have.property("data")
+                  .have.property("attachment")
+                  .have.property("filename").eql("MYFILE.DAT");
+              });
             });
           });
 

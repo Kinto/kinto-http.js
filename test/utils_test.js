@@ -10,7 +10,8 @@ import {
   checkVersion,
   support,
   capable,
-  nobatch
+  nobatch,
+  parseDataURL
 } from "../src/utils";
 
 chai.should();
@@ -297,6 +298,31 @@ describe("Utils", () => {
       }
 
       expect(() => new FakeClient().test()).to.Throw(Error, "error");
+    });
+  });
+
+  describe("parseDataURL()", () => {
+    it("should extract expected properties", () => {
+      expect(parseDataURL("data:image/png;encoding=utf-8;name=a.png;base64,b64"))
+        .eql({
+          type: "image/png",
+          name: "a.png",
+          base64: "b64",
+          encoding: "utf-8",
+        });
+    });
+
+    it("should support dataURL without name", () => {
+      expect(parseDataURL("data:image/png;base64,b64"))
+        .eql({
+          type: "image/png",
+          base64: "b64",
+        });
+    });
+
+    it("should throw an error when the data url is invalid", () => {
+      expect(() => expect(parseDataURL("gni")))
+        .to.throw(Error, "Invalid data-url: gni...");
     });
   });
 });

@@ -177,6 +177,7 @@ export default class Collection {
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @param  {Object}  [options.permissions]   The permissions option.
+   * @param  {String}  [options.filename]      Force the attachment filename.
    * @return {Promise<Object, Error>}
    */
   @capable(["attachments"])
