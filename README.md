@@ -1197,7 +1197,7 @@ Sample result:
 
 ## Attachments
 
-If the [attachment]() capability is available from the Kinto server, you can attach files to records. Files must be passed as [data urls](http://dataurl.net/#about).
+If the [attachment](https://github.com/Kinto/kinto-attachment) capability is available from the Kinto server, you can attach files to records. Files must be passed as [data urls](http://dataurl.net/#about).
 
 Data urls can be generated using the [FileReader API](https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL).
 
