@@ -140,7 +140,7 @@ export function support(min, max) {
           const client = "client" in this ? this.client : this;
           return client.fetchHTTPApiVersion()
             .then(version => checkVersion(version, min, max))
-            .then(Promise.resolve(fn.apply(this, args)));
+            .then(() => fn.apply(this, args));
         };
         Object.defineProperty(this, key, {
           value: wrappedMethod,

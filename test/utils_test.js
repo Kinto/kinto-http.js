@@ -217,10 +217,10 @@ describe("Utils", () => {
     it("should make decorated method resolve on capability match", () => {
       class FakeClient {
         fetchServerCapabilities() {
-          return Promise.resolve(["default", "attachment", "auth:fxa"]);
+          return Promise.resolve({attachments: {}, default: {}, "auth:fxa": {}});
         }
 
-        @capable(["default", "attachment"])
+        @capable(["default", "attachments"])
         test() {
           return Promise.resolve();
         }
@@ -232,10 +232,10 @@ describe("Utils", () => {
     it("should make decorated method rejecting on missing capability", () => {
       class FakeClient {
         fetchServerCapabilities() {
-          return Promise.resolve(["attachment"]);
+          return Promise.resolve({attachments: {}});
         }
 
-        @capable(["attachment", "default"])
+        @capable(["attachments", "default"])
         test() {
           return Promise.resolve();
         }
@@ -249,7 +249,7 @@ describe("Utils", () => {
         constructor() {
           this.client = {
             fetchServerCapabilities() {
-              return Promise.resolve(["default"]);
+              return Promise.resolve({default: {}});
             }
           };
         }
