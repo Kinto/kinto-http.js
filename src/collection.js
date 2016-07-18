@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 
-import { toDataBody, qsify, isObject, createFormData } from "./utils";
+import { capable, toDataBody, qsify, isObject, createFormData } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -186,6 +186,7 @@ export default class Collection {
    * @param  {Object}  [options.permissions]   The permissions option.
    * @return {Promise<Object, Error>}
    */
+  @capable(["attachments"])
   addAttachment(dataURI, record={}, options={}) {
     const reqOptions = this._collOptions(options);
     const {permissions} = reqOptions;
@@ -213,6 +214,7 @@ export default class Collection {
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Number}  [options.last_modified] The last_modified option.
    */
+  @capable(["attachments"])
   removeAttachment(recordId, options={}) {
     const reqOptions = this._collOptions(options);
     const path = endpoint("attachment", this.bucket.name, this.name, recordId);

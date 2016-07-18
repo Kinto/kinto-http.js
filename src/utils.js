@@ -171,13 +171,13 @@ export function capable(capabilities) {
           const client = "client" in this ? this.client : this;
           return client.fetchServerCapabilities()
             .then(available => {
-              const missing = capabilities.filter(c => available.indexOf(c) < 0);
+              const missing = capabilities.filter(c => !available.hasOwnProperty(c));
               if (missing.length > 0) {
                 throw new Error(`Required capabilities ${missing.join(", ")} ` +
                                 "not present on server");
               }
             })
-            .then(Promise.resolve(fn.apply(this, args)));
+            .then(() => fn.apply(this, args));
         };
         Object.defineProperty(this, key, {
           value: wrappedMethod,
