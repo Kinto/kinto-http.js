@@ -1,4 +1,4 @@
-import { omit } from "./utils";
+import { omit, createFormData } from "./utils";
 
 
 const requestDefaults = {
@@ -86,5 +86,21 @@ export function deleteRequest(path, options={}) {
     method: "DELETE",
     path,
     headers: {...headers, ...safeHeader(safe, last_modified)}
+  };
+}
+
+/**
+ * @private
+ */
+export function addAttachmentRequest(path, dataURI, {data, permissions}, options={}) {
+  const body = {data, permissions};
+  const formData = createFormData(dataURI, body);
+  const postRequest = updateRequest(path, body, options);
+  return {
+    ...postRequest,
+    method: "POST",
+    // Setting content type as undefined so that it does not use default "application/json".
+    headers: {...postRequest.headers, "Content-Type": undefined},
+    body: formData
   };
 }
