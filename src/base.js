@@ -369,10 +369,10 @@ export default class KintoClientBase {
     return raw ? promise : promise.then(({json}) => json);
   }
 
-  paginatedList(path, listOptions, httpOptions) {
+  paginatedList(path, params, options) {
     const { sort, filters, limit, pages, since } = {
       sort: "-last_modified",
-      ...listOptions
+      ...params
     };
     // Safety/Consistency check on ETag value.
     if (since && typeof(since) !== "string") {
@@ -395,7 +395,7 @@ export default class KintoClientBase {
     };
 
     const processNextPage = (nextPage) => {
-      const {headers} = httpOptions;
+      const {headers} = options;
       return this.http.request(nextPage, {headers})
         .then(handleResponse);
     };
@@ -429,7 +429,7 @@ export default class KintoClientBase {
 
     return this.execute({
       path: path + "?" + querystring,
-      ...httpOptions,
+      ...options,
     }, {raw: true}).then(handleResponse);
   }
 

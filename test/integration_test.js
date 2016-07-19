@@ -222,7 +222,7 @@ describe("Integration tests", function() {
       });
     });
 
-    describe.only("#listBuckets", () => {
+    describe("#listBuckets", () => {
       beforeEach(() => {
         return api.batch(batch => {
           batch.createBucket("b1", {data: {size: 24}});
