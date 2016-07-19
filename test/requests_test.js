@@ -145,7 +145,7 @@ describe("requests module", () => {
 
     it("should accept a headers option", () => {
       expect(requests.addAttachmentRequest("/foo", dataURL, {}, {headers: {Foo: "Bar"}}))
-        .to.have.property("headers").eql({"Content-Type": undefined, Foo: "Bar"});
+        .to.have.property("headers").eql({Foo: "Bar"});
     });
 
     it("should raise for safe with no last_modified passed", () => {
