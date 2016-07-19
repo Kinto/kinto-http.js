@@ -62,6 +62,15 @@ describe("HTTP class", () => {
 
         expect(fetch.firstCall.args[1].headers.Foo).eql("Bar");
       });
+
+      it("should drop custom content-type header for multipart body", () => {
+        http.request("/", {
+          headers: {"Content-Type": "application/foo"},
+          body: new FormData()
+        });
+
+        expect(fetch.firstCall.args[1].headers["Content-Type"]).to.be.undefined;
+      });
     });
 
     describe("Request CORS mode", () => {

@@ -108,8 +108,6 @@ export function addAttachmentRequest(path, dataURI, {data, permissions}={}, opti
     headers: {
       ...headers,
       ...safeHeader(safe, last_modified),
-      // Setting content type as undefined so that it does not use default "application/json".
-      "Content-Type": undefined
     },
     body: formData
   };

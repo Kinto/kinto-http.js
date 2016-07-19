@@ -186,7 +186,10 @@ export default class Collection {
     const {permissions} = reqOptions;
     const id = record.id || uuid.v4();
     const path = endpoint("attachment", this.bucket.name, this.name, id);
-    const addAttachmentRequest = requests.addAttachmentRequest(path, dataURI, {data: record, permissions}, reqOptions);
+    const addAttachmentRequest = requests.addAttachmentRequest(path, dataURI, {
+      data: record,
+      permissions
+    }, reqOptions);
     return this.client.execute(addAttachmentRequest, {stringify: false})
       .then(() => this.getRecord(id));
   }

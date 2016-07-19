@@ -991,7 +991,7 @@ describe("Integration tests", function() {
               beforeEach(() => {
                 return coll
                   .addAttachment(dataURL, {foo: "bar"}, {
-                    permissions: {write: ["github:n1k0"]}
+                    permissions: {write: ["github:n1k0"]},
                   })
                   .then(res => result = res);
               });
@@ -1017,8 +1017,9 @@ describe("Integration tests", function() {
             });
 
             describe("Without filename", () => {
+              const dataURL = "data:text/plain;base64," + btoa("blah");
+
               it("should default filename to 'untitled' if not specified", () => {
-                const dataURL = "data:text/plain;base64," + btoa("blah");
                 return coll
                   .addAttachment(dataURL)
                   .should.eventually
@@ -1028,9 +1029,8 @@ describe("Integration tests", function() {
               });
 
               it("should allow to specify a filename in options", () => {
-                const dataURL = "data:text/plain;base64," + btoa("blah");
                 return coll
-                  .addAttachment(dataURL, {}, {filename: "MYFILE.DAT"})
+                  .addAttachment(dataURL, undefined, {filename: "MYFILE.DAT"})
                   .should.eventually
                   .have.property("data")
                   .have.property("attachment")

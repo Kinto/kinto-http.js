@@ -78,6 +78,11 @@ export default class HTTP {
     let response, status, statusText, headers, hasTimedout;
     // Ensure default request headers are always set
     options.headers = {...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers};
+    // If a multipart body is provided, remove any custom Content-Type header as
+    // the fetch() implementation will add the correct one for us.
+    if (options.body && typeof options.body.append === "function") {
+      delete options.headers["Content-Type"];
+    }
     options.mode = this.requestMode;
     return new Promise((resolve, reject) => {
       const _timeoutId = setTimeout(() => {
