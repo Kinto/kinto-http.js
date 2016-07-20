@@ -327,156 +327,36 @@ describe("Collection", () => {
 
   /** @test {Collection#listRecords} */
   describe("#listRecords()", () => {
-    let headersgetSpy;
-    const ETag = "\"42\"";
+    const data = [{id: "a"}, {id: "b"}];
 
-    describe("No pagination", () => {
-      beforeEach(() => {
-        // Since listRecords use `raw: true`, stub with full response:
-        sandbox.stub(client, "execute").returns(Promise.resolve({
-          json: {data: [{a: 1}]},
-          headers: {
-            get: (name) => {
-              if (name === "ETag") {
-                return ETag;
-              }
-            }
-          }
-        }));
-      });
-
-      it("should execute expected request", () => {
-        coll.listRecords();
-
-        sinon.assert.calledWithMatch(client.execute, {
-          path: "/buckets/blog/collections/posts/records?_sort=-last_modified",
-          headers: {Foo: "Bar", Baz: "Qux"},
-        });
-      });
-
-      it("should sort records", () => {
-        coll.listRecords({sort: "title"});
-
-        sinon.assert.calledWithMatch(client.execute, {
-          path: "/buckets/blog/collections/posts/records?_sort=title",
-          headers: {Foo: "Bar", Baz: "Qux"},
-        });
-      });
-
-      it("should resolve with records list", () => {
-        return coll.listRecords()
-          .should.eventually.have.property("data").eql([{a: 1}]);
-      });
-
-      it("should resolve with a next() function", () => {
-        return coll.listRecords()
-          .should.eventually.have.property("next").to.be.a("function");
-      });
-
-      it("should support the since option", () => {
-        coll.listRecords({since: ETag});
-
-        const qs = "_sort=-last_modified&_since=%2242%22";
-        sinon.assert.calledWithMatch(client.execute, {
-          path: "/buckets/blog/collections/posts/records?" + qs,
-        });
-      });
-
-      it("should throw if the since option is invalid", () => {
-        expect(() => coll.listRecords({since: 123}))
-        .to.Throw(Error, /Invalid value for since \(123\), should be ETag value/);
-      });
-
-      it("should resolve with the collection last_modified without quotes", () => {
-        return coll.listRecords()
-          .should.eventually.have.property("last_modified").eql("42");
-      });
+    beforeEach(() => {
+      sandbox.stub(coll.client, "paginatedList").returns(Promise.resolve({data}));
     });
 
-    describe("Filtering", () => {
-      beforeEach(() => {
-        sandbox.stub(client, "execute").returns(Promise.resolve({
-          json: {data: []},
-          headers: {get: () => {}}
-        }));
-      });
+    it("should execute expected request", () => {
+      coll.listRecords({_since: "42"});
 
-      it("should generate the expected filtering query string", () => {
-        coll.listRecords({sort: "x", filters: {min_y: 2, not_z: 3}});
-
-        const expectedQS = "min_y=2&not_z=3&_sort=x";
-        sinon.assert.calledWithMatch(client.execute, {
-          path: "/buckets/blog/collections/posts/records?" + expectedQS,
-          headers: {Foo: "Bar", Baz: "Qux"},
-        });
-      });
-
-      it("shouldn't need an explicit sort parameter", () => {
-        coll.listRecords({filters: {min_y: 2, not_z: 3}});
-
-        const expectedQS = "min_y=2&not_z=3&_sort=-last_modified";
-        sinon.assert.calledWithMatch(client.execute, {
-          path: "/buckets/blog/collections/posts/records?" + expectedQS,
-          headers: {Foo: "Bar", Baz: "Qux"},
-        });
-      });
+      sinon.assert.calledWithMatch(coll.client.paginatedList,
+        "/buckets/blog/collections/posts/records",
+        {_since: "42"},
+        {headers: {Baz: "Qux", Foo: "Bar"}});
     });
 
-    describe("Pagination", () => {
-      it("should issue a request with the specified limit applied", () => {
-        sandbox.stub(client, "execute").returns(Promise.resolve({
-          json: {data: []},
-          headers: {get: headersgetSpy}
-        }));
+    it("should support passing custom headers", () => {
+      coll.client.defaultReqOptions.headers = {Foo: "Bar"};
+      coll.listRecords({headers: {Baz: "Qux"}});
 
-        coll.listRecords({limit: 2});
-
-        const expectedQS = "_sort=-last_modified&_limit=2";
-        sinon.assert.calledWithMatch(client.execute, {
-          path: "/buckets/blog/collections/posts/records?" + expectedQS,
-          headers: {Foo: "Bar", Baz: "Qux"},
+      sinon.assert.calledWithMatch(coll.client.paginatedList,
+        "/buckets",
+        {},
+        {
+          headers: {Foo: "Bar", Baz: "Qux"}
         });
-      });
+    });
 
-      it("should query for next page", () => {
-        const { http } = coll.client;
-        headersgetSpy = sandbox.stub().returns("http://next-page/");
-        sandbox.stub(client, "execute").returns(Promise.resolve({
-          json: {data: []},
-          headers: {get: headersgetSpy}
-        }));
-        sandbox.stub(http, "request").returns(Promise.resolve({
-          headers: {get: () => {}},
-          json: {data: []}
-        }));
-
-        return coll.listRecords({limit: 2, pages: 2})
-          .then(_ => {
-            sinon.assert.calledWith(http.request, "http://next-page/");
-          });
-      });
-
-      it("should aggregate paginated results", () => {
-        const { http } = coll.client;
-        sandbox.stub(http, "request")
-          // settings retrieval
-          .onFirstCall().returns(Promise.resolve({
-            json: {settings: {}}
-          }))
-          // first page
-          .onSecondCall().returns(Promise.resolve({
-            headers: {get: () => "http://next-page/"},
-            json: {data: [1, 2]}
-          }))
-          // second page
-          .onThirdCall().returns(Promise.resolve({
-            headers: {get: () => {}},
-            json: {data: [3]}
-          }));
-
-        return coll.listRecords({limit: 2, pages: 2})
-          .should.eventually.have.property("data").eql([1, 2, 3]);
-      });
+    it("should resolve with a result object", () => {
+      return coll.listRecords()
+        .should.eventually.have.property("data").eql(data);
     });
   });
 

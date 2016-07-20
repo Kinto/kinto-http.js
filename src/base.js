@@ -369,7 +369,7 @@ export default class KintoClientBase {
     return raw ? promise : promise.then(({json}) => json);
   }
 
-  paginatedList(path, params, options) {
+  paginatedList(path, params, options={}) {
     const { sort, filters, limit, pages, since } = {
       sort: "-last_modified",
       ...params

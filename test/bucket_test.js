@@ -139,24 +139,28 @@ describe("Bucket", () => {
     const data = [{id: "a"}, {id: "b"}];
 
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve(data));
+      sandbox.stub(client, "paginatedList").returns(Promise.resolve(data));
     });
 
     it("should list bucket collections", () => {
-      getBlogBucket().listCollections();
+      getBlogBucket().listCollections({_since: "42"});
 
-      sinon.assert.calledWithMatch(client.execute, {
-        path: "/buckets/blog/collections"
-      });
+      sinon.assert.calledWithMatch(client.paginatedList,
+        "/buckets/blog/collections",
+        {_since: "42"},
+        {headers: {}});
     });
 
     it("should merge default options", () => {
       getBlogBucket({headers: {Foo: "Bar"}})
         .listCollections({headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(client.execute, {
-        headers: {Foo: "Bar", Baz: "Qux"}
-      });
+      sinon.assert.calledWithMatch(client.paginatedList,
+        "/buckets/blog/collections",
+        {},
+        {
+          headers: {Foo: "Bar", Baz: "Qux"}
+        });
     });
 
     it("should return the list of collections", () => {
@@ -303,24 +307,28 @@ describe("Bucket", () => {
     const data = [{id: "a"}, {id: "b"}];
 
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve(data));
+      sandbox.stub(client, "paginatedList").returns(Promise.resolve(data));
     });
 
     it("should list bucket groups", () => {
-      getBlogBucket().listGroups();
+      getBlogBucket().listGroups({_since: "42"});
 
-      sinon.assert.calledWithMatch(client.execute, {
-        path: "/buckets/blog/groups"
-      });
+      sinon.assert.calledWithMatch(client.paginatedList,
+        "/buckets/blog/groups",
+        {_since: "42"},
+        {headers: {}});
     });
 
     it("should merge default options", () => {
       getBlogBucket({headers: {Foo: "Bar"}})
         .listGroups({headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(client.execute, {
-        headers: {Foo: "Bar", Baz: "Qux"}
-      });
+      sinon.assert.calledWithMatch(client.paginatedList,
+        "/buckets/blog/groups",
+        {},
+        {
+          headers: {Foo: "Bar", Baz: "Qux"}
+        });
     });
 
     it("should return the list of groups", () => {

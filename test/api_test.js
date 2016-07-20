@@ -540,29 +540,189 @@ describe("KintoClient", () => {
     });
   });
 
+  /** @test {KintoClient#paginatedList} */
+  describe("#paginatedList()", () => {
+    const ETag = "\"42\"";
+    const path = "/some/path";
+
+    describe("No pagination", () => {
+      beforeEach(() => {
+        // Since listRecords use `raw: true`, stub with full response:
+        sandbox.stub(api, "execute").returns(Promise.resolve({
+          json: {data: [{a: 1}]},
+          headers: {
+            get: (name) => {
+              if (name === "ETag") {
+                return ETag;
+              }
+            }
+          }
+        }));
+      });
+
+      it("should execute expected request", () => {
+        api.paginatedList(path);
+
+        sinon.assert.calledWithMatch(api.execute, {
+          path: `${path}?_sort=-last_modified`
+        }, {
+          raw: true
+        });
+      });
+
+      it("should sort records", () => {
+        api.paginatedList(path, {sort: "title"});
+
+        sinon.assert.calledWithMatch(api.execute, {
+          path: `${path}?_sort=title`,
+        }, {
+          raw: true
+        });
+      });
+
+      it("should resolve with records list", () => {
+        return api.paginatedList(path)
+          .should.eventually.have.property("data").eql([{a: 1}]);
+      });
+
+      it("should resolve with a next() function", () => {
+        return api.paginatedList(path)
+          .should.eventually.have.property("next").to.be.a("function");
+      });
+
+      it("should support the since option", () => {
+        api.paginatedList(path, {since: ETag});
+
+        const qs = "_sort=-last_modified&_since=%2242%22";
+        sinon.assert.calledWithMatch(api.execute, {
+          path: `${path}?${qs}`,
+        });
+      });
+
+      it("should throw if the since option is invalid", () => {
+        expect(() => api.paginatedList(path, {since: 123}))
+        .to.Throw(Error, /Invalid value for since \(123\), should be ETag value/);
+      });
+
+      it("should resolve with the collection last_modified without quotes", () => {
+        return api.paginatedList(path)
+          .should.eventually.have.property("last_modified").eql("42");
+      });
+    });
+
+    describe("Filtering", () => {
+      beforeEach(() => {
+        sandbox.stub(api, "execute").returns(Promise.resolve({
+          json: {data: []},
+          headers: {get: () => {}}
+        }));
+      });
+
+      it("should generate the expected filtering query string", () => {
+        api.paginatedList(path, {sort: "x", filters: {min_y: 2, not_z: 3}});
+
+        const expectedQS = "min_y=2&not_z=3&_sort=x";
+        sinon.assert.calledWithMatch(api.execute, {
+          path: `${path}?${expectedQS}`
+        },
+        {raw: true});
+      });
+
+      it("shouldn't need an explicit sort parameter", () => {
+        api.paginatedList(path, {filters: {min_y: 2, not_z: 3}});
+
+        const expectedQS = "min_y=2&not_z=3&_sort=-last_modified";
+        sinon.assert.calledWithMatch(api.execute, {
+          path: `${path}?${expectedQS}`
+        }, {raw: true});
+      });
+    });
+
+    describe("Pagination", () => {
+      let headersgetSpy;
+      it("should issue a request with the specified limit applied", () => {
+        sandbox.stub(api, "execute").returns(Promise.resolve({
+          json: {data: []},
+          headers: {get: headersgetSpy}
+        }));
+
+        api.paginatedList(path, {limit: 2});
+
+        const expectedQS = "_sort=-last_modified&_limit=2";
+        sinon.assert.calledWithMatch(api.execute, {
+          path: `${path}?${expectedQS}`
+        }, {raw: true});
+      });
+
+      it("should query for next page", () => {
+        const { http } = api;
+        headersgetSpy = sandbox.stub().returns("http://next-page/");
+        sandbox.stub(api, "execute").returns(Promise.resolve({
+          json: {data: []},
+          headers: {get: headersgetSpy}
+        }));
+        sandbox.stub(http, "request").returns(Promise.resolve({
+          headers: {get: () => {}},
+          json: {data: []}
+        }));
+
+        return api.paginatedList(path, {limit: 2, pages: 2})
+          .then(_ => {
+            sinon.assert.calledWith(http.request, "http://next-page/");
+          });
+      });
+
+      it("should aggregate paginated results", () => {
+        const { http } = api;
+        sandbox.stub(http, "request")
+          // settings retrieval
+          .onFirstCall().returns(Promise.resolve({
+            json: {settings: {}}
+          }))
+          // first page
+          .onSecondCall().returns(Promise.resolve({
+            headers: {get: () => "http://next-page/"},
+            json: {data: [1, 2]}
+          }))
+          // second page
+          .onThirdCall().returns(Promise.resolve({
+            headers: {get: () => {}},
+            json: {data: [3]}
+          }));
+
+        return api.paginatedList(path, {limit: 2, pages: 2})
+          .should.eventually.have.property("data").eql([1, 2, 3]);
+      });
+    });
+  });
+
   /** @test {KintoClient#listBuckets} */
   describe("#listBuckets()", () => {
     const data = [{id: "a"}, {id: "b"}];
 
     beforeEach(() => {
-      sandbox.stub(api, "execute").returns(Promise.resolve({data}));
+      sandbox.stub(api, "paginatedList").returns(Promise.resolve({data}));
     });
 
     it("should execute expected request", () => {
-      api.listBuckets();
+      api.listBuckets({_since: "42"});
 
-      sinon.assert.calledWithMatch(api.execute, {
-        path: "/buckets",
-      });
+      sinon.assert.calledWithMatch(api.paginatedList,
+        "/buckets",
+        {_since: "42"},
+        {headers: {}});
     });
 
     it("should support passing custom headers", () => {
       api.defaultReqOptions.headers = {Foo: "Bar"};
       api.listBuckets({headers: {Baz: "Qux"}});
 
-      sinon.assert.calledWithMatch(api.execute, {
-        headers: {Foo: "Bar", Baz: "Qux"}
-      });
+      sinon.assert.calledWithMatch(api.paginatedList,
+        "/buckets",
+        {},
+        {
+          headers: {Foo: "Bar", Baz: "Qux"}
+        });
     });
 
     it("should resolve with a result object", () => {
