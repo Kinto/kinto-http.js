@@ -36,4 +36,9 @@ describe("endpoint()", () => {
     expect(endpoint("record", "foo", "bar", 42))
       .eql("/buckets/foo/collections/bar/records/42");
   });
+
+  it("should provide a permissions endpoint", () => {
+    expect(endpoint("permissions"))
+      .eql("/permissions");
+  });
 });

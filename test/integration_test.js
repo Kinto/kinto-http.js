@@ -222,6 +222,23 @@ describe("Integration tests", function() {
       });
     });
 
+    describe("#listPermissions", () => {
+      beforeEach(() => {
+        return api.batch(batch => {
+          batch.createBucket("b1");
+          batch.bucket("b1").createCollection("c1");
+        });
+      });
+
+      it("should retrieve the list of permissions", () => {
+        return api.listPermissions()
+          .then(({data}) => {
+            expect(data).to.have.length.of(2);
+            expect(data.map(p => p.id).sort()).eql(["b1", "c1"]);
+          });
+      });
+    });
+
     describe("#listBuckets", () => {
       beforeEach(() => {
         return api.batch(batch => {

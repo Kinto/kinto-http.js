@@ -6,6 +6,7 @@ import endpoint from "./endpoint";
 import * as requests from "./requests";
 import { aggregate } from "./batch";
 import Bucket from "./bucket";
+import { capable } from "./utils";
 
 
 /**
@@ -431,6 +432,21 @@ export default class KintoClientBase {
       path: path + "?" + querystring,
       ...options,
     }, {raw: true}).then(handleResponse);
+  }
+
+  /**
+   * Lists all permissions.
+   *
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
+   * @return {Promise<Object[], Error>}
+   */
+  @capable(["permissions_endpoint"])
+  listPermissions(options={}) {
+    return this.execute({
+      path: endpoint("permissions"),
+      headers: {...this.defaultReqOptions.headers, ...options.headers}
+    });
   }
 
   /**

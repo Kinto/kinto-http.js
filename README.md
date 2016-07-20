@@ -1139,6 +1139,41 @@ Sample result:
 }
 ```
 
+## Listing all resource permissions
+
+If the [`permissions_endpoint` capability](http://kinto.readthedocs.io/en/stable/api/1.x/permissions.html#list-every-permissions) available on the server, you can retrieve the list of all permissions set for the authenticated user using the `listPermissions()` method:
+
+```js
+client.listPermissions([options])
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+    "data": [
+        {
+            "bucket_id": "mybucket",
+            "id": "mybucket",
+            "permissions": [
+                "write",
+                "read",
+                "group:create",
+                "collection:create"
+            ],
+            "resource_name": "bucket",
+            "uri": "/buckets/mybucket"
+        },
+        ...
+    ]
+}
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request.
+
 ## Attachments
 
 If the [attachment](https://github.com/Kinto/kinto-attachment) capability is available from the Kinto server, you can attach files to records. Files must be passed as [data urls](http://dataurl.net/#about), which can be generated using the [FileReader API](https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL) in the browser.

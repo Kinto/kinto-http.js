@@ -696,6 +696,40 @@ describe("KintoClient", () => {
     });
   });
 
+  /** @test {KintoClient#listPermissions} */
+  describe("#listPermissions()", () => {
+    const data = [{id: "a"}, {id: "b"}];
+
+    beforeEach(() => {
+      api.serverInfo = {capabilities: {"permissions_endpoint": {}}};
+      sandbox.stub(api, "execute").returns(Promise.resolve({data}));
+    });
+
+    it("should execute expected request", () => {
+      api.listPermissions()
+        .then(() => {
+          sinon.assert.calledWithMatch(api.execute, {
+            path: "/permissions",
+          });
+        });
+    });
+
+    it("should support passing custom headers", () => {
+      api.defaultReqOptions.headers = {Foo: "Bar"};
+      api.listPermissions({headers: {Baz: "Qux"}})
+        .then(() => {
+          sinon.assert.calledWithMatch(api.execute, {
+            headers: {Foo: "Bar", Baz: "Qux"}
+          });
+        });
+    });
+
+    it("should resolve with a result object", () => {
+      return api.listPermissions()
+        .should.eventually.have.property("data").eql(data);
+    });
+  });
+
   /** @test {KintoClient#listBuckets} */
   describe("#listBuckets()", () => {
     const data = [{id: "a"}, {id: "b"}];
