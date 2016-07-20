@@ -1141,7 +1141,7 @@ Sample result:
 
 ## Listing all resource permissions
 
-If the [`permissions_endpoint` capability](http://kinto.readthedocs.io/en/stable/api/1.x/permissions.html#list-every-permissions) available on the server, you can retrieve the list of all permissions set for the authenticated user using the `listPermissions()` method:
+If the [`permissions_endpoint` capability](http://kinto.readthedocs.io/en/stable/api/1.x/permissions.html#list-every-permissions) is installed on the server, you can retrieve the list of all permissions set for the authenticated user using the `listPermissions()` method:
 
 ```js
 client.listPermissions([options])
