@@ -44,6 +44,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Deleting record](#deleting-record)
      - [Listing records](#listing-records)
      - [Batching operations](#batching-operations)
+  - [Listing all resource permissions](#listing-all-resource-permissions)
   - [Attachments](#attachments)
      - [Adding an attachment to a record](#adding-an-attachment-to-a-record)
      - [Updating an attachment](#updating-an-attachment)
@@ -1138,6 +1139,41 @@ Sample result:
   "skipped":   []  // Missing target resources on the server (HTTP 404)
 }
 ```
+
+## Listing all resource permissions
+
+If the [`permissions_endpoint` capability](http://kinto.readthedocs.io/en/stable/api/1.x/permissions.html#list-every-permissions) is installed on the server, you can retrieve the list of all permissions set for the authenticated user using the `listPermissions()` method:
+
+```js
+client.listPermissions([options])
+  .then(result => ...);
+```
+
+Sample result:
+
+```js
+{
+  "data": [
+    {
+      "bucket_id": "mybucket",
+      "id": "mybucket",
+      "permissions": [
+        "write",
+        "read",
+        "group:create",
+        "collection:create"
+      ],
+      "resource_name": "bucket",
+      "uri": "/buckets/mybucket"
+    },
+    ...
+  ]
+}
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request.
 
 ## Attachments
 
