@@ -53,6 +53,10 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Safe creations](#safe-creations)
      - [Safe updates](#safe-updates)
      - [Safe deletions](#safe-deletions)
+  - [Generic options for list operations](#generic-options-for-list-operations)
+     - [Sorting](#sorting)
+     - [Polling for changes](#polling-for-changes)
+     - [Paginating results](#paginating-results)
   - [Events](#events)
      - [The backoff event](#the-backoff-event)
      - [The deprecated event](#the-deprecated-event)
@@ -226,6 +230,9 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request
+
+This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+
 
 ### Creating a new bucket
 
@@ -488,6 +495,9 @@ Sample result:
 
 - `headers`: Custom headers object to send along the HTTP request
 
+This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+
+
 ### Deleting a collection
 
 ```js
@@ -648,6 +658,9 @@ Sample result:
 #### Options
 
 - `headers`: Custom headers object to send along the HTTP request
+
+This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+
 
 ### Getting a bucket group
 
@@ -1023,81 +1036,12 @@ Sample result:
 
 Note the root `last_modified` value which is the [collection's timestamp](http://kinto.readthedocs.io/en/stable/core/api/timestamps.html). This value is opaque and should be reused as is, eg. passing it as a `since` option (see the *Options* section below).
 
-#### Sorting
-
-By default, records are listed by `last_modified` descending order. You can set the `sort` option to order by another field:
-
-```js
-client.bucket("blog").collection("posts")
-  .listRecords({sort: "title"})
-  .then(({data, next}) => {
-```
-
-#### Polling for changes
-
-To retrieve the list of records modified since a given timestamp, use the `since` option:
-
-```js
-client.bucket("blog").collection("posts")
-  .listRecords({since: "1456183930780"})
-  .then(({data, next}) => {
-```
-
-#### Pagination
-
-By default, all records returned by the server are retrieved. To specify a max number of records to retrieve, you can use the `limit` option:
-
-```js
-client.bucket("blog").collection("posts")
-  .listRecords({limit: 20})
-  .then(({data, next}) => {
-```
-
-To retrieve the next page of records, just call `next()` from the result object obtained. If no next page is available, `next()` throws an error you can catch to exit the flow:
-
-```js
-let getNextPage;
-
-client.bucket("blog").collection("posts")
-  .listRecords({limit: 20})
-  .then(({data, next}) => {
-    console.log("Page 1", data);
-    getNextPage = next;
-  });
-```
-
-Later down the flow:
-
-```js
-getNextPage()
-  .then(({data, next}) => {
-    console.log("Page 2", data);
-  })
-  .catch(_ => {
-    console.log("No more pages.");
-  });
-```
-
-Last, if you just want to retrieve and aggregate a given number of result pages, instead of dealing with calling `next()` recursively you can simply specify the `pages` option:
-
-```js
-client.bucket("blog").collection("posts")
-  .listRecords({limit: 20, pages: 3})
-  .then(({data, next}) => ...); // A maximum of 60 records will be retrieved here
-```
-
-> ##### Notes
->
-> If you plan on fetching all the available pages, you can set the `pages` option to `Infinity`. Be aware that for large datasets this strategy can possibly issue an important amount of HTTP requests.
-
 #### Options
 
-- `sort`: The order field (default: `-last_modified`);
-- `pages`: The number of result pages to retrieve (default: `1`);
-- `limit`: The number of records to retrieve per page: unset by default, uses default server configuration;
-- `filters`: An object defining the filters to apply; read more about [what's supported](http://kinto.readthedocs.io/en/stable/core/api/resource.html#filtering);
-- `since`: The ETag header value received from the last response from the server.
 - `headers`: Custom headers object to send along the HTTP request;
+
+This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+
 
 ### Batching operations
 
@@ -1322,6 +1266,83 @@ client.bucket("blog")
     last_modified: 1456184189160
   });
 ```
+
+## Generic options for list operations
+
+Every list operations like [listBuckets()](#listing-buckets), [listCollections](#listing-bucket-collections), [listGroups()](#list-bucket-groups) or [listRecords()](#listing-records) accept parameters to sort, filter and paginate the results:
+
+- `sort`: The order field (default: `-last_modified`);
+- `pages`: The number of result pages to retrieve (default: `1`);
+- `limit`: The number of records to retrieve per page: unset by default, uses default server configuration;
+- `filters`: An object defining the filters to apply; read more about [what's supported](http://kinto.readthedocs.io/en/stable/core/api/resource.html#filtering);
+- `since`: The ETag header value received from the last response from the server.
+
+### Sorting
+
+By default, results are listed by `last_modified` descending order. You can set the `sort` option to order by another field:
+
+```js
+client.bucket("blog").collection("posts")
+  .listRecords({sort: "title"})
+  .then(({data, next}) => {
+```
+
+### Polling for changes
+
+To retrieve the results modified since a given timestamp, use the `since` option:
+
+```js
+client.bucket("blog").collection("posts")
+  .listRecords({since: "1456183930780"})
+  .then(({data, next}) => {
+```
+
+### Paginating results
+
+By default, all results of the first page are retrieved, and the default configuration of the server defines no limit. To specify a max number of results to retrieve, you can use the `limit` option:
+
+```js
+client.bucket("blog").collection("posts")
+  .listRecords({limit: 20})
+  .then(({data, next}) => {
+```
+
+To retrieve the next page of results, just call `next()` from the result object obtained. If no next page is available, `next()` throws an error you can catch to exit the flow:
+
+```js
+let getNextPage;
+
+client.bucket("blog").collection("posts")
+  .listRecords({limit: 20})
+  .then(({data, next}) => {
+    console.log("Page 1", data);
+    getNextPage = next;
+  });
+```
+
+Later down the flow:
+
+```js
+getNextPage()
+  .then(({data, next}) => {
+    console.log("Page 2", data);
+  })
+  .catch(_ => {
+    console.log("No more pages.");
+  });
+```
+
+Last, if you just want to retrieve and aggregate a given number of result pages, instead of dealing with calling `next()` recursively you can simply specify the `pages` option:
+
+```js
+client.bucket("blog").collection("posts")
+  .listRecords({limit: 20, pages: 3})
+  .then(({data, next}) => ...); // A maximum of 60 results will be retrieved here
+```
+
+> ##### Notes
+>
+> If you plan on fetching all the available pages, you can set the `pages` option to `Infinity`. Be aware that for large datasets this strategy can possibly issue an important amount of HTTP requests.
 
 
 ## Events

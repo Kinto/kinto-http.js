@@ -129,10 +129,9 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   listCollections(options={}) {
-    return this.client.execute({
-      path: endpoint("collection", this.name),
-      headers: {...this.options.headers, ...options.headers}
-    });
+    const path = endpoint("collection", this.name);
+    const reqOptions = this._bucketOptions(options);
+    return this.client.paginatedList(path, options, reqOptions);
   }
 
   /**
@@ -185,10 +184,9 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   listGroups(options={}) {
-    return this.client.execute({
-      path: endpoint("group", this.name),
-      headers: {...this.options.headers, ...options.headers}
-    });
+    const path = endpoint("group", this.name);
+    const reqOptions = this._bucketOptions(options);
+    return this.client.paginatedList(path, options, reqOptions);
   }
 
   /**
