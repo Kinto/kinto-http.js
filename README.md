@@ -44,6 +44,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Deleting record](#deleting-record)
      - [Listing records](#listing-records)
      - [Batching operations](#batching-operations)
+  - [Listing all resource permissions](#listing-all-resource-permissions)
   - [Attachments](#attachments)
      - [Adding an attachment to a record](#adding-an-attachment-to-a-record)
      - [Updating an attachment](#updating-an-attachment)
@@ -1152,21 +1153,21 @@ Sample result:
 
 ```js
 {
-    "data": [
-        {
-            "bucket_id": "mybucket",
-            "id": "mybucket",
-            "permissions": [
-                "write",
-                "read",
-                "group:create",
-                "collection:create"
-            ],
-            "resource_name": "bucket",
-            "uri": "/buckets/mybucket"
-        },
-        ...
-    ]
+  "data": [
+    {
+      "bucket_id": "mybucket",
+      "id": "mybucket",
+      "permissions": [
+        "write",
+        "read",
+        "group:create",
+        "collection:create"
+      ],
+      "resource_name": "bucket",
+      "uri": "/buckets/mybucket"
+    },
+    ...
+  ]
 }
 ```
 
