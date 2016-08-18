@@ -609,7 +609,7 @@ describe("Integration tests", function() {
         });
       });
 
-      describe.only(".listHistory()", () => {
+      describe(".listHistory()", () => {
         it("should retrieve the list of history entries", () => {
           return bucket.listHistory()
             .then(({data}) => data.map(entry => entry.target.data.id).sort())
@@ -623,8 +623,14 @@ describe("Integration tests", function() {
         });
 
         describe("Filtering", () => {
-          it("should filter entries", () => {
+          it("should filter entries by top-level attributes", () => {
             return bucket.listHistory({filters: {resource_name: "bucket"}})
+              .then(({data}) => data.map(entry => entry.target.data.id))
+              .should.become(["custom"]);
+          });
+
+          it("should filter entries by target attributes", () => {
+            return bucket.listHistory({filters: {"target.data.id": "custom"}})
               .then(({data}) => data.map(entry => entry.target.data.id))
               .should.become(["custom"]);
           });
