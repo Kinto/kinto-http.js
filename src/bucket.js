@@ -1,4 +1,4 @@
-import { toDataBody, isObject } from "./utils";
+import { toDataBody, isObject, capable } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
@@ -119,6 +119,20 @@ export default class Bucket {
     const reqOptions = {...this._bucketOptions(options)};
     const request = requests.updateRequest(path, {data: bucket, permissions}, reqOptions);
     return this.client.execute(request);
+  }
+
+  /**
+   * Retrieves the list of history entries in the current bucket.
+   *
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
+   * @return {Promise<Array<Object>, Error>}
+   */
+  @capable(["history"])
+  listHistory(options={}) {
+    const path = endpoint("history", this.name);
+    const reqOptions = this._bucketOptions(options);
+    return this.client.paginatedList(path, options, reqOptions);
   }
 
   /**

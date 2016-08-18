@@ -32,6 +32,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Getting a bucket group](#getting-a-bucket-group)
      - [Updating an existing group](#updating-an-existing-group)
      - [Deleting a group](#deleting-a-group)
+     - [Listing bucket history](#listing-bucket-history)
   - [Collections](#collections)
      - [Selecting a collection](#selecting-a-collection)
      - [Getting collection data](#getting-collection-data)
@@ -752,6 +753,54 @@ Sample result:
 - `last_modified`: The last timestamp we know the resource has been updated on the server.
 
 
+### Listing bucket history
+
+```js
+client.bucket("blog").listHistory()
+  .then(({data}) => ...);
+```
+
+Sample result:
+
+```js
+{
+  "data": [
+    {
+      "action": "update",
+      "collection_id": "articles",
+      "date": "2016-07-20T11:18:36.530281",
+      "id": "cb98ecd7-a66f-4f9d-82c5-73d06930f4f2",
+      "last_modified": 1469006316530,
+      "record_id": "b3b76c56-b6df-4195-8189-d79da4a128e1",
+      "resource_name": "record",
+      "target": {
+          "data": {
+              "id": "b3b76c56-b6df-4195-8189-d79da4a128e1",
+              "last_modified": 1469006316529,
+              "title": "Modified title"
+          },
+          "permissions": {
+              "write": [
+                  "basicauth:43181ac0ae7581a23288c25a98786ef9db86433c62a04fd6071d11653ee69089"
+              ]
+          }
+      },
+      "timestamp": 1469006098757,
+      "uri": "/buckets/blog/collections/articles/records/b3b76c56-b6df-4195-8189-d79da4a128e1",
+      "user_id": "basicauth:43181ac0ae7581a23288c25a98786ef9db86433c62a04fd6071d11653ee69089",
+    }
+  ]
+}
+
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request
+
+This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+
+
 ## Collections
 
 ### Selecting a collection
@@ -1305,7 +1354,7 @@ client.bucket("blog")
 
 ## Generic options for list operations
 
-Every list operations like [listBuckets()](#listing-buckets), [listCollections](#listing-bucket-collections), [listGroups()](#list-bucket-groups) or [listRecords()](#listing-records) accept parameters to sort, filter and paginate the results:
+Every list operations like [listBuckets()](#listing-buckets), [listCollections](#listing-bucket-collections), [listHistory](#listing-bucket-history), [listGroups()](#list-bucket-groups) or [listRecords()](#listing-records) accept parameters to sort, filter and paginate the results:
 
 - `sort`: The order field (default: `-last_modified`);
 - `pages`: The number of result pages to retrieve (default: `1`);

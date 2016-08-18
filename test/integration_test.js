@@ -609,6 +609,66 @@ describe("Integration tests", function() {
         });
       });
 
+      describe.only(".listHistory()", () => {
+        it("should retrieve the list of history entries", () => {
+          return bucket.listHistory()
+            .then(({data}) => data.map(entry => entry.target.data.id).sort())
+            .should.become(["c1", "c2", "c3", "c4", "custom", "g1", "g2", "g3", "g4"]);
+        });
+
+        it("should order entries by field", () => {
+          return bucket.listHistory({sort: "date"})
+            .then(({data}) => data.map(entry => entry.target.data.id))
+            .should.eventually.become(["custom", "c1", "c2", "c3", "c4", "g1", "g2", "g3", "g4"]);
+        });
+
+        describe("Filtering", () => {
+          it("should filter entries", () => {
+            return bucket.listHistory({filters: {resource_name: "bucket"}})
+              .then(({data}) => data.map(entry => entry.target.data.id))
+              .should.become(["custom"]);
+          });
+
+          it("should resolve with entries last_modified value", () => {
+            return bucket.listHistory()
+              .should.eventually.have.property("last_modified")
+                                .to.be.a("string");
+          });
+
+          it("should retrieve only entries after provided timestamp", () => {
+            let timestamp;
+            return bucket.listHistory()
+              .then(({last_modified}) => {
+                timestamp = last_modified;
+                return bucket.createCollection("c5");
+              })
+              .then(() => bucket.listHistory({since: timestamp}))
+              .should.eventually.have.property("data").to.have.length.of(1);
+          });
+        });
+
+        describe("Pagination", () => {
+          it("should not paginate by default", () => {
+            return bucket.listHistory()
+              .then(({data}) => data.map(entry => entry.target.data.id))
+              .should.eventually.have.length.of(9);
+          });
+
+          it("should paginate by chunks", () => {
+            return bucket.listHistory({limit: 2})
+              .then(({data}) => data.map(entry => entry.target.data.id))
+              .should.become(["g4", "g3"]);
+          });
+
+          it("should provide a next method to load next page", () => {
+            return bucket.listHistory({limit: 2})
+              .then(res => res.next())
+              .then(({data}) => data.map(entry => entry.target.data.id))
+              .should.become(["g2", "g1"]);
+          });
+        });
+      });
+
       describe(".listCollections()", () => {
         it("should retrieve the list of collections", () => {
           return bucket.listCollections()
