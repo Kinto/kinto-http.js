@@ -612,8 +612,8 @@ describe("Integration tests", function() {
       describe(".listHistory()", () => {
         it("should retrieve the list of history entries", () => {
           return bucket.listHistory()
-            .then(({data}) => data.map(entry => entry.target.data.id).sort())
-            .should.become(["c1", "c2", "c3", "c4", "custom", "g1", "g2", "g3", "g4"]);
+            .then(({data}) => data.map(entry => entry.target.data.id))
+            .should.become(["g4", "g3", "g2", "g1", "c4", "c3", "c2", "c1", "custom"]);
         });
 
         it("should order entries by field", () => {
