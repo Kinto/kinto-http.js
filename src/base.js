@@ -358,7 +358,7 @@ export default class KintoClientBase {
       // from within a batch operation.
       const msg = "This result is generated from within a batch " +
                   "operation and should not be consumed.";
-      return Promise.resolve(raw ? {json: msg} : msg);
+      return Promise.resolve(raw ? {json: msg, headers: {get(){}}} : msg);
     }
     const promise = this.fetchServerSettings()
       .then(_ => {

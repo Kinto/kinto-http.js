@@ -694,6 +694,16 @@ describe("KintoClient", () => {
           .should.eventually.have.property("data").eql([1, 2, 3]);
       });
     });
+
+    describe("Batch mode", () => {
+      it("should not attempt at consumming response headers ", () => {
+        // Emulate an ongoing batch operation
+        api._isBatch = true;
+
+        return api.paginatedList(path)
+          .should.not.be.rejected;
+      });
+    });
   });
 
   /** @test {KintoClient#listPermissions} */
