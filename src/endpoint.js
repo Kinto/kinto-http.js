@@ -11,6 +11,8 @@ const ENDPOINTS = {
     "/permissions",
   bucket: (bucket) =>
     "/buckets" + (bucket ? `/${bucket}` : ""),
+  history: (bucket) =>
+    `${ENDPOINTS.bucket(bucket)}/history`,
   collection: (bucket, coll) =>
     `${ENDPOINTS.bucket(bucket)}/collections` + (coll ? `/${coll}` : ""),
   group: (bucket, group) =>
