@@ -1399,8 +1399,10 @@ client.bucket("blog").collection("posts")
   .listRecords({limit: 20})
   .then(({data, hasNextPage, next}) => {
     if (hasNextPage) {
-      return next();
+      // resolve with data for page 2
+      return next().then(({data}) => data);
     } else {
+      // resolve with data for page 1
       return data;
     }
   });
