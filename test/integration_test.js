@@ -1424,8 +1424,7 @@ describe("Integration tests", function() {
               it("should resolve with an empty array on exhausted pagination", () => {
                 return coll.listRecords({limit: 2}) // 1st page of 2 records
                   .then(res => res.next())          // 2nd page of 1 record
-                  .then(res => res.next())          // No next page
-                  .should.be.rejectedWith(Error, /Pagination exhausted./);
+                  .should.eventually.have.property("next").to.be.a("null");
               });
 
               it("should retrieve all pages", () => {

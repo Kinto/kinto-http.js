@@ -585,9 +585,9 @@ describe("KintoClient", () => {
           .should.eventually.have.property("data").eql([{a: 1}]);
       });
 
-      it("should resolve with a next() function", () => {
+      it("should resolve with a null next property", () => {
         return api.paginatedList(path)
-          .should.eventually.have.property("next").to.be.a("function");
+          .should.eventually.have.property("next").to.be.a("null");
       });
 
       it("should support the since option", () => {

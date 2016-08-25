@@ -388,13 +388,6 @@ export default class KintoClientBase {
     });
     let results = [], current = 0;
 
-    const next = function(nextPage) {
-      if (!nextPage) {
-        throw new Error("Pagination exhausted.");
-      }
-      return processNextPage(nextPage);
-    };
-
     const processNextPage = (nextPage) => {
       const {headers} = options;
       return this.http.request(nextPage, {headers})
@@ -407,7 +400,7 @@ export default class KintoClientBase {
       return {
         last_modified: etag ? etag.replace(/"/g, "") : etag,
         data: results,
-        next: next.bind(null, nextPage)
+        next: nextPage ? processNextPage.bind(null, nextPage) : null,
       };
     };
 
