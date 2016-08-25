@@ -1392,7 +1392,7 @@ client.bucket("blog").collection("posts")
   .then(({data, next}) => {
 ```
 
-To retrieve the next page of results, just call `next()` from the result object obtained. If no next page is available, `next()` throws an error you can catch to exit the flow:
+To retrieve the next page of results, you can check for the `next` property attached to the result object obtained. If a next page is available, `next` is a function you can call to retrieve the next page of results; it becomes a `null` when pagination is exhausted:
 
 ```js
 let getNextPage;
@@ -1408,13 +1408,15 @@ client.bucket("blog").collection("posts")
 Later down the flow:
 
 ```js
-getNextPage()
-  .then(({data, next}) => {
-    console.log("Page 2", data);
-  })
-  .catch(_ => {
-    console.log("No more pages.");
-  });
+if (getNextPage) {
+  getNextPage()
+    .then(({data, next}) => {
+      console.log("Page 2", data);
+      getNextPage = next; // etc...
+    });
+} else {
+  console.log("No more pages.")
+}
 ```
 
 Last, if you just want to retrieve and aggregate a given number of result pages, instead of dealing with calling `next()` recursively you can simply specify the `pages` option:
