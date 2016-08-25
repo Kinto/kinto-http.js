@@ -1389,31 +1389,22 @@ By default, all results of the first page are retrieved, and the default configu
 ```js
 client.bucket("blog").collection("posts")
   .listRecords({limit: 20})
-  .then(({data, next}) => {
+  .then(({data, hasNextPage, next}) => {
 ```
 
-To retrieve the next page of results, just call `next()` from the result object obtained. If no next page is available, `next()` throws an error you can catch to exit the flow:
+To check if a next page of results is available, you can check for the `hasNextPage` boolean property. To actually fetch the next page of results, call the `next()` function obtained:
 
 ```js
-let getNextPage;
-
 client.bucket("blog").collection("posts")
   .listRecords({limit: 20})
-  .then(({data, next}) => {
-    console.log("Page 1", data);
-    getNextPage = next;
-  });
-```
-
-Later down the flow:
-
-```js
-getNextPage()
-  .then(({data, next}) => {
-    console.log("Page 2", data);
-  })
-  .catch(_ => {
-    console.log("No more pages.");
+  .then(({data, hasNextPage, next}) => {
+    if (hasNextPage) {
+      // resolve with data for page 2
+      return next().then(({data}) => data);
+    } else {
+      // resolve with data for page 1
+      return data;
+    }
   });
 ```
 
@@ -1422,7 +1413,7 @@ Last, if you just want to retrieve and aggregate a given number of result pages,
 ```js
 client.bucket("blog").collection("posts")
   .listRecords({limit: 20, pages: 3})
-  .then(({data, next}) => ...); // A maximum of 60 results will be retrieved here
+  .then(({data, hasNextPage, next}) => ...); // A maximum of 60 results will be retrieved here
 ```
 
 > ##### Notes

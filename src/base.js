@@ -407,7 +407,8 @@ export default class KintoClientBase {
       return {
         last_modified: etag ? etag.replace(/"/g, "") : etag,
         data: results,
-        next: next.bind(null, nextPage)
+        next: next.bind(null, nextPage),
+        hasNextPage: !!nextPage,
       };
     };
 
