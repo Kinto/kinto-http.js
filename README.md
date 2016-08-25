@@ -1392,7 +1392,7 @@ client.bucket("blog").collection("posts")
   .then(({data, next}) => {
 ```
 
-To retrieve the next page of results, you can check for the `next` property attached to the result object obtained. If a next page is available, `next` is a function you can call to retrieve the next page of results, and becomes a `null` when pagination is exhausted:
+To retrieve the next page of results, you can check for the `next` property attached to the result object obtained. If a next page is available, `next` is a function you can call to retrieve the next page of results; it becomes a `null` when pagination is exhausted:
 
 ```js
 let getNextPage;
