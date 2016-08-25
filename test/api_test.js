@@ -608,6 +608,11 @@ describe("KintoClient", () => {
         return api.paginatedList(path)
           .should.eventually.have.property("last_modified").eql("42");
       });
+
+      it("should resolve with the hasNextPage being set to false", () => {
+        return api.paginatedList(path)
+          .should.eventually.have.property("hasNextPage").eql(false);
+      });
     });
 
     describe("Filtering", () => {
@@ -692,6 +697,23 @@ describe("KintoClient", () => {
 
         return api.paginatedList(path, {limit: 2, pages: 2})
           .should.eventually.have.property("data").eql([1, 2, 3]);
+      });
+
+      it("should resolve with the hasNextPage being set to true", () => {
+        const { http } = api;
+        sandbox.stub(http, "request")
+          // settings retrieval
+          .onFirstCall().returns(Promise.resolve({
+            json: {settings: {}}
+          }))
+          // first page
+          .onSecondCall().returns(Promise.resolve({
+            headers: {get: () => "http://next-page/"},
+            json: {data: [1, 2]}
+          }));
+
+        return api.paginatedList(path)
+          .should.eventually.have.property("hasNextPage").eql(true);
       });
     });
 

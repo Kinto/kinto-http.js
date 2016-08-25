@@ -299,6 +299,11 @@ describe("Integration tests", function() {
             .should.become(["b4", "b3"]);
         });
 
+        it("should expose a hasNextPage boolean prop", () => {
+          return api.listBuckets({limit: 2})
+            .should.eventually.have.property("hasNextPage").eql(true);
+        });
+
         it("should provide a next method to load next page", () => {
           return api.listBuckets({limit: 2})
             .then(res => res.next())
