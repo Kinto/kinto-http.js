@@ -524,4 +524,15 @@ export default class KintoClientBase {
     const path = endpoint("bucket");
     return this.execute(requests.deleteRequest(path, reqOptions));
   }
+
+  /**
+   * Retrieves a server enpoint by its name.
+   *
+   * @param  {String}    name The endpoint name.
+   * @param  {...string} args The endpoint parameters.
+   * @return {String}
+   */
+  static endpoint() {
+    return endpoint.apply(undefined, arguments);
+  }
 }
