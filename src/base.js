@@ -305,6 +305,7 @@ export default class KintoClientBase {
    * @param  {Object}   [options={}]              The options object.
    * @param  {Boolean}  [options.safe]            The safe option.
    * @param  {String}   [options.bucket]          The bucket name option.
+   * @param  {String}   [options.collection]      The collection name option.
    * @param  {Object}   [options.headers]         The headers object option.
    * @param  {Boolean}  [options.aggregate=false] Produces an aggregated result object.
    * @return {Promise<Object, Error>}
