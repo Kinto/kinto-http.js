@@ -89,7 +89,8 @@ export function qsify(obj) {
   return Object.keys(stripped).map((k) => {
     const ks = encode(k) + "=";
     if (Array.isArray(stripped[k])) {
-      return stripped[k].map((v) => ks + encode(v)).join(sep);
+      const arraySep = ","; 
+      return ks + stripped[k].map((v) => encode(v)).join(arraySep); 
     } else {
       return ks + encode(stripped[k]);
     }
