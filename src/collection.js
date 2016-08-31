@@ -75,6 +75,23 @@ export default class Collection {
   }
 
   /**
+   * Retrieves the total number of record sin this collection.
+   *
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
+   * @return {Promise<Number, Error>} [description]
+   */
+  getTotalRecords(options={}) {
+    const { headers } = this._collOptions(options);
+    return this.client.execute({
+      method: "HEAD",
+      path: endpoint("record", this.bucket.name, this.name),
+      headers
+    }, {raw: true})
+      .then(({headers}) => parseInt(headers.get("Total-Records"), 10));
+  }
+
+  /**
    * Retrieves collection data.
    *
    * @param  {Object} [options={}]      The options object.

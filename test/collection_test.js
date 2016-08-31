@@ -34,6 +34,28 @@ describe("Collection", () => {
     return new Bucket(client, "blog").collection("posts", options);
   }
 
+  /** @test {Collection#getTotalRecords} */
+  describe("#getTotalRecords()", () => {
+    it("should execute expected request", () => {
+      sandbox.stub(client, "execute").returns(Promise.resolve());
+
+      getBlogPostsCollection().getTotalRecords();
+
+      sinon.assert.calledWithMatch(client.execute, {
+        method: "HEAD",
+        path: "/buckets/blog/collections/posts/records",
+      }, {raw: true});
+    });
+
+    it("should resolve with the Total-Records header value", () => {
+      sandbox.stub(client, "execute")
+        .returns(Promise.resolve({headers: {get() {return 42;}}}));
+
+      return getBlogPostsCollection().getTotalRecords()
+        .should.become(42);
+    });
+  });
+
   /** @test {Collection#getData} */
   describe("#getData()", () => {
     it("should execute expected request", () => {

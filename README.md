@@ -1067,6 +1067,7 @@ Sample result:
 {
   last_modified: "1456183930780",
   next: <Function>,
+  totalRecords: 2,
   data: [
     {
       "content": "True.",
@@ -1084,7 +1085,11 @@ Sample result:
 }
 ```
 
-Note the root `last_modified` value which is the [collection's timestamp](http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html). This value is opaque and should be reused as is, eg. passing it as a `since` option (see the *Options* section below).
+> #### Notes
+>
+>- The root `last_modified` value, which is the [collection's timestamp](http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html). This value is opaque and should be reused as is, eg. passing it as a `since` option (see the *Options* section below).
+>- The `next` function, which helps [paginating results](#paginating-results).
+>- The `totalRecords` property, which holds the total number of records in the entire collection. This number can alternatively be retrieved using the `getTotalRecords()` collection method.
 
 #### Options
 
