@@ -82,18 +82,17 @@ export function toDataBody(resource) {
  * @return {String}
  */
 export function qsify(obj) {
-  const sep = "&";
   const encode = (v) => encodeURIComponent(typeof v === "boolean" ? String(v) : v);
   const stripUndefined = (o) => JSON.parse(JSON.stringify(o));
   const stripped = stripUndefined(obj);
   return Object.keys(stripped).map((k) => {
     const ks = encode(k) + "=";
     if (Array.isArray(stripped[k])) {
-      return stripped[k].map((v) => ks + encode(v)).join(sep);
+      return ks + stripped[k].map((v) => encode(v)).join(","); 
     } else {
       return ks + encode(stripped[k]);
     }
-  }).join(sep);
+  }).join("&");
 }
 
 /**
