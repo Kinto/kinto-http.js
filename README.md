@@ -1085,15 +1085,16 @@ Sample result:
 }
 ```
 
-> #### Notes
->
->- The root `last_modified` value, which is the [collection's timestamp](http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html). This value is opaque and should be reused as is, eg. passing it as a `since` option (see the *Options* section below).
->- The `next` function, which helps [paginating results](#paginating-results).
->- The `totalRecords` property, which holds the total number of records in the entire collection. This number can alternatively be retrieved using the `getTotalRecords()` collection method.
+The result object exposes the following properties:
+
+- `last_modified`: the [collection's timestamp](http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html). This value is opaque and should be reused as is, eg. passing it as a `since` option (see [Generic bucket and collection options](#generic-bucket-and-collection-options)).
+- `next`: the [pagination](#paginating-results) helper to access the next page of results, if any.
+- `totalRecords`: the total number of records in the **entire collection**. This number can alternatively be retrieved using the `getTotalRecords()` method of the collection API.
+- `data`: the list of records.
 
 #### Options
 
-- `headers`: Custom headers object to send along the HTTP request;
+- `headers`: Custom headers object to send along the HTTP request.
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 

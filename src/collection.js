@@ -79,7 +79,7 @@ export default class Collection {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
-   * @return {Promise<Number, Error>} [description]
+   * @return {Promise<Number, Error>}
    */
   getTotalRecords(options={}) {
     const { headers } = this._collOptions(options);
