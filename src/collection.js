@@ -75,7 +75,7 @@ export default class Collection {
   }
 
   /**
-   * Retrieves the total number of record sin this collection.
+   * Retrieves the total number of records in this collection.
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
