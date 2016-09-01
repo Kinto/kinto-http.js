@@ -402,7 +402,7 @@ export default class KintoClientBase {
         .then(handleResponse);
     };
 
-    const pageResults = (results, nextPage, etag) => {
+    const pageResults = (results, nextPage, etag, totalRecords) => {
       // ETag string is supposed to be opaque and stored «as-is».
       // ETag header values are quoted (because of * and W/"foo").
       return {
@@ -410,21 +410,24 @@ export default class KintoClientBase {
         data: results,
         next: next.bind(null, nextPage),
         hasNextPage: !!nextPage,
+        totalRecords,
       };
     };
 
     const handleResponse = ({headers, json}) => {
       const nextPage = headers.get("Next-Page");
       const etag = headers.get("ETag");
+      const totalRecords = parseInt(headers.get("Total-Records"), 10);
+
       if (!pages) {
-        return pageResults(json.data, nextPage, etag);
+        return pageResults(json.data, nextPage, etag, totalRecords);
       }
       // Aggregate new results with previous ones
       results = results.concat(json.data);
       current += 1;
       if (current >= pages || !nextPage) {
         // Pagination exhausted
-        return pageResults(results, nextPage, etag);
+        return pageResults(results, nextPage, etag, totalRecords);
       }
       // Follow next page
       return processNextPage(nextPage);

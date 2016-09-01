@@ -1061,6 +1061,22 @@ describe("Integration tests", function() {
             return collPromise().then(_coll => coll = _coll);
           });
 
+          describe(".getTotalRecords()", () => {
+            it("should retrieve the initial total number of records", () => {
+              return coll.getTotalRecords()
+                .should.become(0);
+            });
+
+            it("should retrieve the updated total number of records", () => {
+              return coll.batch(batch => {
+                batch.createRecord({a: 1});
+                batch.createRecord({a: 2});
+              })
+                .then(() => coll.getTotalRecords())
+                .should.become(2);
+            });
+          });
+
           describe(".getPermissions()", () => {
             it("should retrieve permissions", () => {
               return coll.getPermissions()
@@ -1335,6 +1351,13 @@ describe("Integration tests", function() {
                 .then(_ => coll.listRecords())
                 .then(({data}) => data.map(record => record.title))
                 .should.become(["foo"]);
+            });
+
+            it("should expose the total number of records", () => {
+              return  coll.createRecord({a: 1})
+                .then(() => coll.createRecord({a: 2}))
+                .then(() => coll.listRecords())
+                .should.eventually.have.property("totalRecords").eql(2);
             });
 
             it("should order records by field", () => {
