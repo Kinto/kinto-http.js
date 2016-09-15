@@ -26,7 +26,7 @@ export function aggregate(responses=[], requests=[]) {
       const extracts = request.path.match(/(buckets|groups|collections|records)\/([^\/]+)$/);
       const id = extracts.length === 3 ? extracts[2] : undefined;
       acc.skipped.push({
-        data: {id},
+        id,
         path: request.path,
         error: response.body
       });

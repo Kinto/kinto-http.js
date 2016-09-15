@@ -80,7 +80,7 @@ describe("batch module", () => {
       expect(aggregate(responses, _requests))
         .to.have.property("skipped")
         .eql(responses.map(r => ({
-          data: {id: "123"},
+          id: "123",
           path: "records/123",
           error: r.body
         })));
@@ -164,7 +164,7 @@ describe("batch module", () => {
       it("should list skips", () => {
         expect(results.skipped).eql([
           {
-            data: {id: "123"},
+            id: "123",
             path: "collections/abc/records/123",
             error: responses[2].body
           }
