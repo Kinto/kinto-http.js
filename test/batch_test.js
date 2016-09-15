@@ -28,12 +28,12 @@ describe("batch module", () => {
 
     it("should expose HTTP 500 errors in the errors list", () => {
       const _requests = [
-        requests.createRequest("foo", {data: {id: 1}}),
-        requests.createRequest("foo", {data: {id: 2}}),
+        requests.createRequest("foo1", {data: {id: 1}}),
+        requests.createRequest("foo2", {data: {id: 2}}),
       ];
       const responses = [
-        {status: 500, path: "path1", body: {err: 1}},
-        {status: 503, path: "path2", body: {err: 2}},
+        {status: 500, body: {err: 1}},
+        {status: 503, body: {err: 2}},
       ];
 
       expect(aggregate(responses, _requests))
@@ -41,12 +41,12 @@ describe("batch module", () => {
         .eql([
           {
             error: {err: 1},
-            path: "path1",
+            path: "foo1",
             sent: _requests[0],
           },
           {
             error: {err: 2},
-            path: "path2",
+            path: "foo2",
             sent: _requests[1],
           },
         ]);
@@ -69,23 +69,27 @@ describe("batch module", () => {
 
     it("should expose HTTP 404 responses in the skipped list", () => {
       const _requests = [
-        requests.createRequest("foo", {data: {id: 1}}),
-        requests.createRequest("foo", {data: {id: 2}}),
+        requests.createRequest("records/123", {data: {id: 1}}),
+        requests.createRequest("records/123", {data: {id: 2}}),
       ];
       const responses = [
-        {status: 404, body: _requests[0]},
-        {status: 404, body: _requests[1]},
+        {status: 404, body: {errno: 110, code: 404, error: "Not found"}},
+        {status: 404, body: {errno: 110, code: 404, error: "Not found"}},
       ];
 
       expect(aggregate(responses, _requests))
         .to.have.property("skipped")
-        .eql(responses.map(r => r.body));
+        .eql(responses.map(r => {return {
+          id: "123",
+          path: "records/123",
+          error: r.body};
+        }));
     });
 
     it("should expose HTTP 412 responses in the conflicts list", () => {
       const _requests = [
-        requests.createRequest("foo", {data: {id: 1}}),
-        requests.createRequest("foo", {data: {id: 2}}),
+        requests.createRequest("records/123", {data: {id: 1}}),
+        requests.createRequest("records/123", {data: {id: 2}}),
       ];
       const responses = [
         {status: 412, body: {details: {existing: {remote: true}}}},
@@ -109,19 +113,19 @@ describe("batch module", () => {
     });
 
     describe("Heterogeneous combinations", () => {
-      let _requests, results;
+      let _requests, responses, results;
 
       beforeEach(() => {
         _requests = [
-          requests.createRequest("foo", {data: {id: 1}}),
-          requests.createRequest("foo", {data: {id: 2}}),
-          requests.createRequest("foo", {data: {id: 3}}),
-          requests.createRequest("foo", {data: {id: 4, a: 1}}),
+          requests.createRequest("records/123", {data: {id: 1}}),
+          requests.createRequest("records/123", {data: {id: 2}}),
+          requests.createRequest("records/123", {data: {id: 3}}),
+          requests.createRequest("records/123", {data: {id: 4, a: 1}}),
         ];
-        const responses = [
+        responses = [
           {status: 500, path: "path1", body: {err: 1}},
           {status: 200, body: {data: {foo: "bar"}}},
-          {status: 404, body: {data: {missing: true}}},
+          {status: 404, body: {errno: 110, code: 404, error: "Not found"}},
           {status: 412, body: {details: {existing: {remote: true}}}},
         ];
 
@@ -132,7 +136,7 @@ describe("batch module", () => {
         expect(results.errors).eql([
           {
             error: {err: 1},
-            path: "path1",
+            path: "records/123",
             sent: _requests[0],
           }
         ]);
@@ -160,7 +164,9 @@ describe("batch module", () => {
       it("should list skips", () => {
         expect(results.skipped).eql([
           {
-            data: {missing: true}
+            id: "123",
+            path: "records/123",
+            error: responses[2].body
           }
         ]);
       });

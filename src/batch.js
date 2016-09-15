@@ -18,22 +18,29 @@ export function aggregate(responses=[], requests=[]) {
   };
   return responses.reduce((acc, response, index) => {
     const {status} = response;
+    const request = requests[index];
     if (status >= 200 && status < 400) {
       acc.published.push(response.body);
     } else if (status === 404) {
-      acc.skipped.push(response.body);
+      const extracts = request.path.match(/(buckets|groups|collections|records)\/(.+)$/);
+      const id = extracts.length === 3 ? extracts[2] : undefined;
+      acc.skipped.push({
+        id,
+        path: request.path,
+        error: response.body
+      });
     } else if (status === 412) {
       acc.conflicts.push({
         // XXX: specifying the type is probably superfluous
         type: "outgoing",
-        local: requests[index].body,
+        local: request.body,
         remote: response.body.details &&
                 response.body.details.existing || null
       });
     } else {
       acc.errors.push({
-        path: response.path,
-        sent: requests[index],
+        path: request.path,
+        sent: request,
         error: response.body
       });
     }
