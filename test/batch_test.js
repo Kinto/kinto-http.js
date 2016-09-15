@@ -79,11 +79,11 @@ describe("batch module", () => {
 
       expect(aggregate(responses, _requests))
         .to.have.property("skipped")
-        .eql(responses.map(r => {return {
-          id: "123",
+        .eql(responses.map(r => ({
+          data: {id: "123"},
           path: "records/123",
-          error: r.body};
-        }));
+          error: r.body
+        })));
     });
 
     it("should expose HTTP 412 responses in the conflicts list", () => {
@@ -164,7 +164,7 @@ describe("batch module", () => {
       it("should list skips", () => {
         expect(results.skipped).eql([
           {
-            id: "123",
+            data: {id: "123"},
             path: "records/123",
             error: responses[2].body
           }
