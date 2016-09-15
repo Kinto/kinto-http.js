@@ -117,10 +117,10 @@ describe("batch module", () => {
 
       beforeEach(() => {
         _requests = [
-          requests.createRequest("records/123", {data: {id: 1}}),
-          requests.createRequest("records/123", {data: {id: 2}}),
-          requests.createRequest("records/123", {data: {id: 3}}),
-          requests.createRequest("records/123", {data: {id: 4, a: 1}}),
+          requests.createRequest("collections/abc/records/123", {data: {id: 1}}),
+          requests.createRequest("collections/abc/records/123", {data: {id: 2}}),
+          requests.createRequest("collections/abc/records/123", {data: {id: 3}}),
+          requests.createRequest("collections/abc/records/123", {data: {id: 4, a: 1}}),
         ];
         responses = [
           {status: 500, path: "path1", body: {err: 1}},
@@ -136,7 +136,7 @@ describe("batch module", () => {
         expect(results.errors).eql([
           {
             error: {err: 1},
-            path: "records/123",
+            path: "collections/abc/records/123",
             sent: _requests[0],
           }
         ]);
@@ -165,7 +165,7 @@ describe("batch module", () => {
         expect(results.skipped).eql([
           {
             data: {id: "123"},
-            path: "records/123",
+            path: "collections/abc/records/123",
             error: responses[2].body
           }
         ]);

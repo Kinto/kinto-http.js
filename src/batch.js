@@ -23,7 +23,7 @@ export function aggregate(responses=[], requests=[]) {
       acc.published.push(response.body);
     } else if (status === 404) {
       // Extract the id manually from request path while waiting for Kinto/kinto#818
-      const extracts = request.path.match(/(buckets|groups|collections|records)\/(.+)$/);
+      const extracts = request.path.match(/(buckets|groups|collections|records)\/([^\/]+)$/);
       const id = extracts.length === 3 ? extracts[2] : undefined;
       acc.skipped.push({
         data: {id},
