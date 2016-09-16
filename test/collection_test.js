@@ -54,6 +54,18 @@ describe("Collection", () => {
       return getBlogPostsCollection().getTotalRecords()
         .should.become(42);
     });
+
+    it("should pass the since parameter", () => {
+      sandbox.stub(client, "execute").returns(Promise.resolve());
+
+      getBlogPostsCollection().getTotalRecords("ETAG");
+
+      sinon.assert.calledWithMatch(client.execute, {
+        method: "HEAD",
+        path: "/buckets/blog/collections/posts/records?since=ETAG",
+      }, {raw: true});
+    });
+
   });
 
   /** @test {Collection#getData} */

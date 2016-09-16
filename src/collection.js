@@ -77,15 +77,20 @@ export default class Collection {
   /**
    * Retrieves the total number of records in this collection.
    *
+   * @param  {String} [since]           The since ETag param (optional).
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Number, Error>}
    */
-  getTotalRecords(options={}) {
+  getTotalRecords(since, options={}) {
     const { headers } = this._collOptions(options);
+    let path = endpoint("record", this.bucket.name, this.name);
+    if(since){
+      path += "?since="+since;
+    }
     return this.client.execute({
       method: "HEAD",
-      path: endpoint("record", this.bucket.name, this.name),
+      path: path,
       headers
     }, {raw: true})
       .then(({headers}) => parseInt(headers.get("Total-Records"), 10));
