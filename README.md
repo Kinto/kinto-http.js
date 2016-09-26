@@ -10,6 +10,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
 ## Table of Contents
 
   - [Installation](#installation)
+  - [Changelog](#changelog)
   - [Usage](#usage)
   - [Authentication](#authentication)
      - [Using Basic Auth](#using-basic-auth)
@@ -63,6 +64,8 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [The backoff event](#the-backoff-event)
      - [The deprecated event](#the-deprecated-event)
      - [The retry-after event](#the-retry-after-event)
+  - [Upgrading](#upgrading)
+     - [From 1.x to 2.x](#from-1-x-to-2-x)
 
 ---
 
@@ -101,6 +104,11 @@ Note that this HTTP client can be transparently used server side or in a regular
 ```js
 const client = new KintoClient("http://");
 ```
+
+## Changelog
+
+See [upgrading docs](#upgrading) and the full [detailed changelog on Github](https://github.com/Kinto/kinto-http.js/releases).
+
 
 ## Usage
 
@@ -1480,3 +1488,10 @@ client.events.on("retry-after", function(releaseTime) {
 
 > #### Note:
 > Eventually, we would like to automate the retry behaviour for requests. See https://github.com/Kinto/kinto-http.js/issues/34
+
+
+## Upgrading
+
+### From 1.x to 2.x
+
+* `collection.listRecords()` now strips the quotes (`"`) from the `last_modified` attribute in result object (#110).
