@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 
-import { capable, toDataBody, isObject } from "./utils";
+import { capable, toDataBody, isObject, qsify } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -83,14 +83,15 @@ export default class Collection {
    * @return {Promise<Number, Error>}
    */
   getTotalRecords(options={}) {
-    const { headers } = this._collOptions(options);
+    const { since, ...otherOptions } = options;
+    const { headers } = this._collOptions(otherOptions);
     let path = endpoint("record", this.bucket.name, this.name);
-    if(options.since){
-      path += "?since="+options.since;
+    if (since) {
+      path += "?" + qsify({since});
     }
     return this.client.execute({
       method: "HEAD",
-      path: path,
+      path,
       headers
     }, {raw: true})
       .then(({headers}) => parseInt(headers.get("Total-Records"), 10));
