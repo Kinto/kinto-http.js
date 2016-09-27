@@ -58,7 +58,7 @@ describe("Collection", () => {
     it("should pass the since parameter", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve());
 
-      getBlogPostsCollection().getTotalRecords("ETAG");
+      getBlogPostsCollection().getTotalRecords({since: "ETAG"});
 
       sinon.assert.calledWithMatch(client.execute, {
         method: "HEAD",
