@@ -1305,6 +1305,15 @@ describe("Integration tests", function() {
                   .have.property("filename").eql("untitled");
               });
 
+              it("should allow to specify safe in options", () => {
+                return coll
+                  .addAttachment(dataURL, undefined, {safe: true})
+                  .should.eventually
+                  .to.have.property("data")
+                  .to.have.property("attachment")
+                  .to.have.property("size").eql(4);
+              });
+
               it("should allow to specify a filename in options", () => {
                 return coll
                   .addAttachment(dataURL, undefined, {filename: "MYFILE.DAT"})

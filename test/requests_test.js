@@ -148,9 +148,10 @@ describe("requests module", () => {
         .to.have.property("headers").eql({Foo: "Bar"});
     });
 
-    it("should raise for safe with no last_modified passed", () => {
-      expect(() => requests.addAttachmentRequest("/foo", dataURL, {}, {safe: true}))
-        .to.Throw(Error, /requires a last_modified/);
+    it("should support a safe with no last_modified passed", () => {
+      expect(requests.addAttachmentRequest("/foo", dataURL, {}, {safe: true}))
+        .to.have.property("headers")
+        .to.have.property("If-None-Match").eql("*");
     });
 
     it("should support a safe option with a last_modified option", () => {
