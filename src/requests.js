@@ -95,9 +95,6 @@ export function deleteRequest(path, options={}) {
 export function addAttachmentRequest(path, dataURI, {data, permissions}={}, options={}) {
   const {headers, safe} = {...requestDefaults, ...options};
   const {last_modified} = {...data, ...options };
-  if (safe && !last_modified) {
-    throw new Error("Safe concurrency check requires a last_modified value.");
-  }
 
   const body = {data, permissions};
   const formData = createFormData(dataURI, body, options);
