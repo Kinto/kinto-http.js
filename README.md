@@ -64,6 +64,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [The backoff event](#the-backoff-event)
      - [The deprecated event](#the-deprecated-event)
      - [The retry-after event](#the-retry-after-event)
+  - [Browser compatibility](#browser-compatibility)
   - [Upgrading](#upgrading)
      - [From 1.x to 2.x](#from-1-x-to-2-x)
 
@@ -1489,6 +1490,8 @@ client.events.on("retry-after", function(releaseTime) {
 > #### Note:
 > Eventually, we would like to automate the retry behaviour for requests. See https://github.com/Kinto/kinto-http.js/issues/34
 
+## Browser Compatibility
+This uses javascript [`Promise`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise#Browser_compatibility) and [`Object.assign()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#Browser_compatibility) which are not supported on Internet Explorer. Please add polyfills for these to get full functionality on IE.
 
 ## Upgrading
 
