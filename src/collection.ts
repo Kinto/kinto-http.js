@@ -3,6 +3,9 @@ import { v4 as uuid } from "uuid";
 import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
+import KintoClient from "./index"
+import Bucket from "./bucket"
+import { KintoRequestOptions, KintoPermissions, KintoRecord } from "./interfaces"
 
 
 /**
@@ -10,6 +13,14 @@ import endpoint from "./endpoint";
  *
  */
 export default class Collection {
+  private _isBatch  : boolean;
+  public  client    : KintoClient;
+  public  bucket    : Bucket;
+  public  name      : string;
+  public  options   : KintoRequestOptions;
+
+
+
   /**
    * Constructor.
    *
@@ -20,7 +31,7 @@ export default class Collection {
    * @param  {Object}       [options.headers] The headers object option.
    * @param  {Boolean}      [options.safe]    The safe option.
    */
-  constructor(client, bucket, name, options={}) {
+  constructor(client: KintoClient, bucket: Bucket, name: string, options: KintoRequestOptions={}) {
     /**
      * @ignore
      */
@@ -32,7 +43,7 @@ export default class Collection {
     /**
      * The collection name.
      * @type {String}
-     */
+     */  
     this.name = name;
 
     /**
@@ -62,7 +73,7 @@ export default class Collection {
    * @param  {Object} [options={}] The options to merge.
    * @return {Object}              The merged options.
    */
-  _collOptions(options={}) {
+  _collOptions(options: KintoRequestOptions={}) {
     const headers = {
       ...this.options && this.options.headers,
       ...options.headers
@@ -81,7 +92,7 @@ export default class Collection {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Number, Error>}
    */
-  getTotalRecords(options={}) {
+  getTotalRecords(options: KintoRequestOptions={}) {
     const { headers } = this._collOptions(options);
     return this.client.execute({
       method: "HEAD",
@@ -98,7 +109,7 @@ export default class Collection {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getData(options={}) {
+  getData(options: KintoRequestOptions={}) {
     const { headers } = this._collOptions(options);
     return this.client.execute({
       path: endpoint("collection", this.bucket.name, this.name),
@@ -117,7 +128,7 @@ export default class Collection {
    * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  setData(data, options={}) {
+  setData(data, options: KintoRequestOptions={}) {
     if (!isObject(data)) {
       throw new Error("A collection object is required.");
     }
@@ -136,7 +147,7 @@ export default class Collection {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getPermissions(options={}) {
+  getPermissions(options: KintoRequestOptions={}) {
     const { headers } = this._collOptions(options);
     return this.client.execute({
       path: endpoint("collection", this.bucket.name, this.name),
@@ -155,7 +166,7 @@ export default class Collection {
    * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  setPermissions(permissions, options={}) {
+  setPermissions(permissions: KintoPermissions, options: KintoRequestOptions={}) {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -176,7 +187,7 @@ export default class Collection {
    * @param  {Object}  [options.permissions] The permissions option.
    * @return {Promise<Object, Error>}
    */
-  createRecord(record, options={}) {
+  createRecord(record: KintoRecord, options: KintoRequestOptions={}) {
     const reqOptions = this._collOptions(options);
     const { permissions } = reqOptions;
     const path = endpoint("record", this.bucket.name, this.name, record.id);
@@ -198,7 +209,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   @capable(["attachments"])
-  addAttachment(dataURI, record={}, options={}) {
+  addAttachment(dataURI, record: KintoRecord={}, options: KintoRequestOptions={}) {
     const reqOptions = this._collOptions(options);
     const {permissions} = reqOptions;
     const id = record.id || uuid.v4();
@@ -221,7 +232,7 @@ export default class Collection {
    * @param  {Number}  [options.last_modified] The last_modified option.
    */
   @capable(["attachments"])
-  removeAttachment(recordId, options={}) {
+  removeAttachment(recordId, options: KintoRequestOptions={}) {
     const reqOptions = this._collOptions(options);
     const path = endpoint("attachment", this.bucket.name, this.name, recordId);
     const request = requests.deleteRequest(path, reqOptions);
@@ -239,7 +250,7 @@ export default class Collection {
    * @param  {Object}  [options.permissions]   The permissions option.
    * @return {Promise<Object, Error>}
    */
-  updateRecord(record, options={}) {
+  updateRecord(record: KintoRecord, options: KintoRequestOptions={}) {
     if (!isObject(record)) {
       throw new Error("A record object is required.");
     }
@@ -263,7 +274,7 @@ export default class Collection {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  deleteRecord(record, options={}) {
+  deleteRecord(record: KintoRecord, options: KintoRequestOptions={}) {
     const recordObj = toDataBody(record);
     if (!recordObj.id) {
       throw new Error("A record id is required.");
@@ -283,7 +294,7 @@ export default class Collection {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getRecord(id, options={}) {
+  getRecord(id: string, options: KintoRequestOptions={}) {
     return this.client.execute({
       path: endpoint("record", this.bucket.name, this.name, id),
       ...this._collOptions(options),
@@ -322,7 +333,7 @@ export default class Collection {
    * @param  {Number}   [options.since=null]            Only retrieve records modified since the provided timestamp.
    * @return {Promise<Object, Error>}
    */
-  listRecords(options={}) {
+  listRecords(options: KintoRequestOptions={}) {
     const path = endpoint("record", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
     return this.client.paginatedList(path, options, reqOptions);
@@ -338,7 +349,7 @@ export default class Collection {
    * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
-  batch(fn, options={}) {
+  batch(fn, options: KintoRequestOptions={}) {
     const reqOptions = this._collOptions(options);
     return this.client.batch(fn, {
       ...reqOptions,

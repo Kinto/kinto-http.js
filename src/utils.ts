@@ -1,3 +1,5 @@
+import {KintoRecord} from "./interfaces"
+
 /**
  * Chunks an array into n pieces.
  *
@@ -6,7 +8,7 @@
  * @param  {Number} n
  * @return {Array}
  */
-export function partition(array, n) {
+export function partition(array: any[], n: number): any[] {
   if (n <= 0) {
     return array;
   }
@@ -30,7 +32,7 @@ export function partition(array, n) {
  * @param  {Function} fn   The mapping function.
  * @return {Promise}
  */
-export function pMap(list, fn) {
+export function pMap(list: any[], fn: (x:any) => any): Promise<any[]> {
   let results = [];
   return list.reduce((promise, entry) => {
     return promise.then(() => {
@@ -48,7 +50,7 @@ export function pMap(list, fn) {
  * @param  {...String} keys The keys to omit.
  * @return {Object}
  */
-export function omit(obj, ...keys) {
+export function omit(obj: Object, ...keys: string[]): Object {
   return Object.keys(obj).reduce((acc, key) => {
     if (keys.indexOf(key) === -1) {
       acc[key] = obj[key];
@@ -64,9 +66,9 @@ export function omit(obj, ...keys) {
  * @param  {Object|String} resource
  * @return {Object}
  */
-export function toDataBody(resource) {
+export function toDataBody(resource: Object|string): KintoRecord {
   if (isObject(resource)) {
-    return resource;
+    return resource as KintoRecord;
   }
   if (typeof resource === "string") {
     return {id: resource};
@@ -81,7 +83,7 @@ export function toDataBody(resource) {
  * @param  {Object} obj
  * @return {String}
  */
-export function qsify(obj) {
+export function qsify(obj: Object): string {
   const encode = (v) => encodeURIComponent(typeof v === "boolean" ? String(v) : v);
   const stripUndefined = (o) => JSON.parse(JSON.stringify(o));
   const stripped = stripUndefined(obj);
@@ -103,7 +105,7 @@ export function qsify(obj) {
  * @param  {String} maxVersion The minimum supported version (exclusive).
  * @throws {Error} If the version is outside of the provided range.
  */
-export function checkVersion(version, minVersion, maxVersion) {
+export function checkVersion(version: string, minVersion: string, maxVersion:string): void {
   const extract = (str) => str.split(".").map(x => parseInt(x, 10));
   const [verMajor, verMinor] = extract(version);
   const [minMajor, minMinor] = extract(minVersion);
@@ -128,7 +130,7 @@ export function checkVersion(version, minVersion, maxVersion) {
  * @param  {String} max The required max version (inclusive).
  * @return {Function}
  */
-export function support(min, max) {
+export function support(min: string, max: string) {
   return function(target, key, descriptor) {
     const fn = descriptor.value;
     return {
@@ -159,7 +161,7 @@ export function support(min, max) {
  * @param  {Array<String>} capabilities The required capabilities.
  * @return {Function}
  */
-export function capable(capabilities) {
+export function capable(capabilities: string[]) {
   return function(target, key, descriptor) {
     const fn = descriptor.value;
     return {
@@ -196,7 +198,7 @@ export function capable(capabilities) {
  * @param  {String} message The error message to throw.
  * @return {Function}
  */
-export function nobatch(message) {
+export function nobatch(message: string) {
   return function(target, key, descriptor) {
     const fn = descriptor.value;
     return {
@@ -225,7 +227,7 @@ export function nobatch(message) {
  * @param  {Object} thing The value to inspect.
  * @return {bool}
  */
-export function isObject(thing) {
+export function isObject(thing: Object) {
   return typeof thing === "object" && thing !== null && !Array.isArray(thing);
 }
 
@@ -234,7 +236,7 @@ export function isObject(thing) {
  * @param  {String} dataURL The data url.
  * @return {Object}
  */
-export function parseDataURL(dataURL) {
+export function parseDataURL(dataURL: string) {
   const regex = /^data:(.*);base64,(.*)/;
   const match = dataURL.match(regex);
   if (!match) {
@@ -255,8 +257,8 @@ export function parseDataURL(dataURL) {
  * @param  {String} dataURL The data url.
  * @return {Object}
  */
-export function extractFileInfo(dataURL) {
-  const {name, type, base64} = parseDataURL(dataURL);
+export function extractFileInfo(dataURL: string) {
+  const {name, type, base64} = parseDataURL(dataURL) as any;
   const binary = atob(base64);
   const array = [];
   for(let i = 0; i < binary.length; i++) {
@@ -275,8 +277,8 @@ export function extractFileInfo(dataURL) {
  * @param  {Object} [options.filename] Force attachment file name.
  * @return {FormData}
  */
-export function createFormData(dataURL, body, options={}) {
-  const {filename="untitled"} = options;
+export function createFormData(dataURL: string, body: Object, options={}) {
+  const {filename="untitled"} = options as any;
   const {blob, name} = extractFileInfo(dataURL);
   const formData = new FormData();
   formData.append("attachment", blob, name || filename);

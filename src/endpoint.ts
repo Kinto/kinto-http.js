@@ -31,6 +31,6 @@ const ENDPOINTS = {
  * @param  {...string} args The endpoint parameters.
  * @return {String}
  */
-export default function endpoint(name, ...args) {
+export default function endpoint(name: string, ...args): string {
   return ENDPOINTS[name](...args);
 }

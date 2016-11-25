@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "outDir": "./built",
+        "allowJs": true,
+        "allowUnreachableCode": true,
+        "allowUnusedLabels": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+        "lib":["dom","es6","dom","es7","scripthost"],
+        "module": "commonjs",
+        "target": "ESNext",
+        "noFallthroughCasesInSwitch": false,
+        "noImplicitAny": false,
+        "noImplicitReturns": false,
+        "noImplicitThis": false,
+        "preserveConstEnums": true,
+        "removeComments": false,
+        "sourceMap": true,
+        "strictNullChecks": false
+    },
+    "include": [
+        "./src/**/*"
+    ]
+}

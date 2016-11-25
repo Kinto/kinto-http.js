@@ -2,13 +2,18 @@ import { toDataBody, isObject, capable } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
-
+import KintoClient from "./index"
+import { KintoRequestOptions, KintoPermissions } from "./interfaces"
 
 /**
  * Abstract representation of a selected bucket.
  *
  */
 export default class Bucket {
+  private _isBatch  : boolean;
+  public  client    : KintoClient;
+  public  name      : string;
+  public  options   : KintoRequestOptions;
   /**
    * Constructor.
    *
@@ -18,7 +23,7 @@ export default class Bucket {
    * @param  {Object}      [options.headers] The headers object option.
    * @param  {Boolean}     [options.safe]    The safe option.
    */
-  constructor(client, name, options={}) {
+  constructor(client, name, options: KintoRequestOptions={}) {
     /**
      * @ignore
      */
@@ -47,7 +52,7 @@ export default class Bucket {
    * @param  {Object} [options={}] The options to merge.
    * @return {Object}              The merged options.
    */
-  _bucketOptions(options={}) {
+  _bucketOptions(options: KintoRequestOptions={}): KintoRequestOptions {
     const headers = {
       ...this.options && this.options.headers,
       ...options.headers
@@ -70,7 +75,7 @@ export default class Bucket {
    * @param  {Boolean} [options.safe]    The safe option.
    * @return {Collection}
    */
-  collection(name, options={}) {
+  collection(name: string, options: KintoRequestOptions={}) {
     return new Collection(this.client, this, name, this._bucketOptions(options));
   }
 
@@ -82,7 +87,7 @@ export default class Bucket {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getData(options={}) {
+  getData(options: KintoRequestOptions={}) {
     return this.client.execute({
       path: endpoint("bucket", this.name),
       headers: {...this.options.headers, ...options.headers}
@@ -100,7 +105,7 @@ export default class Bucket {
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  setData(data, options={}) {
+  setData(data: Object, options: KintoRequestOptions={}) {
     if (!isObject(data)) {
       throw new Error("A bucket object is required.");
     }
@@ -129,7 +134,7 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   @capable(["history"])
-  listHistory(options={}) {
+  listHistory(options: KintoRequestOptions={}) {
     const path = endpoint("history", this.name);
     const reqOptions = this._bucketOptions(options);
     return this.client.paginatedList(path, options, reqOptions);
@@ -142,7 +147,7 @@ export default class Bucket {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Array<Object>, Error>}
    */
-  listCollections(options={}) {
+  listCollections(options: KintoRequestOptions={}) {
     const path = endpoint("collection", this.name);
     const reqOptions = this._bucketOptions(options);
     return this.client.paginatedList(path, options, reqOptions);
@@ -159,7 +164,7 @@ export default class Bucket {
    * @param  {Object}  [options.data]        The data object.
    * @return {Promise<Object, Error>}
    */
-  createCollection(id, options={}) {
+  createCollection(id: string, options: KintoRequestOptions={}) {
     const reqOptions = this._bucketOptions(options);
     const { permissions, data={} } = reqOptions;
     data.id = id;
@@ -178,7 +183,7 @@ export default class Bucket {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  deleteCollection(collection, options={}) {
+  deleteCollection(collection: Object|string, options: KintoRequestOptions={}) {
     const collectionObj = toDataBody(collection);
     if (!collectionObj.id) {
       throw new Error("A collection id is required.");
@@ -197,7 +202,7 @@ export default class Bucket {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Array<Object>, Error>}
    */
-  listGroups(options={}) {
+  listGroups(options: KintoRequestOptions={}) {
     const path = endpoint("group", this.name);
     const reqOptions = this._bucketOptions(options);
     return this.client.paginatedList(path, options, reqOptions);
@@ -211,7 +216,7 @@ export default class Bucket {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getGroup(id, options={}) {
+  getGroup(id: string, options: KintoRequestOptions={}) {
     return this.client.execute({
       path: endpoint("group", this.name, id),
       headers: {...this.options.headers, ...options.headers}
@@ -230,7 +235,7 @@ export default class Bucket {
    * @param  {Object}            [options.headers]     The headers object option.
    * @return {Promise<Object, Error>}
    */
-  createGroup(id, members=[], options={}) {
+  createGroup(id:string, members:string[]=[], options: KintoRequestOptions={}) {
     const reqOptions = this._bucketOptions(options);
     const data = {
       ...options.data,
@@ -255,7 +260,7 @@ export default class Bucket {
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  updateGroup(group, options={}) {
+  updateGroup(group, options: KintoRequestOptions={}) {
     if (!isObject(group)) {
       throw new Error("A group object is required.");
     }
@@ -283,7 +288,7 @@ export default class Bucket {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  deleteGroup(group, options={}) {
+  deleteGroup(group, options: KintoRequestOptions={}) {
     const groupObj = toDataBody(group);
     const {id, last_modified} = groupObj;
     const reqOptions = this._bucketOptions({last_modified, ...options});
@@ -299,7 +304,7 @@ export default class Bucket {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getPermissions(options={}) {
+  getPermissions(options: KintoRequestOptions={}) {
     return this.client.execute({
       path: endpoint("bucket", this.name),
       headers: {...this.options.headers, ...options.headers}
@@ -317,7 +322,7 @@ export default class Bucket {
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  setPermissions(permissions, options={}) {
+  setPermissions(permissions: KintoPermissions, options: KintoRequestOptions={}) {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -339,7 +344,7 @@ export default class Bucket {
    * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
-  batch(fn, options={}) {
+  batch(fn, options: KintoRequestOptions={}) {
     return this.client.batch(fn, this._bucketOptions(options));
   }
 }

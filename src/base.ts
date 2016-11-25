@@ -7,8 +7,9 @@ import * as requests from "./requests";
 import { aggregate } from "./batch";
 import Bucket from "./bucket";
 import { capable } from "./utils";
-
-
+import { KintoClientOptions, KintoListOptions, KintoRequestOptions, KintoRecord, 
+  KintoServerInformation } from "./interfaces";
+import { EventEmitter } from "events";
 /**
  * Currently supported protocol version.
  * @type {String}
@@ -27,6 +28,17 @@ export const SUPPORTED_PROTOCOL_VERSION = "v1";
  *   .catch(console.error.bind(console));
  */
 export default class KintoClientBase {
+  private _backoffReleaseTime : number;
+  private _options            : KintoClientOptions;
+  private _requests           : any[];
+  private _isBatch            : boolean;
+  private _remote             : string;
+  private _version            : string;
+  public  defaultReqOptions   : KintoRequestOptions ;
+  public  serverInfo          : KintoServerInformation;
+  public  events              : EventEmitter;
+  public  http                : HTTP;
+
   /**
    * Constructor.
    *
@@ -36,10 +48,10 @@ export default class KintoClientBase {
    * @param  {EventEmitter} [options.events=EventEmitter] The events handler instance.
    * @param  {Object}       [options.headers={}]          The key-value headers to pass to each request.
    * @param  {String}       [options.bucket="default"]    The default bucket to use.
-   * @param  {String}       [options.requestMode="cors"]  The HTTP request mode (from ES6 fetch spec).
+   * @param  {String}       [options.requestMode="cors"]  TheKintoRequestOptions HTTP request mode (from ES6 fetch spec).
    * @param  {Number}       [options.timeout=5000]        The requests timeout in ms.
    */
-  constructor(remote, options={}) {
+  constructor(remote, options: KintoClientOptions={}) {
     if (typeof(remote) !== "string" || !remote.length) {
       throw new Error("Invalid remote URL: " + remote);
     }
@@ -182,7 +194,7 @@ export default class KintoClientBase {
    * @property {Object}  [options.headers] The extended headers object option.
    * @return   {Object}
    */
-  _getRequestOptions(options={}) {
+  _getRequestOptions(options: KintoRequestOptions={}): KintoRequestOptions {
     return {
       ...this.defaultReqOptions,
       ...options,
@@ -202,7 +214,7 @@ export default class KintoClientBase {
    * @param  {Object}  [options={}] The request options.
    * @return {Promise<Object, Error>}
    */
-  fetchServerInfo(options={}) {
+  fetchServerInfo(options: KintoRequestOptions={}) {
     if (this.serverInfo) {
       return Promise.resolve(this.serverInfo);
     }
@@ -222,7 +234,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchServerSettings(options={}) {
+  fetchServerSettings(options: KintoRequestOptions={}) {
     return this.fetchServerInfo(options).then(({settings}) => settings);
   }
 
@@ -233,7 +245,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchServerCapabilities(options={}) {
+  fetchServerCapabilities(options: KintoRequestOptions={}) {
     return this.fetchServerInfo(options).then(({capabilities}) => capabilities);
   }
 
@@ -244,7 +256,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchUser(options={}) {
+  fetchUser(options: KintoRequestOptions={}) {
     return this.fetchServerInfo(options).then(({user}) => user);
   }
 
@@ -255,7 +267,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchHTTPApiVersion(options={}) {
+  fetchHTTPApiVersion(options: KintoRequestOptions={}) {
     return this.fetchServerInfo(options).then(({http_api_version}) => {
       return http_api_version;
     });
@@ -269,7 +281,7 @@ export default class KintoClientBase {
    * @param  {Object} [options={}] The options object.
    * @return {Promise<Object, Error>}
    */
-  _batchRequests(requests, options={}) {
+  _batchRequests(requests, options: KintoRequestOptions={}) {
     const headers = {...this.defaultReqOptions.headers, ...options.headers};
     if (!requests.length) {
       return Promise.resolve([]);
@@ -290,8 +302,8 @@ export default class KintoClientBase {
             requests: requests
           }
         })
-          // we only care about the responses
-          .then(({responses}) => responses);
+        // we only care about the responses
+        .then(({responses}) => responses);
       });
   }
 
@@ -311,7 +323,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("Can't use batch within a batch!")
-  batch(fn, options={}) {
+  batch(fn, options: KintoRequestOptions={}) {
     const rootBatch = new KintoClientBase(this.remote, {
       ...this._options,
       ...this._getRequestOptions(options),
@@ -350,7 +362,7 @@ export default class KintoClientBase {
    * JSON.
    * @return {Promise<Object, Error>}
    */
-  execute(request, options={raw: false, stringify: true}) {
+  execute(request, options:{raw?:boolean, stringify?:boolean}={raw: false, stringify: true}): Promise<any> {
     const {raw, stringify} = options;
     // If we're within a batch, add the request to the stack to send at once.
     if (this._isBatch) {
@@ -366,16 +378,16 @@ export default class KintoClientBase {
         return this.http.request(this.remote + request.path, {
           ...request,
           body: stringify ? JSON.stringify(request.body) : request.body,
-        });
+        }) as any;
       });
     return raw ? promise : promise.then(({json}) => json);
   }
 
-  paginatedList(path, params, options={}) {
+  paginatedList(path: string, params: KintoListOptions, options: KintoRequestOptions={}) {
     const { sort, filters, limit, pages, since } = {
       sort: "-last_modified",
       ...params
-    };
+    } as KintoListOptions;
     // Safety/Consistency check on ETag value.
     if (since && typeof(since) !== "string") {
       throw new Error(`Invalid value for since (${since}), should be ETag value.`);
@@ -447,7 +459,7 @@ export default class KintoClientBase {
    * @return {Promise<Object[], Error>}
    */
   @capable(["permissions_endpoint"])
-  listPermissions(options={}) {
+  listPermissions(options: KintoRequestOptions={}) {
     return this.execute({
       path: endpoint("permissions"),
       headers: {...this.defaultReqOptions.headers, ...options.headers}
@@ -461,7 +473,7 @@ export default class KintoClientBase {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object[], Error>}
    */
-  listBuckets(options={}) {
+  listBuckets(options: KintoRequestOptions={}) {
     const path = endpoint("bucket");
     const reqOptions = this._getRequestOptions(options);
     return this.paginatedList(path, options, reqOptions);
@@ -477,14 +489,14 @@ export default class KintoClientBase {
    * @param  {Object}   [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  createBucket(id, options={}) {
+  createBucket(id: string, options: KintoRequestOptions={}) {
     if (!id) {
       throw new Error("A bucket id is required.");
     }
     // Note that we simply ignore any "bucket" option passed here, as the one
     // we're interested in is the one provided as a required argument.
     const reqOptions = this._getRequestOptions(options);
-    const { data={}, permissions } = reqOptions;
+    const { data={} as KintoRecord, permissions } = reqOptions;
     data.id = id;
     const path = endpoint("bucket", id);
     return this.execute(requests.createRequest(path, { data, permissions }, reqOptions));
@@ -501,13 +513,13 @@ export default class KintoClientBase {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  deleteBucket(bucket, options={}) {
+  deleteBucket(bucket: Object|string, options: KintoRequestOptions={}) {
     const bucketObj = toDataBody(bucket);
     if (!bucketObj.id) {
       throw new Error("A bucket id is required.");
     }
     const path = endpoint("bucket", bucketObj.id);
-    const { last_modified } = { bucketObj };
+    const { last_modified } = { ...bucketObj } as KintoRecord;
     const reqOptions = this._getRequestOptions({ last_modified, ...options });
     return this.execute(requests.deleteRequest(path, reqOptions));
   }
@@ -523,7 +535,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @support("1.4", "2.0")
-  deleteBuckets(options={}) {
+  deleteBuckets(options: KintoRequestOptions={}) {
     const reqOptions = this._getRequestOptions(options);
     const path = endpoint("bucket");
     return this.execute(requests.deleteRequest(path, reqOptions));

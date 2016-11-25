@@ -1,4 +1,5 @@
 import { omit, createFormData } from "./utils";
+import { KintoRequestOptions, KintoRecord, KintoPermissions } from "./interfaces"
 
 
 const requestDefaults = {
@@ -13,7 +14,7 @@ const requestDefaults = {
 /**
  * @private
  */
-function safeHeader(safe, last_modified) {
+function safeHeader(safe: boolean, last_modified: number = undefined): Object {
   if (!safe) {
     return {};
   }
@@ -26,11 +27,11 @@ function safeHeader(safe, last_modified) {
 /**
  * @private
  */
-export function createRequest(path, {data, permissions}, options={}) {
+export function createRequest(path: string, {data, permissions}:{data?: KintoRecord,permissions?: KintoPermissions}, options: KintoRequestOptions={}) {
   const { headers, safe } = {
     ...requestDefaults,
     ...options,
-  };
+  } as KintoRequestOptions;
   return {
     method: data && data.id ? "PUT" : "POST",
     path,
@@ -45,13 +46,13 @@ export function createRequest(path, {data, permissions}, options={}) {
 /**
  * @private
  */
-export function updateRequest(path, {data, permissions}, options={}) {
+export function updateRequest(path: string, {data, permissions}:{data?: KintoRecord,permissions?: KintoPermissions}, options: KintoRequestOptions={}) {
   const {
     headers,
     safe,
     patch,
-  } = {...requestDefaults, ...options};
-  const { last_modified } = { ...data, ...options };
+  } = {...requestDefaults, ...options} as KintoRequestOptions;
+  const { last_modified } = { ...data, ...options } as any;
 
   if (Object.keys(omit(data, "id", "last_modified")).length === 0) {
     data = undefined;
@@ -74,11 +75,11 @@ export function updateRequest(path, {data, permissions}, options={}) {
 /**
  * @private
  */
-export function deleteRequest(path, options={}) {
+export function deleteRequest(path: string, options: KintoRequestOptions={}) {
   const {headers, safe, last_modified} = {
     ...requestDefaults,
     ...options
-  };
+  } as KintoRequestOptions;
   if (safe && !last_modified) {
     throw new Error("Safe concurrency check requires a last_modified value.");
   }
@@ -92,9 +93,9 @@ export function deleteRequest(path, options={}) {
 /**
  * @private
  */
-export function addAttachmentRequest(path, dataURI, {data, permissions}={}, options={}) {
-  const {headers, safe} = {...requestDefaults, ...options};
-  const {last_modified} = {...data, ...options };
+export function addAttachmentRequest(path: string, dataURI, {data, permissions}:{data?: KintoRecord,permissions?: KintoPermissions}={}, options: KintoRequestOptions={}) {
+  const {headers, safe} = {...requestDefaults, ...options} as KintoRequestOptions;
+  const {last_modified} = {...data, ...options } as KintoRequestOptions;
 
   const body = {data, permissions};
   const formData = createFormData(dataURI, body, options);

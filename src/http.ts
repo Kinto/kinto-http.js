@@ -1,12 +1,19 @@
 "use strict";
 
 import ERROR_CODES from "./errors";
+import { EventEmitter } from "events";
+import { KintoHTTPOptions } from "./interfaces"
 
 /**
  * Enhanced HTTP client for the Kinto protocol.
  * @private
  */
 export default class HTTP {
+  events?: EventEmitter;
+  requestMode?: string;
+  timeout?: number;
+  body?;
+
   /**
    * Default HTTP request headers applied to each outgoing request.
    *
@@ -36,7 +43,7 @@ export default class HTTP {
    * @param {Number}       [options.timeout=5000]       The request timeout in ms (default: `5000`).
    * @param {String}       [options.requestMode="cors"] The HTTP request mode (default: `"cors"`).
    */
-  constructor(events, options={}) {
+  constructor(events: EventEmitter, options: KintoHTTPOptions={}) {
     // public properties
     /**
      * The event emitter instance.
@@ -74,7 +81,7 @@ export default class HTTP {
    * @param  {Object} [options.headers] The request headers object (default: {})
    * @return {Promise}
    */
-  request(url, options={headers:{}}) {
+  request(url: string, options: KintoHTTPOptions ={headers:{}}) {
     let response, status, statusText, headers, hasTimedout;
     // Ensure default request headers are always set
     options.headers = {...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers};
@@ -89,7 +96,7 @@ export default class HTTP {
         hasTimedout = true;
         reject(new Error("Request timeout."));
       }, this.timeout);
-      fetch(url, options) .then(res => {
+      fetch(url, options as RequestInit).then(res => {
         if (!hasTimedout) {
           clearTimeout(_timeoutId);
           resolve(res);
@@ -103,13 +110,13 @@ export default class HTTP {
     })
       .then(res => {
         response = res;
-        headers = res.headers;
-        status = res.status;
-        statusText = res.statusText;
+        headers = (res as any).headers;
+        status = (res as any).status;
+        statusText = (res as any).statusText;
         this._checkForDeprecationHeader(headers);
         this._checkForBackoffHeader(status, headers);
         this._checkForRetryAfterHeader(status, headers);
-        return res.text();
+        return (res as any).text();
       })
       // Check if we have a body; if so parse it as JSON.
       .then(text => {
@@ -120,7 +127,7 @@ export default class HTTP {
         return JSON.parse(text);
       })
       .catch(err => {
-        const error = new Error(`HTTP ${status || 0}; ${err}`);
+        const error = new Error(`HTTP ${status || 0}; ${err}`) as any;
         error.response = response;
         error.stack = err.stack;
         throw error;
@@ -137,7 +144,7 @@ export default class HTTP {
           } else {
             message += statusText || "";
           }
-          const error = new Error(message.trim());
+          const error = new Error(message.trim()) as any;
           error.response = response;
           error.data = json;
           throw error;

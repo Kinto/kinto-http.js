@@ -1,4 +1,5 @@
 /.venv
+/built
 /dist
 /lib
 /npm-debug.log

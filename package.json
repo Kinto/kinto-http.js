@@ -38,6 +38,8 @@
   },
   "homepage": "https://github.com/Kinto/kinto-http.js#readme",
   "dependencies": {
+    "@types/uuid": "^2.0.29",
+    "@types/whatwg-fetch": "0.0.32",
     "isomorphic-fetch": "^2.2.1",
     "uuid": "^2.0.1"
   },
