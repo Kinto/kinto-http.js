@@ -195,6 +195,7 @@ export default class Collection {
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @param  {Object}  [options.permissions]   The permissions option.
    * @param  {String}  [options.filename]      Force the attachment filename.
+   * @param  {String}  [options.gzipped]       Force the attachment to be gzipped or not.
    * @return {Promise<Object, Error>}
    */
   @capable(["attachments"])
