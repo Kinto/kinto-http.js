@@ -282,7 +282,7 @@ describe("HTTP class", () => {
 
         beforeEach(() => {
           fetch = sandbox.stub(global, "fetch");
-        })
+        });
 
         it("should retry the request once by default", () => {
           const success = {success: true};
