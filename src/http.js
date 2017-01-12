@@ -72,9 +72,10 @@ export default class HTTP {
    * @param  {String} url               The URL.
    * @param  {Object} [options={}]      The fetch() options object.
    * @param  {Object} [options.headers] The request headers object (default: {})
+   * @param  {Object} [options.retry]   Number of retries (default: 1)
    * @return {Promise}
    */
-  request(url, options={headers:{}}) {
+  request(url, options={headers:{}, retry: 1}) {
     let response, status, statusText, headers, hasTimedout;
     // Ensure default request headers are always set
     options.headers = {...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers};
@@ -108,41 +109,52 @@ export default class HTTP {
         statusText = res.statusText;
         this._checkForDeprecationHeader(headers);
         this._checkForBackoffHeader(status, headers);
-        this._checkForRetryAfterHeader(status, headers);
-        return res.text();
-      })
-      // Check if we have a body; if so parse it as JSON.
-      .then(text => {
-        if (text.length === 0) {
-          return null;
+
+        // Check if the server summons the client to retry after a while.
+        const retryAfter = this._checkForRetryAfterHeader(status, headers);
+        // If number of allowed of retries is not exhausted, retry the same request.
+        if (retryAfter && options.retry > 0) {
+          return new Promise((resolve, reject) => {
+            setTimeout(() => {
+              resolve(this.request(url, {...options, retry: options.retry - 1}));
+            }, retryAfter);
+          });
         }
-        // Note: we can't consume the response body twice.
-        return JSON.parse(text);
-      })
-      .catch(err => {
-        const error = new Error(`HTTP ${status || 0}; ${err}`);
-        error.response = response;
-        error.stack = err.stack;
-        throw error;
-      })
-      .then(json => {
-        if (json && status >= 400) {
-          let message = `HTTP ${status} ${json.error||""}: `;
-          if (json.errno && json.errno in ERROR_CODES) {
-            const errnoMsg = ERROR_CODES[json.errno];
-            message += errnoMsg;
-            if (json.message && json.message !== errnoMsg) {
-              message += ` (${json.message})`;
+
+        return Promise.resolve(res.text())
+          // Check if we have a body; if so parse it as JSON.
+          .then(text => {
+            if (text.length === 0) {
+              return null;
             }
-          } else {
-            message += statusText || "";
-          }
-          const error = new Error(message.trim());
-          error.response = response;
-          error.data = json;
-          throw error;
-        }
-        return {status, json, headers};
+            // Note: we can't consume the response body twice.
+            return JSON.parse(text);
+          })
+          .catch(err => {
+            const error = new Error(`HTTP ${status || 0}; ${err}`);
+            error.response = response;
+            error.stack = err.stack;
+            throw error;
+          })
+          .then(json => {
+            if (json && status >= 400) {
+              let message = `HTTP ${status} ${json.error||""}: `;
+              if (json.errno && json.errno in ERROR_CODES) {
+                const errnoMsg = ERROR_CODES[json.errno];
+                message += errnoMsg;
+                if (json.message && json.message !== errnoMsg) {
+                  message += ` (${json.message})`;
+                }
+              } else {
+                message += statusText || "";
+              }
+              const error = new Error(message.trim());
+              error.response = response;
+              error.data = json;
+              throw error;
+            }
+            return {status, json, headers};
+          });
       });
   }
 
@@ -178,7 +190,9 @@ export default class HTTP {
     if (!retryAfter) {
       return;
     }
-    retryAfter = (new Date().getTime()) + (parseInt(retryAfter, 10) * 1000);
+    const delay = parseInt(retryAfter, 10) * 1000;
+    retryAfter = (new Date().getTime()) + delay;
     this.events.emit("retry-after", retryAfter);
+    return delay;
   }
 }
