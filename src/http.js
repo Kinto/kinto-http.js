@@ -86,10 +86,12 @@ export default class HTTP {
     }
     options.mode = this.requestMode;
     return new Promise((resolve, reject) => {
+      // Detect if a request has timed out.
       const _timeoutId = setTimeout(() => {
         hasTimedout = true;
         reject(new Error("Request timeout."));
       }, this.timeout);
+
       fetch(url, options).then(res => {
         if (!hasTimedout) {
           clearTimeout(_timeoutId);

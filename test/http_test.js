@@ -282,6 +282,10 @@ describe("HTTP class", () => {
 
         beforeEach(() => {
           fetch = sandbox.stub(global, "fetch");
+          // Avoid actually waiting real time for retries in test suites.
+          // We can't use Sinon fakeTimers since we can't tick the fake
+          // clock at the right moment (just after request failure).
+          sandbox.stub(global, "setTimeout", (fn, time) => setImmediate(fn));
         });
 
         it("should not retry the request by default", () => {
@@ -297,7 +301,7 @@ describe("HTTP class", () => {
           return http.request("/", {retry: 1})
             .then(res => res.json)
             .should.eventually.become(success);
-        }).timeout(1100);
+        });
 
         it("should error when retries are exhausted", () => {
           fetch.onCall(0).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
@@ -305,7 +309,7 @@ describe("HTTP class", () => {
           fetch.onCall(2).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
           return http.request("/", {retry: 2})
             .should.eventually.be.rejectedWith(Error, /Error: HTTP 503/);
-        }).timeout(2100);
+        });
       });
     });
   });
