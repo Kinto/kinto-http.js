@@ -137,7 +137,7 @@ describe("KintoClient", () => {
     });
 
     it("should propagate default req options to bucket instance", () => {
-      const options = {safe: true, headers: {Foo: "Bar"}, batch: false};
+      const options = {safe: true, retry: 0, headers: {Foo: "Bar"}, batch: false};
 
       expect(api.bucket("foo", options))
         .to.have.property("options").eql(options);

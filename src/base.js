@@ -56,6 +56,7 @@ export default class KintoClientBase {
     this.defaultReqOptions = {
       bucket:  options.bucket  || "default",
       headers: options.headers || {},
+      retry:   options.retry || 0,
       safe:    !!options.safe,
     };
 
@@ -206,9 +207,8 @@ export default class KintoClientBase {
     if (this.serverInfo) {
       return Promise.resolve(this.serverInfo);
     }
-    return this.http.request(this.remote + endpoint("root"), {
-      headers: {...this.defaultReqOptions.headers, ...options.headers}
-    })
+    const reqOptions = this._getRequestOptions(options);
+    return this.http.request(this.remote + endpoint("root"), reqOptions)
       .then(({json}) => {
         this.serverInfo = json;
         return this.serverInfo;
@@ -270,7 +270,8 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   _batchRequests(requests, options={}) {
-    const headers = {...this.defaultReqOptions.headers, ...options.headers};
+    const reqOptions = this._getRequestOptions(options);
+    const {headers} = reqOptions;
     if (!requests.length) {
       return Promise.resolve([]);
     }
@@ -282,9 +283,9 @@ export default class KintoClientBase {
           return pMap(chunks, chunk => this._batchRequests(chunk, options));
         }
         return this.execute({
+          ...reqOptions,
           path: endpoint("batch"),
           method: "POST",
-          headers: headers,
           body: {
             defaults: {headers},
             requests: requests
@@ -448,9 +449,10 @@ export default class KintoClientBase {
    */
   @capable(["permissions_endpoint"])
   listPermissions(options={}) {
+    const reqOptions = this._getRequestOptions(options);
     return this.execute({
       path: endpoint("permissions"),
-      headers: {...this.defaultReqOptions.headers, ...options.headers}
+      ...reqOptions
     });
   }
 

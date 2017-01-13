@@ -83,11 +83,10 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   getData(options={}) {
-    return this.client.execute({
-      path: endpoint("bucket", this.name),
-      headers: {...this.options.headers, ...options.headers}
-    })
-    .then((res) => res.data);
+    const reqOptions = {...this._bucketOptions(options)};
+    const request = {...reqOptions, path: endpoint("bucket", this.name)};
+    return this.client.execute(request)
+      .then((res) => res.data);
   }
 
   /**
@@ -212,10 +211,9 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   getGroup(id, options={}) {
-    return this.client.execute({
-      path: endpoint("group", this.name, id),
-      headers: {...this.options.headers, ...options.headers}
-    });
+    const reqOptions = {...this._bucketOptions(options)};
+    const request = {...reqOptions, path: endpoint("group", this.name, id)};
+    return this.client.execute(request);
   }
 
   /**
@@ -300,11 +298,10 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   getPermissions(options={}) {
-    return this.client.execute({
-      path: endpoint("bucket", this.name),
-      headers: {...this.options.headers, ...options.headers}
-    })
-    .then((res) => res.permissions);
+    const reqOptions = this._bucketOptions(options);
+    const request = {...reqOptions, path: endpoint("bucket", this.name)};
+    return this.client.execute(request)
+      .then((res) => res.permissions);
   }
 
   /**
