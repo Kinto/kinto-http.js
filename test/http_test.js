@@ -284,11 +284,17 @@ describe("HTTP class", () => {
           fetch = sandbox.stub(global, "fetch");
         });
 
-        it("should retry the request once by default", () => {
+        it("should not retry the request by default", () => {
+          fetch.returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
+          return http.request("/")
+            .should.eventually.be.rejectedWith(Error, /Error: HTTP 503/);
+        });
+
+        it("should retry the request if specified", () => {
           const success = {success: true};
           fetch.onCall(0).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
           fetch.onCall(1).returns(fakeServerResponse(200, success));
-          return http.request("/")
+          return http.request("/", {retry: 1})
             .then(res => res.json)
             .should.eventually.become(success);
         }).timeout(1100);

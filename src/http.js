@@ -90,7 +90,7 @@ export default class HTTP {
         hasTimedout = true;
         reject(new Error("Request timeout."));
       }, this.timeout);
-      fetch(url, options) .then(res => {
+      fetch(url, options).then(res => {
         if (!hasTimedout) {
           clearTimeout(_timeoutId);
           resolve(res);
