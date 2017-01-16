@@ -72,10 +72,10 @@ export default class HTTP {
    * @param  {String} url               The URL.
    * @param  {Object} [options={}]      The fetch() options object.
    * @param  {Object} [options.headers] The request headers object (default: {})
-   * @param  {Object} [options.retry]   Number of retries (default: 1)
+   * @param  {Object} [options.retry]   Number of retries (default: 0)
    * @return {Promise}
    */
-  request(url, options={headers:{}, retry: 1}) {
+  request(url, options={headers:{}, retry: 0}) {
     let response, status, statusText, headers, hasTimedout;
     // Ensure default request headers are always set
     options.headers = {...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers};
