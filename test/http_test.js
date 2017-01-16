@@ -259,19 +259,56 @@ describe("HTTP class", () => {
     });
 
     describe("Retry-After header handling", () => {
-      beforeEach(() => {
-        // Make Date#getTime always returning 1000000, for predictability
-        sandbox.stub(Date.prototype, "getTime").returns(1000 * 1000);
-        sandbox.stub(events, "emit");
+      describe("Event", () => {
+        beforeEach(() => {
+          // Make Date#getTime always returning 1000000, for predictability
+          sandbox.stub(Date.prototype, "getTime").returns(1000 * 1000);
+          sandbox.stub(events, "emit");
+        });
+
+        it("should emit a retry-after event when Retry-After is set", () => {
+          sandbox.stub(global, "fetch").returns(
+            fakeServerResponse(200, {}, {"Retry-After": "1000"}));
+
+          return http.request("/", {retry: 0}).then(_ => {
+            expect(events.emit.lastCall.args[0]).eql("retry-after");
+            expect(events.emit.lastCall.args[1]).eql(2000000);
+          });
+        });
       });
 
-      it("should emit a retry-after event when Retry-After is set", () => {
-        sandbox.stub(global, "fetch").returns(
-          fakeServerResponse(200, {}, {"Retry-After": "1000"}));
+      describe("Retry loop", () => {
+        let fetch;
 
-        return http.request("/").then(_ => {
-          expect(events.emit.lastCall.args[0]).eql("retry-after");
-          expect(events.emit.lastCall.args[1]).eql(2000000);
+        beforeEach(() => {
+          fetch = sandbox.stub(global, "fetch");
+          // Avoid actually waiting real time for retries in test suites.
+          // We can't use Sinon fakeTimers since we can't tick the fake
+          // clock at the right moment (just after request failure).
+          sandbox.stub(global, "setTimeout", (fn, time) => setImmediate(fn));
+        });
+
+        it("should not retry the request by default", () => {
+          fetch.returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
+          return http.request("/")
+            .should.eventually.be.rejectedWith(Error, /Error: HTTP 503/);
+        });
+
+        it("should retry the request if specified", () => {
+          const success = {success: true};
+          fetch.onCall(0).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
+          fetch.onCall(1).returns(fakeServerResponse(200, success));
+          return http.request("/", {retry: 1})
+            .then(res => res.json)
+            .should.eventually.become(success);
+        });
+
+        it("should error when retries are exhausted", () => {
+          fetch.onCall(0).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
+          fetch.onCall(1).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
+          fetch.onCall(2).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
+          return http.request("/", {retry: 2})
+            .should.eventually.be.rejectedWith(Error, /Error: HTTP 503/);
         });
       });
     });

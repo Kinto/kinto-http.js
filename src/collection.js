@@ -82,12 +82,10 @@ export default class Collection {
    * @return {Promise<Number, Error>}
    */
   getTotalRecords(options={}) {
-    const { headers } = this._collOptions(options);
-    return this.client.execute({
-      method: "HEAD",
-      path: endpoint("record", this.bucket.name, this.name),
-      headers
-    }, {raw: true})
+    const path = endpoint("record", this.bucket.name, this.name);
+    const reqOptions = this._collOptions(options);
+    const request = {...reqOptions, path, method: "HEAD"};
+    return this.client.execute(request, {raw: true})
       .then(({headers}) => parseInt(headers.get("Total-Records"), 10));
   }
 
@@ -99,11 +97,10 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   getData(options={}) {
-    const { headers } = this._collOptions(options);
-    return this.client.execute({
-      path: endpoint("collection", this.bucket.name, this.name),
-      headers
-    })
+    const reqOptions = this._collOptions(options);
+    const path = endpoint("collection", this.bucket.name, this.name);
+    const request = {...reqOptions, path};
+    return this.client.execute(request)
     .then(res => res.data);
   }
 
@@ -137,12 +134,11 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   getPermissions(options={}) {
-    const { headers } = this._collOptions(options);
-    return this.client.execute({
-      path: endpoint("collection", this.bucket.name, this.name),
-      headers
-    })
-    .then(res => res.permissions);
+    const path = endpoint("collection", this.bucket.name, this.name);
+    const reqOptions = this._collOptions(options);
+    const request = {...reqOptions, path};
+    return this.client.execute(request)
+      .then(res => res.permissions);
   }
 
   /**
@@ -285,10 +281,10 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   getRecord(id, options={}) {
-    return this.client.execute({
-      path: endpoint("record", this.bucket.name, this.name, id),
-      ...this._collOptions(options),
-    });
+    const path = endpoint("record", this.bucket.name, this.name, id);
+    const reqOptions = this._collOptions(options);
+    const request = {...reqOptions, path};
+    return this.client.execute(request);
   }
 
   /**

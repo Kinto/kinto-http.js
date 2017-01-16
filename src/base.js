@@ -35,6 +35,7 @@ export default class KintoClientBase {
    * @param  {Boolean}      [options.safe=true]           Adds concurrency headers to every requests.
    * @param  {EventEmitter} [options.events=EventEmitter] The events handler instance.
    * @param  {Object}       [options.headers={}]          The key-value headers to pass to each request.
+   * @param  {Object}       [options.retry=0]             Number of retries when request fails (default: 0)
    * @param  {String}       [options.bucket="default"]    The default bucket to use.
    * @param  {String}       [options.requestMode="cors"]  The HTTP request mode (from ES6 fetch spec).
    * @param  {Number}       [options.timeout=5000]        The requests timeout in ms.
@@ -56,6 +57,7 @@ export default class KintoClientBase {
     this.defaultReqOptions = {
       bucket:  options.bucket  || "default",
       headers: options.headers || {},
+      retry:   options.retry || 0,
       safe:    !!options.safe,
     };
 
@@ -206,9 +208,8 @@ export default class KintoClientBase {
     if (this.serverInfo) {
       return Promise.resolve(this.serverInfo);
     }
-    return this.http.request(this.remote + endpoint("root"), {
-      headers: {...this.defaultReqOptions.headers, ...options.headers}
-    })
+    const reqOptions = this._getRequestOptions(options);
+    return this.http.request(this.remote + endpoint("root"), reqOptions)
       .then(({json}) => {
         this.serverInfo = json;
         return this.serverInfo;
@@ -270,7 +271,8 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   _batchRequests(requests, options={}) {
-    const headers = {...this.defaultReqOptions.headers, ...options.headers};
+    const reqOptions = this._getRequestOptions(options);
+    const {headers} = reqOptions;
     if (!requests.length) {
       return Promise.resolve([]);
     }
@@ -282,9 +284,9 @@ export default class KintoClientBase {
           return pMap(chunks, chunk => this._batchRequests(chunk, options));
         }
         return this.execute({
+          ...reqOptions,
           path: endpoint("batch"),
           method: "POST",
-          headers: headers,
           body: {
             defaults: {headers},
             requests: requests
@@ -448,9 +450,10 @@ export default class KintoClientBase {
    */
   @capable(["permissions_endpoint"])
   listPermissions(options={}) {
+    const reqOptions = this._getRequestOptions(options);
     return this.execute({
       path: endpoint("permissions"),
-      headers: {...this.defaultReqOptions.headers, ...options.headers}
+      ...reqOptions
     });
   }
 
