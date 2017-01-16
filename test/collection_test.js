@@ -7,6 +7,7 @@ import KintoClient from "../src";
 import Bucket from "../src/bucket";
 import Collection from "../src/collection";
 import * as requests from "../src/requests";
+import { fakeServerResponse } from "./test_utils.js";
 
 
 chai.use(chaiAsPromised);
@@ -379,6 +380,27 @@ describe("Collection", () => {
     it("should resolve with a result object", () => {
       return coll.listRecords()
         .should.eventually.have.property("data").eql(data);
+    });
+
+
+    describe("Retry", () => {
+
+      const response = {data: [{id: 1, title: "art"}]};
+
+      beforeEach(() => {
+        sandbox.restore();
+        sandbox.stub(global, "setTimeout", (fn) => setImmediate(fn));
+        const fetch = sandbox.stub(global, "fetch");
+        fetch.onCall(0).returns(fakeServerResponse(200, {}));
+        fetch.onCall(1).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
+        fetch.onCall(2).returns(fakeServerResponse(200, response));
+      });
+
+      it("should retry the request if option is specified", () => {
+        return coll.listRecords({retry: 1})
+          .then(r => r.data[0])
+          .should.eventually.have.property("title").eql("art");
+      });
     });
   });
 

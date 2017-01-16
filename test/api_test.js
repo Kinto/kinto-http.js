@@ -64,7 +64,7 @@ describe("KintoClient", () => {
 
     it("should accept a headers option", () => {
       expect(new KintoClient(sampleRemote, {headers: {Foo: "Bar"}})
-              .defaultReqOptions.headers).eql({Foo: "Bar"});
+        .defaultReqOptions.headers).eql({Foo: "Bar"});
     });
 
     it("should validate protocol version", () => {
@@ -251,10 +251,11 @@ describe("KintoClient", () => {
     });
 
     describe("server request", () => {
-      let requestBody, requestHeaders;
+      let requestBody, requestHeaders, fetch;
 
       beforeEach(() => {
-        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {
+        fetch = sandbox.stub(global, "fetch");
+        fetch.returns(fakeServerResponse(200, {
           responses: []
         }));
       });
@@ -332,6 +333,34 @@ describe("KintoClient", () => {
                   {"If-None-Match": "*"},
                   {"If-None-Match": "*"},
                 ]);
+            });
+        });
+      });
+
+
+      describe("Retry", () => {
+
+        const response = {
+          status: 201,
+          path: `/${SPV}/buckets/blog/collections/articles/records`,
+          body: {data: {id: 1, title: "art"}}
+        };
+
+        beforeEach(() => {
+          sandbox.stub(global, "setTimeout", (fn) => setImmediate(fn));
+
+          fetch.onCall(0).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
+          fetch.onCall(1).returns(fakeServerResponse(200, {
+            responses: [response]
+          }));
+        });
+
+        it("should retry the request if option is specified", () => {
+          return api.bucket("default").collection("blog").batch(batch => {
+            batch.createRecord({});
+          }, {retry: 1})
+            .then(r => {
+              expect(r[0]).eql(response);
             });
         });
       });
