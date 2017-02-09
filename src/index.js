@@ -1,6 +1,5 @@
 "use strict";
 
-import "isomorphic-fetch";
 import { EventEmitter } from "events";
 
 import KintoClientBase from "./base";
