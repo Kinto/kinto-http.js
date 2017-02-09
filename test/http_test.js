@@ -291,7 +291,7 @@ describe("HTTP class", () => {
         it("should not retry the request by default", () => {
           fetch.returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
           return http.request("/")
-            .should.eventually.be.rejectedWith(Error, /Error: HTTP 503/);
+            .should.eventually.be.rejectedWith(Error, /HTTP 503/);
         });
 
         it("should retry the request if specified", () => {
@@ -308,7 +308,7 @@ describe("HTTP class", () => {
           fetch.onCall(1).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
           fetch.onCall(2).returns(fakeServerResponse(503, {}, {"Retry-After": "1"}));
           return http.request("/", {retry: 2})
-            .should.eventually.be.rejectedWith(Error, /Error: HTTP 503/);
+            .should.eventually.be.rejectedWith(Error, /HTTP 503/);
         });
       });
     });
