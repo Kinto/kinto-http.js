@@ -1520,7 +1520,13 @@ client.events.on("retry-after", function(releaseTime) {
 > Eventually, we would like to automate the retry behaviour for requests. See https://github.com/Kinto/kinto-http.js/issues/34
 
 ## Browser Compatibility
-This uses javascript [`Promise`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise#Browser_compatibility) and [`Object.assign()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#Browser_compatibility) which are not supported on Internet Explorer. Please add polyfills for these to get full functionality on IE.
+
+This library uses some features that are not supported on Internet Explorer or Safari.
+* Javascript [`Promise`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise#Browser_compatibility)
+* [`Object.assign()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#Browser_compatibility)
+* [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API#Browser_compatibility)
+
+Please [add polyfills](https://polyfill.io/v2/docs/features/) for these to get full functionality.
 
 ## Upgrading
 
