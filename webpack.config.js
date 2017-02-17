@@ -24,14 +24,14 @@ switch (process.env.npm_lifecycle_event) {
   case "dist-prod":
     module.exports = merge(common, {
       output: {
-        filename: "kinto.min.js"
+        filename: "kinto-http.min.js"
       }
     });
   break;
   case "dist-noshim":
     module.exports = merge(common, {
       output: {
-        filename: "kinto.noshim.js"
+        filename: "kinto-http.noshim.js"
       }
     });
     break;

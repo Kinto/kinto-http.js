@@ -8,7 +8,7 @@
     "build:readme": "toctoc -w -d 2 README.md",
     "dist": "mkdirp dist && npm run dist-dev && npm run dist-prod && npm run dist-noshim && npm run dist-fx",
     "dist-dev": "webpack",
-    "dist-noshim": "browserify -s KintoClient -g uglifyify --ignore babel-polyfill -e src/index.js -o dist/kinto-http.noshim.js -t [ babelify --sourceMapRelative . ]",
+    "dist-noshim": "cross-env BABEL_ENV=no-shim webpack",
     "dist-prod": "webpack -p",
     "dist-fx": "BABEL_ENV=firefox browserify -s KintoHttpClient --ignore events --bare -e fx-src/index.js -o temp.jsm -t [ babelify --sourceMapRelative . ] && mkdir -p dist && cp fx-src/jsm_prefix.js dist/moz-kinto-http-client.js && echo \"\n/*\n * Version $npm_package_version - $(git rev-parse --short HEAD)\n */\n\" >> dist/moz-kinto-http-client.js && cat temp.jsm >> dist/moz-kinto-http-client.js && rm temp.jsm",
     "prepublish": "npm run build:readme",

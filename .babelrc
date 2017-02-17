@@ -32,7 +32,8 @@
           "exclude": ["transform-regenerator"]
         }],
         "stage-3"
-      ]
+      ],
+      "plugins": ["babel-plugin-transform-decorators-legacy"]
     },
     "firefox": {
       "plugins": [
