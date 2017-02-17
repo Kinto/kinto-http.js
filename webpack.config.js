@@ -3,7 +3,7 @@ const merge = require("webpack-merge");
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 const common = {
-  entry: "./src/index",
+  entry: ["whatwg-fetch", "./src/index"],
   output: {
     library: "KintoClient",
     libraryTarget: "umd",
