@@ -7,9 +7,9 @@
     "build": "babel -s -d lib/ src/",
     "build:readme": "toctoc -w -d 2 README.md",
     "dist": "mkdirp dist && npm run dist-dev && npm run dist-prod && npm run dist-noshim && npm run dist-fx",
-    "dist-dev": "browserify -s KintoClient -d -e src/index.js -o dist/kinto-http.js -t [ babelify --sourceMapRelative . ]",
+    "dist-dev": "webpack",
     "dist-noshim": "browserify -s KintoClient -g uglifyify --ignore babel-polyfill -e src/index.js -o dist/kinto-http.noshim.js -t [ babelify --sourceMapRelative . ]",
-    "dist-prod": "browserify -s KintoClient -g uglifyify -e src/index.js -o dist/kinto-http.min.js -t [ babelify --sourceMapRelative . ]",
+    "dist-prod": "webpack -p",
     "dist-fx": "BABEL_ENV=firefox browserify -s KintoHttpClient --ignore events --bare -e fx-src/index.js -o temp.jsm -t [ babelify --sourceMapRelative . ] && mkdir -p dist && cp fx-src/jsm_prefix.js dist/moz-kinto-http-client.js && echo \"\n/*\n * Version $npm_package_version - $(git rev-parse --short HEAD)\n */\n\" >> dist/moz-kinto-http-client.js && cat temp.jsm >> dist/moz-kinto-http-client.js && rm temp.jsm",
     "prepublish": "npm run build:readme",
     "publish-to-npm": "npm run build && npm run dist && npm publish",
@@ -19,7 +19,8 @@
     "test-cover": "babel-node node_modules/.bin/babel-istanbul cover --report text $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- --require ./test/setup-jsdom.js 'test/**/*_test.js'",
     "test-cover-html": "babel-node node_modules/.bin/babel-istanbul cover --report html $npm_package_config_ISTANBUL_OPTS node_modules/.bin/_mocha -- --require ./test/setup-jsdom.js 'test/**/*_test.js' && open coverage/index.html",
     "test-nocover": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js 'test/**/*_test.js'",
-    "lint": "eslint src test"
+    "lint": "eslint src test",
+    "analyze-bundle": "webpack"
   },
   "repository": {
     "type": "git",

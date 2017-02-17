@@ -5,9 +5,9 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const common = {
   entry: "./src/index",
   output: {
-    library: "Kinto",
+    library: "KintoClient",
     libraryTarget: "umd",
-    filename: "kinto.js",
+    filename: "kinto-http.js",
     path: path.resolve(__dirname, "dist")
   },
   module: {
