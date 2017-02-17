@@ -4,9 +4,9 @@
   "description": "JavaScript HTTP client for the Kinto API.",
   "main": "lib/index.js",
   "scripts": {
-    "build": "babel -d lib/ src/",
-    "build:readme": "./node_modules/.bin/toctoc -w -d 2 README.md",
-    "dist": "mkdir -p dist && rm -f dist/*.* && npm run dist-dev && npm run dist-prod && npm run dist-noshim && npm run dist-fx",
+    "build": "babel -s -d lib/ src/",
+    "build:readme": "toctoc -w -d 2 README.md",
+    "dist": "mkdirp dist && npm run dist-dev && npm run dist-prod && npm run dist-noshim && npm run dist-fx",
     "dist-dev": "browserify -s KintoClient -d -e src/index.js -o dist/kinto-http.js -t [ babelify --sourceMapRelative . ]",
     "dist-noshim": "browserify -s KintoClient -g uglifyify --ignore babel-polyfill -e src/index.js -o dist/kinto-http.noshim.js -t [ babelify --sourceMapRelative . ]",
     "dist-prod": "browserify -s KintoClient -g uglifyify -e src/index.js -o dist/kinto-http.min.js -t [ babelify --sourceMapRelative . ]",
@@ -38,6 +38,7 @@
   },
   "homepage": "https://github.com/Kinto/kinto-http.js#readme",
   "dependencies": {
+    "babel-runtime": "^6.23.0",
     "uuid": "^3.0.1"
   },
   "devDependencies": {
@@ -53,6 +54,7 @@
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-polyfill": "^6.22.0",
     "babel-preset-env": "^1.1.8",
+    "babel-preset-stage-3": "^6.22.0",
     "btoa": "^1.1.2",
     "chai": "^3.5.0",
     "chai-as-promised": "^6.0.0",

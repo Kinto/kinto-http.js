@@ -1,5 +1,3 @@
-"use strict";
-
 import ERROR_CODES from "./errors";
 
 /**

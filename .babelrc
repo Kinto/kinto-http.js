@@ -1,17 +1,51 @@
 {
   "env": {
     "development": {
-      "presets": ["es2015"],
+      "presets": [
+        ["env", {
+          "modules": false
+        }],
+        "stage-3"
+      ],
       "plugins": [
-        "babel-plugin-transform-decorators-legacy",
-        "transform-object-rest-spread",
+        "transform-runtime",
+        "babel-plugin-transform-decorators-legacy"
+      ]
+    },
+    "production": {
+      "presets": [
+        ["env", {
+          "modules": false
+        }],
+        "stage-3",
+        "babili"
+      ],
+      "plugins": [
+        "transform-runtime",
+        "babel-plugin-transform-decorators-legacy"
+      ]
+    },
+    "no-shim": {
+      "presets": [
+        ["env", {
+          "modules": false,
+          "exclude": ["transform-regenerator"]
+        }],
+        "stage-3"
       ]
     },
     "firefox": {
       "plugins": [
-        "babel-plugin-transform-decorators-legacy",
         "transform-es2015-modules-commonjs",
-        "transform-object-rest-spread"
+        "transform-object-rest-spread",
+        "babel-plugin-transform-decorators-legacy"
+      ]
+    },
+    "test": {
+      "presets": ["env", "stage-3"],
+      "plugins": [
+        "transform-runtime",
+        "babel-plugin-transform-decorators-legacy"
       ]
     }
   }

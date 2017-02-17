@@ -1,13 +1,12 @@
-"use strict";
-
-import { partition, pMap, omit, qsify, support, nobatch, toDataBody } from "./utils";
-import HTTP from "./http";
-import endpoint from "./endpoint";
 import * as requests from "./requests";
-import { aggregate } from "./batch";
-import Bucket from "./bucket";
-import { capable } from "./utils";
 
+import { nobatch, omit, pMap, partition, qsify, support, toDataBody } from "./utils";
+
+import Bucket from "./bucket";
+import HTTP from "./http";
+import { aggregate } from "./batch";
+import { capable } from "./utils";
+import endpoint from "./endpoint";
 
 /**
  * Currently supported protocol version.
