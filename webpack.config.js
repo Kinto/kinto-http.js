@@ -30,6 +30,7 @@ switch (process.env.npm_lifecycle_event) {
   break;
   case "dist-noshim":
     module.exports = merge(common, {
+      entry: "./src/index",
       output: {
         filename: "kinto-http.noshim.js"
       }
