@@ -314,6 +314,7 @@ export default class Collection {
    * @param  {Object}   [options.headers]               The headers object option.
    * @param  {Object}   [options.filters=[]]            The filters object.
    * @param  {String}   [options.sort="-last_modified"] The sort field.
+   * @param  {String}   [options.at]                    The timestamp to get a snapshot at.
    * @param  {String}   [options.limit=null]            The limit field.
    * @param  {String}   [options.pages=1]               The number of result pages to aggregate.
    * @param  {Number}   [options.since=null]            Only retrieve records modified since the provided timestamp.
@@ -322,7 +323,41 @@ export default class Collection {
   listRecords(options={}) {
     const path = endpoint("record", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
-    return this.client.paginatedList(path, options, reqOptions);
+    if (options.hasOwnProperty("at")) {
+      return this._getSnapshot(options.at);
+    } else {
+      return this.client.paginatedList(path, options, reqOptions);
+    }
+  }
+
+  _getSnapshot(at) {
+    const seenIds = new Set();
+    let snapshot = [];
+    if (!Number.isInteger(at) || at <= 0) {
+      throw new Error("Invalid argument, expected a positive integer.");
+    }
+    const before = String(at);
+    return this.bucket.listHistory({
+      sort: "-target.data.last_modified",
+      filters: {
+        resource_name: "record",
+        collection_id: this.name,
+        "max_target.data.last_modified": before,
+      }
+    })
+      .then(({data: changes}) => {
+        for (const change of changes) {
+          const {data: record} = change.target;
+          if (record.deleted) {
+            seenIds.add(record.id);
+            snapshot = snapshot.filter(r => r.id !== record.id);
+          } else if (!seenIds.has(record.id)) {
+            seenIds.add(record.id);
+            snapshot = [record, ...snapshot];
+          }
+        }
+        return snapshot.sort((a, b) => a.last_modified < b.last_modified ? 1 : -1);
+      });
   }
 
   /**
