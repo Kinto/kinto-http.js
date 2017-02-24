@@ -1407,7 +1407,7 @@ describe("Integration tests", function() {
               });
             });
 
-            describe("since", () => {
+            describe("Changes", () => {
               let ts1, ts2;
 
               beforeEach(() => {
@@ -1427,58 +1427,6 @@ describe("Integration tests", function() {
               it("should only list changes made after the provided timestamp", () => {
                 return coll.listRecords({since: ts2})
                   .should.eventually.have.property("data").to.have.length.of(1);
-              });
-            });
-
-            describe("'at' retrieves a snapshot at a given timestam", () => {
-              let rec1, rec2, rec3;
-
-              beforeEach(() => {
-                return coll.listRecords()
-                  .then(_ => coll.createRecord({n: 1}))
-                  .then(({data}) => {
-                    rec1 = data;
-                    return coll.createRecord({n: 2});
-                  })
-                  .then(({data}) => {
-                    rec2 = data;
-                    return coll.createRecord({n: 3});
-                  })
-                  .then(({data}) => rec3 = data);
-              });
-
-              it("should handle creations", () => {
-                return coll.listRecords({at: rec1.last_modified})
-                  .should.eventually.become([
-                    rec1
-                  ]);
-              });
-
-              it("should handle updates", () => {
-                let updated;
-                return coll.updateRecord({...rec2, n: 42})
-                  .then(({data}) => {
-                    updated = data;
-                    return coll.listRecords({at: updated.last_modified});
-                  })
-                  .then((snapshot) => expect(snapshot).eql([
-                    {...rec2, n: 42, last_modified: updated.last_modified},
-                    rec3,
-                    rec1,
-                  ]));
-              });
-
-              it("should handle deletions", () => {
-                let deleted;
-                return coll.deleteRecord(rec1.id)
-                  .then(({data}) => {
-                    deleted = data;
-                    return coll.listRecords({at: deleted.last_modified});
-                  })
-                  .then((snapshot) => expect(snapshot).eql([
-                    rec3,
-                    rec2,
-                  ]));
               });
             });
 
