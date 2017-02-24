@@ -331,32 +331,29 @@ export default class Collection {
   }
 
   _getSnapshot(at) {
-    const seenIds = new Set();
-    let snapshot = [];
     if (!Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
-    const before = String(at);
     return this.bucket.listHistory({
-      sort: "-target.data.last_modified",
       filters: {
         resource_name: "record",
         collection_id: this.name,
-        "max_target.data.last_modified": before,
+        "max_target.data.last_modified": String(at),
       }
     })
       .then(({data: changes}) => {
-        for (const change of changes) {
-          const {data: record} = change.target;
+        const seenIds = new Set();
+        let snapshot = [];
+        for (const {target: {data: record}} of changes) {
           if (record.deleted) {
             seenIds.add(record.id);
             snapshot = snapshot.filter(r => r.id !== record.id);
           } else if (!seenIds.has(record.id)) {
             seenIds.add(record.id);
-            snapshot = [record, ...snapshot];
+            snapshot.push(record);
           }
         }
-        return snapshot.sort((a, b) => a.last_modified < b.last_modified ? 1 : -1);
+        return snapshot.sort((a, b) => b.last_modified - a.last_modified);
       });
   }
 

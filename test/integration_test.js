@@ -1455,25 +1455,23 @@ describe("Integration tests", function() {
               });
 
               it("should handle updates", () => {
-                let updated;
+                let updatedRec2;
                 return coll.updateRecord({...rec2, n: 42})
                   .then(({data}) => {
-                    updated = data;
-                    return coll.listRecords({at: updated.last_modified});
+                    updatedRec2 = data;
+                    return coll.listRecords({at: updatedRec2.last_modified});
                   })
                   .then((snapshot) => expect(snapshot).eql([
-                    {...rec2, n: 42, last_modified: updated.last_modified},
+                    updatedRec2,
                     rec3,
                     rec1,
                   ]));
               });
 
               it("should handle deletions", () => {
-                let deleted;
                 return coll.deleteRecord(rec1.id)
-                  .then(({data}) => {
-                    deleted = data;
-                    return coll.listRecords({at: deleted.last_modified});
+                  .then(({data: {last_modified}}) => {
+                    return coll.listRecords({at: last_modified});
                   })
                   .then((snapshot) => expect(snapshot).eql([
                     rec3,
