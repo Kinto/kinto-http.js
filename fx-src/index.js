@@ -30,9 +30,3 @@ export default class KintoHttpClient extends KintoClientBase {
     super(remote, {events, ...options});
   }
 }
-
-// This fixes compatibility with CommonJS required by browserify.
-// See http://stackoverflow.com/questions/33505992/babel-6-changes-how-it-exports-default/33683495#33683495
-if (typeof module === "object") {
-  module.exports = KintoHttpClient;
-}

@@ -64,7 +64,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [The backoff event](#the-backoff-event)
      - [The deprecated event](#the-deprecated-event)
      - [The retry-after event](#the-retry-after-event)
-  - [Browser compatibility](#browser-compatibility)
+  - [Browser Compatibility](#browser-compatibility)
   - [Upgrading](#upgrading)
      - [From 1.x to 2.x](#from-1-x-to-2-x)
 

@@ -28,17 +28,20 @@
     "no-shim": {
       "presets": [
         ["env", {
-          "modules": false,
-          "exclude": ["transform-regenerator"]
+          "modules": false
         }],
         "stage-3"
       ],
       "plugins": ["babel-plugin-transform-decorators-legacy"]
     },
     "firefox": {
+      "presets": [
+        ["env", {
+          "modules": false
+        }],
+        "stage-3"
+      ],
       "plugins": [
-        "transform-es2015-modules-commonjs",
-        "transform-object-rest-spread",
         "babel-plugin-transform-decorators-legacy"
       ]
     },

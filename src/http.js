@@ -1,4 +1,5 @@
 import ERROR_CODES from "./errors";
+import fetch from "unfetch";
 
 /**
  * Enhanced HTTP client for the Kinto protocol.
