@@ -361,7 +361,7 @@ export default class Collection {
           }
         }
         return {
-          last_modified: Math.max.apply(null, snapshot.map(r => r.last_modified)),
+          last_modified: String(at),
           data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
           next: () => { throw new Error("Snapshots don't support pagination"); },
           hasNextPage: false,

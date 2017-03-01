@@ -1452,7 +1452,7 @@ describe("Integration tests", function() {
                   .then((result) => {
                     const expectedSnapshot = [rec3, rec2, rec1];
                     expect(result.data).to.eql(expectedSnapshot);
-                    expect(result.last_modified).eql(rec3.last_modified);
+                    expect(result.last_modified).eql(String(rec3.last_modified));
                     expect(result.hasNextPage).eql(false);
                     expect(result.totalRecords).eql(expectedSnapshot.length);
                     expect(() => result.next()).to.Throw(Error, /pagination/);
