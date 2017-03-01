@@ -330,11 +330,18 @@ export default class Collection {
     }
   }
 
+  /**
+   * @private
+   */
   _getSnapshot(at) {
     if (!Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
+    // TODO: we process history changes forward, while it would probably be more
+    // efficient and accurate to process them backward.
     return this.bucket.listHistory({
+      pages: Infinity, // all pages up to target timestamp are required
+      sort: "-target.data.last_modified",
       filters: {
         resource_name: "record",
         collection_id: this.name,
@@ -346,14 +353,20 @@ export default class Collection {
         let snapshot = [];
         for (const {target: {data: record}} of changes) {
           if (record.deleted) {
-            seenIds.add(record.id);
+            seenIds.add(record.id); // ensure not reprocessing deleted entries
             snapshot = snapshot.filter(r => r.id !== record.id);
           } else if (!seenIds.has(record.id)) {
             seenIds.add(record.id);
             snapshot.push(record);
           }
         }
-        return snapshot.sort((a, b) => b.last_modified - a.last_modified);
+        return {
+          last_modified: Math.max.apply(null, snapshot.map(r => r.last_modified)),
+          data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
+          next: () => { throw new Error("Snapshots don't support pagination"); },
+          hasNextPage: false,
+          totalRecords: snapshot.length,
+        };
       });
   }
 

@@ -332,6 +332,7 @@ describe("Integration tests", function() {
 
       describe("Chunked requests", () => {
         it("should allow batching by chunks", () => {
+          // Note: kinto server configuration has kinto.paginated_by set to 10.
           return api.batch(batch => {
             batch.createBucket("custom");
             const bucket = batch.bucket("custom");
@@ -343,7 +344,7 @@ describe("Integration tests", function() {
           })
             .then(_ => api.bucket("custom").collection("blog").listRecords())
             .should.eventually.have.property("data")
-                           .to.have.length.of(27);
+                           .to.have.length.of(10);
         });
       });
 
@@ -1430,12 +1431,11 @@ describe("Integration tests", function() {
               });
             });
 
-            describe("'at' retrieves a snapshot at a given timestam", () => {
+            describe("'at' retrieves a snapshot at a given timestamp", () => {
               let rec1, rec2, rec3;
 
               beforeEach(() => {
-                return coll.listRecords()
-                  .then(_ => coll.createRecord({n: 1}))
+                return coll.createRecord({n: 1})
                   .then(({data}) => {
                     rec1 = data;
                     return coll.createRecord({n: 2});
@@ -1447,9 +1447,21 @@ describe("Integration tests", function() {
                   .then(({data}) => rec3 = data);
               });
 
+              it("should resolve with a regular list result object", () => {
+                return coll.listRecords({at: rec3.last_modified})
+                  .then((result) => {
+                    const expectedSnapshot = [rec3, rec2, rec1];
+                    expect(result.data).to.eql(expectedSnapshot);
+                    expect(result.last_modified).eql(rec3.last_modified);
+                    expect(result.hasNextPage).eql(false);
+                    expect(result.totalRecords).eql(expectedSnapshot.length);
+                    expect(() => result.next()).to.Throw(Error, /pagination/);
+                  });
+              });
+
               it("should handle creations", () => {
                 return coll.listRecords({at: rec1.last_modified})
-                  .should.eventually.become([
+                  .should.eventually.have.property("data").eql([
                     rec1
                   ]);
               });
@@ -1461,7 +1473,7 @@ describe("Integration tests", function() {
                     updatedRec2 = data;
                     return coll.listRecords({at: updatedRec2.last_modified});
                   })
-                  .then((snapshot) => expect(snapshot).eql([
+                  .then(({data}) => expect(data).eql([
                     updatedRec2,
                     rec3,
                     rec1,
@@ -1473,10 +1485,28 @@ describe("Integration tests", function() {
                   .then(({data: {last_modified}}) => {
                     return coll.listRecords({at: last_modified});
                   })
-                  .then((snapshot) => expect(snapshot).eql([
+                  .then(({data}) => expect(data).eql([
                     rec3,
                     rec2,
                   ]));
+              });
+
+              it("should handle long list of changes", () => {
+                return coll.batch((batch) => {
+                  for (let n = 4; n <= 100; n++) {
+                    batch.createRecord({n});
+                  }
+                })
+                  .then((res) => {
+                    const at = res[50].body.data.last_modified;
+                    return coll.listRecords({at});
+                  })
+                  .should.eventually.have.property("data")
+                                    .to.length.of(54);
+              });
+
+              after(() => {
+                console.log(server.logs.toString());
               });
             });
 

@@ -1130,6 +1130,7 @@ The result object exposes the following properties:
 
 - `headers`: Custom headers object to send along the HTTP request
 - `retry`: Number of retries when request fails (default: 0)
+- `at`: Retrieve the records list at at a given timestamp back in time (note: full list is always returned, this option doesn't support pagination.)
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
