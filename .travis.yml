@@ -1,22 +1,19 @@
-language:
-- node_js
-- python
-node_js:
-- "6"
+language: python
 python:
-- "3.5"
+ - "3.5"
 env:
-- SERVER=5.3.5 ACTION=test
-- SERVER=development ACTION=test
 - ACTION="run lint"
-- ACTION="run dist"       # ensures building dist files doesn't break
+- ACTION="run dist" # ensures building dist files doesn't break
 before_install:
 - export PATH=$HOME/.local/bin:$PATH
-- pip install --user virtualenv
-- virtualenv .env
-- if [[ $SERVER && $SERVER != development ]]; then .env/bin/pip install kinto==$SERVER; fi
-- if [[ $SERVER && $SERVER == development ]]; then .env/bin/pip install https://github.com/Kinto/kinto/zipball/master; fi
-- .env/bin/pip install kinto-attachment
+- wget https://raw.githubusercontent.com/creationix/nvm/v0.33.0/nvm.sh -O ~/.nvm/nvm.sh
+- source ~/.nvm/nvm.sh
+- nvm install 6 # for Node v6
+- node --version
+- npm install
+- curl https://raw.githubusercontent.com/Kinto/kinto/master/requirements.txt > versions.txt
+- pip install https://github.com/Kinto/kinto/zipball/master --constraint versions.txt
+- pip install kinto-attachment
 - export KINTO_PSERVE_EXECUTABLE=.env/bin/pserve
 script:
 - npm $ACTION
