@@ -1504,10 +1504,6 @@ describe("Integration tests", function() {
                   .should.eventually.have.property("data")
                                     .to.length.of(54);
               });
-
-              after(() => {
-                console.log(server.logs.toString());
-              });
             });
 
             describe("Pagination", () => {
