@@ -314,6 +314,7 @@ export default class Collection {
    * @param  {Object}   [options.headers]               The headers object option.
    * @param  {Object}   [options.filters=[]]            The filters object.
    * @param  {String}   [options.sort="-last_modified"] The sort field.
+   * @param  {String}   [options.at]                    The timestamp to get a snapshot at.
    * @param  {String}   [options.limit=null]            The limit field.
    * @param  {String}   [options.pages=1]               The number of result pages to aggregate.
    * @param  {Number}   [options.since=null]            Only retrieve records modified since the provided timestamp.
@@ -322,7 +323,51 @@ export default class Collection {
   listRecords(options={}) {
     const path = endpoint("record", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
-    return this.client.paginatedList(path, options, reqOptions);
+    if (options.hasOwnProperty("at")) {
+      return this._getSnapshot(options.at);
+    } else {
+      return this.client.paginatedList(path, options, reqOptions);
+    }
+  }
+
+  /**
+   * @private
+   */
+  _getSnapshot(at) {
+    if (!Number.isInteger(at) || at <= 0) {
+      throw new Error("Invalid argument, expected a positive integer.");
+    }
+    // TODO: we process history changes forward, while it would probably be more
+    // efficient and accurate to process them backward.
+    return this.bucket.listHistory({
+      pages: Infinity, // all pages up to target timestamp are required
+      sort: "-target.data.last_modified",
+      filters: {
+        resource_name: "record",
+        collection_id: this.name,
+        "max_target.data.last_modified": String(at),
+      }
+    })
+      .then(({data: changes}) => {
+        const seenIds = new Set();
+        let snapshot = [];
+        for (const {target: {data: record}} of changes) {
+          if (record.deleted) {
+            seenIds.add(record.id); // ensure not reprocessing deleted entries
+            snapshot = snapshot.filter(r => r.id !== record.id);
+          } else if (!seenIds.has(record.id)) {
+            seenIds.add(record.id);
+            snapshot.push(record);
+          }
+        }
+        return {
+          last_modified: String(at),
+          data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
+          next: () => { throw new Error("Snapshots don't support pagination"); },
+          hasNextPage: false,
+          totalRecords: snapshot.length,
+        };
+      });
   }
 
   /**

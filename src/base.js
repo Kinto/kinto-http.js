@@ -434,7 +434,6 @@ export default class KintoClientBase {
       // Follow next page
       return processNextPage(nextPage);
     };
-
     return this.execute({
       path: path + "?" + querystring,
       ...options,
