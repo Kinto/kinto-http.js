@@ -38,7 +38,7 @@ export default class KintoClientBase {
    * @param  {Object}       [options.retry=0]             Number of retries when request fails (default: 0)
    * @param  {String}       [options.bucket="default"]    The default bucket to use.
    * @param  {String}       [options.requestMode="cors"]  The HTTP request mode (from ES6 fetch spec).
-   * @param  {Number}       [options.timeout=5000]        The requests timeout in ms.
+   * @param  {Number}       [options.timeout=null]        The request timeout in ms, if any.
    */
   constructor(remote, options={}) {
     if (typeof(remote) !== "string" || !remote.length) {

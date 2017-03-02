@@ -25,7 +25,7 @@ export default class HTTP {
    * @type {Object}
    */
   static get defaultOptions() {
-    return {timeout: 5000, requestMode: "cors"};
+    return {timeout: null, requestMode: "cors"};
   }
 
   /**
@@ -33,7 +33,7 @@ export default class HTTP {
    *
    * @param {EventEmitter} events                       The event handler.
    * @param {Object}       [options={}}                 The options object.
-   * @param {Number}       [options.timeout=5000]       The request timeout in ms (default: `5000`).
+   * @param {Number}       [options.timeout=null]       The request timeout in ms, if any (default: `null`).
    * @param {String}       [options.requestMode="cors"] The HTTP request mode (default: `"cors"`).
    */
   constructor(events, options={}) {
@@ -87,19 +87,25 @@ export default class HTTP {
     options.mode = this.requestMode;
     return new Promise((resolve, reject) => {
       // Detect if a request has timed out.
-      const _timeoutId = setTimeout(() => {
-        hasTimedout = true;
-        reject(new Error("Request timeout."));
-      }, this.timeout);
-
+      let _timeoutId;
+      if (this.timeout) {
+        _timeoutId = setTimeout(() => {
+          hasTimedout = true;
+          reject(new Error("Request timeout."));
+        }, this.timeout);
+      }
       fetch(url, options).then(res => {
         if (!hasTimedout) {
-          clearTimeout(_timeoutId);
+          if (_timeoutId) {
+            clearTimeout(_timeoutId);
+          }
           resolve(res);
         }
       }).catch(err => {
         if (!hasTimedout) {
-          clearTimeout(_timeoutId);
+          if (_timeoutId) {
+            clearTimeout(_timeoutId);
+          }
           reject(err);
         }
       });
