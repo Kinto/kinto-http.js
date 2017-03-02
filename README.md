@@ -127,7 +127,7 @@ const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
 - `retry`: Number of retries when the server fails to process the request. (default: `0`)
 - `bucket`: The default bucket to use. (default: `"default"`)
 - `requestMode`: The HTTP [CORS](https://fetch.spec.whatwg.org/#concept-request-mode) mode. (default: `"cors"`)
-- `timeout`: The requests timeout in milliseconds. (default: `5000`)
+- `timeout`: The requests timeout in milliseconds. (default: `null`, which means "no timeout")
 
 
 ## Authentication
