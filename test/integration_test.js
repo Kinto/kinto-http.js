@@ -1505,7 +1505,7 @@ describe("Integration tests", function() {
                                     .to.length.of(54);
               });
 
-              it("should resolve with an empty snapshot when at<rec1 ts", () => {
+              it("should resolve with an empty snapshot when ts is too old", () => {
                 return coll.listRecords({at: rec1.last_modified - 42})
                   .should.eventually.have.property("data").eql([]);
               });

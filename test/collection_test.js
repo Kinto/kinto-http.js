@@ -423,10 +423,48 @@ describe("Collection", () => {
 
 describe("computeSnapshotAt()", () => {
   // Note: most of the tests covering this API are done in integration_test.js
+  const rec1 = {id: 1, last_modified: 41};
+  const rec2 = {id: 2, last_modified: 42};
+  const rec3 = {id: 3, last_modified: 43};
 
-  it("should raise when a snapshot records timestamp exceeds requirements", () => {
+  it("should delete created entries", () => {
+    const records = [rec1, rec2, rec3];
+    const changes = [
+      {action: "create", target: {data: rec3}},
+      {action: "create", target: {data: rec2}},
+      {action: "create", target: {data: rec1}},
+    ];
+
+    expect(computeSnapshotAt(42, records, changes))
+      .eql([]);
+  });
+
+  it("should restore deleted entries", () => {
+    const records = [rec2, rec3];
+    const changes = [
+      {action: "delete", target: {data: {id: 1, last_modified: 44}}},
+      {action: "create", target: {data: rec3}},
+    ];
+
+    expect(computeSnapshotAt(42, records, changes))
+      .eql([rec2]);
+  });
+
+  it("should restore updated entries", () => {
+    const records = [rec1, rec2, rec3];
+    const changes = [
+      {action: "update", target: {data: {...rec2, last_modified: 44}}},
+    ];
+
+    expect(computeSnapshotAt(45, records, changes))
+      .eql([{...rec2, last_modified: 44}, rec3, rec1]);
+  });
+
+  it("should raise when snapshot exceeds period covered by changes", () => {
     const records = [{id: 1, last_modified: 43}, {id: 2, last_modified: 44}];
-    const changes = [{action: "create", target: {data: {last_modified: 40}}}];
+    const changes = [
+      {action: "create", target: {data: {last_modified: 44}}}
+    ];
 
     expect(() => computeSnapshotAt(42, records, changes))
       .to.Throw(Error, /not enough history data/);

@@ -8,6 +8,8 @@ import endpoint from "./endpoint";
 /**
  * Computes a snapshot of a collection at a given timestamp, from a current list
  * of records and a list of changes.
+ *
+ * @private
  */
 export function computeSnapshotAt(at, records, changes) {
   // Create a map with current records, indexed by id for convenience
@@ -17,13 +19,13 @@ export function computeSnapshotAt(at, records, changes) {
   }
 
   // Process the changes, which are listed backward, so we start with the most
-  // recent change up to the oldest one; delete created entries, restore deleted
-  // and updated ones
+  // recent change up to the oldest one; delete created entries, restore updated
+  // ones and ignore deleted ones.
   for (const change of changes) {
     const {action, target: {data: entry}} = change;
     if (action === "create") {
       delete recordsByIds[entry.id];
-    } else {
+    } else if (action === "update") {
       recordsByIds[entry.id] = entry;
     }
   }
