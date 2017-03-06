@@ -15,7 +15,7 @@ before_install:
 - curl https://raw.githubusercontent.com/Kinto/kinto/master/requirements.txt > versions.txt
 - pip install https://github.com/Kinto/kinto/zipball/master --constraint versions.txt
 - pip install kinto-attachment
-- export KINTO_PSERVE_EXECUTABLE=.env/bin/pserve
+- export KINTO_PSERVE_EXECUTABLE=pserve
 script:
 - npm $ACTION
 after_script:
