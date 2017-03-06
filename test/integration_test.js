@@ -1505,6 +1505,11 @@ describe("Integration tests", function() {
                                     .to.length.of(54);
               });
 
+              it("should resolve with an empty snapshot when at<rec1 ts", () => {
+                return coll.listRecords({at: rec1.last_modified - 42})
+                  .should.eventually.have.property("data").eql([]);
+              });
+
               describe("Mixed CRUD operations", () => {
                 let rec4 = {};
                 let s1 = [], s2 = [], s3 = [], s4 = [];

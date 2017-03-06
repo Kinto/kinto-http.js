@@ -6,6 +6,44 @@ import endpoint from "./endpoint";
 
 
 /**
+ * Computes a snapshot of a collection at a given timestamp, from a current list
+ * of records and a list of changes.
+ */
+export function computeSnapshotAt(at, records, changes) {
+  // Create a map with current records, indexed by id for convenience
+  const recordsByIds = {};
+  for (const record of records) {
+    recordsByIds[record.id] = record;
+  }
+
+  // Process the changes, which are listed backward, so we start with the most
+  // recent change up to the oldest one; delete created entries, restore deleted
+  // and updated ones
+  for (const change of changes) {
+    const {action, target: {data: entry}} = change;
+    if (action === "create") {
+      delete recordsByIds[entry.id];
+    } else {
+      recordsByIds[entry.id] = entry;
+    }
+  }
+
+  // Ensure sorting the resulting records by last_modified desc.
+  const snapshot = Object.values(recordsByIds)
+    .sort((a, b) => b.last_modified - a.last_modified);
+
+  // If we find a timestamp greater than what has been required initially,
+  // that means that we couldn't retrieve enough history data to compute
+  // a consistent snapshot.
+  const newest = Math.max.apply(null, snapshot.map(r => r.last_modified));
+  if (newest > at) {
+    throw new Error("Could not compute snapshot: not enough history data.");
+  }
+
+  return snapshot;
+}
+
+/**
  * Abstract representation of a selected collection.
  *
  */
@@ -337,40 +375,26 @@ export default class Collection {
     if (!Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
-    const recordsByIds = {};
-    return this.listRecords({
+    const listRecords = this.listRecords({
+      pages: Infinity, // all records are required
+    });
+    const listHistory = this.bucket.listHistory({
       pages: Infinity, // all pages up to target timestamp are required
-    })
-      .then(({data: records}) => {
-        for (const record of records) {
-          recordsByIds[record.id] = record;
-        }
-        return this.bucket.listHistory({
-          pages: Infinity, // all pages up to target timestamp are required
-          filters: {
-            resource_name: "record",
-            collection_id: this.name,
-            "gt_target.data.last_modified": String(at),
-          }
-        });
-      })
-      .then(({data: changes}) => {
-        for (const change of changes) {
-          const {action, target: {data: entry}} = change;
-          if (action === "create") {
-            delete recordsByIds[entry.id];
-          } else {
-            recordsByIds[entry.id] = entry;
-          }
-        }
-        const data = Object.values(recordsByIds)
-          .sort((a, b) => b.last_modified - a.last_modified);
+      filters: {
+        resource_name: "record",
+        collection_id: this.name,
+        "gt_target.data.last_modified": String(at),
+      }
+    });
+    return Promise.all([listRecords, listHistory])
+      .then(([{data: records}, {data: changes}]) => {
+        const snapshot = computeSnapshotAt(at, records, changes);
         return {
-          data,
+          data: snapshot,
           last_modified: String(at),
           next: () => { throw new Error("Snapshots don't support pagination"); },
           hasNextPage: false,
-          totalRecords: data.length,
+          totalRecords: snapshot.length,
         };
       });
   }

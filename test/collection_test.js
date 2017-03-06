@@ -5,7 +5,7 @@ import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import KintoClient from "../src";
 import Bucket from "../src/bucket";
-import Collection from "../src/collection";
+import Collection, { computeSnapshotAt } from "../src/collection";
 import * as requests from "../src/requests";
 import { fakeServerResponse } from "./test_utils.js";
 
@@ -418,5 +418,17 @@ describe("Collection", () => {
         headers: {Foo: "Bar", Baz: "Qux"},
       });
     });
+  });
+});
+
+describe("computeSnapshotAt()", () => {
+  // Note: most of the tests covering this API are done in integration_test.js
+
+  it("should raise when a snapshot records timestamp exceeds requirements", () => {
+    const records = [{id: 1, last_modified: 43}, {id: 2, last_modified: 44}];
+    const changes = [{action: "create", target: {data: {last_modified: 40}}}];
+
+    expect(() => computeSnapshotAt(42, records, changes))
+      .to.Throw(Error, /not enough history data/);
   });
 });
