@@ -422,7 +422,6 @@ describe("Collection", () => {
 });
 
 describe("computeSnapshotAt()", () => {
-  // Note: most of the tests covering this API are done in integration_test.js
   const rec1 = {id: 1, last_modified: 41};
   const rec2 = {id: 2, last_modified: 42};
   const rec3 = {id: 3, last_modified: 43};
