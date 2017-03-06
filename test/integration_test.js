@@ -1504,6 +1504,58 @@ describe("Integration tests", function() {
                   .should.eventually.have.property("data")
                                     .to.length.of(54);
               });
+
+              describe("Mixed CRUD operations", () => {
+                let rec4 = {};
+                let s1 = [], s2 = [], s3 = [], s4 = [];
+                let rec1up = 0;
+
+                beforeEach(() => {
+                  return coll.batch((batch) => {
+                    batch.deleteRecord(rec2.id);
+                    batch.updateRecord({...rec1, foo: "bar"});
+                    batch.createRecord({n: 4});
+                  })
+                    .then((responses) => {
+                      rec1up = responses[1].body.data;
+                      rec4 = responses[responses.length - 1].body.data;
+
+                      return Promise.all([
+                        coll.listRecords({at: rec1.last_modified}),
+                        coll.listRecords({at: rec2.last_modified}),
+                        coll.listRecords({at: rec3.last_modified}),
+                        coll.listRecords({at: rec4.last_modified}),
+                      ]);
+                    })
+                    .then((results) => {
+                      const snapshots = results.map(({data}) => data);
+                      s1 = snapshots[0];
+                      s2 = snapshots[1];
+                      s3 = snapshots[2];
+                      s4 = snapshots[3];
+                    });
+                });
+
+                it("should compute snapshot1 as expected", () => {
+                  expect(s1).eql([rec1]);
+                });
+
+                it("should compute snapshot2 as expected", () => {
+                  expect(s2).eql([rec2, rec1]);
+                });
+
+                it("should compute snapshot3 as expected", () => {
+                  expect(s3).eql([rec3, rec2, rec1]);
+                });
+
+                it("should compute snapshot4 as expected", () => {
+                  expect(s4).eql([
+                    rec4,
+                    rec1up,
+                    rec3,
+                  ]);
+                });
+              });
             });
 
             describe("Pagination", () => {
