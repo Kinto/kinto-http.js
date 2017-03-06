@@ -337,35 +337,40 @@ export default class Collection {
     if (!Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
-    // TODO: we process history changes forward, while it would probably be more
-    // efficient and accurate to process them backward.
-    return this.bucket.listHistory({
+    const recordsByIds = {};
+    return this.listRecords({
       pages: Infinity, // all pages up to target timestamp are required
-      sort: "-target.data.last_modified",
-      filters: {
-        resource_name: "record",
-        collection_id: this.name,
-        "max_target.data.last_modified": String(at),
-      }
     })
+      .then(({data: records}) => {
+        for (const record of records) {
+          recordsByIds[record.id] = record;
+        }
+        return this.bucket.listHistory({
+          pages: Infinity, // all pages up to target timestamp are required
+          filters: {
+            resource_name: "record",
+            collection_id: this.name,
+            "gt_target.data.last_modified": String(at),
+          }
+        });
+      })
       .then(({data: changes}) => {
-        const seenIds = new Set();
-        let snapshot = [];
-        for (const {target: {data: record}} of changes) {
-          if (record.deleted) {
-            seenIds.add(record.id); // ensure not reprocessing deleted entries
-            snapshot = snapshot.filter(r => r.id !== record.id);
-          } else if (!seenIds.has(record.id)) {
-            seenIds.add(record.id);
-            snapshot.push(record);
+        for (const change of changes) {
+          const {action, target: {data: entry}} = change;
+          if (action === "create") {
+            delete recordsByIds[entry.id];
+          } else {
+            recordsByIds[entry.id] = entry;
           }
         }
+        const data = Object.values(recordsByIds)
+          .sort((a, b) => b.last_modified - a.last_modified);
         return {
+          data,
           last_modified: String(at),
-          data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
           next: () => { throw new Error("Snapshots don't support pagination"); },
           hasNextPage: false,
-          totalRecords: snapshot.length,
+          totalRecords: data.length,
         };
       });
   }
