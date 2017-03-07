@@ -351,8 +351,8 @@ export default class Collection {
       .then(({data: changes}) => {
         const seenIds = new Set();
         let snapshot = [];
-        for (const {target: {data: record}} of changes) {
-          if (record.deleted) {
+        for (const {action, target: {data: record}} of changes) {
+          if (action == "delete") {
             seenIds.add(record.id); // ensure not reprocessing deleted entries
             snapshot = snapshot.filter(r => r.id !== record.id);
           } else if (!seenIds.has(record.id)) {
