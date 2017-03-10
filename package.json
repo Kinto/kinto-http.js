@@ -59,7 +59,6 @@
     "chai-as-promised": "^6.0.0",
     "coveralls": "^2.11.16",
     "esdoc": "^0.5.2",
-    "esdoc-es7-plugin": "0.0.3",
     "esdoc-importpath-plugin": "0.1.0",
     "eslint": "3.15.0",
     "form-data": "^2.1.2",
