@@ -14,8 +14,8 @@ export default class HTTP {
    */
   static get DEFAULT_REQUEST_HEADERS() {
     return {
-      "Accept":       "application/json",
-      "Content-Type": "application/json",
+      Accept: "application/json",
+      "Content-Type": "application/json"
     };
   }
 
@@ -25,7 +25,7 @@ export default class HTTP {
    * @type {Object}
    */
   static get defaultOptions() {
-    return {timeout: null, requestMode: "cors"};
+    return { timeout: null, requestMode: "cors" };
   }
 
   /**
@@ -36,7 +36,7 @@ export default class HTTP {
    * @param {Number}       [options.timeout=null]       The request timeout in ms, if any (default: `null`).
    * @param {String}       [options.requestMode="cors"] The HTTP request mode (default: `"cors"`).
    */
-  constructor(events, options={}) {
+  constructor(events, options = {}) {
     // public properties
     /**
      * The event emitter instance.
@@ -75,10 +75,10 @@ export default class HTTP {
    * @param  {Object} [options.retry]   Number of retries (default: 0)
    * @return {Promise}
    */
-  request(url, options={headers:{}, retry: 0}) {
+  request(url, options = { headers: {}, retry: 0 }) {
     let response, status, statusText, headers, hasTimedout;
     // Ensure default request headers are always set
-    options.headers = {...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers};
+    options.headers = { ...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers };
     // If a multipart body is provided, remove any custom Content-Type header as
     // the fetch() implementation will add the correct one for us.
     if (options.body && typeof options.body.append === "function") {
@@ -89,47 +89,57 @@ export default class HTTP {
       // Detect if a request has timed out.
       let _timeoutId;
       if (this.timeout) {
-        _timeoutId = setTimeout(() => {
-          hasTimedout = true;
-          reject(new Error("Request timeout."));
-        }, this.timeout);
+        _timeoutId = setTimeout(
+          () => {
+            hasTimedout = true;
+            reject(new Error("Request timeout."));
+          },
+          this.timeout
+        );
       }
-      fetch(url, options).then(res => {
-        if (!hasTimedout) {
-          if (_timeoutId) {
-            clearTimeout(_timeoutId);
+      fetch(url, options)
+        .then(res => {
+          if (!hasTimedout) {
+            if (_timeoutId) {
+              clearTimeout(_timeoutId);
+            }
+            resolve(res);
           }
-          resolve(res);
-        }
-      }).catch(err => {
-        if (!hasTimedout) {
-          if (_timeoutId) {
-            clearTimeout(_timeoutId);
+        })
+        .catch(err => {
+          if (!hasTimedout) {
+            if (_timeoutId) {
+              clearTimeout(_timeoutId);
+            }
+            reject(err);
           }
-          reject(err);
-        }
-      });
-    })
-      .then(res => {
-        response = res;
-        headers = res.headers;
-        status = res.status;
-        statusText = res.statusText;
-        this._checkForDeprecationHeader(headers);
-        this._checkForBackoffHeader(status, headers);
+        });
+    }).then(res => {
+      response = res;
+      headers = res.headers;
+      status = res.status;
+      statusText = res.statusText;
+      this._checkForDeprecationHeader(headers);
+      this._checkForBackoffHeader(status, headers);
 
-        // Check if the server summons the client to retry after a while.
-        const retryAfter = this._checkForRetryAfterHeader(status, headers);
-        // If number of allowed of retries is not exhausted, retry the same request.
-        if (retryAfter && options.retry > 0) {
-          return new Promise((resolve, reject) => {
-            setTimeout(() => {
-              resolve(this.request(url, {...options, retry: options.retry - 1}));
-            }, retryAfter);
-          });
-        }
+      // Check if the server summons the client to retry after a while.
+      const retryAfter = this._checkForRetryAfterHeader(status, headers);
+      // If number of allowed of retries is not exhausted, retry the same request.
+      if (retryAfter && options.retry > 0) {
+        return new Promise((resolve, reject) => {
+          setTimeout(
+            () => {
+              resolve(
+                this.request(url, { ...options, retry: options.retry - 1 })
+              );
+            },
+            retryAfter
+          );
+        });
+      }
 
-        return Promise.resolve(res.text())
+      return (
+        Promise.resolve(res.text())
           // Check if we have a body; if so parse it as JSON.
           .then(text => {
             if (text.length === 0) {
@@ -146,7 +156,7 @@ export default class HTTP {
           })
           .then(json => {
             if (json && status >= 400) {
-              let message = `HTTP ${status} ${json.error||""}: `;
+              let message = `HTTP ${status} ${json.error || ""}: `;
               if (json.errno && json.errno in ERROR_CODES) {
                 const errnoMsg = ERROR_CODES[json.errno];
                 message += errnoMsg;
@@ -161,9 +171,10 @@ export default class HTTP {
               error.data = json;
               throw error;
             }
-            return {status, json, headers};
-          });
-      });
+            return { status, json, headers };
+          })
+      );
+    });
   }
 
   _checkForDeprecationHeader(headers) {
@@ -174,7 +185,7 @@ export default class HTTP {
     let alert;
     try {
       alert = JSON.parse(alertHeader);
-    } catch(err) {
+    } catch (err) {
       console.warn("Unable to parse Alert header message", alertHeader);
       return;
     }
@@ -186,7 +197,7 @@ export default class HTTP {
     let backoffMs;
     const backoffSeconds = parseInt(headers.get("Backoff"), 10);
     if (backoffSeconds > 0) {
-      backoffMs = (new Date().getTime()) + (backoffSeconds * 1000);
+      backoffMs = new Date().getTime() + backoffSeconds * 1000;
     } else {
       backoffMs = 0;
     }
@@ -199,7 +210,7 @@ export default class HTTP {
       return;
     }
     const delay = parseInt(retryAfter, 10) * 1000;
-    retryAfter = (new Date().getTime()) + delay;
+    retryAfter = new Date().getTime() + delay;
     this.events.emit("retry-after", retryAfter);
     return delay;
   }

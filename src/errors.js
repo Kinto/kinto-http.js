@@ -21,5 +21,5 @@ export default {
   122: "Another resource violates constraint",
   201: "Service Temporary unavailable due to high load",
   202: "Service deprecated",
-  999: "Internal Server Error",
+  999: "Internal Server Error"
 };

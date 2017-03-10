@@ -7,11 +7,11 @@ global.window = document.defaultView;
 global.navigator = global.window.navigator;
 
 // Expose a global fetch polyfill
-global.fetch = global.window.fetch = require("isomorphic-fetch");
+global.fetch = (global.window.fetch = require("isomorphic-fetch"));
 
 // jsdom FormData & Blob implementations are inconsistent, exposing better ones
 global.FormData = require("form-data");
-global.Blob = (sequences) => Buffer.from(sequences[0]);
+global.Blob = sequences => Buffer.from(sequences[0]);
 
 // atob & btoa polyfill for tests
 global.atob = require("atob");

@@ -5,6 +5,7 @@ env:
 - ACTION="run lint"
 - ACTION="run dist" # ensures building dist files doesn't break
 - ACTION="run test"
+- ACTION="run cs-check"
 before_install:
 - export PATH=$HOME/.local/bin:$PATH
 - wget https://raw.githubusercontent.com/creationix/nvm/v0.33.0/nvm.sh -O ~/.nvm/nvm.sh

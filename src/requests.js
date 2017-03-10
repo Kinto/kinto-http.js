@@ -1,13 +1,12 @@
 import { omit, createFormData } from "./utils";
 
-
 const requestDefaults = {
   safe: false,
   // check if we should set default content type here
   headers: {},
   permissions: undefined,
   data: undefined,
-  patch: false,
+  patch: false
 };
 
 /**
@@ -18,23 +17,23 @@ function safeHeader(safe, last_modified) {
     return {};
   }
   if (last_modified) {
-    return {"If-Match": `"${last_modified}"`};
+    return { "If-Match": `"${last_modified}"` };
   }
-  return {"If-None-Match": "*"};
+  return { "If-None-Match": "*" };
 }
 
 /**
  * @private
  */
-export function createRequest(path, {data, permissions}, options={}) {
+export function createRequest(path, { data, permissions }, options = {}) {
   const { headers, safe } = {
     ...requestDefaults,
-    ...options,
+    ...options
   };
   return {
     method: data && data.id ? "PUT" : "POST",
     path,
-    headers: {...headers, ...safeHeader(safe)},
+    headers: { ...headers, ...safeHeader(safe) },
     body: {
       data,
       permissions
@@ -45,12 +44,12 @@ export function createRequest(path, {data, permissions}, options={}) {
 /**
  * @private
  */
-export function updateRequest(path, {data, permissions}, options={}) {
+export function updateRequest(path, { data, permissions }, options = {}) {
   const {
     headers,
     safe,
-    patch,
-  } = {...requestDefaults, ...options};
+    patch
+  } = { ...requestDefaults, ...options };
   const { last_modified } = { ...data, ...options };
 
   if (Object.keys(omit(data, "id", "last_modified")).length === 0) {
@@ -74,8 +73,8 @@ export function updateRequest(path, {data, permissions}, options={}) {
 /**
  * @private
  */
-export function deleteRequest(path, options={}) {
-  const {headers, safe, last_modified} = {
+export function deleteRequest(path, options = {}) {
+  const { headers, safe, last_modified } = {
     ...requestDefaults,
     ...options
   };
@@ -85,18 +84,23 @@ export function deleteRequest(path, options={}) {
   return {
     method: "DELETE",
     path,
-    headers: {...headers, ...safeHeader(safe, last_modified)}
+    headers: { ...headers, ...safeHeader(safe, last_modified) }
   };
 }
 
 /**
  * @private
  */
-export function addAttachmentRequest(path, dataURI, {data, permissions}={}, options={}) {
-  const {headers, safe, gzipped} = {...requestDefaults, ...options};
-  const {last_modified} = {...data, ...options };
+export function addAttachmentRequest(
+  path,
+  dataURI,
+  { data, permissions } = {},
+  options = {}
+) {
+  const { headers, safe, gzipped } = { ...requestDefaults, ...options };
+  const { last_modified } = { ...data, ...options };
 
-  const body = {data, permissions};
+  const body = { data, permissions };
   const formData = createFormData(dataURI, body, options);
   let customPath;
 
@@ -111,7 +115,7 @@ export function addAttachmentRequest(path, dataURI, {data, permissions}={}, opti
     path: customPath,
     headers: {
       ...headers,
-      ...safeHeader(safe, last_modified),
+      ...safeHeader(safe, last_modified)
     },
     body: formData
   };
