@@ -6,6 +6,8 @@
   "scripts": {
     "build": "babel -d lib/ src/",
     "build:readme": "./node_modules/.bin/toctoc -w -d 2 README.md",
+    "cs-check": "prettier-check $npm_package_prettierOptions '{src,test}/**/*.js'",
+    "cs-format": "prettier $npm_package_prettierOptions '{src,test}/**/*.js' --write",
     "dist": "mkdir -p dist && rm -f dist/*.* && npm run dist-dev && npm run dist-prod && npm run dist-noshim && npm run dist-fx",
     "dist-dev": "browserify -s KintoClient -d -e src/index.js -o dist/kinto-http.js -t [ babelify --sourceMapRelative . ]",
     "dist-noshim": "browserify -s KintoClient -g uglifyify --ignore babel-polyfill -e src/index.js -o dist/kinto-http.noshim.js -t [ babelify --sourceMapRelative . ]",
@@ -21,6 +23,7 @@
     "test-nocover": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js 'test/**/*_test.js'",
     "lint": "eslint src test"
   },
+  "prettierOptions": "--print-width 80 --trailing-comma es5",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kinto/kinto-http.js.git"
@@ -67,6 +70,8 @@
     "jsdom": "^9.10.0",
     "kinto-node-test-server": "0.0.1",
     "mocha": "^3.2.0",
+    "prettier": "^0.22.0",
+    "prettier-check": "^1.0.0",
     "sinon": "^1.17.7",
     "toctoc": "^0.2.3",
     "uglifyify": "^3.0.4"

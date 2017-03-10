@@ -4,7 +4,6 @@ import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
-
 /**
  * Abstract representation of a selected collection.
  *
@@ -20,7 +19,7 @@ export default class Collection {
    * @param  {Object}       [options.headers] The headers object option.
    * @param  {Boolean}      [options.safe]    The safe option.
    */
-  constructor(client, bucket, name, options={}) {
+  constructor(client, bucket, name, options = {}) {
     /**
      * @ignore
      */
@@ -44,9 +43,9 @@ export default class Collection {
       ...this.bucket.options,
       ...options,
       headers: {
-        ...this.bucket.options && this.bucket.options.headers,
-        ...options.headers
-      }
+        ...(this.bucket.options && this.bucket.options.headers),
+        ...options.headers,
+      },
     };
     /**
      * @ignore
@@ -62,10 +61,10 @@ export default class Collection {
    * @param  {Object} [options={}] The options to merge.
    * @return {Object}              The merged options.
    */
-  _collOptions(options={}) {
+  _collOptions(options = {}) {
     const headers = {
-      ...this.options && this.options.headers,
-      ...options.headers
+      ...(this.options && this.options.headers),
+      ...options.headers,
     };
     return {
       ...this.options,
@@ -81,12 +80,13 @@ export default class Collection {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Number, Error>}
    */
-  getTotalRecords(options={}) {
+  getTotalRecords(options = {}) {
     const path = endpoint("record", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
-    const request = {...reqOptions, path, method: "HEAD"};
-    return this.client.execute(request, {raw: true})
-      .then(({headers}) => parseInt(headers.get("Total-Records"), 10));
+    const request = { ...reqOptions, path, method: "HEAD" };
+    return this.client
+      .execute(request, { raw: true })
+      .then(({ headers }) => parseInt(headers.get("Total-Records"), 10));
   }
 
   /**
@@ -96,12 +96,11 @@ export default class Collection {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getData(options={}) {
+  getData(options = {}) {
     const reqOptions = this._collOptions(options);
     const path = endpoint("collection", this.bucket.name, this.name);
-    const request = {...reqOptions, path};
-    return this.client.execute(request)
-    .then(res => res.data);
+    const request = { ...reqOptions, path };
+    return this.client.execute(request).then(res => res.data);
   }
 
   /**
@@ -114,7 +113,7 @@ export default class Collection {
    * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  setData(data, options={}) {
+  setData(data, options = {}) {
     if (!isObject(data)) {
       throw new Error("A collection object is required.");
     }
@@ -122,7 +121,11 @@ export default class Collection {
     const { permissions } = reqOptions;
 
     const path = endpoint("collection", this.bucket.name, this.name);
-    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
+    const request = requests.updateRequest(
+      path,
+      { data, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -133,12 +136,11 @@ export default class Collection {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getPermissions(options={}) {
+  getPermissions(options = {}) {
     const path = endpoint("collection", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
-    const request = {...reqOptions, path};
-    return this.client.execute(request)
-      .then(res => res.permissions);
+    const request = { ...reqOptions, path };
+    return this.client.execute(request).then(res => res.permissions);
   }
 
   /**
@@ -151,14 +153,18 @@ export default class Collection {
    * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  setPermissions(permissions, options={}) {
+  setPermissions(permissions, options = {}) {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
     const reqOptions = this._collOptions(options);
     const path = endpoint("collection", this.bucket.name, this.name);
     const data = { last_modified: options.last_modified };
-    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
+    const request = requests.updateRequest(
+      path,
+      { data, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -172,11 +178,15 @@ export default class Collection {
    * @param  {Object}  [options.permissions] The permissions option.
    * @return {Promise<Object, Error>}
    */
-  createRecord(record, options={}) {
+  createRecord(record, options = {}) {
     const reqOptions = this._collOptions(options);
     const { permissions } = reqOptions;
     const path = endpoint("record", this.bucket.name, this.name, record.id);
-    const request = requests.createRequest(path, {data: record, permissions}, reqOptions);
+    const request = requests.createRequest(
+      path,
+      { data: record, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -195,16 +205,19 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   @capable(["attachments"])
-  addAttachment(dataURI, record={}, options={}) {
+  addAttachment(dataURI, record = {}, options = {}) {
     const reqOptions = this._collOptions(options);
-    const {permissions} = reqOptions;
+    const { permissions } = reqOptions;
     const id = record.id || uuid.v4();
     const path = endpoint("attachment", this.bucket.name, this.name, id);
-    const addAttachmentRequest = requests.addAttachmentRequest(path, dataURI, {
-      data: record,
-      permissions
-    }, reqOptions);
-    return this.client.execute(addAttachmentRequest, {stringify: false})
+    const addAttachmentRequest = requests.addAttachmentRequest(
+      path,
+      dataURI,
+      { data: record, permissions },
+      reqOptions
+    );
+    return this.client
+      .execute(addAttachmentRequest, { stringify: false })
       .then(() => this.getRecord(id));
   }
 
@@ -218,7 +231,7 @@ export default class Collection {
    * @param  {Number}  [options.last_modified] The last_modified option.
    */
   @capable(["attachments"])
-  removeAttachment(recordId, options={}) {
+  removeAttachment(recordId, options = {}) {
     const reqOptions = this._collOptions(options);
     const path = endpoint("attachment", this.bucket.name, this.name, recordId);
     const request = requests.deleteRequest(path, reqOptions);
@@ -236,7 +249,7 @@ export default class Collection {
    * @param  {Object}  [options.permissions]   The permissions option.
    * @return {Promise<Object, Error>}
    */
-  updateRecord(record, options={}) {
+  updateRecord(record, options = {}) {
     if (!isObject(record)) {
       throw new Error("A record object is required.");
     }
@@ -246,7 +259,11 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     const { permissions } = reqOptions;
     const path = endpoint("record", this.bucket.name, this.name, record.id);
-    const request = requests.updateRequest(path, {data: record, permissions}, reqOptions);
+    const request = requests.updateRequest(
+      path,
+      { data: record, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -260,12 +277,12 @@ export default class Collection {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  deleteRecord(record, options={}) {
+  deleteRecord(record, options = {}) {
     const recordObj = toDataBody(record);
     if (!recordObj.id) {
       throw new Error("A record id is required.");
     }
-    const {id, last_modified} = recordObj;
+    const { id, last_modified } = recordObj;
     const reqOptions = this._collOptions({ last_modified, ...options });
     const path = endpoint("record", this.bucket.name, this.name, id);
     const request = requests.deleteRequest(path, reqOptions);
@@ -280,10 +297,10 @@ export default class Collection {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getRecord(id, options={}) {
+  getRecord(id, options = {}) {
     const path = endpoint("record", this.bucket.name, this.name, id);
     const reqOptions = this._collOptions(options);
-    const request = {...reqOptions, path};
+    const request = { ...reqOptions, path };
     return this.client.execute(request);
   }
 
@@ -320,7 +337,7 @@ export default class Collection {
    * @param  {Number}   [options.since=null]            Only retrieve records modified since the provided timestamp.
    * @return {Promise<Object, Error>}
    */
-  listRecords(options={}) {
+  listRecords(options = {}) {
     const path = endpoint("record", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
     if (options.hasOwnProperty("at")) {
@@ -339,19 +356,20 @@ export default class Collection {
     }
     // TODO: we process history changes forward, while it would probably be more
     // efficient and accurate to process them backward.
-    return this.bucket.listHistory({
-      pages: Infinity, // all pages up to target timestamp are required
-      sort: "-target.data.last_modified",
-      filters: {
-        resource_name: "record",
-        collection_id: this.name,
-        "max_target.data.last_modified": String(at),
-      }
-    })
-      .then(({data: changes}) => {
+    return this.bucket
+      .listHistory({
+        pages: Infinity, // all pages up to target timestamp are required
+        sort: "-target.data.last_modified",
+        filters: {
+          resource_name: "record",
+          collection_id: this.name,
+          "max_target.data.last_modified": String(at),
+        },
+      })
+      .then(({ data: changes }) => {
         const seenIds = new Set();
         let snapshot = [];
-        for (const {action, target: {data: record}} of changes) {
+        for (const { action, target: { data: record } } of changes) {
           if (action == "delete") {
             seenIds.add(record.id); // ensure not reprocessing deleted entries
             snapshot = snapshot.filter(r => r.id !== record.id);
@@ -363,7 +381,9 @@ export default class Collection {
         return {
           last_modified: String(at),
           data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
-          next: () => { throw new Error("Snapshots don't support pagination"); },
+          next: () => {
+            throw new Error("Snapshots don't support pagination");
+          },
           hasNextPage: false,
           totalRecords: snapshot.length,
         };
@@ -380,7 +400,7 @@ export default class Collection {
    * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
-  batch(fn, options={}) {
+  batch(fn, options = {}) {
     const reqOptions = this._collOptions(options);
     return this.client.batch(fn, {
       ...reqOptions,

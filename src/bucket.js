@@ -3,7 +3,6 @@ import Collection from "./collection";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
-
 /**
  * Abstract representation of a selected bucket.
  *
@@ -18,7 +17,7 @@ export default class Bucket {
    * @param  {Object}      [options.headers] The headers object option.
    * @param  {Boolean}     [options.safe]    The safe option.
    */
-  constructor(client, name, options={}) {
+  constructor(client, name, options = {}) {
     /**
      * @ignore
      */
@@ -47,17 +46,17 @@ export default class Bucket {
    * @param  {Object} [options={}] The options to merge.
    * @return {Object}              The merged options.
    */
-  _bucketOptions(options={}) {
+  _bucketOptions(options = {}) {
     const headers = {
-      ...this.options && this.options.headers,
-      ...options.headers
+      ...(this.options && this.options.headers),
+      ...options.headers,
     };
     return {
       ...this.options,
       ...options,
       headers,
       bucket: this.name,
-      batch: this._isBatch
+      batch: this._isBatch,
     };
   }
 
@@ -70,10 +69,14 @@ export default class Bucket {
    * @param  {Boolean} [options.safe]    The safe option.
    * @return {Collection}
    */
-  collection(name, options={}) {
-    return new Collection(this.client, this, name, this._bucketOptions(options));
+  collection(name, options = {}) {
+    return new Collection(
+      this.client,
+      this,
+      name,
+      this._bucketOptions(options)
+    );
   }
-
 
   /**
    * Retrieves bucket data.
@@ -82,11 +85,10 @@ export default class Bucket {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getData(options={}) {
-    const reqOptions = {...this._bucketOptions(options)};
-    const request = {...reqOptions, path: endpoint("bucket", this.name)};
-    return this.client.execute(request)
-      .then((res) => res.data);
+  getData(options = {}) {
+    const reqOptions = { ...this._bucketOptions(options) };
+    const request = { ...reqOptions, path: endpoint("bucket", this.name) };
+    return this.client.execute(request).then(res => res.data);
   }
 
   /**
@@ -99,12 +101,12 @@ export default class Bucket {
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  setData(data, options={}) {
+  setData(data, options = {}) {
     if (!isObject(data)) {
       throw new Error("A bucket object is required.");
     }
 
-    const bucket = {...data, id: this.name};
+    const bucket = { ...data, id: this.name };
 
     // For default bucket, we need to drop the id from the data object.
     // Bug in Kinto < 3.1.1
@@ -115,8 +117,12 @@ export default class Bucket {
 
     const path = endpoint("bucket", bucketId);
     const { permissions } = options;
-    const reqOptions = {...this._bucketOptions(options)};
-    const request = requests.updateRequest(path, {data: bucket, permissions}, reqOptions);
+    const reqOptions = { ...this._bucketOptions(options) };
+    const request = requests.updateRequest(
+      path,
+      { data: bucket, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -128,7 +134,7 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   @capable(["history"])
-  listHistory(options={}) {
+  listHistory(options = {}) {
     const path = endpoint("history", this.name);
     const reqOptions = this._bucketOptions(options);
     return this.client.paginatedList(path, options, reqOptions);
@@ -141,7 +147,7 @@ export default class Bucket {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Array<Object>, Error>}
    */
-  listCollections(options={}) {
+  listCollections(options = {}) {
     const path = endpoint("collection", this.name);
     const reqOptions = this._bucketOptions(options);
     return this.client.paginatedList(path, options, reqOptions);
@@ -158,12 +164,16 @@ export default class Bucket {
    * @param  {Object}  [options.data]        The data object.
    * @return {Promise<Object, Error>}
    */
-  createCollection(id, options={}) {
+  createCollection(id, options = {}) {
     const reqOptions = this._bucketOptions(options);
-    const { permissions, data={} } = reqOptions;
+    const { permissions, data = {} } = reqOptions;
     data.id = id;
     const path = endpoint("collection", this.name, id);
-    const request = requests.createRequest(path, {data, permissions}, reqOptions);
+    const request = requests.createRequest(
+      path,
+      { data, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -177,12 +187,12 @@ export default class Bucket {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  deleteCollection(collection, options={}) {
+  deleteCollection(collection, options = {}) {
     const collectionObj = toDataBody(collection);
     if (!collectionObj.id) {
       throw new Error("A collection id is required.");
     }
-    const {id, last_modified} = collectionObj;
+    const { id, last_modified } = collectionObj;
     const reqOptions = this._bucketOptions({ last_modified, ...options });
     const path = endpoint("collection", this.name, id);
     const request = requests.deleteRequest(path, reqOptions);
@@ -196,7 +206,7 @@ export default class Bucket {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Array<Object>, Error>}
    */
-  listGroups(options={}) {
+  listGroups(options = {}) {
     const path = endpoint("group", this.name);
     const reqOptions = this._bucketOptions(options);
     return this.client.paginatedList(path, options, reqOptions);
@@ -210,9 +220,9 @@ export default class Bucket {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getGroup(id, options={}) {
-    const reqOptions = {...this._bucketOptions(options)};
-    const request = {...reqOptions, path: endpoint("group", this.name, id)};
+  getGroup(id, options = {}) {
+    const reqOptions = { ...this._bucketOptions(options) };
+    const request = { ...reqOptions, path: endpoint("group", this.name, id) };
     return this.client.execute(request);
   }
 
@@ -228,16 +238,20 @@ export default class Bucket {
    * @param  {Object}            [options.headers]     The headers object option.
    * @return {Promise<Object, Error>}
    */
-  createGroup(id, members=[], options={}) {
+  createGroup(id, members = [], options = {}) {
     const reqOptions = this._bucketOptions(options);
     const data = {
       ...options.data,
       id,
-      members
+      members,
     };
     const path = endpoint("group", this.name, id);
-    const {permissions} = options;
-    const request = requests.createRequest(path, {data, permissions}, reqOptions);
+    const { permissions } = options;
+    const request = requests.createRequest(
+      path,
+      { data, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -253,7 +267,7 @@ export default class Bucket {
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  updateGroup(group, options={}) {
+  updateGroup(group, options = {}) {
     if (!isObject(group)) {
       throw new Error("A group object is required.");
     }
@@ -263,11 +277,15 @@ export default class Bucket {
     const reqOptions = this._bucketOptions(options);
     const data = {
       ...options.data,
-      ...group
+      ...group,
     };
     const path = endpoint("group", this.name, group.id);
-    const {permissions} = options;
-    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
+    const { permissions } = options;
+    const request = requests.updateRequest(
+      path,
+      { data, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -281,10 +299,10 @@ export default class Bucket {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  deleteGroup(group, options={}) {
+  deleteGroup(group, options = {}) {
     const groupObj = toDataBody(group);
-    const {id, last_modified} = groupObj;
-    const reqOptions = this._bucketOptions({last_modified, ...options});
+    const { id, last_modified } = groupObj;
+    const reqOptions = this._bucketOptions({ last_modified, ...options });
     const path = endpoint("group", this.name, id);
     const request = requests.deleteRequest(path, reqOptions);
     return this.client.execute(request);
@@ -297,11 +315,10 @@ export default class Bucket {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  getPermissions(options={}) {
+  getPermissions(options = {}) {
     const reqOptions = this._bucketOptions(options);
-    const request = {...reqOptions, path: endpoint("bucket", this.name)};
-    return this.client.execute(request)
-      .then((res) => res.permissions);
+    const request = { ...reqOptions, path: endpoint("bucket", this.name) };
+    return this.client.execute(request).then(res => res.permissions);
   }
 
   /**
@@ -314,15 +331,19 @@ export default class Bucket {
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  setPermissions(permissions, options={}) {
+  setPermissions(permissions, options = {}) {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
     const path = endpoint("bucket", this.name);
-    const reqOptions = {...this._bucketOptions(options)};
-    const {last_modified} = options;
-    const data = {last_modified};
-    const request = requests.updateRequest(path, {data, permissions}, reqOptions);
+    const reqOptions = { ...this._bucketOptions(options) };
+    const { last_modified } = options;
+    const data = { last_modified };
+    const request = requests.updateRequest(
+      path,
+      { data, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -336,7 +357,7 @@ export default class Bucket {
    * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
-  batch(fn, options={}) {
+  batch(fn, options = {}) {
     return this.client.batch(fn, this._bucketOptions(options));
   }
 }

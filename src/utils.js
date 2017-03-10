@@ -10,14 +10,17 @@ export function partition(array, n) {
   if (n <= 0) {
     return array;
   }
-  return array.reduce((acc, x, i) => {
-    if (i === 0 || i % n === 0) {
-      acc.push([x]);
-    } else {
-      acc[acc.length - 1].push(x);
-    }
-    return acc;
-  }, []);
+  return array.reduce(
+    (acc, x, i) => {
+      if (i === 0 || i % n === 0) {
+        acc.push([x]);
+      } else {
+        acc[acc.length - 1].push(x);
+      }
+      return acc;
+    },
+    []
+  );
 }
 
 /**
@@ -32,12 +35,18 @@ export function partition(array, n) {
  */
 export function pMap(list, fn) {
   let results = [];
-  return list.reduce((promise, entry) => {
-    return promise.then(() => {
-      return Promise.resolve(fn(entry))
-        .then(result => results = results.concat(result));
-    });
-  }, Promise.resolve()).then(() => results);
+  return list
+    .reduce(
+      (promise, entry) => {
+        return promise.then(() => {
+          return Promise.resolve(fn(entry)).then(
+            result => results = results.concat(result)
+          );
+        });
+      },
+      Promise.resolve()
+    )
+    .then(() => results);
 }
 
 /**
@@ -49,12 +58,15 @@ export function pMap(list, fn) {
  * @return {Object}
  */
 export function omit(obj, ...keys) {
-  return Object.keys(obj).reduce((acc, key) => {
-    if (keys.indexOf(key) === -1) {
-      acc[key] = obj[key];
-    }
-    return acc;
-  }, {});
+  return Object.keys(obj).reduce(
+    (acc, key) => {
+      if (keys.indexOf(key) === -1) {
+        acc[key] = obj[key];
+      }
+      return acc;
+    },
+    {}
+  );
 }
 
 /**
@@ -69,7 +81,7 @@ export function toDataBody(resource) {
     return resource;
   }
   if (typeof resource === "string") {
-    return {id: resource};
+    return { id: resource };
   }
   throw new Error("Invalid argument.");
 }
@@ -82,17 +94,20 @@ export function toDataBody(resource) {
  * @return {String}
  */
 export function qsify(obj) {
-  const encode = (v) => encodeURIComponent(typeof v === "boolean" ? String(v) : v);
-  const stripUndefined = (o) => JSON.parse(JSON.stringify(o));
+  const encode = v =>
+    encodeURIComponent(typeof v === "boolean" ? String(v) : v);
+  const stripUndefined = o => JSON.parse(JSON.stringify(o));
   const stripped = stripUndefined(obj);
-  return Object.keys(stripped).map((k) => {
-    const ks = encode(k) + "=";
-    if (Array.isArray(stripped[k])) {
-      return ks + stripped[k].map((v) => encode(v)).join(",");
-    } else {
-      return ks + encode(stripped[k]);
-    }
-  }).join("&");
+  return Object.keys(stripped)
+    .map(k => {
+      const ks = encode(k) + "=";
+      if (Array.isArray(stripped[k])) {
+        return ks + stripped[k].map(v => encode(v)).join(",");
+      } else {
+        return ks + encode(stripped[k]);
+      }
+    })
+    .join("&");
 }
 
 /**
@@ -104,7 +119,7 @@ export function qsify(obj) {
  * @throws {Error} If the version is outside of the provided range.
  */
 export function checkVersion(version, minVersion, maxVersion) {
-  const extract = (str) => str.split(".").map(x => parseInt(x, 10));
+  const extract = str => str.split(".").map(x => parseInt(x, 10));
   const [verMajor, verMinor] = extract(version);
   const [minMajor, minMinor] = extract(minVersion);
   const [maxMajor, maxMinor] = extract(maxVersion);
@@ -115,8 +130,9 @@ export function checkVersion(version, minVersion, maxVersion) {
     verMajor === maxMajor && verMinor >= maxMinor,
   ];
   if (checks.some(x => x)) {
-    throw new Error(`Version ${version} doesn't satisfy ` +
-                    `${minVersion} <= x < ${maxVersion}`);
+    throw new Error(
+      `Version ${version} doesn't satisfy ${minVersion} <= x < ${maxVersion}`
+    );
   }
 }
 
@@ -137,17 +153,18 @@ export function support(min, max) {
         const wrappedMethod = (...args) => {
           // "this" is the current instance which its method is decorated.
           const client = "client" in this ? this.client : this;
-          return client.fetchHTTPApiVersion()
+          return client
+            .fetchHTTPApiVersion()
             .then(version => checkVersion(version, min, max))
             .then(() => fn.apply(this, args));
         };
         Object.defineProperty(this, key, {
           value: wrappedMethod,
           configurable: true,
-          writable: true
+          writable: true,
         });
         return wrappedMethod;
-      }
+      },
     };
   };
 }
@@ -168,12 +185,15 @@ export function capable(capabilities) {
         const wrappedMethod = (...args) => {
           // "this" is the current instance which its method is decorated.
           const client = "client" in this ? this.client : this;
-          return client.fetchServerCapabilities()
+          return client
+            .fetchServerCapabilities()
             .then(available => {
-              const missing = capabilities.filter(c => !available.hasOwnProperty(c));
+              const missing = capabilities.filter(c => !(c in available));
               if (missing.length > 0) {
-                throw new Error(`Required capabilities ${missing.join(", ")} ` +
-                                "not present on server");
+                const missingStr = missing.join(", ");
+                throw new Error(
+                  `Required capabilities ${missingStr} not present on server`
+                );
               }
             })
             .then(() => fn.apply(this, args));
@@ -181,10 +201,10 @@ export function capable(capabilities) {
         Object.defineProperty(this, key, {
           value: wrappedMethod,
           configurable: true,
-          writable: true
+          writable: true,
         });
         return wrappedMethod;
-      }
+      },
     };
   };
 }
@@ -212,10 +232,10 @@ export function nobatch(message) {
         Object.defineProperty(this, key, {
           value: wrappedMethod,
           configurable: true,
-          writable: true
+          writable: true,
         });
         return wrappedMethod;
-      }
+      },
     };
   };
 }
@@ -243,11 +263,14 @@ export function parseDataURL(dataURL) {
   const props = match[1];
   const base64 = match[2];
   const [type, ...rawParams] = props.split(";");
-  const params = rawParams.reduce((acc, param) => {
-    const [key, value] = param.split("=");
-    return {...acc, [key]: value};
-  }, {});
-  return {...params, type, base64};
+  const params = rawParams.reduce(
+    (acc, param) => {
+      const [key, value] = param.split("=");
+      return { ...acc, [key]: value };
+    },
+    {}
+  );
+  return { ...params, type, base64 };
 }
 
 /**
@@ -256,14 +279,14 @@ export function parseDataURL(dataURL) {
  * @return {Object}
  */
 export function extractFileInfo(dataURL) {
-  const {name, type, base64} = parseDataURL(dataURL);
+  const { name, type, base64 } = parseDataURL(dataURL);
   const binary = atob(base64);
   const array = [];
-  for(let i = 0; i < binary.length; i++) {
+  for (let i = 0; i < binary.length; i++) {
     array.push(binary.charCodeAt(i));
   }
-  const blob = new Blob([new Uint8Array(array)], {type});
-  return {blob, name};
+  const blob = new Blob([new Uint8Array(array)], { type });
+  return { blob, name };
 }
 
 /**
@@ -275,9 +298,9 @@ export function extractFileInfo(dataURL) {
  * @param  {Object} [options.filename] Force attachment file name.
  * @return {FormData}
  */
-export function createFormData(dataURL, body, options={}) {
-  const {filename="untitled"} = options;
-  const {blob, name} = extractFileInfo(dataURL);
+export function createFormData(dataURL, body, options = {}) {
+  const { filename = "untitled" } = options;
+  const { blob, name } = extractFileInfo(dataURL);
   const formData = new FormData();
   formData.append("attachment", blob, name || filename);
   for (const property in body) {

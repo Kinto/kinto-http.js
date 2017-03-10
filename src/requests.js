@@ -1,6 +1,5 @@
 import { omit, createFormData } from "./utils";
 
-
 const requestDefaults = {
   safe: false,
   // check if we should set default content type here
@@ -18,15 +17,15 @@ function safeHeader(safe, last_modified) {
     return {};
   }
   if (last_modified) {
-    return {"If-Match": `"${last_modified}"`};
+    return { "If-Match": `"${last_modified}"` };
   }
-  return {"If-None-Match": "*"};
+  return { "If-None-Match": "*" };
 }
 
 /**
  * @private
  */
-export function createRequest(path, {data, permissions}, options={}) {
+export function createRequest(path, { data, permissions }, options = {}) {
   const { headers, safe } = {
     ...requestDefaults,
     ...options,
@@ -34,23 +33,20 @@ export function createRequest(path, {data, permissions}, options={}) {
   return {
     method: data && data.id ? "PUT" : "POST",
     path,
-    headers: {...headers, ...safeHeader(safe)},
-    body: {
-      data,
-      permissions
-    }
+    headers: { ...headers, ...safeHeader(safe) },
+    body: { data, permissions },
   };
 }
 
 /**
  * @private
  */
-export function updateRequest(path, {data, permissions}, options={}) {
+export function updateRequest(path, { data, permissions }, options = {}) {
   const {
     headers,
     safe,
     patch,
-  } = {...requestDefaults, ...options};
+  } = { ...requestDefaults, ...options };
   const { last_modified } = { ...data, ...options };
 
   if (Object.keys(omit(data, "id", "last_modified")).length === 0) {
@@ -60,24 +56,18 @@ export function updateRequest(path, {data, permissions}, options={}) {
   return {
     method: patch ? "PATCH" : "PUT",
     path,
-    headers: {
-      ...headers,
-      ...safeHeader(safe, last_modified)
-    },
-    body: {
-      data,
-      permissions
-    }
+    headers: { ...headers, ...safeHeader(safe, last_modified) },
+    body: { data, permissions },
   };
 }
 
 /**
  * @private
  */
-export function deleteRequest(path, options={}) {
-  const {headers, safe, last_modified} = {
+export function deleteRequest(path, options = {}) {
+  const { headers, safe, last_modified } = {
     ...requestDefaults,
-    ...options
+    ...options,
   };
   if (safe && !last_modified) {
     throw new Error("Safe concurrency check requires a last_modified value.");
@@ -85,34 +75,33 @@ export function deleteRequest(path, options={}) {
   return {
     method: "DELETE",
     path,
-    headers: {...headers, ...safeHeader(safe, last_modified)}
+    headers: { ...headers, ...safeHeader(safe, last_modified) },
   };
 }
 
 /**
  * @private
  */
-export function addAttachmentRequest(path, dataURI, {data, permissions}={}, options={}) {
-  const {headers, safe, gzipped} = {...requestDefaults, ...options};
-  const {last_modified} = {...data, ...options };
+export function addAttachmentRequest(
+  path,
+  dataURI,
+  { data, permissions } = {},
+  options = {}
+) {
+  const { headers, safe, gzipped } = { ...requestDefaults, ...options };
+  const { last_modified } = { ...data, ...options };
 
-  const body = {data, permissions};
+  const body = { data, permissions };
   const formData = createFormData(dataURI, body, options);
-  let customPath;
 
-  if (gzipped != null) {
-    customPath = path + "?gzipped=" + (gzipped ? "true" : "false");
-  } else {
-    customPath = path;
-  }
+  let customPath = gzipped != null
+    ? (customPath = path + "?gzipped=" + (gzipped ? "true" : "false"))
+    : path;
 
   return {
     method: "POST",
     path: customPath,
-    headers: {
-      ...headers,
-      ...safeHeader(safe, last_modified),
-    },
-    body: formData
+    headers: { ...headers, ...safeHeader(safe, last_modified) },
+    body: formData,
   };
 }

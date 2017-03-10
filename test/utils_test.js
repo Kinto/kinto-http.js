@@ -37,33 +37,37 @@ describe("Utils", () => {
   /** @test {pMap} */
   describe("#pMap", () => {
     it("should map list to aggregated results", () => {
-      return pMap([1, 2], x => Promise.resolve(x * 2))
-        .should.become([2, 4]);
+      return pMap([1, 2], x => Promise.resolve(x * 2)).should.become([2, 4]);
     });
 
     it("should convert sync reducing function to async", () => {
-      return pMap([1, 2], x => x * 2)
-        .should.become([2, 4]);
+      return pMap([1, 2], x => x * 2).should.become([2, 4]);
     });
 
     it("should preserve order of entries", () => {
-      return pMap([100, 50], (x) => {
+      return pMap([100, 50], x => {
         return new Promise(resolve => {
-          setTimeout(() => {
-            resolve(x);
-          }, x);
+          setTimeout(
+            () => {
+              resolve(x);
+            },
+            x
+          );
         });
       }).should.become([100, 50]);
     });
 
     it("should ensure order of execution", () => {
       const logged = [];
-      return pMap([100, 50], (x) => {
+      return pMap([100, 50], x => {
         return new Promise(resolve => {
-          setTimeout(() => {
-            logged.push(x);
-            resolve(x);
-          }, x);
+          setTimeout(
+            () => {
+              logged.push(x);
+              resolve(x);
+            },
+            x
+          );
         });
       }).then(_ => expect(logged).eql([100, 50]));
     });
@@ -72,38 +76,38 @@ describe("Utils", () => {
   /** @test {omit} */
   describe("#omit", () => {
     it("should omit provided a single key", () => {
-      expect(omit({a: 1, b: 2}, "a")).eql({b: 2});
+      expect(omit({ a: 1, b: 2 }, "a")).eql({ b: 2 });
     });
 
     it("should omit multiple keys", () => {
-      expect(omit({a: 1, b: 2, c: 3}, "a", "c")).eql({b: 2});
+      expect(omit({ a: 1, b: 2, c: 3 }, "a", "c")).eql({ b: 2 });
     });
 
     it("should return source if no key is specified", () => {
-      expect(omit({a: 1, b: 2})).eql({a: 1, b: 2});
+      expect(omit({ a: 1, b: 2 })).eql({ a: 1, b: 2 });
     });
   });
 
   /** @test {qsify} */
   describe("#qsify", () => {
     it("should generate a query string from an object", () => {
-      expect(qsify({a: 1, b: 2})).eql("a=1&b=2");
+      expect(qsify({ a: 1, b: 2 })).eql("a=1&b=2");
     });
 
     it("should strip out undefined values", () => {
-      expect(qsify({a: undefined, b: 2})).eql("b=2");
+      expect(qsify({ a: undefined, b: 2 })).eql("b=2");
     });
 
     it("should join comma-separated values", () => {
-      expect(qsify({a: [1, 2], b: 2})).eql("a=1,2&b=2");
+      expect(qsify({ a: [1, 2], b: 2 })).eql("a=1,2&b=2");
     });
 
     it("should map boolean as lowercase string", () => {
-      expect(qsify({a: [true, 2], b: false})).eql("a=true,2&b=false");
+      expect(qsify({ a: [true, 2], b: false })).eql("a=true,2&b=false");
     });
 
     it("should escaped values", () => {
-      expect(qsify({a: ["é", "ə"], b: "&"})).eql("a=%C3%A9,%C9%99&b=%26");
+      expect(qsify({ a: ["é", "ə"], b: "&" })).eql("a=%C3%A9,%C9%99&b=%26");
     });
   });
 
@@ -182,7 +186,7 @@ describe("Utils", () => {
           this.client = {
             fetchHTTPApiVersion() {
               return Promise.reject(); // simulates a failing checkVersion call
-            }
+            },
           };
         }
 
@@ -219,7 +223,11 @@ describe("Utils", () => {
     it("should make decorated method resolve on capability match", () => {
       class FakeClient {
         fetchServerCapabilities() {
-          return Promise.resolve({attachments: {}, default: {}, "auth:fxa": {}});
+          return Promise.resolve({
+            attachments: {},
+            default: {},
+            "auth:fxa": {},
+          });
         }
 
         @capable(["default", "attachments"])
@@ -234,7 +242,7 @@ describe("Utils", () => {
     it("should make decorated method rejecting on missing capability", () => {
       class FakeClient {
         fetchServerCapabilities() {
-          return Promise.resolve({attachments: {}});
+          return Promise.resolve({ attachments: {} });
         }
 
         @capable(["attachments", "default"])
@@ -243,7 +251,9 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.rejectedWith(Error, /default not present/);
+      return new FakeClient()
+        .test()
+        .should.be.rejectedWith(Error, /default not present/);
     });
 
     it("should check for an attached client instance", () => {
@@ -251,8 +261,8 @@ describe("Utils", () => {
         constructor() {
           this.client = {
             fetchServerCapabilities() {
-              return Promise.resolve({default: {}});
-            }
+              return Promise.resolve({ default: {} });
+            },
           };
         }
 
@@ -304,26 +314,28 @@ describe("Utils", () => {
 
   describe("parseDataURL()", () => {
     it("should extract expected properties", () => {
-      expect(parseDataURL("data:image/png;encoding=utf-8;name=a.png;base64,b64"))
-        .eql({
-          type: "image/png",
-          name: "a.png",
-          base64: "b64",
-          encoding: "utf-8",
-        });
+      expect(
+        parseDataURL("data:image/png;encoding=utf-8;name=a.png;base64,b64")
+      ).eql({
+        type: "image/png",
+        name: "a.png",
+        base64: "b64",
+        encoding: "utf-8",
+      });
     });
 
     it("should support dataURL without name", () => {
-      expect(parseDataURL("data:image/png;base64,b64"))
-        .eql({
-          type: "image/png",
-          base64: "b64",
-        });
+      expect(parseDataURL("data:image/png;base64,b64")).eql({
+        type: "image/png",
+        base64: "b64",
+      });
     });
 
     it("should throw an error when the data url is invalid", () => {
-      expect(() => expect(parseDataURL("gni")))
-        .to.throw(Error, "Invalid data-url: gni...");
+      expect(() => expect(parseDataURL("gni"))).to.throw(
+        Error,
+        "Invalid data-url: gni..."
+      );
     });
   });
 
@@ -331,7 +343,7 @@ describe("Utils", () => {
     it("should extract file information from a data url", () => {
       const dataURL = "data:text/plain;name=t.txt;base64," + btoa("test");
 
-      const {blob, name} = extractFileInfo(dataURL);
+      const { blob, name } = extractFileInfo(dataURL);
 
       expect(blob.length).eql(4);
       expect(name).eql("t.txt");

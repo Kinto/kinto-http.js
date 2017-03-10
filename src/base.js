@@ -1,13 +1,20 @@
 "use strict";
 
-import { partition, pMap, omit, qsify, support, nobatch, toDataBody } from "./utils";
+import {
+  partition,
+  pMap,
+  omit,
+  qsify,
+  support,
+  nobatch,
+  toDataBody,
+} from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
 import { aggregate } from "./batch";
 import Bucket from "./bucket";
 import { capable } from "./utils";
-
 
 /**
  * Currently supported protocol version.
@@ -40,11 +47,11 @@ export default class KintoClientBase {
    * @param  {String}       [options.requestMode="cors"]  The HTTP request mode (from ES6 fetch spec).
    * @param  {Number}       [options.timeout=null]        The request timeout in ms, if any.
    */
-  constructor(remote, options={}) {
-    if (typeof(remote) !== "string" || !remote.length) {
+  constructor(remote, options = {}) {
+    if (typeof remote !== "string" || !remote.length) {
       throw new Error("Invalid remote URL: " + remote);
     }
-    if (remote[remote.length-1] === "/") {
+    if (remote[remote.length - 1] === "/") {
       remote = remote.slice(0, -1);
     }
     this._backoffReleaseTime = null;
@@ -55,10 +62,10 @@ export default class KintoClientBase {
      * @type {Object}
      */
     this.defaultReqOptions = {
-      bucket:  options.bucket  || "default",
+      bucket: options.bucket || "default",
       headers: options.headers || {},
-      retry:   options.retry || 0,
-      safe:    !!options.safe,
+      retry: options.retry || 0,
+      safe: !!options.safe,
     };
 
     this._options = options;
@@ -85,13 +92,13 @@ export default class KintoClientBase {
      */
     this.events = options.events;
 
-    const {requestMode, timeout} = options;
+    const { requestMode, timeout } = options;
     /**
      * The HTTP instance.
      * @ignore
      * @type {HTTP}
      */
-    this.http = new HTTP(this.events, {requestMode, timeout});
+    this.http = new HTTP(this.events, { requestMode, timeout });
     this._registerHTTPEvents();
   }
 
@@ -166,7 +173,7 @@ export default class KintoClientBase {
    * @param  {Object}  [options.headers] The extended headers object option.
    * @return {Bucket}
    */
-  bucket(name, options={}) {
+  bucket(name, options = {}) {
     const bucketOptions = omit(this._getRequestOptions(options), "bucket");
     return new Bucket(this, name, bucketOptions);
   }
@@ -184,7 +191,7 @@ export default class KintoClientBase {
    * @property {Object}  [options.headers] The extended headers object option.
    * @return   {Object}
    */
-  _getRequestOptions(options={}) {
+  _getRequestOptions(options = {}) {
     return {
       ...this.defaultReqOptions,
       ...options,
@@ -192,7 +199,7 @@ export default class KintoClientBase {
       // Note: headers should never be overriden but extended
       headers: {
         ...this.defaultReqOptions.headers,
-        ...options.headers
+        ...options.headers,
       },
     };
   }
@@ -204,16 +211,17 @@ export default class KintoClientBase {
    * @param  {Object}  [options={}] The request options.
    * @return {Promise<Object, Error>}
    */
-  fetchServerInfo(options={}) {
+  fetchServerInfo(options = {}) {
     if (this.serverInfo) {
       return Promise.resolve(this.serverInfo);
     }
     const reqOptions = this._getRequestOptions(options);
-    return this.http.request(this.remote + endpoint("root"), reqOptions)
-      .then(({json}) => {
-        this.serverInfo = json;
-        return this.serverInfo;
-      });
+    return this.http.request(this.remote + endpoint("root"), reqOptions).then(({
+      json,
+    }) => {
+      this.serverInfo = json;
+      return this.serverInfo;
+    });
   }
 
   /**
@@ -223,8 +231,8 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchServerSettings(options={}) {
-    return this.fetchServerInfo(options).then(({settings}) => settings);
+  fetchServerSettings(options = {}) {
+    return this.fetchServerInfo(options).then(({ settings }) => settings);
   }
 
   /**
@@ -234,8 +242,10 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchServerCapabilities(options={}) {
-    return this.fetchServerInfo(options).then(({capabilities}) => capabilities);
+  fetchServerCapabilities(options = {}) {
+    return this.fetchServerInfo(options).then(
+      ({ capabilities }) => capabilities
+    );
   }
 
   /**
@@ -245,8 +255,8 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchUser(options={}) {
-    return this.fetchServerInfo(options).then(({user}) => user);
+  fetchUser(options = {}) {
+    return this.fetchServerInfo(options).then(({ user }) => user);
   }
 
   /**
@@ -256,8 +266,8 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  fetchHTTPApiVersion(options={}) {
-    return this.fetchServerInfo(options).then(({http_api_version}) => {
+  fetchHTTPApiVersion(options = {}) {
+    return this.fetchServerInfo(options).then(({ http_api_version }) => {
       return http_api_version;
     });
   }
@@ -270,31 +280,28 @@ export default class KintoClientBase {
    * @param  {Object} [options={}] The options object.
    * @return {Promise<Object, Error>}
    */
-  _batchRequests(requests, options={}) {
+  _batchRequests(requests, options = {}) {
     const reqOptions = this._getRequestOptions(options);
-    const {headers} = reqOptions;
+    const { headers } = reqOptions;
     if (!requests.length) {
       return Promise.resolve([]);
     }
-    return this.fetchServerSettings()
-      .then(serverSettings => {
-        const maxRequests = serverSettings["batch_max_requests"];
-        if (maxRequests && requests.length > maxRequests) {
-          const chunks = partition(requests, maxRequests);
-          return pMap(chunks, chunk => this._batchRequests(chunk, options));
-        }
-        return this.execute({
-          ...reqOptions,
-          path: endpoint("batch"),
-          method: "POST",
-          body: {
-            defaults: {headers},
-            requests: requests
-          }
-        })
-          // we only care about the responses
-          .then(({responses}) => responses);
-      });
+    return this.fetchServerSettings().then(serverSettings => {
+      const maxRequests = serverSettings["batch_max_requests"];
+      if (maxRequests && requests.length > maxRequests) {
+        const chunks = partition(requests, maxRequests);
+        return pMap(chunks, chunk => this._batchRequests(chunk, options));
+      }
+      return this.execute({
+        ...reqOptions,
+        path: endpoint("batch"),
+        method: "POST",
+        body: {
+          defaults: { headers },
+          requests: requests,
+        },
+      }).then(({ responses }) => responses); // we only care about the responses
+    });
   }
 
   /**
@@ -313,11 +320,11 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("Can't use batch within a batch!")
-  batch(fn, options={}) {
+  batch(fn, options = {}) {
     const rootBatch = new KintoClientBase(this.remote, {
       ...this._options,
       ...this._getRequestOptions(options),
-      batch: true
+      batch: true,
     });
     let bucketBatch, collBatch;
     if (options.bucket) {
@@ -329,16 +336,15 @@ export default class KintoClientBase {
     const batchClient = collBatch || bucketBatch || rootBatch;
     try {
       fn(batchClient);
-    } catch(err) {
+    } catch (err) {
       return Promise.reject(err);
     }
-    return this._batchRequests(rootBatch._requests, options)
-      .then((responses) => {
-        if (options.aggregate) {
-          return aggregate(responses, rootBatch._requests);
-        }
-        return responses;
-      });
+    return this._batchRequests(rootBatch._requests, options).then(responses => {
+      if (options.aggregate) {
+        return aggregate(responses, rootBatch._requests);
+      }
+      return responses;
+    });
   }
 
   /**
@@ -352,35 +358,36 @@ export default class KintoClientBase {
    * JSON.
    * @return {Promise<Object, Error>}
    */
-  execute(request, options={raw: false, stringify: true}) {
-    const {raw, stringify} = options;
+  execute(request, options = { raw: false, stringify: true }) {
+    const { raw, stringify } = options;
     // If we're within a batch, add the request to the stack to send at once.
     if (this._isBatch) {
       this._requests.push(request);
       // Resolve with a message in case people attempt at consuming the result
       // from within a batch operation.
       const msg = "This result is generated from within a batch " +
-                  "operation and should not be consumed.";
-      return Promise.resolve(raw ? {json: msg, headers: {get(){}}} : msg);
+        "operation and should not be consumed.";
+      return Promise.resolve(raw ? { json: msg, headers: { get() {} } } : msg);
     }
-    const promise = this.fetchServerSettings()
-      .then(_ => {
-        return this.http.request(this.remote + request.path, {
-          ...request,
-          body: stringify ? JSON.stringify(request.body) : request.body,
-        });
+    const promise = this.fetchServerSettings().then(_ => {
+      return this.http.request(this.remote + request.path, {
+        ...request,
+        body: stringify ? JSON.stringify(request.body) : request.body,
       });
-    return raw ? promise : promise.then(({json}) => json);
+    });
+    return raw ? promise : promise.then(({ json }) => json);
   }
 
-  paginatedList(path, params, options={}) {
+  paginatedList(path, params, options = {}) {
     const { sort, filters, limit, pages, since } = {
       sort: "-last_modified",
-      ...params
+      ...params,
     };
     // Safety/Consistency check on ETag value.
-    if (since && typeof(since) !== "string") {
-      throw new Error(`Invalid value for since (${since}), should be ETag value.`);
+    if (since && typeof since !== "string") {
+      throw new Error(
+        `Invalid value for since (${since}), should be ETag value.`
+      );
     }
 
     const querystring = qsify({
@@ -398,10 +405,9 @@ export default class KintoClientBase {
       return processNextPage(nextPage);
     };
 
-    const processNextPage = (nextPage) => {
-      const {headers} = options;
-      return this.http.request(nextPage, {headers})
-        .then(handleResponse);
+    const processNextPage = nextPage => {
+      const { headers } = options;
+      return this.http.request(nextPage, { headers }).then(handleResponse);
     };
 
     const pageResults = (results, nextPage, etag, totalRecords) => {
@@ -416,7 +422,7 @@ export default class KintoClientBase {
       };
     };
 
-    const handleResponse = ({headers, json}) => {
+    const handleResponse = ({ headers, json }) => {
       const nextPage = headers.get("Next-Page");
       const etag = headers.get("ETag");
       const totalRecords = parseInt(headers.get("Total-Records"), 10);
@@ -434,10 +440,10 @@ export default class KintoClientBase {
       // Follow next page
       return processNextPage(nextPage);
     };
-    return this.execute({
-      path: path + "?" + querystring,
-      ...options,
-    }, {raw: true}).then(handleResponse);
+    return this.execute(
+      { path: path + "?" + querystring, ...options },
+      { raw: true }
+    ).then(handleResponse);
   }
 
   /**
@@ -448,12 +454,9 @@ export default class KintoClientBase {
    * @return {Promise<Object[], Error>}
    */
   @capable(["permissions_endpoint"])
-  listPermissions(options={}) {
+  listPermissions(options = {}) {
     const reqOptions = this._getRequestOptions(options);
-    return this.execute({
-      path: endpoint("permissions"),
-      ...reqOptions
-    });
+    return this.execute({ path: endpoint("permissions"), ...reqOptions });
   }
 
   /**
@@ -463,7 +466,7 @@ export default class KintoClientBase {
    * @param  {Object} [options.headers] The headers object option.
    * @return {Promise<Object[], Error>}
    */
-  listBuckets(options={}) {
+  listBuckets(options = {}) {
     const path = endpoint("bucket");
     const reqOptions = this._getRequestOptions(options);
     return this.paginatedList(path, options, reqOptions);
@@ -479,17 +482,19 @@ export default class KintoClientBase {
    * @param  {Object}   [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
-  createBucket(id, options={}) {
+  createBucket(id, options = {}) {
     if (!id) {
       throw new Error("A bucket id is required.");
     }
     // Note that we simply ignore any "bucket" option passed here, as the one
     // we're interested in is the one provided as a required argument.
     const reqOptions = this._getRequestOptions(options);
-    const { data={}, permissions } = reqOptions;
+    const { data = {}, permissions } = reqOptions;
     data.id = id;
     const path = endpoint("bucket", id);
-    return this.execute(requests.createRequest(path, { data, permissions }, reqOptions));
+    return this.execute(
+      requests.createRequest(path, { data, permissions }, reqOptions)
+    );
   }
 
   /**
@@ -503,7 +508,7 @@ export default class KintoClientBase {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  deleteBucket(bucket, options={}) {
+  deleteBucket(bucket, options = {}) {
     const bucketObj = toDataBody(bucket);
     if (!bucketObj.id) {
       throw new Error("A bucket id is required.");
@@ -525,7 +530,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @support("1.4", "2.0")
-  deleteBuckets(options={}) {
+  deleteBuckets(options = {}) {
     const reqOptions = this._getRequestOptions(options);
     const path = endpoint("bucket");
     return this.execute(requests.deleteRequest(path, reqOptions));

@@ -67,6 +67,8 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
   - [Browser Compatibility](#browser-compatibility)
   - [Upgrading](#upgrading)
      - [From 1.x to 2.x](#from-1-x-to-2-x)
+  - [Contributing](#contributing)
+     - [Coding style](#coding-style)
 
 ---
 
@@ -1534,3 +1536,19 @@ Please [add polyfills](https://polyfill.io/v2/docs/features/) for these to get f
 ### From 1.x to 2.x
 
 * `collection.listRecords()` now strips the quotes (`"`) from the `last_modified` attribute in result object (#110).
+
+## Contributing
+
+### Coding style
+
+All the JavaScript code in this project conforms to the [prettier](https://github.com/prettier/prettier) coding style. A command is provided to ensure your code is always formatted accordingly:
+
+```
+$ npm run cs-format
+```
+
+The `cs-check` command ensures all files conform to that style:
+
+```
+$ npm run cs-check
+```
