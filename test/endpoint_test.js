@@ -20,15 +20,21 @@ describe("endpoint()", () => {
   });
 
   it("should provide a collection endpoint", () => {
-    expect(endpoint("collection", "foo", "bar")).eql("/buckets/foo/collections/bar");
+    expect(endpoint("collection", "foo", "bar")).eql(
+      "/buckets/foo/collections/bar"
+    );
   });
 
   it("should provide a records endpoint", () => {
-    expect(endpoint("record", "foo", "bar")).eql("/buckets/foo/collections/bar/records");
+    expect(endpoint("record", "foo", "bar")).eql(
+      "/buckets/foo/collections/bar/records"
+    );
   });
 
   it("should provide a record endpoint", () => {
-    expect(endpoint("record", "foo", "bar", 42)).eql("/buckets/foo/collections/bar/records/42");
+    expect(endpoint("record", "foo", "bar", 42)).eql(
+      "/buckets/foo/collections/bar/records/42"
+    );
   });
 
   it("should provide a permissions endpoint", () => {

@@ -17,7 +17,12 @@ describe("batch module", () => {
     });
 
     it("should return an object with the expected keys", () => {
-      expect(aggregate([], [])).to.include.keys(["published", "conflicts", "skipped", "errors"]);
+      expect(aggregate([], [])).to.include.keys([
+        "published",
+        "conflicts",
+        "skipped",
+        "errors",
+      ]);
     });
 
     it("should expose HTTP 500 errors in the errors list", () => {
@@ -25,7 +30,10 @@ describe("batch module", () => {
         requests.createRequest("foo1", { data: { id: 1 } }),
         requests.createRequest("foo2", { data: { id: 2 } }),
       ];
-      const responses = [{ status: 500, body: { err: 1 } }, { status: 503, body: { err: 2 } }];
+      const responses = [
+        { status: 500, body: { err: 1 } },
+        { status: 503, body: { err: 2 } },
+      ];
 
       expect(aggregate(responses, _requests)).to.have.property("errors").eql([
         {
@@ -46,9 +54,14 @@ describe("batch module", () => {
         requests.createRequest("foo", { data: { id: 1 } }),
         requests.createRequest("foo", { data: { id: 2 } }),
       ];
-      const responses = [{ status: 200, body: { data: { id: 1 } } }, { status: 201, body: { data: { id: 2 } } }];
+      const responses = [
+        { status: 200, body: { data: { id: 1 } } },
+        { status: 201, body: { data: { id: 2 } } },
+      ];
 
-      expect(aggregate(responses, _requests)).to.have.property("published").eql(responses.map(r => r.body));
+      expect(aggregate(responses, _requests)).to.have
+        .property("published")
+        .eql(responses.map(r => r.body));
     });
 
     it("should expose HTTP 404 responses in the skipped list", () => {
@@ -75,20 +88,25 @@ describe("batch module", () => {
         requests.createRequest("records/123", { data: { id: 1 } }),
         requests.createRequest("records/123", { data: { id: 2 } }),
       ];
-      const responses = [{ status: 412, body: { details: { existing: { remote: true } } } }, { status: 412, body: {} }];
+      const responses = [
+        { status: 412, body: { details: { existing: { remote: true } } } },
+        { status: 412, body: {} },
+      ];
 
-      expect(aggregate(responses, _requests)).to.have.property("conflicts").eql([
-        {
-          type: "outgoing",
-          local: _requests[0].body,
-          remote: { remote: true },
-        },
-        {
-          type: "outgoing",
-          local: _requests[1].body,
-          remote: null,
-        },
-      ]);
+      expect(aggregate(responses, _requests)).to.have
+        .property("conflicts")
+        .eql([
+          {
+            type: "outgoing",
+            local: _requests[0].body,
+            remote: { remote: true },
+          },
+          {
+            type: "outgoing",
+            local: _requests[1].body,
+            remote: null,
+          },
+        ]);
     });
 
     describe("Heterogeneous combinations", () => {

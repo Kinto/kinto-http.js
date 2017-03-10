@@ -121,7 +121,11 @@ export default class Collection {
     const { permissions } = reqOptions;
 
     const path = endpoint("collection", this.bucket.name, this.name);
-    const request = requests.updateRequest(path, { data, permissions }, reqOptions);
+    const request = requests.updateRequest(
+      path,
+      { data, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -156,7 +160,11 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     const path = endpoint("collection", this.bucket.name, this.name);
     const data = { last_modified: options.last_modified };
-    const request = requests.updateRequest(path, { data, permissions }, reqOptions);
+    const request = requests.updateRequest(
+      path,
+      { data, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -174,7 +182,11 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     const { permissions } = reqOptions;
     const path = endpoint("record", this.bucket.name, this.name, record.id);
-    const request = requests.createRequest(path, { data: record, permissions }, reqOptions);
+    const request = requests.createRequest(
+      path,
+      { data: record, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
@@ -201,13 +213,12 @@ export default class Collection {
     const addAttachmentRequest = requests.addAttachmentRequest(
       path,
       dataURI,
-      {
-        data: record,
-        permissions,
-      },
+      { data: record, permissions },
       reqOptions
     );
-    return this.client.execute(addAttachmentRequest, { stringify: false }).then(() => this.getRecord(id));
+    return this.client
+      .execute(addAttachmentRequest, { stringify: false })
+      .then(() => this.getRecord(id));
   }
 
   /**
@@ -248,7 +259,11 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     const { permissions } = reqOptions;
     const path = endpoint("record", this.bucket.name, this.name, record.id);
-    const request = requests.updateRequest(path, { data: record, permissions }, reqOptions);
+    const request = requests.updateRequest(
+      path,
+      { data: record, permissions },
+      reqOptions
+    );
     return this.client.execute(request);
   }
 

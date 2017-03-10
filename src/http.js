@@ -129,7 +129,9 @@ export default class HTTP {
         return new Promise((resolve, reject) => {
           setTimeout(
             () => {
-              resolve(this.request(url, { ...options, retry: options.retry - 1 }));
+              resolve(
+                this.request(url, { ...options, retry: options.retry - 1 })
+              );
             },
             retryAfter
           );

@@ -23,7 +23,7 @@
     "test-nocover": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js 'test/**/*_test.js'",
     "lint": "eslint src test"
   },
-  "prettierOptions": "--print-width 120 --trailing-comma es5",
+  "prettierOptions": "--print-width 80 --trailing-comma es5",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kinto/kinto-http.js.git"

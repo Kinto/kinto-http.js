@@ -121,7 +121,9 @@ describe("Bucket", () => {
   /** @test {Bucket#collection} */
   describe("#collection()", () => {
     it("should return a Collection instance", () => {
-      expect(getBlogBucket().collection("posts")).to.be.an.instanceOf(Collection);
+      expect(getBlogBucket().collection("posts")).to.be.an.instanceOf(
+        Collection
+      );
     });
 
     it("should return a named collection", () => {
@@ -174,9 +176,7 @@ describe("Bucket", () => {
         client.paginatedList,
         "/buckets/blog/collections",
         {},
-        {
-          headers: { Foo: "Bar", Baz: "Qux" },
-        }
+        { headers: { Foo: "Bar", Baz: "Qux" } }
       );
     });
 
@@ -305,9 +305,11 @@ describe("Bucket", () => {
     it("should delete a collection", () => {
       getBlogBucket().deleteCollection("todelete");
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/collections/todelete", {
-        headers: {},
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/collections/todelete",
+        { headers: {} }
+      );
     });
 
     it("should merge default options", () => {
@@ -316,27 +318,40 @@ describe("Bucket", () => {
         safe: true,
       }).deleteCollection("todelete", { headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/collections/todelete", {
-        headers: { Foo: "Bar", Baz: "Qux" },
-        safe: true,
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/collections/todelete",
+        {
+          headers: { Foo: "Bar", Baz: "Qux" },
+          safe: true,
+        }
+      );
     });
 
     it("should accept a safe option", () => {
       getBlogBucket().deleteCollection("todelete", { safe: true });
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/collections/todelete", {
-        safe: true,
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/collections/todelete",
+        { safe: true }
+      );
     });
 
     it("should rely on the provided last_modified for the safe option", () => {
-      getBlogBucket().deleteCollection({ id: "todelete", last_modified: 42 }, { safe: true });
+      getBlogBucket().deleteCollection(
+        { id: "todelete", last_modified: 42 },
+        { safe: true }
+      );
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/collections/todelete", {
-        last_modified: 42,
-        safe: true,
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/collections/todelete",
+        {
+          last_modified: 42,
+          safe: true,
+        }
+      );
     });
 
     it("should extend request headers with optional ones", () => {
@@ -344,9 +359,13 @@ describe("Bucket", () => {
         headers: { Baz: "Qux" },
       });
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/collections/todelete", {
-        headers: { Foo: "Bar", Baz: "Qux" },
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/collections/todelete",
+        {
+          headers: { Foo: "Bar", Baz: "Qux" },
+        }
+      );
     });
   });
 
@@ -361,7 +380,12 @@ describe("Bucket", () => {
     it("should list bucket groups", () => {
       getBlogBucket().listGroups({ _since: "42" });
 
-      sinon.assert.calledWithMatch(client.paginatedList, "/buckets/blog/groups", { _since: "42" }, { headers: {} });
+      sinon.assert.calledWithMatch(
+        client.paginatedList,
+        "/buckets/blog/groups",
+        { _since: "42" },
+        { headers: {} }
+      );
     });
 
     it("should merge default options", () => {
@@ -373,9 +397,7 @@ describe("Bucket", () => {
         client.paginatedList,
         "/buckets/blog/groups",
         {},
-        {
-          headers: { Foo: "Bar", Baz: "Qux" },
-        }
+        { headers: { Foo: "Bar", Baz: "Qux" } }
       );
     });
 
@@ -485,11 +507,17 @@ describe("Bucket", () => {
     });
 
     it("should throw if record is not an object", () => {
-      expect(() => getBlogBucket().updateGroup(2)).to.Throw(Error, /group object is required/);
+      expect(() => getBlogBucket().updateGroup(2)).to.Throw(
+        Error,
+        /group object is required/
+      );
     });
 
     it("should throw if id is missing", () => {
-      expect(() => getBlogBucket().updateGroup({})).to.Throw(Error, /group id is required/);
+      expect(() => getBlogBucket().updateGroup({})).to.Throw(
+        Error,
+        /group id is required/
+      );
     });
 
     it("should accept a patch option", () => {
@@ -507,7 +535,10 @@ describe("Bucket", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      getBlogBucket({ headers: { Foo: "Bar" } }).updateGroup({ id: "foo", members: [] }, { headers: { Baz: "Qux" } });
+      getBlogBucket({ headers: { Foo: "Bar" } }).updateGroup(
+        { id: "foo", members: [] },
+        { headers: { Baz: "Qux" } }
+      );
 
       sinon.assert.calledWithMatch(
         requests.updateRequest,
@@ -523,9 +554,13 @@ describe("Bucket", () => {
     it("should update the group from first argument", () => {
       getBlogBucket().updateGroup({ id: "foo", members: [] });
 
-      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/groups/foo", {
-        data: { id: "foo", members: [] },
-      });
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog/groups/foo",
+        {
+          data: { id: "foo", members: [] },
+        }
+      );
     });
 
     it("should update the group with optional data and permissions", () => {
@@ -557,9 +592,11 @@ describe("Bucket", () => {
     it("should delete a group", () => {
       getBlogBucket().deleteGroup("todelete");
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/groups/todelete", {
-        headers: {},
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/groups/todelete",
+        { headers: {} }
+      );
     });
 
     it("should merge default options", () => {
@@ -568,27 +605,40 @@ describe("Bucket", () => {
         safe: true,
       }).deleteGroup("todelete", { headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/groups/todelete", {
-        headers: { Foo: "Bar", Baz: "Qux" },
-        safe: true,
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/groups/todelete",
+        {
+          headers: { Foo: "Bar", Baz: "Qux" },
+          safe: true,
+        }
+      );
     });
 
     it("should accept a safe option", () => {
       getBlogBucket().deleteGroup("todelete", { safe: true });
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/groups/todelete", {
-        safe: true,
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/groups/todelete",
+        { safe: true }
+      );
     });
 
     it("should rely on the provided last_modified for the safe option", () => {
-      getBlogBucket().deleteGroup({ id: "todelete", last_modified: 42 }, { safe: true });
+      getBlogBucket().deleteGroup(
+        { id: "todelete", last_modified: 42 },
+        { safe: true }
+      );
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/groups/todelete", {
-        last_modified: 42,
-        safe: true,
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/groups/todelete",
+        {
+          last_modified: 42,
+          safe: true,
+        }
+      );
     });
 
     it("should extend request headers with optional ones", () => {
@@ -596,9 +646,13 @@ describe("Bucket", () => {
         headers: { Baz: "Qux" },
       });
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/groups/todelete", {
-        headers: { Foo: "Bar", Baz: "Qux" },
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/groups/todelete",
+        {
+          headers: { Foo: "Bar", Baz: "Qux" },
+        }
+      );
     });
   });
 
@@ -695,9 +749,7 @@ describe("Bucket", () => {
           data: { last_modified: 42 },
           permissions: fakePermissions,
         },
-        {
-          safe: true,
-        }
+        { safe: true }
       );
     });
 

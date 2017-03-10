@@ -34,10 +34,7 @@ export function createRequest(path, { data, permissions }, options = {}) {
     method: data && data.id ? "PUT" : "POST",
     path,
     headers: { ...headers, ...safeHeader(safe) },
-    body: {
-      data,
-      permissions,
-    },
+    body: { data, permissions },
   };
 }
 
@@ -59,14 +56,8 @@ export function updateRequest(path, { data, permissions }, options = {}) {
   return {
     method: patch ? "PATCH" : "PUT",
     path,
-    headers: {
-      ...headers,
-      ...safeHeader(safe, last_modified),
-    },
-    body: {
-      data,
-      permissions,
-    },
+    headers: { ...headers, ...safeHeader(safe, last_modified) },
+    body: { data, permissions },
   };
 }
 
@@ -91,27 +82,26 @@ export function deleteRequest(path, options = {}) {
 /**
  * @private
  */
-export function addAttachmentRequest(path, dataURI, { data, permissions } = {}, options = {}) {
+export function addAttachmentRequest(
+  path,
+  dataURI,
+  { data, permissions } = {},
+  options = {}
+) {
   const { headers, safe, gzipped } = { ...requestDefaults, ...options };
   const { last_modified } = { ...data, ...options };
 
   const body = { data, permissions };
   const formData = createFormData(dataURI, body, options);
-  let customPath;
 
-  if (gzipped != null) {
-    customPath = path + "?gzipped=" + (gzipped ? "true" : "false");
-  } else {
-    customPath = path;
-  }
+  let customPath = gzipped != null
+    ? (customPath = path + "?gzipped=" + (gzipped ? "true" : "false"))
+    : path;
 
   return {
     method: "POST",
     path: customPath,
-    headers: {
-      ...headers,
-      ...safeHeader(safe, last_modified),
-    },
+    headers: { ...headers, ...safeHeader(safe, last_modified) },
     body: formData,
   };
 }

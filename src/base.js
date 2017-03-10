@@ -1,6 +1,14 @@
 "use strict";
 
-import { partition, pMap, omit, qsify, support, nobatch, toDataBody } from "./utils";
+import {
+  partition,
+  pMap,
+  omit,
+  qsify,
+  support,
+  nobatch,
+  toDataBody,
+} from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
@@ -235,7 +243,9 @@ export default class KintoClientBase {
    */
   @nobatch("This operation is not supported within a batch operation.")
   fetchServerCapabilities(options = {}) {
-    return this.fetchServerInfo(options).then(({ capabilities }) => capabilities);
+    return this.fetchServerInfo(options).then(
+      ({ capabilities }) => capabilities
+    );
   }
 
   /**
@@ -355,7 +365,8 @@ export default class KintoClientBase {
       this._requests.push(request);
       // Resolve with a message in case people attempt at consuming the result
       // from within a batch operation.
-      const msg = "This result is generated from within a batch " + "operation and should not be consumed.";
+      const msg = "This result is generated from within a batch " +
+        "operation and should not be consumed.";
       return Promise.resolve(raw ? { json: msg, headers: { get() {} } } : msg);
     }
     const promise = this.fetchServerSettings().then(_ => {
@@ -374,7 +385,9 @@ export default class KintoClientBase {
     };
     // Safety/Consistency check on ETag value.
     if (since && typeof since !== "string") {
-      throw new Error(`Invalid value for since (${since}), should be ETag value.`);
+      throw new Error(
+        `Invalid value for since (${since}), should be ETag value.`
+      );
     }
 
     const querystring = qsify({
@@ -428,10 +441,7 @@ export default class KintoClientBase {
       return processNextPage(nextPage);
     };
     return this.execute(
-      {
-        path: path + "?" + querystring,
-        ...options,
-      },
+      { path: path + "?" + querystring, ...options },
       { raw: true }
     ).then(handleResponse);
   }
@@ -446,10 +456,7 @@ export default class KintoClientBase {
   @capable(["permissions_endpoint"])
   listPermissions(options = {}) {
     const reqOptions = this._getRequestOptions(options);
-    return this.execute({
-      path: endpoint("permissions"),
-      ...reqOptions,
-    });
+    return this.execute({ path: endpoint("permissions"), ...reqOptions });
   }
 
   /**
@@ -485,7 +492,9 @@ export default class KintoClientBase {
     const { data = {}, permissions } = reqOptions;
     data.id = id;
     const path = endpoint("bucket", id);
-    return this.execute(requests.createRequest(path, { data, permissions }, reqOptions));
+    return this.execute(
+      requests.createRequest(path, { data, permissions }, reqOptions)
+    );
   }
 
   /**

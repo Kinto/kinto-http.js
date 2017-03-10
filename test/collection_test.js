@@ -150,7 +150,9 @@ describe("Collection", () => {
   /** @test {Collection#getData} */
   describe("#getData()", () => {
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve({ data: { a: 1 } }));
+      sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: { a: 1 } }));
     });
 
     it("should retrieve data", () => {
@@ -161,7 +163,9 @@ describe("Collection", () => {
   describe("#setData()", () => {
     beforeEach(() => {
       sandbox.stub(requests, "updateRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({ data: { foo: "bar" } }));
+      sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: { foo: "bar" } }));
     });
 
     it("should set the data", () => {
@@ -174,9 +178,7 @@ describe("Collection", () => {
           data: { a: 1 },
           permissions: undefined,
         },
-        {
-          headers: { Foo: "Bar", Baz: "Qux" },
-        }
+        { headers: { Foo: "Bar", Baz: "Qux" } }
       );
     });
 
@@ -268,11 +270,17 @@ describe("Collection", () => {
     });
 
     it("should throw if record is not an object", () => {
-      expect(() => coll.updateRecord(2)).to.Throw(Error, /record object is required/);
+      expect(() => coll.updateRecord(2)).to.Throw(
+        Error,
+        /record object is required/
+      );
     });
 
     it("should throw if id is missing", () => {
-      expect(() => coll.updateRecord({})).to.Throw(Error, /record id is required/);
+      expect(() => coll.updateRecord({})).to.Throw(
+        Error,
+        /record id is required/
+      );
     });
 
     it("should create the expected request", () => {
@@ -342,34 +350,49 @@ describe("Collection", () => {
     });
 
     it("should throw if id is missing", () => {
-      expect(() => coll.deleteRecord({})).to.Throw(Error, /record id is required/);
+      expect(() => coll.deleteRecord({})).to.Throw(
+        Error,
+        /record id is required/
+      );
     });
 
     it("should delete a record", () => {
       coll.deleteRecord("1");
 
-      sinon.assert.calledWith(requests.deleteRequest, "/buckets/blog/collections/posts/records/1", {
-        last_modified: undefined,
-        headers: { Foo: "Bar", Baz: "Qux" },
-      });
+      sinon.assert.calledWith(
+        requests.deleteRequest,
+        "/buckets/blog/collections/posts/records/1",
+        {
+          last_modified: undefined,
+          headers: { Foo: "Bar", Baz: "Qux" },
+        }
+      );
     });
 
     it("should accept a safe option", () => {
       coll.deleteRecord("1", { safe: true });
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets/blog/collections/posts/records/1", {
-        last_modified: undefined,
-        safe: true,
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "/buckets/blog/collections/posts/records/1",
+        {
+          last_modified: undefined,
+          safe: true,
+        }
+      );
     });
 
     it("should rely on the provided last_modified for the safe option", () => {
       coll.deleteRecord({ id: "1", last_modified: 42 }, { safe: true });
 
-      sinon.assert.calledWithMatch(requests.deleteRequest, "buckets/blog/collections/posts/records/1", {
-        last_modified: 42,
-        safe: true,
-      });
+      sinon.assert.calledWithMatch(
+        requests.deleteRequest,
+        "buckets/blog/collections/posts/records/1",
+        {
+          last_modified: 42,
+          safe: true,
+        }
+      );
     });
   });
 
@@ -398,7 +421,9 @@ describe("Collection", () => {
     const data = [{ id: "a" }, { id: "b" }];
 
     beforeEach(() => {
-      sandbox.stub(coll.client, "paginatedList").returns(Promise.resolve({ data }));
+      sandbox
+        .stub(coll.client, "paginatedList")
+        .returns(Promise.resolve({ data }));
     });
 
     it("should execute expected request", () => {
@@ -420,14 +445,15 @@ describe("Collection", () => {
         coll.client.paginatedList,
         "/buckets",
         {},
-        {
-          headers: { Foo: "Bar", Baz: "Qux" },
-        }
+        { headers: { Foo: "Bar", Baz: "Qux" } }
       );
     });
 
     it("should resolve with a result object", () => {
-      return coll.listRecords().should.eventually.have.property("data").eql(data);
+      return coll
+        .listRecords()
+        .should.eventually.have.property("data")
+        .eql(data);
     });
 
     describe("Retry", () => {
@@ -438,12 +464,18 @@ describe("Collection", () => {
         sandbox.stub(global, "setTimeout", fn => setImmediate(fn));
         const fetch = sandbox.stub(global, "fetch");
         fetch.onCall(0).returns(fakeServerResponse(200, {}));
-        fetch.onCall(1).returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
+        fetch
+          .onCall(1)
+          .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
         fetch.onCall(2).returns(fakeServerResponse(200, response));
       });
 
       it("should retry the request if option is specified", () => {
-        return coll.listRecords({ retry: 1 }).then(r => r.data[0]).should.eventually.have.property("title").eql("art");
+        return coll
+          .listRecords({ retry: 1 })
+          .then(r => r.data[0])
+          .should.eventually.have.property("title")
+          .eql("art");
       });
     });
   });

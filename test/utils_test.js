@@ -251,7 +251,9 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.rejectedWith(Error, /default not present/);
+      return new FakeClient()
+        .test()
+        .should.be.rejectedWith(Error, /default not present/);
     });
 
     it("should check for an attached client instance", () => {
@@ -312,7 +314,9 @@ describe("Utils", () => {
 
   describe("parseDataURL()", () => {
     it("should extract expected properties", () => {
-      expect(parseDataURL("data:image/png;encoding=utf-8;name=a.png;base64,b64")).eql({
+      expect(
+        parseDataURL("data:image/png;encoding=utf-8;name=a.png;base64,b64")
+      ).eql({
         type: "image/png",
         name: "a.png",
         base64: "b64",
@@ -328,7 +332,10 @@ describe("Utils", () => {
     });
 
     it("should throw an error when the data url is invalid", () => {
-      expect(() => expect(parseDataURL("gni"))).to.throw(Error, "Invalid data-url: gni...");
+      expect(() => expect(parseDataURL("gni"))).to.throw(
+        Error,
+        "Invalid data-url: gni..."
+      );
     });
   });
 

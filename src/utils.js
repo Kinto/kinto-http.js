@@ -39,7 +39,9 @@ export function pMap(list, fn) {
     .reduce(
       (promise, entry) => {
         return promise.then(() => {
-          return Promise.resolve(fn(entry)).then(result => results = results.concat(result));
+          return Promise.resolve(fn(entry)).then(
+            result => results = results.concat(result)
+          );
         });
       },
       Promise.resolve()
@@ -92,7 +94,8 @@ export function toDataBody(resource) {
  * @return {String}
  */
 export function qsify(obj) {
-  const encode = v => encodeURIComponent(typeof v === "boolean" ? String(v) : v);
+  const encode = v =>
+    encodeURIComponent(typeof v === "boolean" ? String(v) : v);
   const stripUndefined = o => JSON.parse(JSON.stringify(o));
   const stripped = stripUndefined(obj);
   return Object.keys(stripped)
@@ -127,7 +130,9 @@ export function checkVersion(version, minVersion, maxVersion) {
     verMajor === maxMajor && verMinor >= maxMinor,
   ];
   if (checks.some(x => x)) {
-    throw new Error(`Version ${version} doesn't satisfy ` + `${minVersion} <= x < ${maxVersion}`);
+    throw new Error(
+      `Version ${version} doesn't satisfy ${minVersion} <= x < ${maxVersion}`
+    );
   }
 }
 
@@ -183,9 +188,12 @@ export function capable(capabilities) {
           return client
             .fetchServerCapabilities()
             .then(available => {
-              const missing = capabilities.filter(c => !available.hasOwnProperty(c));
+              const missing = capabilities.filter(c => !(c in available));
               if (missing.length > 0) {
-                throw new Error(`Required capabilities ${missing.join(", ")} ` + "not present on server");
+                const missingStr = missing.join(", ");
+                throw new Error(
+                  `Required capabilities ${missingStr} not present on server`
+                );
               }
             })
             .then(() => fn.apply(this, args));

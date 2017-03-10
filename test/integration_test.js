@@ -90,7 +90,10 @@ describe("Integration tests", function() {
 
     describe("Server properties", () => {
       it("should retrieve server settings", () => {
-        return api.fetchServerSettings().should.eventually.have.property("batch_max_requests").eql(25);
+        return api
+          .fetchServerSettings()
+          .should.eventually.have.property("batch_max_requests")
+          .eql(25);
       });
 
       it("should retrieve server capabilities", () => {
@@ -126,11 +129,17 @@ describe("Integration tests", function() {
         });
 
         it("should create a bucket with the passed id", () => {
-          expect(result).to.have.property("data").to.have.property("id").eql("foo");
+          expect(result).to.have
+            .property("data")
+            .to.have.property("id")
+            .eql("foo");
         });
 
         it("should create a bucket having a list of write permissions", () => {
-          expect(result).to.have.property("permissions").to.have.property("write").to.be.a("array");
+          expect(result).to.have
+            .property("permissions")
+            .to.have.property("write")
+            .to.be.a("array");
         });
 
         describe("data option", () => {
@@ -145,7 +154,9 @@ describe("Integration tests", function() {
 
         describe("Safe option", () => {
           it("should not override existing bucket", () => {
-            return api.createBucket("foo", { safe: true }).should.be.rejectedWith(Error, /412 Precondition Failed/);
+            return api
+              .createBucket("foo", { safe: true })
+              .should.be.rejectedWith(Error, /412 Precondition Failed/);
           });
         });
       });
@@ -162,7 +173,10 @@ describe("Integration tests", function() {
         });
 
         it("should create a bucket having a list of write permissions", () => {
-          expect(result).to.have.property("permissions").to.have.property("read").to.eql(["github:n1k0"]);
+          expect(result).to.have
+            .property("permissions")
+            .to.have.property("read")
+            .to.eql(["github:n1k0"]);
         });
       });
     });
@@ -171,7 +185,9 @@ describe("Integration tests", function() {
       let last_modified;
 
       beforeEach(() => {
-        return api.createBucket("foo").then(({ data }) => last_modified = data.last_modified);
+        return api
+          .createBucket("foo")
+          .then(({ data }) => last_modified = data.last_modified);
       });
 
       it("should delete a bucket", () => {
@@ -273,7 +289,10 @@ describe("Integration tests", function() {
         });
 
         it("should resolve with buckets last_modified value", () => {
-          return api.listBuckets().should.eventually.have.property("last_modified").to.be.a("string");
+          return api
+            .listBuckets()
+            .should.eventually.have.property("last_modified")
+            .to.be.a("string");
         });
 
         it("should retrieve only buckets after provided timestamp", () => {
@@ -306,7 +325,10 @@ describe("Integration tests", function() {
         });
 
         it("should expose a hasNextPage boolean prop", () => {
-          return api.listBuckets({ limit: 2 }).should.eventually.have.property("hasNextPage").eql(true);
+          return api
+            .listBuckets({ limit: 2 })
+            .should.eventually.have.property("hasNextPage")
+            .eql(true);
         });
 
         it("should provide a next method to load next page", () => {
@@ -378,11 +400,18 @@ describe("Integration tests", function() {
             });
 
             it("should return an aggregated result object", () => {
-              expect(results).to.include.keys(["errors", "conflicts", "published", "skipped"]);
+              expect(results).to.include.keys([
+                "errors",
+                "conflicts",
+                "published",
+                "skipped",
+              ]);
             });
 
             it("should contain the list of succesful publications", () => {
-              expect(results.published.map(body => body.data)).to.have.length.of(4);
+              expect(
+                results.published.map(body => body.data)
+              ).to.have.length.of(4);
             });
           });
 
@@ -405,7 +434,12 @@ describe("Integration tests", function() {
             });
 
             it("should return an aggregated result object", () => {
-              expect(results).to.include.keys(["errors", "conflicts", "published", "skipped"]);
+              expect(results).to.include.keys([
+                "errors",
+                "conflicts",
+                "published",
+                "skipped",
+              ]);
             });
 
             it("should contain the list of succesful publications", () => {
@@ -430,7 +464,9 @@ describe("Integration tests", function() {
 
     it("should appropriately populate the backoff property", () => {
       // Issuing a first api call to retrieve backoff information
-      return api.listBuckets().then(() => expect(Math.round(api.backoff / 1000)).eql(backoffSeconds));
+      return api
+        .listBuckets()
+        .then(() => expect(Math.round(api.backoff / 1000)).eql(backoffSeconds));
     });
   });
 
@@ -439,7 +475,9 @@ describe("Integration tests", function() {
 
     describe("Soft EOL", () => {
       before(() => {
-        const tomorrow = new Date(new Date().getTime() + 86400000).toJSON().slice(0, 10);
+        const tomorrow = new Date(new Date().getTime() + 86400000)
+          .toJSON()
+          .slice(0, 10);
         return server.start({
           KINTO_EOS: tomorrow,
           KINTO_EOS_URL: "http://www.perdu.com",
@@ -453,14 +491,20 @@ describe("Integration tests", function() {
 
       it("should warn when the server sends a deprecation Alert header", () => {
         return api.fetchServerSettings().then(_ => {
-          sinon.assert.calledWithExactly(console.warn, "Boom", "http://www.perdu.com");
+          sinon.assert.calledWithExactly(
+            console.warn,
+            "Boom",
+            "http://www.perdu.com"
+          );
         });
       });
     });
 
     describe("Hard EOL", () => {
       before(() => {
-        const lastWeek = new Date(new Date().getTime() - 7 * 86400000).toJSON().slice(0, 10);
+        const lastWeek = new Date(new Date().getTime() - 7 * 86400000)
+          .toJSON()
+          .slice(0, 10);
         return server.start({
           KINTO_EOS: lastWeek,
           KINTO_EOS_URL: "http://www.perdu.com",
@@ -473,7 +517,9 @@ describe("Integration tests", function() {
       beforeEach(() => sandbox.stub(console, "warn"));
 
       it("should reject with a 410 Gone when hard EOL is received", () => {
-        return api.fetchServerSettings().should.be.rejectedWith(Error, /HTTP 410 Gone: Service deprecated/);
+        return api
+          .fetchServerSettings()
+          .should.be.rejectedWith(Error, /HTTP 410 Gone: Service deprecated/);
       });
     });
   });
@@ -571,14 +617,17 @@ describe("Integration tests", function() {
         });
 
         it("should patch existing data for the bucket", () => {
-          return bucket.setData({ a: 1 }).then(() => bucket.setData({ b: 2 }, { patch: true })).then(({
-            data,
-            permissions,
-          }) => {
-            expect(data.a).eql(1);
-            expect(data.b).eql(2);
-            expect(permissions.read).to.include("github:jon");
-          });
+          return bucket
+            .setData({ a: 1 })
+            .then(() => bucket.setData({ b: 2 }, { patch: true }))
+            .then(({
+              data,
+              permissions,
+            }) => {
+              expect(data.a).eql(1);
+              expect(data.b).eql(2);
+              expect(permissions.read).to.include("github:jon");
+            });
         });
 
         it("should post data to the default bucket", () => {
@@ -594,7 +643,10 @@ describe("Integration tests", function() {
       describe(".permissions", () => {
         describe(".getPermissions()", () => {
           it("should retrieve bucket permissions", () => {
-            return bucket.getPermissions().should.eventually.have.property("write").to.have.length.of(1);
+            return bucket
+              .getPermissions()
+              .should.eventually.have.property("write")
+              .to.have.length.of(1);
           });
         });
 
@@ -634,14 +686,34 @@ describe("Integration tests", function() {
           return bucket
             .listHistory()
             .then(({ data }) => data.map(entry => entry.target.data.id))
-            .should.become(["g4", "g3", "g2", "g1", "c4", "c3", "c2", "c1", "custom"]);
+            .should.become([
+              "g4",
+              "g3",
+              "g2",
+              "g1",
+              "c4",
+              "c3",
+              "c2",
+              "c1",
+              "custom",
+            ]);
         });
 
         it("should order entries by field", () => {
           return bucket
             .listHistory({ sort: "date" })
             .then(({ data }) => data.map(entry => entry.target.data.id))
-            .should.eventually.become(["custom", "c1", "c2", "c3", "c4", "g1", "g2", "g3", "g4"]);
+            .should.eventually.become([
+              "custom",
+              "c1",
+              "c2",
+              "c3",
+              "c4",
+              "g1",
+              "g2",
+              "g3",
+              "g4",
+            ]);
         });
 
         describe("Filtering", () => {
@@ -660,7 +732,10 @@ describe("Integration tests", function() {
           });
 
           it("should resolve with entries last_modified value", () => {
-            return bucket.listHistory().should.eventually.have.property("last_modified").to.be.a("string");
+            return bucket
+              .listHistory()
+              .should.eventually.have.property("last_modified")
+              .to.be.a("string");
           });
 
           it("should retrieve only entries after provided timestamp", () => {
@@ -726,7 +801,10 @@ describe("Integration tests", function() {
           });
 
           it("should resolve with collections last_modified value", () => {
-            return bucket.listCollections().should.eventually.have.property("last_modified").to.be.a("string");
+            return bucket
+              .listCollections()
+              .should.eventually.have.property("last_modified")
+              .to.be.a("string");
           });
 
           it("should retrieve only collections after provided timestamp", () => {
@@ -784,7 +862,8 @@ describe("Integration tests", function() {
             .createCollection()
             .then(res => generated = res.data.id)
             .then(_ => bucket.listCollections())
-            .then(({ data }) => expect(data.some(x => x.id === generated)).eql(true));
+            .then(({ data }) =>
+              expect(data.some(x => x.id === generated)).eql(true));
         });
 
         describe("Safe option", () => {
@@ -810,7 +889,10 @@ describe("Integration tests", function() {
           });
 
           it("should create a collection having a list of write permissions", () => {
-            expect(result).to.have.property("permissions").to.have.property("read").to.eql(["github:n1k0"]);
+            expect(result).to.have
+              .property("permissions")
+              .to.have.property("read")
+              .to.eql(["github:n1k0"]);
           });
         });
 
@@ -826,7 +908,10 @@ describe("Integration tests", function() {
           });
 
           it("should create a collection having the expected data attached", () => {
-            expect(result).to.have.property("data").to.have.property("foo").eql("bar");
+            expect(result).to.have
+              .property("data")
+              .to.have.property("foo")
+              .eql("bar");
           });
         });
       });
@@ -879,7 +964,10 @@ describe("Integration tests", function() {
           });
 
           it("should resolve with groups last_modified value", () => {
-            return bucket.listGroups().should.eventually.have.property("last_modified").to.be.a("string");
+            return bucket
+              .listGroups()
+              .should.eventually.have.property("last_modified")
+              .to.be.a("string");
           });
 
           it("should retrieve only groups after provided timestamp", () => {
@@ -937,7 +1025,8 @@ describe("Integration tests", function() {
             .createGroup()
             .then(res => generated = res.data.id)
             .then(_ => bucket.listGroups())
-            .then(({ data }) => expect(data.some(x => x.id === generated)).eql(true));
+            .then(({ data }) =>
+              expect(data.some(x => x.id === generated)).eql(true));
         });
 
         describe("Safe option", () => {
@@ -963,7 +1052,10 @@ describe("Integration tests", function() {
           });
 
           it("should create a collection having a list of write permissions", () => {
-            expect(result).to.have.property("permissions").to.have.property("read").to.eql(["github:n1k0"]);
+            expect(result).to.have
+              .property("permissions")
+              .to.have.property("read")
+              .to.eql(["github:n1k0"]);
             expect(result.data.members).to.include("twitter:leplatrem");
           });
         });
@@ -980,7 +1072,10 @@ describe("Integration tests", function() {
           });
 
           it("should create a collection having the expected data attached", () => {
-            expect(result).to.have.property("data").to.have.property("foo").eql("bar");
+            expect(result).to.have
+              .property("data")
+              .to.have.property("foo")
+              .eql("bar");
             expect(result.data.members).to.include("twitter:leplatrem");
           });
         });
@@ -988,11 +1083,14 @@ describe("Integration tests", function() {
 
       describe(".getGroup()", () => {
         it("should get a group", () => {
-          return bucket.createGroup("foo").then(_ => bucket.getGroup("foo")).then(({ data, permissions }) => {
-            expect(data.id).eql("foo");
-            expect(data.members).eql([]);
-            expect(permissions.write).to.have.length.of(1);
-          });
+          return bucket
+            .createGroup("foo")
+            .then(_ => bucket.getGroup("foo"))
+            .then(({ data, permissions }) => {
+              expect(data.id).eql("foo");
+              expect(data.members).eql([]);
+              expect(permissions.write).to.have.length.of(1);
+            });
         });
       });
 
@@ -1011,7 +1109,8 @@ describe("Integration tests", function() {
             .createGroup("foo", ["github:me"], {
               data: { title: "foo", blah: 42 },
             })
-            .then(({ data }) => bucket.updateGroup({ id: data.id, blah: 43 }, { patch: true }))
+            .then(({ data }) =>
+              bucket.updateGroup({ id: data.id, blah: 43 }, { patch: true }))
             .then(_ => bucket.listGroups())
             .then(({ data }) => {
               expect(data[0].title).eql("foo");
@@ -1146,7 +1245,10 @@ describe("Integration tests", function() {
 
           describe(".getPermissions()", () => {
             it("should retrieve permissions", () => {
-              return coll.getPermissions().should.eventually.have.property("write").to.have.length.of(1);
+              return coll
+                .getPermissions()
+                .should.eventually.have.property("write")
+                .to.have.length.of(1);
             });
           });
 
@@ -1267,7 +1369,8 @@ describe("Integration tests", function() {
             it("should update a record", () => {
               return coll
                 .createRecord({ title: "foo" })
-                .then(({ data }) => coll.updateRecord({ ...data, title: "mod" }))
+                .then(({ data }) =>
+                  coll.updateRecord({ ...data, title: "mod" }))
                 .then(_ => coll.listRecords())
                 .then(({ data }) => data[0].title)
                 .should.become("mod");
@@ -1276,7 +1379,8 @@ describe("Integration tests", function() {
             it("should patch a record", () => {
               return coll
                 .createRecord({ title: "foo", blah: 42 })
-                .then(({ data }) => coll.updateRecord({ id: data.id, blah: 43 }, { patch: true }))
+                .then(({ data }) =>
+                  coll.updateRecord({ id: data.id, blah: 43 }, { patch: true }))
                 .then(_ => coll.listRecords())
                 .then(({ data }) => {
                   expect(data[0].title).eql("foo");
@@ -1364,7 +1468,8 @@ describe("Integration tests", function() {
           describe(".addAttachment()", () => {
             describe("With filename", () => {
               const input = "test";
-              const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
+              const dataURL = "data:text/plain;name=test.txt;base64," +
+                btoa(input);
 
               let result;
 
@@ -1373,9 +1478,7 @@ describe("Integration tests", function() {
                   .addAttachment(
                     dataURL,
                     { foo: "bar" },
-                    {
-                      permissions: { write: ["github:n1k0"] },
-                    }
+                    { permissions: { write: ["github:n1k0"] } }
                   )
                   .then(res => result = res);
               });
@@ -1389,11 +1492,17 @@ describe("Integration tests", function() {
               });
 
               it("should create a record with provided record data", () => {
-                expect(result).to.have.property("data").to.have.property("foo").eql("bar");
+                expect(result).to.have
+                  .property("data")
+                  .to.have.property("foo")
+                  .eql("bar");
               });
 
               it("should create a record with provided permissions", () => {
-                expect(result).to.have.property("permissions").to.have.property("write").contains("github:n1k0");
+                expect(result).to.have
+                  .property("permissions")
+                  .to.have.property("write")
+                  .contains("github:n1k0");
               });
             });
 
@@ -1431,12 +1540,15 @@ describe("Integration tests", function() {
 
           describe(".removeAttachment()", () => {
             const input = "test";
-            const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
+            const dataURL = "data:text/plain;name=test.txt;base64," +
+              btoa(input);
 
             let recordId;
 
             beforeEach(() => {
-              return coll.addAttachment(dataURL).then(res => recordId = res.data.id);
+              return coll
+                .addAttachment(dataURL)
+                .then(res => recordId = res.data.id);
             });
 
             it("should remove an attachment from a record", () => {
@@ -1514,7 +1626,10 @@ describe("Integration tests", function() {
               });
 
               it("should resolve with collection last_modified value", () => {
-                return coll.listRecords().should.eventually.have.property("last_modified").to.be.a("string");
+                return coll
+                  .listRecords()
+                  .should.eventually.have.property("last_modified")
+                  .to.be.a("string");
               });
             });
 
@@ -1532,11 +1647,17 @@ describe("Integration tests", function() {
               });
 
               it("should retrieve all records modified since provided timestamp", () => {
-                return coll.listRecords({ since: ts1 }).should.eventually.have.property("data").to.have.length.of(2);
+                return coll
+                  .listRecords({ since: ts1 })
+                  .should.eventually.have.property("data")
+                  .to.have.length.of(2);
               });
 
               it("should only list changes made after the provided timestamp", () => {
-                return coll.listRecords({ since: ts2 }).should.eventually.have.property("data").to.have.length.of(1);
+                return coll
+                  .listRecords({ since: ts2 })
+                  .should.eventually.have.property("data")
+                  .to.have.length.of(1);
               });
             });
 
@@ -1558,18 +1679,25 @@ describe("Integration tests", function() {
               });
 
               it("should resolve with a regular list result object", () => {
-                return coll.listRecords({ at: rec3.last_modified }).then(result => {
-                  const expectedSnapshot = [rec3, rec2, rec1];
-                  expect(result.data).to.eql(expectedSnapshot);
-                  expect(result.last_modified).eql(String(rec3.last_modified));
-                  expect(result.hasNextPage).eql(false);
-                  expect(result.totalRecords).eql(expectedSnapshot.length);
-                  expect(() => result.next()).to.Throw(Error, /pagination/);
-                });
+                return coll
+                  .listRecords({ at: rec3.last_modified })
+                  .then(result => {
+                    const expectedSnapshot = [rec3, rec2, rec1];
+                    expect(result.data).to.eql(expectedSnapshot);
+                    expect(result.last_modified).eql(
+                      String(rec3.last_modified)
+                    );
+                    expect(result.hasNextPage).eql(false);
+                    expect(result.totalRecords).eql(expectedSnapshot.length);
+                    expect(() => result.next()).to.Throw(Error, /pagination/);
+                  });
               });
 
               it("should handle creations", () => {
-                return coll.listRecords({ at: rec1.last_modified }).should.eventually.have.property("data").eql([rec1]);
+                return coll
+                  .listRecords({ at: rec1.last_modified })
+                  .should.eventually.have.property("data")
+                  .eql([rec1]);
               });
 
               it("should handle updates", () => {
@@ -1580,7 +1708,9 @@ describe("Integration tests", function() {
                     updatedRec2 = data;
                     return coll.listRecords({ at: updatedRec2.last_modified });
                   })
-                  .then(({ data }) => expect(data).eql([updatedRec2, rec3, rec1]));
+                  .then(({ data }) => {
+                    expect(data).eql([updatedRec2, rec3, rec1]);
+                  });
               });
 
               it("should handle deletions", () => {
@@ -1589,7 +1719,9 @@ describe("Integration tests", function() {
                   .then(({ data: { last_modified } }) => {
                     return coll.listRecords({ at: last_modified });
                   })
-                  .then(({ data }) => expect(data).eql([rec3, rec2]));
+                  .then(({ data }) => {
+                    expect(data).eql([rec3, rec2]);
+                  });
               });
 
               it("should handle long list of changes", () => {
@@ -1667,7 +1799,10 @@ describe("Integration tests", function() {
               });
 
               it("should not paginate by default", () => {
-                return coll.listRecords().then(({ data }) => data.map(record => record.n)).should.become([3, 2, 1]);
+                return coll
+                  .listRecords()
+                  .then(({ data }) => data.map(record => record.n))
+                  .should.become([3, 2, 1]);
               });
 
               it("should paginate by chunks", () => {
@@ -1696,7 +1831,10 @@ describe("Integration tests", function() {
               it("should retrieve all pages", () => {
                 // Note: Server has no limit by default, so here we get all the
                 // records.
-                return coll.listRecords().then(({ data }) => data.map(record => record.n)).should.become([3, 2, 1]);
+                return coll
+                  .listRecords()
+                  .then(({ data }) => data.map(record => record.n))
+                  .should.become([3, 2, 1]);
               });
 
               it("should retrieve specified number of pages", () => {
@@ -1739,7 +1877,10 @@ describe("Integration tests", function() {
       }
 
       runSuite("default bucket", () => {
-        return api.bucket("default").createCollection("plop").then(_ => api.bucket("default").collection("plop"));
+        return api
+          .bucket("default")
+          .createCollection("plop")
+          .then(_ => api.bucket("default").collection("plop"));
       });
 
       runSuite("custom bucket", () => {
