@@ -32,9 +32,7 @@ describe("HTTP class", () => {
     });
 
     it("should accept a requestMode option", () => {
-      expect(new HTTP(events, { requestMode: "no-cors" }).requestMode).eql(
-        "no-cors"
-      );
+      expect(new HTTP(events, { requestMode: "no-cors" }).requestMode).eql("no-cors");
     });
 
     it("should complain if an events handler is not provided", () => {
@@ -54,9 +52,7 @@ describe("HTTP class", () => {
       it("should set default headers", () => {
         http.request("/");
 
-        expect(fetch.firstCall.args[1].headers).eql(
-          HTTP.DEFAULT_REQUEST_HEADERS
-        );
+        expect(fetch.firstCall.args[1].headers).eql(HTTP.DEFAULT_REQUEST_HEADERS);
       });
 
       it("should merge custom headers with default ones", () => {
@@ -68,7 +64,7 @@ describe("HTTP class", () => {
       it("should drop custom content-type header for multipart body", () => {
         http.request("/", {
           headers: { "Content-Type": "application/foo" },
-          body: new FormData()
+          body: new FormData(),
         });
 
         expect(fetch.firstCall.args[1].headers["Content-Type"]).to.be.undefined;
@@ -95,30 +91,19 @@ describe("HTTP class", () => {
 
     describe("Succesful request", () => {
       beforeEach(() => {
-        sandbox
-          .stub(global, "fetch")
-          .returns(fakeServerResponse(200, { a: 1 }, { b: 2 }));
+        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, { a: 1 }, { b: 2 }));
       });
 
       it("should resolve with HTTP status", () => {
-        return http
-          .request("/")
-          .then(res => res.status)
-          .should.eventually.become(200);
+        return http.request("/").then(res => res.status).should.eventually.become(200);
       });
 
       it("should resolve with JSON body", () => {
-        return http
-          .request("/")
-          .then(res => res.json)
-          .should.eventually.become({ a: 1 });
+        return http.request("/").then(res => res.json).should.eventually.become({ a: 1 });
       });
 
       it("should resolve with headers", () => {
-        return http
-          .request("/")
-          .then(res => res.headers.get("b"))
-          .should.eventually.become(2);
+        return http.request("/").then(res => res.headers.get("b")).should.eventually.become(2);
       });
     });
 
@@ -129,22 +114,15 @@ describe("HTTP class", () => {
             setTimeout(resolve, 20000);
           })
         );
-        return http
-          .request("/")
-          .should.eventually.be.rejectedWith(Error, /timeout/);
+        return http.request("/").should.eventually.be.rejectedWith(Error, /timeout/);
       });
     });
 
     describe("No content response", () => {
       it("should resolve with null JSON if Content-Length header is missing", () => {
-        sandbox
-          .stub(global, "fetch")
-          .returns(fakeServerResponse(200, null, {}));
+        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, null, {}));
 
-        return http
-          .request("/")
-          .then(res => res.json)
-          .should.eventually.become(null);
+        return http.request("/").then(res => res.json).should.eventually.become(null);
       });
     });
 
@@ -158,20 +136,15 @@ describe("HTTP class", () => {
                 if (name !== "Alert") {
                   return "fake";
                 }
-              }
+              },
             },
             text() {
               return "invalid JSON";
-            }
+            },
           })
         );
 
-        return http
-          .request("/")
-          .should.be.rejectedWith(
-            Error,
-            /HTTP 200; SyntaxError: Unexpected token/
-          );
+        return http.request("/").should.be.rejectedWith(Error, /HTTP 200; SyntaxError: Unexpected token/);
       });
     });
 
@@ -184,21 +157,18 @@ describe("HTTP class", () => {
               {
                 description: "data is missing",
                 location: "body",
-                name: "data"
-              }
+                name: "data",
+              },
             ],
             errno: 107,
             error: "Invalid parameters",
-            message: "data is missing"
+            message: "data is missing",
           })
         );
 
         return http
           .request("/")
-          .should.be.rejectedWith(
-            Error,
-            /HTTP 400 Invalid parameters: Invalid request parameter \(data is missing\)/
-          );
+          .should.be.rejectedWith(Error, /HTTP 400 Invalid parameters: Invalid request parameter \(data is missing\)/);
       });
     });
 
@@ -206,7 +176,7 @@ describe("HTTP class", () => {
       const eolObject = {
         code: "soft-eol",
         url: "http://eos-url",
-        message: "This service will soon be decommissioned"
+        message: "This service will soon be decommissioned",
       };
 
       beforeEach(() => {
@@ -215,43 +185,25 @@ describe("HTTP class", () => {
       });
 
       it("should handle deprecation header", () => {
-        sandbox
-          .stub(global, "fetch")
-          .returns(
-            fakeServerResponse(200, {}, { Alert: JSON.stringify(eolObject) })
-          );
+        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, { Alert: JSON.stringify(eolObject) }));
 
         return http.request("/").then(_ => {
           sinon.assert.calledOnce(console.warn);
-          sinon.assert.calledWithExactly(
-            console.warn,
-            eolObject.message,
-            eolObject.url
-          );
+          sinon.assert.calledWithExactly(console.warn, eolObject.message, eolObject.url);
         });
       });
 
       it("should handle deprecation header parse error", () => {
-        sandbox
-          .stub(global, "fetch")
-          .returns(fakeServerResponse(200, {}, { Alert: "dafuq" }));
+        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, { Alert: "dafuq" }));
 
         return http.request("/").then(_ => {
           sinon.assert.calledOnce(console.warn);
-          sinon.assert.calledWithExactly(
-            console.warn,
-            "Unable to parse Alert header message",
-            "dafuq"
-          );
+          sinon.assert.calledWithExactly(console.warn, "Unable to parse Alert header message", "dafuq");
         });
       });
 
       it("should emit a deprecated event on Alert header", () => {
-        sandbox
-          .stub(global, "fetch")
-          .returns(
-            fakeServerResponse(200, {}, { Alert: JSON.stringify(eolObject) })
-          );
+        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, { Alert: JSON.stringify(eolObject) }));
 
         return http.request("/").then(_ => {
           expect(events.emit.firstCall.args[0]).eql("deprecated");
@@ -268,9 +220,7 @@ describe("HTTP class", () => {
       });
 
       it("should emit a backoff event on set Backoff header", () => {
-        sandbox
-          .stub(global, "fetch")
-          .returns(fakeServerResponse(200, {}, { Backoff: "1000" }));
+        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, { Backoff: "1000" }));
 
         return http.request("/").then(_ => {
           expect(events.emit.firstCall.args[0]).eql("backoff");
@@ -297,9 +247,7 @@ describe("HTTP class", () => {
         });
 
         it("should emit a retry-after event when Retry-After is set", () => {
-          sandbox
-            .stub(global, "fetch")
-            .returns(fakeServerResponse(200, {}, { "Retry-After": "1000" }));
+          sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, { "Retry-After": "1000" }));
 
           return http.request("/", { retry: 0 }).then(_ => {
             expect(events.emit.lastCall.args[0]).eql("retry-after");
@@ -321,36 +269,21 @@ describe("HTTP class", () => {
 
         it("should not retry the request by default", () => {
           fetch.returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
-          return http
-            .request("/")
-            .should.eventually.be.rejectedWith(Error, /HTTP 503/);
+          return http.request("/").should.eventually.be.rejectedWith(Error, /HTTP 503/);
         });
 
         it("should retry the request if specified", () => {
           const success = { success: true };
-          fetch
-            .onCall(0)
-            .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
+          fetch.onCall(0).returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
           fetch.onCall(1).returns(fakeServerResponse(200, success));
-          return http
-            .request("/", { retry: 1 })
-            .then(res => res.json)
-            .should.eventually.become(success);
+          return http.request("/", { retry: 1 }).then(res => res.json).should.eventually.become(success);
         });
 
         it("should error when retries are exhausted", () => {
-          fetch
-            .onCall(0)
-            .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
-          fetch
-            .onCall(1)
-            .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
-          fetch
-            .onCall(2)
-            .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
-          return http
-            .request("/", { retry: 2 })
-            .should.eventually.be.rejectedWith(Error, /HTTP 503/);
+          fetch.onCall(0).returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
+          fetch.onCall(1).returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
+          fetch.onCall(2).returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
+          return http.request("/", { retry: 2 }).should.eventually.be.rejectedWith(Error, /HTTP 503/);
         });
       });
     });

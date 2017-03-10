@@ -6,7 +6,7 @@ const requestDefaults = {
   headers: {},
   permissions: undefined,
   data: undefined,
-  patch: false
+  patch: false,
 };
 
 /**
@@ -28,7 +28,7 @@ function safeHeader(safe, last_modified) {
 export function createRequest(path, { data, permissions }, options = {}) {
   const { headers, safe } = {
     ...requestDefaults,
-    ...options
+    ...options,
   };
   return {
     method: data && data.id ? "PUT" : "POST",
@@ -36,8 +36,8 @@ export function createRequest(path, { data, permissions }, options = {}) {
     headers: { ...headers, ...safeHeader(safe) },
     body: {
       data,
-      permissions
-    }
+      permissions,
+    },
   };
 }
 
@@ -48,7 +48,7 @@ export function updateRequest(path, { data, permissions }, options = {}) {
   const {
     headers,
     safe,
-    patch
+    patch,
   } = { ...requestDefaults, ...options };
   const { last_modified } = { ...data, ...options };
 
@@ -61,12 +61,12 @@ export function updateRequest(path, { data, permissions }, options = {}) {
     path,
     headers: {
       ...headers,
-      ...safeHeader(safe, last_modified)
+      ...safeHeader(safe, last_modified),
     },
     body: {
       data,
-      permissions
-    }
+      permissions,
+    },
   };
 }
 
@@ -76,7 +76,7 @@ export function updateRequest(path, { data, permissions }, options = {}) {
 export function deleteRequest(path, options = {}) {
   const { headers, safe, last_modified } = {
     ...requestDefaults,
-    ...options
+    ...options,
   };
   if (safe && !last_modified) {
     throw new Error("Safe concurrency check requires a last_modified value.");
@@ -84,19 +84,14 @@ export function deleteRequest(path, options = {}) {
   return {
     method: "DELETE",
     path,
-    headers: { ...headers, ...safeHeader(safe, last_modified) }
+    headers: { ...headers, ...safeHeader(safe, last_modified) },
   };
 }
 
 /**
  * @private
  */
-export function addAttachmentRequest(
-  path,
-  dataURI,
-  { data, permissions } = {},
-  options = {}
-) {
+export function addAttachmentRequest(path, dataURI, { data, permissions } = {}, options = {}) {
   const { headers, safe, gzipped } = { ...requestDefaults, ...options };
   const { last_modified } = { ...data, ...options };
 
@@ -115,8 +110,8 @@ export function addAttachmentRequest(
     path: customPath,
     headers: {
       ...headers,
-      ...safeHeader(safe, last_modified)
+      ...safeHeader(safe, last_modified),
     },
-    body: formData
+    body: formData,
   };
 }

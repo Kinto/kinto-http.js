@@ -49,14 +49,14 @@ export default class Bucket {
   _bucketOptions(options = {}) {
     const headers = {
       ...(this.options && this.options.headers),
-      ...options.headers
+      ...options.headers,
     };
     return {
       ...this.options,
       ...options,
       headers,
       bucket: this.name,
-      batch: this._isBatch
+      batch: this._isBatch,
     };
   }
 
@@ -70,12 +70,7 @@ export default class Bucket {
    * @return {Collection}
    */
   collection(name, options = {}) {
-    return new Collection(
-      this.client,
-      this,
-      name,
-      this._bucketOptions(options)
-    );
+    return new Collection(this.client, this, name, this._bucketOptions(options));
   }
 
   /**
@@ -118,11 +113,7 @@ export default class Bucket {
     const path = endpoint("bucket", bucketId);
     const { permissions } = options;
     const reqOptions = { ...this._bucketOptions(options) };
-    const request = requests.updateRequest(
-      path,
-      { data: bucket, permissions },
-      reqOptions
-    );
+    const request = requests.updateRequest(path, { data: bucket, permissions }, reqOptions);
     return this.client.execute(request);
   }
 
@@ -169,11 +160,7 @@ export default class Bucket {
     const { permissions, data = {} } = reqOptions;
     data.id = id;
     const path = endpoint("collection", this.name, id);
-    const request = requests.createRequest(
-      path,
-      { data, permissions },
-      reqOptions
-    );
+    const request = requests.createRequest(path, { data, permissions }, reqOptions);
     return this.client.execute(request);
   }
 
@@ -243,15 +230,11 @@ export default class Bucket {
     const data = {
       ...options.data,
       id,
-      members
+      members,
     };
     const path = endpoint("group", this.name, id);
     const { permissions } = options;
-    const request = requests.createRequest(
-      path,
-      { data, permissions },
-      reqOptions
-    );
+    const request = requests.createRequest(path, { data, permissions }, reqOptions);
     return this.client.execute(request);
   }
 
@@ -277,15 +260,11 @@ export default class Bucket {
     const reqOptions = this._bucketOptions(options);
     const data = {
       ...options.data,
-      ...group
+      ...group,
     };
     const path = endpoint("group", this.name, group.id);
     const { permissions } = options;
-    const request = requests.updateRequest(
-      path,
-      { data, permissions },
-      reqOptions
-    );
+    const request = requests.updateRequest(path, { data, permissions }, reqOptions);
     return this.client.execute(request);
   }
 
@@ -339,11 +318,7 @@ export default class Bucket {
     const reqOptions = { ...this._bucketOptions(options) };
     const { last_modified } = options;
     const data = { last_modified };
-    const request = requests.updateRequest(
-      path,
-      { data, permissions },
-      reqOptions
-    );
+    const request = requests.updateRequest(path, { data, permissions }, reqOptions);
     return this.client.execute(request);
   }
 

@@ -12,7 +12,7 @@ import {
   capable,
   nobatch,
   parseDataURL,
-  extractFileInfo
+  extractFileInfo,
 } from "../src/utils";
 
 chai.should();
@@ -186,7 +186,7 @@ describe("Utils", () => {
           this.client = {
             fetchHTTPApiVersion() {
               return Promise.reject(); // simulates a failing checkVersion call
-            }
+            },
           };
         }
 
@@ -226,7 +226,7 @@ describe("Utils", () => {
           return Promise.resolve({
             attachments: {},
             default: {},
-            "auth:fxa": {}
+            "auth:fxa": {},
           });
         }
 
@@ -251,9 +251,7 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient()
-        .test()
-        .should.be.rejectedWith(Error, /default not present/);
+      return new FakeClient().test().should.be.rejectedWith(Error, /default not present/);
     });
 
     it("should check for an attached client instance", () => {
@@ -262,7 +260,7 @@ describe("Utils", () => {
           this.client = {
             fetchServerCapabilities() {
               return Promise.resolve({ default: {} });
-            }
+            },
           };
         }
 
@@ -314,28 +312,23 @@ describe("Utils", () => {
 
   describe("parseDataURL()", () => {
     it("should extract expected properties", () => {
-      expect(
-        parseDataURL("data:image/png;encoding=utf-8;name=a.png;base64,b64")
-      ).eql({
+      expect(parseDataURL("data:image/png;encoding=utf-8;name=a.png;base64,b64")).eql({
         type: "image/png",
         name: "a.png",
         base64: "b64",
-        encoding: "utf-8"
+        encoding: "utf-8",
       });
     });
 
     it("should support dataURL without name", () => {
       expect(parseDataURL("data:image/png;base64,b64")).eql({
         type: "image/png",
-        base64: "b64"
+        base64: "b64",
       });
     });
 
     it("should throw an error when the data url is invalid", () => {
-      expect(() => expect(parseDataURL("gni"))).to.throw(
-        Error,
-        "Invalid data-url: gni..."
-      );
+      expect(() => expect(parseDataURL("gni"))).to.throw(Error, "Invalid data-url: gni...");
     });
   });
 

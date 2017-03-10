@@ -14,7 +14,7 @@ export function aggregate(responses = [], requests = []) {
     errors: [],
     published: [],
     conflicts: [],
-    skipped: []
+    skipped: [],
   };
   return responses.reduce(
     (acc, response, index) => {
@@ -24,28 +24,25 @@ export function aggregate(responses = [], requests = []) {
         acc.published.push(response.body);
       } else if (status === 404) {
         // Extract the id manually from request path while waiting for Kinto/kinto#818
-        const extracts = request.path.match(
-          /(buckets|groups|collections|records)\/([^\/]+)$/
-        );
+        const extracts = request.path.match(/(buckets|groups|collections|records)\/([^\/]+)$/);
         const id = extracts.length === 3 ? extracts[2] : undefined;
         acc.skipped.push({
           id,
           path: request.path,
-          error: response.body
+          error: response.body,
         });
       } else if (status === 412) {
         acc.conflicts.push({
           // XXX: specifying the type is probably superfluous
           type: "outgoing",
           local: request.body,
-          remote: (response.body.details && response.body.details.existing) ||
-            null
+          remote: (response.body.details && response.body.details.existing) || null,
         });
       } else {
         acc.errors.push({
           path: request.path,
           sent: request,
-          error: response.body
+          error: response.body,
         });
       }
       return acc;

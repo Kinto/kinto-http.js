@@ -44,8 +44,8 @@ export default class Collection {
       ...options,
       headers: {
         ...(this.bucket.options && this.bucket.options.headers),
-        ...options.headers
-      }
+        ...options.headers,
+      },
     };
     /**
      * @ignore
@@ -64,12 +64,12 @@ export default class Collection {
   _collOptions(options = {}) {
     const headers = {
       ...(this.options && this.options.headers),
-      ...options.headers
+      ...options.headers,
     };
     return {
       ...this.options,
       ...options,
-      headers
+      headers,
     };
   }
 
@@ -121,11 +121,7 @@ export default class Collection {
     const { permissions } = reqOptions;
 
     const path = endpoint("collection", this.bucket.name, this.name);
-    const request = requests.updateRequest(
-      path,
-      { data, permissions },
-      reqOptions
-    );
+    const request = requests.updateRequest(path, { data, permissions }, reqOptions);
     return this.client.execute(request);
   }
 
@@ -160,11 +156,7 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     const path = endpoint("collection", this.bucket.name, this.name);
     const data = { last_modified: options.last_modified };
-    const request = requests.updateRequest(
-      path,
-      { data, permissions },
-      reqOptions
-    );
+    const request = requests.updateRequest(path, { data, permissions }, reqOptions);
     return this.client.execute(request);
   }
 
@@ -182,11 +174,7 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     const { permissions } = reqOptions;
     const path = endpoint("record", this.bucket.name, this.name, record.id);
-    const request = requests.createRequest(
-      path,
-      { data: record, permissions },
-      reqOptions
-    );
+    const request = requests.createRequest(path, { data: record, permissions }, reqOptions);
     return this.client.execute(request);
   }
 
@@ -215,13 +203,11 @@ export default class Collection {
       dataURI,
       {
         data: record,
-        permissions
+        permissions,
       },
       reqOptions
     );
-    return this.client
-      .execute(addAttachmentRequest, { stringify: false })
-      .then(() => this.getRecord(id));
+    return this.client.execute(addAttachmentRequest, { stringify: false }).then(() => this.getRecord(id));
   }
 
   /**
@@ -262,11 +248,7 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     const { permissions } = reqOptions;
     const path = endpoint("record", this.bucket.name, this.name, record.id);
-    const request = requests.updateRequest(
-      path,
-      { data: record, permissions },
-      reqOptions
-    );
+    const request = requests.updateRequest(path, { data: record, permissions }, reqOptions);
     return this.client.execute(request);
   }
 
@@ -366,8 +348,8 @@ export default class Collection {
         filters: {
           resource_name: "record",
           collection_id: this.name,
-          "max_target.data.last_modified": String(at)
-        }
+          "max_target.data.last_modified": String(at),
+        },
       })
       .then(({ data: changes }) => {
         const seenIds = new Set();
@@ -388,7 +370,7 @@ export default class Collection {
             throw new Error("Snapshots don't support pagination");
           },
           hasNextPage: false,
-          totalRecords: snapshot.length
+          totalRecords: snapshot.length,
         };
       });
   }
@@ -408,7 +390,7 @@ export default class Collection {
     return this.client.batch(fn, {
       ...reqOptions,
       bucket: this.bucket.name,
-      collection: this.name
+      collection: this.name,
     });
   }
 }

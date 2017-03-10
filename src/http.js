@@ -15,7 +15,7 @@ export default class HTTP {
   static get DEFAULT_REQUEST_HEADERS() {
     return {
       Accept: "application/json",
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
     };
   }
 
@@ -129,9 +129,7 @@ export default class HTTP {
         return new Promise((resolve, reject) => {
           setTimeout(
             () => {
-              resolve(
-                this.request(url, { ...options, retry: options.retry - 1 })
-              );
+              resolve(this.request(url, { ...options, retry: options.retry - 1 }));
             },
             retryAfter
           );
