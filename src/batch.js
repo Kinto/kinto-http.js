@@ -33,12 +33,19 @@ export function aggregate(responses = [], requests = []) {
           error: response.body,
         });
       } else if (status === 412) {
+        const { body: local } = request;
+        const {
+          body: {
+            details: {
+              existing: remote,
+            } = { existing: null },
+          },
+        } = response;
         acc.conflicts.push({
           // XXX: specifying the type is probably superfluous
           type: "outgoing",
-          local: request.body,
-          remote: (response.body.details && response.body.details.existing) ||
-            null,
+          local,
+          remote,
         });
       } else {
         acc.errors.push({

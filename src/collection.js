@@ -119,7 +119,6 @@ export default class Collection {
     }
     const reqOptions = this._collOptions(options);
     const { permissions } = reqOptions;
-
     const path = endpoint("collection", this.bucket.name, this.name);
     const request = requests.updateRequest(
       path,

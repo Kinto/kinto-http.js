@@ -240,11 +240,7 @@ export default class Bucket {
    */
   createGroup(id, members = [], options = {}) {
     const reqOptions = this._bucketOptions(options);
-    const data = {
-      ...options.data,
-      id,
-      members,
-    };
+    const data = { ...options.data, id, members };
     const path = endpoint("group", this.name, id);
     const { permissions } = options;
     const request = requests.createRequest(
@@ -275,10 +271,7 @@ export default class Bucket {
       throw new Error("A group id is required.");
     }
     const reqOptions = this._bucketOptions(options);
-    const data = {
-      ...options.data,
-      ...group,
-    };
+    const data = { ...options.data, ...group };
     const path = endpoint("group", this.name, group.id);
     const { permissions } = options;
     const request = requests.updateRequest(
