@@ -5,7 +5,7 @@ env:
 - ACTION="run lint"
 - ACTION="run dist" # ensures building dist files doesn't break
 - ACTION="run cs-check"
-- SERVER=5.3.6 ACTION=test
+- SERVER=6.0.1 ACTION=test
 - SERVER=master ACTION=test
 before_install:
 - export PATH=$HOME/.local/bin:$PATH
