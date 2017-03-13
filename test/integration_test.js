@@ -23,9 +23,13 @@ describe("Integration tests", function() {
   this.timeout(0);
 
   before(() => {
+    let kintoConfigPath = __dirname + "/kinto.ini";
+    if (process.env.SERVER && process.env.SERVER !== "master") {
+      kintoConfigPath = `${__dirname}/kinto-${process.env.SERVER}.ini`;
+    }
     server = new KintoServer(TEST_KINTO_SERVER, {
       maxAttempts: 200,
-      kintoConfigPath: __dirname + "/kinto.ini",
+      kintoConfigPath,
     });
   });
 

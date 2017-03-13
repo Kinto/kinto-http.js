@@ -9,6 +9,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
 
 ## Table of Contents
 
+  - [Requirements](#requirements)
   - [Installation](#installation)
   - [Changelog](#changelog)
   - [Usage](#usage)
@@ -71,6 +72,10 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Coding style](#coding-style)
 
 ---
+
+## Requirements
+
+- Kinto server v6.0.0+
 
 ## Installation
 
