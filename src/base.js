@@ -455,8 +455,12 @@ export default class KintoClientBase {
    */
   @capable(["permissions_endpoint"])
   listPermissions(options = {}) {
+    const path = endpoint("permissions");
     const reqOptions = this._getRequestOptions(options);
-    return this.execute({ path: endpoint("permissions"), ...reqOptions });
+    const paginationOptions = "sort" in options
+      ? options
+      : { ...options, sort: "id" };
+    return this.paginatedList(path, paginationOptions, reqOptions);
   }
 
   /**
