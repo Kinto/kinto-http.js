@@ -4,8 +4,9 @@ python:
 env:
 - ACTION="run lint"
 - ACTION="run dist" # ensures building dist files doesn't break
-- ACTION="run test"
 - ACTION="run cs-check"
+- SERVER=5.3.6 ACTION=test
+- SERVER=master ACTION=test
 before_install:
 - export PATH=$HOME/.local/bin:$PATH
 - wget https://raw.githubusercontent.com/creationix/nvm/v0.33.0/nvm.sh -O ~/.nvm/nvm.sh
@@ -14,7 +15,8 @@ before_install:
 - node --version
 - npm install
 - curl https://raw.githubusercontent.com/Kinto/kinto/master/requirements.txt > versions.txt
-- pip install https://github.com/Kinto/kinto/zipball/master --constraint versions.txt
+- if [[ $SERVER && $SERVER != "master" ]]; then pip install kinto==$SERVER; fi
+- if [[ $SERVER && $SERVER == "master" ]]; then pip install https://github.com/Kinto/kinto/zipball/master; fi
 - pip install kinto-attachment
 - export KINTO_PSERVE_EXECUTABLE=pserve
 script:
