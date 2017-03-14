@@ -1275,6 +1275,13 @@ Sample result:
 - `headers`: Custom headers object to send along the HTTP request
 - `retry`: Number of retries when request fails (default: 0)
 
+#### Result object properties
+
+- `last_modified`: the last modified value for the list of permissions
+- `next`: the [pagination](#paginating-results) helper to access the next page of results, if any
+- `data`: the list of permissions
+- `totalRecords`: the total number of permissions listed in the `data` property array
+
 ## Attachments
 
 If the [attachment](https://github.com/Kinto/kinto-attachment) capability is available from the Kinto server, you can attach files to records. Files must be passed as [data urls](http://dataurl.net/#about), which can be generated using the [FileReader API](https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL) in the browser.

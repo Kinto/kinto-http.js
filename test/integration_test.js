@@ -271,8 +271,9 @@ describe("Integration tests", function() {
         });
 
         it("should retrieve the list of permissions", () => {
-          return api.listPermissions({ pages: Infinity }).then(({ data }) => {
-            expect(data).to.have.length.of(15);
+          return api.listPermissions({ pages: Infinity }).then(results => {
+            expect(results.data).to.have.length.of(15);
+            expect(results.totalRecords).eql(15);
           });
         });
       });
