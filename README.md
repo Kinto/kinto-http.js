@@ -1278,6 +1278,7 @@ Sample result:
 #### Result object properties
 
 - `last_modified`: the last modified value for the list of permissions
+- `hasNextPage`: a boolean informing if a next page is available; when that's the case, you can call `next()`
 - `next`: the [pagination](#paginating-results) helper to access the next page of results, if any
 - `data`: the list of permissions
 - `totalRecords`: the total number of permissions listed in the `data` property array
