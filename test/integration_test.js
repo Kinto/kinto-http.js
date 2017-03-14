@@ -245,17 +245,36 @@ describe("Integration tests", function() {
     });
 
     describe("#listPermissions", () => {
-      beforeEach(() => {
-        return api.batch(batch => {
-          batch.createBucket("b1");
-          batch.bucket("b1").createCollection("c1");
+      describe("Single page of permissions", () => {
+        beforeEach(() => {
+          return api.batch(batch => {
+            batch.createBucket("b1");
+            batch.bucket("b1").createCollection("c1");
+          });
+        });
+
+        it("should retrieve the list of permissions", () => {
+          return api.listPermissions().then(({ data }) => {
+            expect(data).to.have.length.of(2);
+            expect(data.map(p => p.id).sort()).eql(["b1", "c1"]);
+          });
         });
       });
 
-      it("should retrieve the list of permissions", () => {
-        return api.listPermissions().then(({ data }) => {
-          expect(data).to.have.length.of(2);
-          expect(data.map(p => p.id).sort()).eql(["b1", "c1"]);
+      describe("Paginated list of permissions", () => {
+        beforeEach(() => {
+          return api.batch(batch => {
+            for (let i = 1; i <= 15; i++) {
+              batch.createBucket("b" + i);
+            }
+          });
+        });
+
+        it("should retrieve the list of permissions", () => {
+          return api.listPermissions({ pages: Infinity }).then(results => {
+            expect(results.data).to.have.length.of(15);
+            expect(results.totalRecords).eql(15);
+          });
         });
       });
     });

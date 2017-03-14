@@ -908,7 +908,7 @@ describe("KintoClient", () => {
     describe("Capability available", () => {
       beforeEach(() => {
         api.serverInfo = { capabilities: { permissions_endpoint: {} } };
-        sandbox.stub(api, "execute").returns(Promise.resolve({ data }));
+        sandbox.stub(api, "paginatedList").returns(Promise.resolve({ data }));
       });
 
       it("should execute expected request", () => {

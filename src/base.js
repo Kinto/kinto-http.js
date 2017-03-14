@@ -455,8 +455,12 @@ export default class KintoClientBase {
    */
   @capable(["permissions_endpoint"])
   listPermissions(options = {}) {
+    const path = endpoint("permissions");
     const reqOptions = this._getRequestOptions(options);
-    return this.execute({ path: endpoint("permissions"), ...reqOptions });
+    // Ensure the default sort parameter is something that exists in permissions
+    // entries, as `last_modified` doesn't; here, we pick "id".
+    const paginationOptions = { sort: "id", ...options };
+    return this.paginatedList(path, paginationOptions, reqOptions);
   }
 
   /**
