@@ -267,7 +267,7 @@ Sample result:
 {
   "data": {
     "last_modified": 1456182233221,
-    "id": "foo"
+    "id": "blog"
   },
   "permissions": {
     "write": [
@@ -275,6 +275,22 @@ Sample result:
     ]
   }
 }
+```
+
+It's alternatively possible to create a bucket without specifying an `id`, so the
+Kinto server will create one for you:
+
+```js
+client.createBucket()
+  .then(result => ...);
+```
+
+Note: if you plan on providing options along id autogeneration, you have to specify
+`null` as the first argument:
+
+```js
+client.createBucket(null, {data: {foo: 42}, retry: 3})
+  .then(result => ...);
 ```
 
 #### Options
