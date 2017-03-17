@@ -479,23 +479,20 @@ export default class KintoClientBase {
   /**
    * Creates a new bucket on the server.
    *
-   * @param  {String}   id                The bucket name.
-   * @param  {Object}   [options={}]      The options object.
-   * @param  {Boolean}  [options.data]    The bucket data option.
-   * @param  {Boolean}  [options.safe]    The safe option.
-   * @param  {Object}   [options.headers] The headers object option.
+   * @param  {String|null}  id                The bucket name (optional).
+   * @param  {Object}       [options={}]      The options object.
+   * @param  {Boolean}      [options.data]    The bucket data option.
+   * @param  {Boolean}      [options.safe]    The safe option.
+   * @param  {Object}       [options.headers] The headers object option.
    * @return {Promise<Object, Error>}
    */
   createBucket(id, options = {}) {
-    if (!id) {
-      throw new Error("A bucket id is required.");
-    }
-    // Note that we simply ignore any "bucket" option passed here, as the one
-    // we're interested in is the one provided as a required argument.
     const reqOptions = this._getRequestOptions(options);
     const { data = {}, permissions } = reqOptions;
-    data.id = id;
-    const path = endpoint("bucket", id);
+    if (id != null) {
+      data.id = id;
+    }
+    const path = data.id ? endpoint("bucket", data.id) : endpoint("bucket");
     return this.execute(
       requests.createRequest(path, { data, permissions }, reqOptions)
     );
