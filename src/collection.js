@@ -357,8 +357,15 @@ export default class Collection {
     let oldestRecord;
     // First, check that the history plugin covers the entire range back to the
     // requested timestamp.
-    // 1. find the oldest record timestamp in the current collection
-    return this.listRecords({ sort: "last_modified", limit: 1 })
+    // 1. find the record timestamp in the current collection which
+    // last_modified is immediately fresher than the requested timestamp.
+    return this.listRecords({
+      sort: "last_modified",
+      limit: 1,
+      filters: {
+        min_last_modified: String(at),
+      },
+    })
       .then(({ data: [_oldestRecord] }) => {
         if (!_oldestRecord) {
           // If the current records list is empty, we can't find its oldest
