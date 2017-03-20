@@ -354,30 +354,34 @@ export default class Collection {
     if (!Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
-    let oldestHistoryEntry;
-
+    let oldestRecord;
     // First, check that the history plugin covers the entire range back to the
     // requested timestamp.
     // 1. find the oldest record timestamp in the current collection
-    return this.bucket
-      .listHistory({
-        sort: "target.data.last_modified",
-        limit: 1,
-        filters: {
-          resource_name: "record",
-          collection_id: this.name,
-        },
-      })
-      .then(({ data: [_oldestHistoryEntry] }) => {
-        oldestHistoryEntry = _oldestHistoryEntry;
+    return this.listRecords({ sort: "last_modified", limit: 1 })
+      .then(({ data: [_oldestRecord] }) => {
+        if (!_oldestRecord) {
+          // If the current records list is empty, we can't find its oldest
+          // record, so we can't ensure we have enough history data to compute
+          // an accurate snapshot, which is too risky.
+          throw new Error("Cannot compute a snapshot against an empty list.");
+        }
+        oldestRecord = _oldestRecord.last_modified;
         // 2. find the oldest history entry for the current collection
-        return this.listRecords({ sort: "last_modified", limit: 1 });
+        return this.bucket.listHistory({
+          sort: "target.data.last_modified",
+          limit: 1,
+          filters: {
+            resource_name: "record",
+            collection_id: this.name,
+          },
+        });
       })
-      .then(({ data: [oldestRecord] }) => {
+      .then(({ data: [oldestHistoryEntry] }) => {
         // 3. if history is more recent, reject with an error
         if (
-          oldestHistoryEntry.target.data.last_modified >
-          oldestRecord.last_modified
+          !oldestHistoryEntry ||
+          oldestHistoryEntry.target.data.last_modified > oldestRecord
         ) {
           throw new Error("Not enough history data.");
         }
