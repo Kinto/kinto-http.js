@@ -1744,7 +1744,9 @@ describe("Integration tests", function() {
                   .updateRecord({ ...rec2, n: 42 })
                   .then(({ data }) => {
                     updatedRec2 = data;
-                    return coll.listRecords({ at: updatedRec2.last_modified });
+                    return coll.listRecords({
+                      at: updatedRec2.last_modified,
+                    });
                   })
                   .then(({ data }) => {
                     expect(data).eql([updatedRec2, rec3, rec1]);

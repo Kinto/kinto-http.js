@@ -354,17 +354,43 @@ export default class Collection {
     if (!Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
-    // TODO: we process history changes forward, while it would probably be more
-    // efficient and accurate to process them backward.
+    let oldestHistoryEntry;
+
+    // First, check that the history plugin covers the entire range back to the
+    // requested timestamp.
+    // 1. find the oldest record timestamp in the current collection
     return this.bucket
       .listHistory({
-        pages: Infinity, // all pages up to target timestamp are required
-        sort: "-target.data.last_modified",
+        sort: "target.data.last_modified",
+        limit: 1,
         filters: {
           resource_name: "record",
           collection_id: this.name,
-          "max_target.data.last_modified": String(at),
         },
+      })
+      .then(({ data: [_oldestHistoryEntry] }) => {
+        oldestHistoryEntry = _oldestHistoryEntry;
+        // 2. find the oldest history entry for the current collection
+        return this.listRecords({ sort: "last_modified", limit: 1 });
+      })
+      .then(({ data: [oldestRecord] }) => {
+        // 3. if history is more recent, reject with an error
+        if (
+          oldestHistoryEntry.target.data.last_modified >
+          oldestRecord.last_modified
+        ) {
+          throw new Error("Not enough history data.");
+        }
+        // Retrieve history and replay it to compute the requested snapshot.
+        return this.bucket.listHistory({
+          pages: Infinity, // all pages up to target timestamp are required
+          sort: "-target.data.last_modified",
+          filters: {
+            resource_name: "record",
+            collection_id: this.name,
+            "max_target.data.last_modified": String(at),
+          },
+        });
       })
       .then(({ data: changes }) => {
         const seenIds = new Set();
