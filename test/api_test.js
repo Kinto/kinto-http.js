@@ -721,10 +721,12 @@ describe("KintoClient", () => {
       });
 
       it("should throw if the since option is invalid", () => {
-        expect(() => api.paginatedList(path, { since: 123 })).to.Throw(
-          Error,
-          /Invalid value for since \(123\), should be ETag value/
-        );
+        return api
+          .paginatedList(path, { since: 123 })
+          .should.be.rejectedWith(
+            Error,
+            /Invalid value for since \(123\), should be ETag value/
+          );
       });
 
       it("should resolve with the collection last_modified without quotes", () => {

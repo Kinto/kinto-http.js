@@ -1,6 +1,6 @@
 "use strict";
 
-import chai, { expect } from "chai";
+import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import KintoClient from "../src";
@@ -270,17 +270,15 @@ describe("Collection", () => {
     });
 
     it("should throw if record is not an object", () => {
-      expect(() => coll.updateRecord(2)).to.Throw(
-        Error,
-        /record object is required/
-      );
+      return coll
+        .updateRecord(2)
+        .should.be.rejectedWith(Error, /record object is required/);
     });
 
     it("should throw if id is missing", () => {
-      expect(() => coll.updateRecord({})).to.Throw(
-        Error,
-        /record id is required/
-      );
+      return coll
+        .updateRecord({})
+        .should.be.rejectedWith(Error, /record id is required/);
     });
 
     it("should create the expected request", () => {
@@ -350,10 +348,9 @@ describe("Collection", () => {
     });
 
     it("should throw if id is missing", () => {
-      expect(() => coll.deleteRecord({})).to.Throw(
-        Error,
-        /record id is required/
-      );
+      return coll
+        .deleteRecord({})
+        .should.be.rejectedWith(Error, /record id is required/);
     });
 
     it("should delete a record", () => {
