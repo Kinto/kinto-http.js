@@ -101,27 +101,21 @@ export default class HTTP {
   /**
    * @private
    */
-  processResponse(response) {
+  async processResponse(response) {
     const { status } = response;
-    return (
-      response
-        .text()
-        // Check if we have a body; if so parse it as JSON.
-        .then(text => {
-          if (text.length === 0) {
-            return null;
-          }
-          // Note: we can't consume the response body twice.
-          return JSON.parse(text);
-        })
-        .catch(err => {
-          const error = new Error(`HTTP ${status || 0}; ${err}`);
-          error.response = response;
-          error.stack = err.stack;
-          throw error;
-        })
-        .then(json => this.formatResponse(response, json))
-    );
+    const text = await response.text();
+    // Check if we have a body; if so parse it as JSON.
+    if (text.length === 0) {
+      return this.formatResponse(response, null);
+    }
+    try {
+      return this.formatResponse(response, JSON.parse(text));
+    } catch (err) {
+      const error = new Error(`HTTP ${status || 0}; ${err}`);
+      error.response = response;
+      error.stack = err.stack;
+      throw error;
+    }
   }
 
   /**
@@ -198,7 +192,7 @@ export default class HTTP {
     if (retryAfter && options.retry > 0) {
       return await this.retry(url, retryAfter, options);
     } else {
-      return this.processResponse(response);
+      return await this.processResponse(response);
     }
   }
 
