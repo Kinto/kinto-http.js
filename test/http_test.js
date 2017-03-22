@@ -161,7 +161,7 @@ describe("HTTP class", () => {
               },
             },
             text() {
-              return "invalid JSON";
+              return Promise.resolve("invalid JSON");
             },
           })
         );

@@ -61,30 +61,8 @@ export default class HTTP {
     this.timeout = options.timeout || HTTP.defaultOptions.timeout;
   }
 
-  /**
-   * Performs an HTTP request to the Kinto server.
-   *
-   * Resolves with an objet containing the following HTTP response properties:
-   * - `{Number}  status`  The HTTP status code.
-   * - `{Object}  json`    The JSON response body.
-   * - `{Headers} headers` The response headers object; see the ES6 fetch() spec.
-   *
-   * @param  {String} url               The URL.
-   * @param  {Object} [options={}]      The fetch() options object.
-   * @param  {Object} [options.headers] The request headers object (default: {})
-   * @param  {Object} [options.retry]   Number of retries (default: 0)
-   * @return {Promise}
-   */
-  request(url, options = { headers: {}, retry: 0 }) {
-    let response, status, statusText, headers, hasTimedout;
-    // Ensure default request headers are always set
-    options.headers = { ...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers };
-    // If a multipart body is provided, remove any custom Content-Type header as
-    // the fetch() implementation will add the correct one for us.
-    if (options.body && typeof options.body.append === "function") {
-      delete options.headers["Content-Type"];
-    }
-    options.mode = this.requestMode;
+  timedFetch(url, options) {
+    let hasTimedout = false;
     return new Promise((resolve, reject) => {
       // Detect if a request has timed out.
       let _timeoutId;
@@ -114,11 +92,99 @@ export default class HTTP {
             reject(err);
           }
         });
-    }).then(res => {
-      response = res;
-      headers = res.headers;
-      status = res.status;
-      statusText = res.statusText;
+    });
+  }
+
+  /**
+   * @private
+   */
+  processResponse(response) {
+    const { status } = response;
+    return (
+      response
+        .text()
+        // Check if we have a body; if so parse it as JSON.
+        .then(text => {
+          if (text.length === 0) {
+            return null;
+          }
+          // Note: we can't consume the response body twice.
+          return JSON.parse(text);
+        })
+        .catch(err => {
+          const error = new Error(`HTTP ${status || 0}; ${err}`);
+          error.response = response;
+          error.stack = err.stack;
+          throw error;
+        })
+        .then(json => this.formatResponse(response, json))
+    );
+  }
+
+  /**
+   * @private
+   */
+  formatResponse(response, json) {
+    const { status, statusText, headers } = response;
+    if (json && status >= 400) {
+      let message = `HTTP ${status} ${json.error || ""}: `;
+      if (json.errno && json.errno in ERROR_CODES) {
+        const errnoMsg = ERROR_CODES[json.errno];
+        message += errnoMsg;
+        if (json.message && json.message !== errnoMsg) {
+          message += ` (${json.message})`;
+        }
+      } else {
+        message += statusText || "";
+      }
+      const error = new Error(message.trim());
+      error.response = response;
+      error.data = json;
+      throw error;
+    }
+    return { status, json, headers };
+  }
+
+  /**
+   * @private
+   */
+  retry(url, retryAfter, options) {
+    return new Promise((resolve, reject) => {
+      setTimeout(
+        () => {
+          resolve(this.request(url, { ...options, retry: options.retry - 1 }));
+        },
+        retryAfter
+      );
+    });
+  }
+
+  /**
+   * Performs an HTTP request to the Kinto server.
+   *
+   * Resolves with an objet containing the following HTTP response properties:
+   * - `{Number}  status`  The HTTP status code.
+   * - `{Object}  json`    The JSON response body.
+   * - `{Headers} headers` The response headers object; see the ES6 fetch() spec.
+   *
+   * @param  {String} url               The URL.
+   * @param  {Object} [options={}]      The fetch() options object.
+   * @param  {Object} [options.headers] The request headers object (default: {})
+   * @param  {Object} [options.retry]   Number of retries (default: 0)
+   * @return {Promise}
+   */
+  request(url, options = { headers: {}, retry: 0 }) {
+    // Ensure default request headers are always set
+    options.headers = { ...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers };
+    // If a multipart body is provided, remove any custom Content-Type header as
+    // the fetch() implementation will add the correct one for us.
+    if (options.body && typeof options.body.append === "function") {
+      delete options.headers["Content-Type"];
+    }
+    options.mode = this.requestMode;
+    return this.timedFetch(url, options).then(response => {
+      const { status, headers } = response;
+
       this._checkForDeprecationHeader(headers);
       this._checkForBackoffHeader(status, headers);
 
@@ -126,54 +192,10 @@ export default class HTTP {
       const retryAfter = this._checkForRetryAfterHeader(status, headers);
       // If number of allowed of retries is not exhausted, retry the same request.
       if (retryAfter && options.retry > 0) {
-        return new Promise((resolve, reject) => {
-          setTimeout(
-            () => {
-              resolve(
-                this.request(url, { ...options, retry: options.retry - 1 })
-              );
-            },
-            retryAfter
-          );
-        });
+        return this.retry(url, retryAfter, options);
+      } else {
+        return this.processResponse(response);
       }
-
-      return (
-        Promise.resolve(res.text())
-          // Check if we have a body; if so parse it as JSON.
-          .then(text => {
-            if (text.length === 0) {
-              return null;
-            }
-            // Note: we can't consume the response body twice.
-            return JSON.parse(text);
-          })
-          .catch(err => {
-            const error = new Error(`HTTP ${status || 0}; ${err}`);
-            error.response = response;
-            error.stack = err.stack;
-            throw error;
-          })
-          .then(json => {
-            if (json && status >= 400) {
-              let message = `HTTP ${status} ${json.error || ""}: `;
-              if (json.errno && json.errno in ERROR_CODES) {
-                const errnoMsg = ERROR_CODES[json.errno];
-                message += errnoMsg;
-                if (json.message && json.message !== errnoMsg) {
-                  message += ` (${json.message})`;
-                }
-              } else {
-                message += statusText || "";
-              }
-              const error = new Error(message.trim());
-              error.response = response;
-              error.data = json;
-              throw error;
-            }
-            return { status, json, headers };
-          })
-      );
     });
   }
 
