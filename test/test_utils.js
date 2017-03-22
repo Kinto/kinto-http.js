@@ -12,7 +12,7 @@ export function fakeServerResponse(status, json, headers = {}) {
       },
     },
     text() {
-      return JSON.stringify(json);
+      return Promise.resolve(JSON.stringify(json));
     },
   });
 }
