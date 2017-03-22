@@ -61,6 +61,9 @@ export default class HTTP {
     this.timeout = options.timeout || HTTP.defaultOptions.timeout;
   }
 
+  /**
+   * @private
+   */
   timedFetch(url, options) {
     let hasTimedout = false;
     return new Promise((resolve, reject) => {
@@ -173,7 +176,7 @@ export default class HTTP {
    * @param  {Object} [options.retry]   Number of retries (default: 0)
    * @return {Promise}
    */
-  request(url, options = { headers: {}, retry: 0 }) {
+  async request(url, options = { headers: {}, retry: 0 }) {
     // Ensure default request headers are always set
     options.headers = { ...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers };
     // If a multipart body is provided, remove any custom Content-Type header as
@@ -182,21 +185,21 @@ export default class HTTP {
       delete options.headers["Content-Type"];
     }
     options.mode = this.requestMode;
-    return this.timedFetch(url, options).then(response => {
-      const { status, headers } = response;
 
-      this._checkForDeprecationHeader(headers);
-      this._checkForBackoffHeader(status, headers);
+    const response = await this.timedFetch(url, options);
+    const { status, headers } = response;
 
-      // Check if the server summons the client to retry after a while.
-      const retryAfter = this._checkForRetryAfterHeader(status, headers);
-      // If number of allowed of retries is not exhausted, retry the same request.
-      if (retryAfter && options.retry > 0) {
-        return this.retry(url, retryAfter, options);
-      } else {
-        return this.processResponse(response);
-      }
-    });
+    this._checkForDeprecationHeader(headers);
+    this._checkForBackoffHeader(status, headers);
+
+    // Check if the server summons the client to retry after a while.
+    const retryAfter = this._checkForRetryAfterHeader(status, headers);
+    // If number of allowed of retries is not exhausted, retry the same request.
+    if (retryAfter && options.retry > 0) {
+      return await this.retry(url, retryAfter, options);
+    } else {
+      return this.processResponse(response);
+    }
   }
 
   _checkForDeprecationHeader(headers) {
