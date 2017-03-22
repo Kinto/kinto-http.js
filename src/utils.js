@@ -24,7 +24,7 @@ export function partition(array, n) {
 }
 
 /**
- * Returns a Promise awlays resolving after the specified amount in milliseconds.
+ * Returns a Promise always resolving after the specified amount in milliseconds.
  *
  * @return Promise<void>
  */

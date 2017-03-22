@@ -79,23 +79,19 @@ export default class HTTP {
           this.timeout
         );
       }
+      function proceedWithHandler(fn) {
+        return arg => {
+          if (!hasTimedout) {
+            if (_timeoutId) {
+              clearTimeout(_timeoutId);
+            }
+            fn(arg);
+          }
+        };
+      }
       fetch(url, options)
-        .then(res => {
-          if (!hasTimedout) {
-            if (_timeoutId) {
-              clearTimeout(_timeoutId);
-            }
-            resolve(res);
-          }
-        })
-        .catch(err => {
-          if (!hasTimedout) {
-            if (_timeoutId) {
-              clearTimeout(_timeoutId);
-            }
-            reject(err);
-          }
-        });
+        .then(proceedWithHandler(resolve))
+        .catch(proceedWithHandler(reject));
     });
   }
 

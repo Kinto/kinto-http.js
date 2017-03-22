@@ -129,9 +129,7 @@ describe("HTTP class", () => {
             setTimeout(resolve, 20000);
           })
         );
-        return http
-          .request("/")
-          .should.eventually.be.rejectedWith(Error, /timeout/);
+        return http.request("/").should.be.rejectedWith(Error, /timeout/);
       });
     });
 
