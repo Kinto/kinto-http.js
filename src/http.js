@@ -1,5 +1,6 @@
 "use strict";
 
+import { delay } from "./utils";
 import ERROR_CODES from "./errors";
 
 /**
@@ -145,15 +146,9 @@ export default class HTTP {
   /**
    * @private
    */
-  retry(url, retryAfter, options) {
-    return new Promise((resolve, reject) => {
-      setTimeout(
-        () => {
-          resolve(this.request(url, { ...options, retry: options.retry - 1 }));
-        },
-        retryAfter
-      );
-    });
+  async retry(url, retryAfter, options) {
+    await delay(retryAfter);
+    return await this.request(url, { ...options, retry: options.retry - 1 });
   }
 
   /**

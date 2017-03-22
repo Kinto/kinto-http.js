@@ -24,6 +24,15 @@ export function partition(array, n) {
 }
 
 /**
+ * Returns a Promise awlays resolving after the specified amount in milliseconds.
+ *
+ * @return Promise<void>
+ */
+export function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
  * Maps a list to promises using the provided mapping function, executes them
  * sequentially then returns a Promise resolving with ordered results obtained.
  * Think of this as a sequential Promise.all.
