@@ -40,7 +40,7 @@ describe("Utils", () => {
     it("should delay resolution after the specified amount of time", () => {
       const start = new Date().getTime();
       return delay(10).then(() => {
-        expect(new Date().getTime() - start).within(10, 11);
+        expect(new Date().getTime() - start).within(9, 11);
       });
     });
   });
