@@ -288,7 +288,7 @@ export default class KintoClientBase {
     const maxRequests = serverSettings["batch_max_requests"];
     if (maxRequests && requests.length > maxRequests) {
       const chunks = partition(requests, maxRequests);
-      return await pMap(chunks, chunk => this._batchRequests(chunk, options));
+      return pMap(chunks, chunk => this._batchRequests(chunk, options));
     }
     const { responses } = await this.execute({
       ...reqOptions,
@@ -395,7 +395,7 @@ export default class KintoClientBase {
       if (!nextPage) {
         throw new Error("Pagination exhausted.");
       }
-      return await processNextPage(nextPage);
+      return processNextPage(nextPage);
     };
 
     const processNextPage = async function(nextPage) {
@@ -431,7 +431,7 @@ export default class KintoClientBase {
         return pageResults(results, nextPage, etag, totalRecords);
       }
       // Follow next page
-      return await processNextPage(nextPage);
+      return processNextPage(nextPage);
     };
 
     return handleResponse(
@@ -456,7 +456,7 @@ export default class KintoClientBase {
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
     const paginationOptions = { sort: "id", ...options };
-    return await this.paginatedList(path, paginationOptions, reqOptions);
+    return this.paginatedList(path, paginationOptions, reqOptions);
   }
 
   /**
@@ -469,7 +469,7 @@ export default class KintoClientBase {
   async listBuckets(options = {}) {
     const path = endpoint("bucket");
     const reqOptions = this._getRequestOptions(options);
-    return await this.paginatedList(path, options, reqOptions);
+    return this.paginatedList(path, options, reqOptions);
   }
 
   /**
@@ -489,7 +489,7 @@ export default class KintoClientBase {
       data.id = id;
     }
     const path = data.id ? endpoint("bucket", data.id) : endpoint("bucket");
-    return await this.execute(
+    return this.execute(
       requests.createRequest(path, { data, permissions }, reqOptions)
     );
   }
@@ -513,7 +513,7 @@ export default class KintoClientBase {
     const path = endpoint("bucket", bucketObj.id);
     const { last_modified } = { bucketObj };
     const reqOptions = this._getRequestOptions({ last_modified, ...options });
-    return await this.execute(requests.deleteRequest(path, reqOptions));
+    return this.execute(requests.deleteRequest(path, reqOptions));
   }
 
   /**
@@ -530,6 +530,6 @@ export default class KintoClientBase {
   async deleteBuckets(options = {}) {
     const reqOptions = this._getRequestOptions(options);
     const path = endpoint("bucket");
-    return await this.execute(requests.deleteRequest(path, reqOptions));
+    return this.execute(requests.deleteRequest(path, reqOptions));
   }
 }

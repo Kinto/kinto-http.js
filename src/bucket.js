@@ -124,7 +124,7 @@ export default class Bucket {
       { data: bucket, permissions },
       reqOptions
     );
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -138,7 +138,7 @@ export default class Bucket {
   async listHistory(options = {}) {
     const path = endpoint("history", this.name);
     const reqOptions = this._bucketOptions(options);
-    return await this.client.paginatedList(path, options, reqOptions);
+    return this.client.paginatedList(path, options, reqOptions);
   }
 
   /**
@@ -151,7 +151,7 @@ export default class Bucket {
   async listCollections(options = {}) {
     const path = endpoint("collection", this.name);
     const reqOptions = this._bucketOptions(options);
-    return await this.client.paginatedList(path, options, reqOptions);
+    return this.client.paginatedList(path, options, reqOptions);
   }
 
   /**
@@ -175,7 +175,7 @@ export default class Bucket {
       { data, permissions },
       reqOptions
     );
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -197,7 +197,7 @@ export default class Bucket {
     const reqOptions = this._bucketOptions({ last_modified, ...options });
     const path = endpoint("collection", this.name, id);
     const request = requests.deleteRequest(path, reqOptions);
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -210,7 +210,7 @@ export default class Bucket {
   async listGroups(options = {}) {
     const path = endpoint("group", this.name);
     const reqOptions = this._bucketOptions(options);
-    return await this.client.paginatedList(path, options, reqOptions);
+    return this.client.paginatedList(path, options, reqOptions);
   }
 
   /**
@@ -224,7 +224,7 @@ export default class Bucket {
   async getGroup(id, options = {}) {
     const reqOptions = { ...this._bucketOptions(options) };
     const request = { ...reqOptions, path: endpoint("group", this.name, id) };
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -253,7 +253,7 @@ export default class Bucket {
       { data, permissions },
       reqOptions
     );
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -287,7 +287,7 @@ export default class Bucket {
       { data, permissions },
       reqOptions
     );
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -306,7 +306,7 @@ export default class Bucket {
     const reqOptions = this._bucketOptions({ last_modified, ...options });
     const path = endpoint("group", this.name, id);
     const request = requests.deleteRequest(path, reqOptions);
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -346,7 +346,7 @@ export default class Bucket {
       { data, permissions },
       reqOptions
     );
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -360,6 +360,6 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async batch(fn, options = {}) {
-    return await this.client.batch(fn, this._bucketOptions(options));
+    return this.client.batch(fn, this._bucketOptions(options));
   }
 }

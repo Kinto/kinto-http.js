@@ -126,7 +126,7 @@ export default class Collection {
       { data, permissions },
       reqOptions
     );
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -166,7 +166,7 @@ export default class Collection {
       { data, permissions },
       reqOptions
     );
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -188,7 +188,7 @@ export default class Collection {
       { data: record, permissions },
       reqOptions
     );
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -218,7 +218,7 @@ export default class Collection {
       reqOptions
     );
     await this.client.execute(addAttachmentRequest, { stringify: false });
-    return await this.getRecord(id);
+    return this.getRecord(id);
   }
 
   /**
@@ -235,7 +235,7 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     const path = endpoint("attachment", this.bucket.name, this.name, recordId);
     const request = requests.deleteRequest(path, reqOptions);
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -264,7 +264,7 @@ export default class Collection {
       { data: record, permissions },
       reqOptions
     );
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -286,7 +286,7 @@ export default class Collection {
     const reqOptions = this._collOptions({ last_modified, ...options });
     const path = endpoint("record", this.bucket.name, this.name, id);
     const request = requests.deleteRequest(path, reqOptions);
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -301,7 +301,7 @@ export default class Collection {
     const path = endpoint("record", this.bucket.name, this.name, id);
     const reqOptions = this._collOptions(options);
     const request = { ...reqOptions, path };
-    return await this.client.execute(request);
+    return this.client.execute(request);
   }
 
   /**
@@ -341,9 +341,9 @@ export default class Collection {
     const path = endpoint("record", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
     if (options.hasOwnProperty("at")) {
-      return await this._getSnapshot(options.at);
+      return this._getSnapshot(options.at);
     } else {
-      return await this.client.paginatedList(path, options, reqOptions);
+      return this.client.paginatedList(path, options, reqOptions);
     }
   }
 
@@ -402,7 +402,7 @@ export default class Collection {
    */
   async batch(fn, options = {}) {
     const reqOptions = this._collOptions(options);
-    return await this.client.batch(fn, {
+    return this.client.batch(fn, {
       ...reqOptions,
       bucket: this.bucket.name,
       collection: this.name,

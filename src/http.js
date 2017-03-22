@@ -144,7 +144,7 @@ export default class HTTP {
    */
   async retry(url, retryAfter, options) {
     await delay(retryAfter);
-    return await this.request(url, { ...options, retry: options.retry - 1 });
+    return this.request(url, { ...options, retry: options.retry - 1 });
   }
 
   /**
@@ -181,9 +181,9 @@ export default class HTTP {
     const retryAfter = this._checkForRetryAfterHeader(status, headers);
     // If number of allowed of retries is not exhausted, retry the same request.
     if (retryAfter && options.retry > 0) {
-      return await this.retry(url, retryAfter, options);
+      return this.retry(url, retryAfter, options);
     } else {
-      return await this.processResponse(response);
+      return this.processResponse(response);
     }
   }
 
