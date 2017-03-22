@@ -33,20 +33,16 @@ export function partition(array, n) {
  * @param  {Function} fn   The mapping function.
  * @return {Promise}
  */
-export function pMap(list, fn) {
+export async function pMap(list, fn) {
   let results = [];
-  return list
-    .reduce(
-      (promise, entry) => {
-        return promise.then(() => {
-          return Promise.resolve(fn(entry)).then(
-            result => results = results.concat(result)
-          );
-        });
-      },
-      Promise.resolve()
-    )
-    .then(() => results);
+  await list.reduce(
+    async function(promise, entry) {
+      await promise;
+      results = results.concat(await fn(entry));
+    },
+    Promise.resolve()
+  );
+  return results;
 }
 
 /**
