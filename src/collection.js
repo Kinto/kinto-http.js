@@ -350,31 +350,40 @@ export default class Collection {
   /**
    * @private
    */
-  async findHistoryOldestTimestamp() {
+  async isHistoryComplete() {
+    // We consider that if we have the collection creation event part of the
+    // history, then all records change events have been tracked.
     const { data: [oldestHistoryEntry] } = await this.bucket.listHistory({
-      sort: "target.data.last_modified",
       limit: 1,
       filters: {
-        resource_name: "record",
+        action: "create",
+        resource_name: "collection",
         collection_id: this.name,
       },
     });
-    return oldestHistoryEntry
-      ? oldestHistoryEntry.target.data.last_modified
-      : null;
+    return !!oldestHistoryEntry;
   }
 
   /**
    * @private
    */
   async listChangesBackTo(at) {
+    // Ensure we have enough history data to retrieve the complete list of
+    // changes.
+    if (!await this.isHistoryComplete()) {
+      throw new Error(
+        "Computing a snapshot is only possible when the full history for a " +
+          "collection is available. Here, the history plugin seems to have " +
+          "been enabled after the creation of the collection."
+      );
+    }
     const { data: changes } = await this.bucket.listHistory({
       pages: Infinity, // all pages up to target timestamp are required
       sort: "-target.data.last_modified",
       filters: {
         resource_name: "record",
         collection_id: this.name,
-        "max_target.data.last_modified": String(at),
+        "max_target.data.last_modified": String(at), // eq. to <=
       },
     });
     return changes;
@@ -383,24 +392,14 @@ export default class Collection {
   /**
    * @private
    */
+  @capable(["history"])
   async getSnapshot(at) {
     if (!Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
-    // If history doesn't have enough data, reject with an error
-    const oldestHistory = await this.findHistoryOldestTimestamp();
-    if (!oldestHistory) {
-      throw new Error("History is not enabled.");
-    } else if (oldestHistory > at) {
-      throw new Error(
-        [
-          "Not enough history data; history for this collection",
-          `started being recorded at ${oldestHistory}.`,
-        ].join(" ")
-      );
-    }
-    // Retrieve history and replay it to compute the requested snapshot.
+    // Retrieve history and check it covers the required time range.
     const changes = await this.listChangesBackTo(at);
+    // Replay changes to compute the requested snapshot.
     const seenIds = new Set();
     let snapshot = [];
     for (const { action, target: { data: record } } of changes) {
