@@ -341,7 +341,7 @@ export default class Collection {
     const path = endpoint("record", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
     if (options.hasOwnProperty("at")) {
-      return this._getSnapshot(options.at);
+      return this.getSnapshot(options.at);
     } else {
       return this.client.paginatedList(path, options, reqOptions);
     }
@@ -350,25 +350,58 @@ export default class Collection {
   /**
    * @private
    */
-  async _getSnapshot(at) {
-    if (!Number.isInteger(at) || at <= 0) {
-      throw new Error("Invalid argument, expected a positive integer.");
+  async isHistoryComplete() {
+    // We consider that if we have the collection creation event part of the
+    // history, then all records change events have been tracked.
+    const { data: [oldestHistoryEntry] } = await this.bucket.listHistory({
+      limit: 1,
+      filters: {
+        action: "create",
+        resource_name: "collection",
+        collection_id: this.name,
+      },
+    });
+    return !!oldestHistoryEntry;
+  }
+
+  /**
+   * @private
+   */
+  async listChangesBackTo(at) {
+    // Ensure we have enough history data to retrieve the complete list of
+    // changes.
+    if (!await this.isHistoryComplete()) {
+      throw new Error(
+        "Computing a snapshot is only possible when the full history for a " +
+          "collection is available. Here, the history plugin seems to have " +
+          "been enabled after the creation of the collection."
+      );
     }
-    // TODO: we process history changes forward, while it would probably be more
-    // efficient and accurate to process them backward.
     const { data: changes } = await this.bucket.listHistory({
       pages: Infinity, // all pages up to target timestamp are required
       sort: "-target.data.last_modified",
       filters: {
         resource_name: "record",
         collection_id: this.name,
-        "max_target.data.last_modified": String(at),
+        "max_target.data.last_modified": String(at), // eq. to <=
       },
     });
+    return changes;
+  }
 
+  /**
+   * @private
+   */
+  @capable(["history"])
+  async getSnapshot(at) {
+    if (!Number.isInteger(at) || at <= 0) {
+      throw new Error("Invalid argument, expected a positive integer.");
+    }
+    // Retrieve history and check it covers the required time range.
+    const changes = await this.listChangesBackTo(at);
+    // Replay changes to compute the requested snapshot.
     const seenIds = new Set();
     let snapshot = [];
-
     for (const { action, target: { data: record } } of changes) {
       if (action == "delete") {
         seenIds.add(record.id); // ensure not reprocessing deleted entries
@@ -378,7 +411,6 @@ export default class Collection {
         snapshot.push(record);
       }
     }
-
     return {
       last_modified: String(at),
       data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
