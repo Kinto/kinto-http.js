@@ -24,6 +24,15 @@ export function partition(array, n) {
 }
 
 /**
+ * Returns a Promise always resolving after the specified amount in milliseconds.
+ *
+ * @return Promise<void>
+ */
+export function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
  * Maps a list to promises using the provided mapping function, executes them
  * sequentially then returns a Promise resolving with ordered results obtained.
  * Think of this as a sequential Promise.all.
@@ -33,20 +42,16 @@ export function partition(array, n) {
  * @param  {Function} fn   The mapping function.
  * @return {Promise}
  */
-export function pMap(list, fn) {
+export async function pMap(list, fn) {
   let results = [];
-  return list
-    .reduce(
-      (promise, entry) => {
-        return promise.then(() => {
-          return Promise.resolve(fn(entry)).then(
-            result => results = results.concat(result)
-          );
-        });
-      },
-      Promise.resolve()
-    )
-    .then(() => results);
+  await list.reduce(
+    async function(promise, entry) {
+      await promise;
+      results = results.concat(await fn(entry));
+    },
+    Promise.resolve()
+  );
+  return results;
 }
 
 /**

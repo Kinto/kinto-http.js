@@ -507,17 +507,15 @@ describe("Bucket", () => {
     });
 
     it("should throw if record is not an object", () => {
-      expect(() => getBlogBucket().updateGroup(2)).to.Throw(
-        Error,
-        /group object is required/
-      );
+      return getBlogBucket()
+        .updateGroup()
+        .should.be.rejectedWith(Error, /group object is required/);
     });
 
     it("should throw if id is missing", () => {
-      expect(() => getBlogBucket().updateGroup({})).to.Throw(
-        Error,
-        /group id is required/
-      );
+      return getBlogBucket()
+        .updateGroup({})
+        .should.be.rejectedWith(Error, /group id is required/);
     });
 
     it("should accept a patch option", () => {

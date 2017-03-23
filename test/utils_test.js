@@ -4,6 +4,7 @@ import chai, { expect } from "chai";
 
 import {
   partition,
+  delay,
   pMap,
   omit,
   qsify,
@@ -31,6 +32,16 @@ describe("Utils", () => {
     it("should not chunk array with n<=0", () => {
       expect(partition([1, 2, 3], 0)).eql([1, 2, 3]);
       expect(partition([1, 2, 3], -1)).eql([1, 2, 3]);
+    });
+  });
+
+  /** @test {delay} */
+  describe("#delay", () => {
+    it("should delay resolution after the specified amount of time", () => {
+      const start = new Date().getTime();
+      return delay(10).then(() => {
+        expect(new Date().getTime() - start).within(9, 11);
+      });
     });
   });
 
