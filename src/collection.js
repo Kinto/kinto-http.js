@@ -341,7 +341,7 @@ export default class Collection {
     const path = endpoint("record", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
     if (options.hasOwnProperty("at")) {
-      return this._getSnapshot(options.at);
+      return this.getSnapshot(options.at);
     } else {
       return this.client.paginatedList(path, options, reqOptions);
     }
@@ -350,81 +350,96 @@ export default class Collection {
   /**
    * @private
    */
-  async _getSnapshot(at) {
-    if (!Number.isInteger(at) || at <= 0) {
-      throw new Error("Invalid argument, expected a positive integer.");
-    }
-    let oldestRecord;
-    // First, check that the history plugin covers the entire range back to the
-    // requested timestamp.
-    // 1. find the record timestamp in the current collection which
-    // last_modified is immediately fresher than the requested timestamp.
-    return this.listRecords({
+  async findOldestRecord(at) {
+    const { data: [oldestRecord] } = await this.listRecords({
       sort: "last_modified",
       limit: 1,
       filters: {
         min_last_modified: String(at),
       },
-    })
-      .then(({ data: [_oldestRecord] }) => {
-        if (!_oldestRecord) {
-          // If the current records list is empty, we can't find its oldest
-          // record, so we can't ensure we have enough history data to compute
-          // an accurate snapshot, which is too risky.
-          throw new Error("Cannot compute a snapshot against an empty list.");
-        }
-        oldestRecord = _oldestRecord.last_modified;
-        // 2. find the oldest history entry for the current collection
-        return this.bucket.listHistory({
-          sort: "target.data.last_modified",
-          limit: 1,
-          filters: {
-            resource_name: "record",
-            collection_id: this.name,
-          },
-        });
-      })
-      .then(({ data: [oldestHistoryEntry] }) => {
-        // 3. if history is more recent, reject with an error
-        if (
-          !oldestHistoryEntry ||
-          oldestHistoryEntry.target.data.last_modified > oldestRecord
-        ) {
-          throw new Error("Not enough history data.");
-        }
-        // Retrieve history and replay it to compute the requested snapshot.
-        return this.bucket.listHistory({
-          pages: Infinity, // all pages up to target timestamp are required
-          sort: "-target.data.last_modified",
-          filters: {
-            resource_name: "record",
-            collection_id: this.name,
-            "max_target.data.last_modified": String(at),
-          },
-        });
-      })
-      .then(({ data: changes }) => {
-        const seenIds = new Set();
-        let snapshot = [];
-        for (const { action, target: { data: record } } of changes) {
-          if (action == "delete") {
-            seenIds.add(record.id); // ensure not reprocessing deleted entries
-            snapshot = snapshot.filter(r => r.id !== record.id);
-          } else if (!seenIds.has(record.id)) {
-            seenIds.add(record.id);
-            snapshot.push(record);
-          }
-        }
-        return {
-          last_modified: String(at),
-          data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
-          next: () => {
-            throw new Error("Snapshots don't support pagination");
-          },
-          hasNextPage: false,
-          totalRecords: snapshot.length,
-        };
-      });
+    });
+    return oldestRecord;
+  }
+
+  /**
+   * @private
+   */
+  async findOldestHistoryEntry() {
+    const { data: [oldestHistoryEntry] } = await this.bucket.listHistory({
+      sort: "target.data.last_modified",
+      limit: 1,
+      filters: {
+        resource_name: "record",
+        collection_id: this.name,
+      },
+    });
+    return oldestHistoryEntry;
+  }
+
+  /**
+   * @private
+   */
+  async listChangesBackTo(at) {
+    const { data: changes } = await this.bucket.listHistory({
+      pages: Infinity, // all pages up to target timestamp are required
+      sort: "-target.data.last_modified",
+      filters: {
+        resource_name: "record",
+        collection_id: this.name,
+        "max_target.data.last_modified": String(at),
+      },
+    });
+    return changes;
+  }
+
+  /**
+   * @private
+   */
+  async getSnapshot(at) {
+    if (!Number.isInteger(at) || at <= 0) {
+      throw new Error("Invalid argument, expected a positive integer.");
+    }
+    // First, check that the history plugin covers the entire range back to the
+    // requested timestamp.
+    // 1. find the record timestamp in the current collection which
+    // last_modified is immediately fresher than the requested timestamp.
+    const oldestRecord = await this.findOldestRecord(at);
+    if (!oldestRecord) {
+      // If the current records list is empty, we can't find its oldest
+      // record, so we can't ensure we have enough history data to compute
+      // an accurate snapshot, which is too risky.
+      throw new Error("Cannot compute a snapshot against an empty list.");
+    }
+    // 2. find the oldest history entry for the current collection
+    const oldestHistoryEntry = await this.findOldestHistoryEntry();
+    // 3. if history is more recent, reject with an error
+    const enoughHistory = oldestHistoryEntry.target.data.last_modified <=
+      oldestRecord.last_modified;
+    if (!oldestHistoryEntry || !enoughHistory) {
+      throw new Error("Not enough history data.");
+    }
+    // Retrieve history and replay it to compute the requested snapshot.
+    const changes = await this.listChangesBackTo(at);
+    const seenIds = new Set();
+    let snapshot = [];
+    for (const { action, target: { data: record } } of changes) {
+      if (action == "delete") {
+        seenIds.add(record.id); // ensure not reprocessing deleted entries
+        snapshot = snapshot.filter(r => r.id !== record.id);
+      } else if (!seenIds.has(record.id)) {
+        seenIds.add(record.id);
+        snapshot.push(record);
+      }
+    }
+    return {
+      last_modified: String(at),
+      data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
+      next: () => {
+        throw new Error("Snapshots don't support pagination");
+      },
+      hasNextPage: false,
+      totalRecords: snapshot.length,
+    };
   }
 
   /**
