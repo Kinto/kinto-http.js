@@ -350,21 +350,7 @@ export default class Collection {
   /**
    * @private
    */
-  async findOldestRecord(at) {
-    const { data: [oldestRecord] } = await this.listRecords({
-      sort: "last_modified",
-      limit: 1,
-      filters: {
-        min_last_modified: String(at),
-      },
-    });
-    return oldestRecord;
-  }
-
-  /**
-   * @private
-   */
-  async findOldestHistoryEntry() {
+  async findHistoryOldestTimestamp() {
     const { data: [oldestHistoryEntry] } = await this.bucket.listHistory({
       sort: "target.data.last_modified",
       limit: 1,
@@ -373,7 +359,9 @@ export default class Collection {
         collection_id: this.name,
       },
     });
-    return oldestHistoryEntry;
+    return oldestHistoryEntry
+      ? oldestHistoryEntry.target.data.last_modified
+      : 0;
   }
 
   /**
@@ -399,24 +387,15 @@ export default class Collection {
     if (!Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
-    // First, check that the history plugin covers the entire range back to the
-    // requested timestamp.
-    // 1. find the record timestamp in the current collection which
-    // last_modified is immediately fresher than the requested timestamp.
-    const oldestRecord = await this.findOldestRecord(at);
-    if (!oldestRecord) {
-      // If the current records list is empty, we can't find its oldest
-      // record, so we can't ensure we have enough history data to compute
-      // an accurate snapshot, which is too risky.
-      throw new Error("Cannot compute a snapshot against an empty list.");
-    }
-    // 2. find the oldest history entry for the current collection
-    const oldestHistoryEntry = await this.findOldestHistoryEntry();
-    // 3. if history is more recent, reject with an error
-    const enoughHistory = oldestHistoryEntry.target.data.last_modified <=
-      oldestRecord.last_modified;
-    if (!oldestHistoryEntry || !enoughHistory) {
-      throw new Error("Not enough history data.");
+    // If history doesn't have enough data, reject with an error
+    const oldestHistory = await this.findHistoryOldestTimestamp();
+    if (oldestHistory > at) {
+      throw new Error(
+        [
+          "Not enough history data; history for this collection",
+          `started being recorded at ${oldestHistory}.`,
+        ].join(" ")
+      );
     }
     // Retrieve history and replay it to compute the requested snapshot.
     const changes = await this.listChangesBackTo(at);
