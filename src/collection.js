@@ -361,7 +361,7 @@ export default class Collection {
     });
     return oldestHistoryEntry
       ? oldestHistoryEntry.target.data.last_modified
-      : 0;
+      : null;
   }
 
   /**
@@ -389,7 +389,9 @@ export default class Collection {
     }
     // If history doesn't have enough data, reject with an error
     const oldestHistory = await this.findHistoryOldestTimestamp();
-    if (oldestHistory > at) {
+    if (!oldestHistory) {
+      throw new Error("History is not enabled.");
+    } else if (oldestHistory > at) {
       throw new Error(
         [
           "Not enough history data; history for this collection",
