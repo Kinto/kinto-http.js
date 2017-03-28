@@ -350,6 +350,42 @@ export default class Bucket {
   }
 
   /**
+   * Replaces all existing bucket permissions with the ones provided.
+   *
+   * @param  {Object}  permissions             The permissions object.
+   * @param  {Object}  [options={}]            The options object
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Object}  [options.last_modified] The last_modified option.
+   * @return {Promise<Object, Error>}
+   */
+  async addPermissions(permissions, options = {}) {
+    if (!isObject(permissions)) {
+      throw new Error("A permissions object is required.");
+    }
+    const path = endpoint("bucket", this.name);
+    const { last_modified } = options;
+    const reqOptions = {
+      last_modified: last_modified,
+      ...this._bucketOptions(options),
+    };
+
+    const ops = [];
+
+    for (const type in permissions) {
+      for (const principal in permissions[type]) {
+        ops.push({
+          op: "add",
+          path: "/permissions/" + type + "/" + permissions[type][principal],
+        });
+      }
+    }
+
+    const request = requests.jsonPatchRequest(path, ops, reqOptions);
+    return this.client.execute(request);
+  }
+
+  /**
    * Performs batch operations at the current bucket level.
    *
    * @param  {Function} fn                   The batch operation function.

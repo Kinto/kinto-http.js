@@ -64,6 +64,28 @@ export function updateRequest(path, { data, permissions }, options = {}) {
 /**
  * @private
  */
+export function jsonPatchRequest(path, operations, options = {}) {
+  const {
+    headers,
+    safe,
+    last_modified,
+  } = { ...requestDefaults, ...options };
+
+  return {
+    method: "PATCH",
+    path,
+    headers: {
+      "Content-Type": "application/json-patch+json",
+      ...headers,
+      ...safeHeader(safe, last_modified),
+    },
+    body: operations,
+  };
+}
+
+/**
+ * @private
+ */
 export function deleteRequest(path, options = {}) {
   const { headers, safe, last_modified } = {
     ...requestDefaults,
