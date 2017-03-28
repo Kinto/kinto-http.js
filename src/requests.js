@@ -64,12 +64,28 @@ export function updateRequest(path, { data, permissions }, options = {}) {
 /**
  * @private
  */
-export function jsonPatchRequest(path, operations, options = {}) {
+export function jsonPatchPermissionsRequest(
+  path,
+  permissions,
+  opType,
+  options = {}
+) {
   const {
     headers,
     safe,
     last_modified,
   } = { ...requestDefaults, ...options };
+
+  const ops = [];
+
+  for (const type in permissions) {
+    for (const principal in permissions[type]) {
+      ops.push({
+        op: opType,
+        path: "/permissions/" + type + "/" + permissions[type][principal],
+      });
+    }
+  }
 
   return {
     method: "PATCH",
@@ -79,7 +95,7 @@ export function jsonPatchRequest(path, operations, options = {}) {
       ...headers,
       ...safeHeader(safe, last_modified),
     },
-    body: operations,
+    body: ops,
   };
 }
 

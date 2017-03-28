@@ -739,6 +739,24 @@ describe("Integration tests", function() {
             });
           });
         });
+        describe(".removePermissions()", () => {
+          beforeEach(() => {
+            return Promise.all([
+              bucket.setPermissions({ read: ["github:n1k0"] }),
+              bucket.setData({ a: 1 }),
+            ]);
+          });
+
+          it("should add bucket permissions", () => {
+            return bucket.removePermissions({ read: ["github:n1k0"] }).then(({
+              data,
+              permissions,
+            }) => {
+              expect(data.a).eql(1);
+              expect(permissions.read).eql(undefined);
+            });
+          });
+        });
       });
 
       describe(".listHistory()", () => {

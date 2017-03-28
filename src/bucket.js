@@ -350,7 +350,7 @@ export default class Bucket {
   }
 
   /**
-   * Replaces all existing bucket permissions with the ones provided.
+   * Append principals to the bucket permissions.
    *
    * @param  {Object}  permissions             The permissions object.
    * @param  {Object}  [options={}]            The options object
@@ -370,18 +370,42 @@ export default class Bucket {
       ...this._bucketOptions(options),
     };
 
-    const ops = [];
+    const request = requests.jsonPatchPermissionsRequest(
+      path,
+      permissions,
+      "add",
+      reqOptions
+    );
+    return this.client.execute(request);
+  }
 
-    for (const type in permissions) {
-      for (const principal in permissions[type]) {
-        ops.push({
-          op: "add",
-          path: "/permissions/" + type + "/" + permissions[type][principal],
-        });
-      }
+  /**
+   * Remove principals to the bucket permissions.
+   *
+   * @param  {Object}  permissions             The permissions object.
+   * @param  {Object}  [options={}]            The options object
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Object}  [options.last_modified] The last_modified option.
+   * @return {Promise<Object, Error>}
+   */
+  async removePermissions(permissions, options = {}) {
+    if (!isObject(permissions)) {
+      throw new Error("A permissions object is required.");
     }
+    const path = endpoint("bucket", this.name);
+    const { last_modified } = options;
+    const reqOptions = {
+      last_modified: last_modified,
+      ...this._bucketOptions(options),
+    };
 
-    const request = requests.jsonPatchRequest(path, ops, reqOptions);
+    const request = requests.jsonPatchPermissionsRequest(
+      path,
+      permissions,
+      "remove",
+      reqOptions
+    );
     return this.client.execute(request);
   }
 
