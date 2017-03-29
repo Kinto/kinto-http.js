@@ -33,7 +33,16 @@ describe("Integration tests", function() {
     });
   });
 
-  after(() => server.killAll());
+  after(() => {
+    if (server.logs.length > 0) {
+      // Server errors have been encountered, raise to break the build
+      const trace = server.logs.map(l => l.toString()).join("\n");
+      throw new Error(
+        `Kinto server crashed while running the test suite.\n\n${trace}`
+      );
+    }
+    return server.killAll();
+  });
 
   function createClient(options = {}) {
     return new Api(TEST_KINTO_SERVER, options);
