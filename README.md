@@ -1581,3 +1581,11 @@ The `cs-check` command ensures all files conform to that style:
 ```
 $ npm run cs-check
 ```
+
+### Integration tests
+
+It's possible to run the integration test suite against an external Kinto server instance. To do so you need to define the `TEST_KINTO_SERVER` environment variable and set it to the server base URL:
+
+```
+$ TEST_KINTO_SERVER=https://my.kinto-server.tld/v1 npm test
+```
