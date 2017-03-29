@@ -678,83 +678,82 @@ describe("Integration tests", function() {
         });
       });
 
-      describe(".permissions", () => {
-        describe(".getPermissions()", () => {
-          it("should retrieve bucket permissions", () => {
+      describe(".getPermissions()", () => {
+        it("should retrieve bucket permissions", () => {
+          return bucket
+            .getPermissions()
+            .should.eventually.have.property("write")
+            .to.have.length.of(1);
+        });
+      });
+
+      describe(".setPermissions()", () => {
+        beforeEach(() => {
+          return bucket.setData({ a: 1 });
+        });
+
+        it("should set bucket permissions", () => {
+          return bucket.setPermissions({ read: ["github:n1k0"] }).then(({
+            data,
+            permissions,
+          }) => {
+            expect(data.a).eql(1);
+            expect(permissions.read).eql(["github:n1k0"]);
+          });
+        });
+
+        describe("Safe option", () => {
+          it("should check for concurrency", () => {
             return bucket
-              .getPermissions()
-              .should.eventually.have.property("write")
-              .to.have.length.of(1);
+              .setPermissions(
+                { read: ["github:n1k0"] },
+                {
+                  safe: true,
+                  last_modified: 1,
+                }
+              )
+              .should.be.rejectedWith(Error, /412 Precondition Failed/);
           });
         });
+      });
 
-        describe(".setPermissions()", () => {
-          beforeEach(() => {
-            return bucket.setData({ a: 1 });
-          });
-
-          it("should set bucket permissions", () => {
-            return bucket.setPermissions({ read: ["github:n1k0"] }).then(({
-              data,
-              permissions,
-            }) => {
-              expect(data.a).eql(1);
-              expect(permissions.read).eql(["github:n1k0"]);
-            });
-          });
-
-          describe("Safe option", () => {
-            it("should check for concurrency", () => {
-              return bucket
-                .setPermissions(
-                  { read: ["github:n1k0"] },
-                  {
-                    safe: true,
-                    last_modified: 1,
-                  }
-                )
-                .should.be.rejectedWith(Error, /412 Precondition Failed/);
-            });
-          });
+      describe(".addPermissions()", () => {
+        beforeEach(() => {
+          return Promise.all([
+            bucket.setPermissions({ read: ["github:n1k0"] }),
+            bucket.setData({ a: 1 }),
+          ]);
         });
 
-        describe(".addPermissions()", () => {
-          beforeEach(() => {
-            return Promise.all([
-              bucket.setPermissions({ read: ["github:n1k0"] }),
-              bucket.setData({ a: 1 }),
+        it("should add bucket permissions", () => {
+          return bucket.addPermissions({ read: ["accounts:gabi"] }).then(({
+            data,
+            permissions,
+          }) => {
+            expect(data.a).eql(1);
+            expect(permissions.read.sort()).eql([
+              "accounts:gabi",
+              "github:n1k0",
             ]);
           });
-
-          it("should add bucket permissions", () => {
-            return bucket.addPermissions({ read: ["accounts:gabi"] }).then(({
-              data,
-              permissions,
-            }) => {
-              expect(data.a).eql(1);
-              expect(permissions.read.sort()).eql([
-                "accounts:gabi",
-                "github:n1k0",
-              ]);
-            });
-          });
         });
-        describe(".removePermissions()", () => {
-          beforeEach(() => {
-            return Promise.all([
-              bucket.setPermissions({ read: ["github:n1k0"] }),
-              bucket.setData({ a: 1 }),
-            ]);
-          });
+      });
 
-          it("should add bucket permissions", () => {
-            return bucket.removePermissions({ read: ["github:n1k0"] }).then(({
-              data,
-              permissions,
-            }) => {
-              expect(data.a).eql(1);
-              expect(permissions.read).eql(undefined);
-            });
+      describe(".removePermissions()", () => {
+        beforeEach(() => {
+          return Promise.all([
+            bucket.setPermissions({ read: ["github:n1k0"] }),
+            bucket.setData({ a: 1 }),
+          ]);
+        });
+
+        it("should add bucket permissions", () => {
+          return bucket.removePermissions({ read: ["github:n1k0"] }).then(({
+            data,
+            permissions,
+          }) => {
+            expect(data.a).eql(1);
+            expect(permissions.read).eql(undefined);
           });
         });
       });
@@ -1356,6 +1355,47 @@ describe("Integration tests", function() {
                     }
                   )
                   .should.be.rejectedWith(Error, /412 Precondition Failed/);
+              });
+            });
+          });
+
+          describe(".addPermissions()", () => {
+            beforeEach(() => {
+              return Promise.all([
+                coll.setPermissions({ read: ["github:n1k0"] }),
+                coll.setData({ a: 1 }),
+              ]);
+            });
+
+            it("should add bucket permissions", () => {
+              return coll.addPermissions({ read: ["accounts:gabi"] }).then(({
+                data,
+                permissions,
+              }) => {
+                expect(data.a).eql(1);
+                expect(permissions.read.sort()).eql([
+                  "accounts:gabi",
+                  "github:n1k0",
+                ]);
+              });
+            });
+          });
+
+          describe(".removePermissions()", () => {
+            beforeEach(() => {
+              return Promise.all([
+                coll.setPermissions({ read: ["github:n1k0"] }),
+                coll.setData({ a: 1 }),
+              ]);
+            });
+
+            it("should add bucket permissions", () => {
+              return coll.removePermissions({ read: ["github:n1k0"] }).then(({
+                data,
+                permissions,
+              }) => {
+                expect(data.a).eql(1);
+                expect(permissions.read).eql(undefined);
               });
             });
           });

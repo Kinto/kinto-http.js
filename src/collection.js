@@ -170,6 +170,60 @@ export default class Collection {
   }
 
   /**
+   * Append principals to the collection permissions.
+   *
+   * @param  {Object}  permissions             The permissions object.
+   * @param  {Object}  [options={}]            The options object
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Object}  [options.last_modified] The last_modified option.
+   * @return {Promise<Object, Error>}
+   */
+  async addPermissions(permissions, options = {}) {
+    if (!isObject(permissions)) {
+      throw new Error("A permissions object is required.");
+    }
+    const path = endpoint("collection", this.bucket.name, this.name);
+    const { last_modified } = options;
+    const reqOptions = { last_modified, ...this._collOptions(options) };
+
+    const request = requests.jsonPatchPermissionsRequest(
+      path,
+      permissions,
+      "add",
+      reqOptions
+    );
+    return this.client.execute(request);
+  }
+
+  /**
+   * Remove principals to the collection permissions.
+   *
+   * @param  {Object}  permissions             The permissions object.
+   * @param  {Object}  [options={}]            The options object
+   * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Object}  [options.last_modified] The last_modified option.
+   * @return {Promise<Object, Error>}
+   */
+  async removePermissions(permissions, options = {}) {
+    if (!isObject(permissions)) {
+      throw new Error("A permissions object is required.");
+    }
+    const path = endpoint("collection", this.bucket.name, this.name);
+    const { last_modified } = options;
+    const reqOptions = { last_modified, ...this._collOptions(options) };
+
+    const request = requests.jsonPatchPermissionsRequest(
+      path,
+      permissions,
+      "remove",
+      reqOptions
+    );
+    return this.client.execute(request);
+  }
+
+  /**
    * Creates a record in current collection.
    *
    * @param  {Object}  record                The record to create.

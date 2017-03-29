@@ -147,6 +147,89 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#addPermissions} */
+  describe("#addPermissions()", () => {
+    const fakePermissions = { read: [], write: [] };
+
+    beforeEach(() => {
+      sandbox.stub(requests, "jsonPatchPermissionsRequest");
+      sandbox.stub(client, "execute").returns(Promise.resolve({}));
+    });
+
+    it("should set permissions", () => {
+      coll.addPermissions(fakePermissions);
+
+      sinon.assert.calledWithMatch(
+        requests.jsonPatchPermissionsRequest,
+        "/buckets/blog/collections/posts",
+        fakePermissions,
+        "add",
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
+    });
+
+    it("should handle the safe option", () => {
+      coll.addPermissions(fakePermissions, { safe: true, last_modified: 42 });
+
+      sinon.assert.calledWithMatch(
+        requests.jsonPatchPermissionsRequest,
+        "/buckets/blog/collections/posts",
+        fakePermissions,
+        "add",
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
+    });
+
+    it("should resolve with json result", () => {
+      return coll.setPermissions(fakePermissions).should.become({});
+    });
+  });
+
+  /** @test {Collection#removePermissions} */
+  describe("#removePermissions()", () => {
+    const fakePermissions = { read: [], write: [] };
+
+    beforeEach(() => {
+      sandbox.stub(requests, "updateRequest");
+      sandbox.stub(client, "execute").returns(Promise.resolve({}));
+    });
+
+    it("should set permissions", () => {
+      coll.setPermissions(fakePermissions);
+
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog/collections/posts",
+        {
+          data: { last_modified: undefined },
+          permissions: fakePermissions,
+        },
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
+    });
+
+    it("should handle the safe option", () => {
+      coll.setPermissions(fakePermissions, { safe: true, last_modified: 42 });
+
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog/collections/posts",
+        {
+          data: { last_modified: 42 },
+          permissions: fakePermissions,
+        },
+        {
+          headers: { Foo: "Bar", Baz: "Qux" },
+          safe: true,
+        }
+      );
+    });
+
+    it("should resolve with json result", () => {
+      return coll.setPermissions(fakePermissions).should.become({});
+    });
+  });
+
   /** @test {Collection#getData} */
   describe("#getData()", () => {
     beforeEach(() => {
@@ -160,6 +243,7 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#setData} */
   describe("#setData()", () => {
     beforeEach(() => {
       sandbox.stub(requests, "updateRequest");

@@ -759,6 +759,98 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#addPermissions} */
+  describe("#addPermissions()", () => {
+    const fakePermissions = {
+      read: [],
+      write: [],
+    };
+
+    beforeEach(() => {
+      sandbox.stub(requests, "jsonPatchPermissionsRequest");
+      sandbox.stub(client, "execute").returns(
+        Promise.resolve({
+          data: {},
+          permissions: fakePermissions,
+        })
+      );
+    });
+
+    it("should set permissions", () => {
+      getBlogBucket().addPermissions(fakePermissions);
+
+      sinon.assert.calledWithMatch(
+        requests.jsonPatchPermissionsRequest,
+        "/buckets/blog",
+        fakePermissions,
+        "add"
+      );
+    });
+
+    it("should merge default options", () => {
+      const bucket = getBlogBucket({
+        headers: { Foo: "Bar" },
+        safe: true,
+      });
+
+      bucket.addPermissions(fakePermissions, { headers: { Baz: "Qux" } });
+
+      sinon.assert.calledWithMatch(
+        requests.jsonPatchPermissionsRequest,
+        "/buckets/blog",
+        fakePermissions,
+        "add",
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
+    });
+  });
+
+  /** @test {Bucket#removePermissions} */
+  describe("#removePermissions()", () => {
+    const fakePermissions = {
+      read: [],
+      write: [],
+    };
+
+    beforeEach(() => {
+      sandbox.stub(requests, "jsonPatchPermissionsRequest");
+      sandbox.stub(client, "execute").returns(
+        Promise.resolve({
+          data: {},
+          permissions: fakePermissions,
+        })
+      );
+    });
+
+    it("should set permissions", () => {
+      getBlogBucket().removePermissions(fakePermissions);
+
+      sinon.assert.calledWithMatch(
+        requests.jsonPatchPermissionsRequest,
+        "/buckets/blog",
+        fakePermissions,
+        "remove"
+      );
+    });
+
+    it("should merge default options", () => {
+      const bucket = getBlogBucket({
+        headers: { Foo: "Bar" },
+        safe: true,
+      });
+
+      bucket.removePermissions(fakePermissions, { headers: { Baz: "Qux" } });
+
+      sinon.assert.calledWithMatch(
+        requests.jsonPatchPermissionsRequest,
+        "/buckets/blog",
+        fakePermissions,
+        "remove",
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
+    });
+  });
+
   /** @test {Bucket#batch} */
   describe("#batch()", () => {
     beforeEach(() => {
