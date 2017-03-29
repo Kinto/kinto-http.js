@@ -14,7 +14,17 @@ chai.use(chaiAsPromised);
 chai.should();
 chai.config.includeStack = true;
 
-const TEST_KINTO_SERVER = "http://0.0.0.0:8888/v1";
+const skipLocalServer = !!process.env.TEST_KINTO_SERVER;
+const TEST_KINTO_SERVER = process.env.TEST_KINTO_SERVER ||
+  "http://0.0.0.0:8888/v1";
+
+function startServer(server, options) {
+  return !skipLocalServer && server.start(options);
+}
+
+function stopServer(server) {
+  return !skipLocalServer && server.stop();
+}
 
 describe("Integration tests", function() {
   let sandbox, server, api;
@@ -23,6 +33,9 @@ describe("Integration tests", function() {
   this.timeout(0);
 
   before(() => {
+    if (skipLocalServer) {
+      return;
+    }
     let kintoConfigPath = __dirname + "/kinto.ini";
     if (process.env.SERVER && process.env.SERVER !== "master") {
       kintoConfigPath = `${__dirname}/kinto-${process.env.SERVER}.ini`;
@@ -33,7 +46,21 @@ describe("Integration tests", function() {
     });
   });
 
-  after(() => server.killAll());
+  after(() => {
+    if (skipLocalServer) {
+      return;
+    }
+    const logLines = server.logs.toString().split("\n");
+    const serverDidCrash = logLines.some(l => l.startsWith("Traceback"));
+    if (serverDidCrash) {
+      // Server errors have been encountered, raise to break the build
+      const trace = logLines.join("\n");
+      throw new Error(
+        `Kinto server crashed while running the test suite.\n\n${trace}`
+      );
+    }
+    return server.killAll();
+  });
 
   function createClient(options = {}) {
     return new Api(TEST_KINTO_SERVER, options);
@@ -54,10 +81,12 @@ describe("Integration tests", function() {
 
   describe("Default server configuration", () => {
     before(() => {
-      return server.start();
+      return startServer(server);
     });
 
-    after(() => server.stop());
+    after(() => {
+      return stopServer(server);
+    });
 
     beforeEach(() => server.flush());
 
@@ -493,10 +522,10 @@ describe("Integration tests", function() {
     const backoffSeconds = 10;
 
     before(() => {
-      return server.start({ KINTO_BACKOFF: backoffSeconds });
+      return startServer(server, { KINTO_BACKOFF: backoffSeconds });
     });
 
-    after(() => server.stop());
+    after(() => stopServer(server));
 
     beforeEach(() => server.flush());
 
@@ -516,14 +545,14 @@ describe("Integration tests", function() {
         const tomorrow = new Date(new Date().getTime() + 86400000)
           .toJSON()
           .slice(0, 10);
-        return server.start({
+        return startServer(server, {
           KINTO_EOS: tomorrow,
           KINTO_EOS_URL: "http://www.perdu.com",
           KINTO_EOS_MESSAGE: "Boom",
         });
       });
 
-      after(() => server.stop());
+      after(() => stopServer(server));
 
       beforeEach(() => sandbox.stub(console, "warn"));
 
@@ -543,14 +572,14 @@ describe("Integration tests", function() {
         const lastWeek = new Date(new Date().getTime() - 7 * 86400000)
           .toJSON()
           .slice(0, 10);
-        return server.start({
+        return startServer(server, {
           KINTO_EOS: lastWeek,
           KINTO_EOS_URL: "http://www.perdu.com",
           KINTO_EOS_MESSAGE: "Boom",
         });
       });
 
-      after(() => server.stop());
+      after(() => stopServer(server));
 
       beforeEach(() => sandbox.stub(console, "warn"));
 
@@ -564,10 +593,10 @@ describe("Integration tests", function() {
 
   describe("Limited pagination", () => {
     before(() => {
-      return server.start({ KINTO_PAGINATE_BY: 1 });
+      return startServer(server, { KINTO_PAGINATE_BY: 1 });
     });
 
-    after(() => server.stop());
+    after(() => stopServer(server));
 
     beforeEach(() => server.flush());
 
@@ -599,11 +628,9 @@ describe("Integration tests", function() {
   });
 
   describe("Chainable API", () => {
-    before(() => {
-      return server.start();
-    });
+    before(() => startServer(server));
 
-    after(() => server.stop());
+    after(() => stopServer(server));
 
     beforeEach(() => server.flush());
 
