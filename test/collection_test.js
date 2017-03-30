@@ -156,7 +156,7 @@ describe("Collection", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve({}));
     });
 
-    it("should set permissions", () => {
+    it("should append permissions", () => {
       coll.addPermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(
@@ -194,7 +194,7 @@ describe("Collection", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve({}));
     });
 
-    it("should set permissions", () => {
+    it("should pop permissions", () => {
       coll.setPermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(

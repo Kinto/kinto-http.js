@@ -365,11 +365,7 @@ export default class Bucket {
     }
     const path = endpoint("bucket", this.name);
     const { last_modified } = options;
-    const reqOptions = {
-      last_modified: last_modified,
-      ...this._bucketOptions(options),
-    };
-
+    const reqOptions = { last_modified, ...this._bucketOptions(options) };
     const request = requests.jsonPatchPermissionsRequest(
       path,
       permissions,
@@ -380,7 +376,7 @@ export default class Bucket {
   }
 
   /**
-   * Remove principals to the bucket permissions.
+   * Remove principals from the bucket permissions.
    *
    * @param  {Object}  permissions             The permissions object.
    * @param  {Object}  [options={}]            The options object
@@ -395,11 +391,7 @@ export default class Bucket {
     }
     const path = endpoint("bucket", this.name);
     const { last_modified } = options;
-    const reqOptions = {
-      last_modified: last_modified,
-      ...this._bucketOptions(options),
-    };
-
+    const reqOptions = { last_modified, ...this._bucketOptions(options) };
     const request = requests.jsonPatchPermissionsRequest(
       path,
       permissions,

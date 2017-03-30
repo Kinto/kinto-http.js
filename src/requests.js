@@ -78,11 +78,11 @@ export function jsonPatchPermissionsRequest(
 
   const ops = [];
 
-  for (const type in permissions) {
-    for (const principal in permissions[type]) {
+  for (const [type, principals] of Object.entries(permissions)) {
+    for (const principal of principals) {
       ops.push({
         op: opType,
-        path: "/permissions/" + type + "/" + permissions[type][principal],
+        path: `/permissions/${type}/${principal}`,
       });
     }
   }
@@ -91,9 +91,9 @@ export function jsonPatchPermissionsRequest(
     method: "PATCH",
     path,
     headers: {
-      "Content-Type": "application/json-patch+json",
       ...headers,
       ...safeHeader(safe, last_modified),
+      "Content-Type": "application/json-patch+json",
     },
     body: ops,
   };

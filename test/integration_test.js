@@ -752,7 +752,7 @@ describe("Integration tests", function() {
           ]);
         });
 
-        it("should add bucket permissions", () => {
+        it("should append bucket permissions", () => {
           return bucket.addPermissions({ read: ["accounts:gabi"] }).then(({
             data,
             permissions,
@@ -774,7 +774,7 @@ describe("Integration tests", function() {
           ]);
         });
 
-        it("should add bucket permissions", () => {
+        it("should pop bucket permissions", () => {
           return bucket.removePermissions({ read: ["github:n1k0"] }).then(({
             data,
             permissions,
@@ -1394,7 +1394,7 @@ describe("Integration tests", function() {
               ]);
             });
 
-            it("should add bucket permissions", () => {
+            it("should append collection permissions", () => {
               return coll.addPermissions({ read: ["accounts:gabi"] }).then(({
                 data,
                 permissions,
@@ -1416,7 +1416,7 @@ describe("Integration tests", function() {
               ]);
             });
 
-            it("should add bucket permissions", () => {
+            it("should pop collection permissions", () => {
               return coll.removePermissions({ read: ["github:n1k0"] }).then(({
                 data,
                 permissions,

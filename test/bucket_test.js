@@ -776,7 +776,7 @@ describe("Bucket", () => {
       );
     });
 
-    it("should set permissions", () => {
+    it("should append permissions", () => {
       getBlogBucket().addPermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(
@@ -822,7 +822,7 @@ describe("Bucket", () => {
       );
     });
 
-    it("should set permissions", () => {
+    it("should pop permissions", () => {
       getBlogBucket().removePermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(

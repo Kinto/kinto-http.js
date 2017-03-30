@@ -186,7 +186,6 @@ export default class Collection {
     const path = endpoint("collection", this.bucket.name, this.name);
     const { last_modified } = options;
     const reqOptions = { last_modified, ...this._collOptions(options) };
-
     const request = requests.jsonPatchPermissionsRequest(
       path,
       permissions,
@@ -197,7 +196,7 @@ export default class Collection {
   }
 
   /**
-   * Remove principals to the collection permissions.
+   * Remove principals from the collection permissions.
    *
    * @param  {Object}  permissions             The permissions object.
    * @param  {Object}  [options={}]            The options object
@@ -213,7 +212,6 @@ export default class Collection {
     const path = endpoint("collection", this.bucket.name, this.name);
     const { last_modified } = options;
     const reqOptions = { last_modified, ...this._collOptions(options) };
-
     const request = requests.jsonPatchPermissionsRequest(
       path,
       permissions,
