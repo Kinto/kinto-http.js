@@ -176,7 +176,7 @@ describe("Bucket", () => {
         client.paginatedList,
         "/buckets/blog/collections",
         {},
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        { bucket: "blog", batch: false, headers: { Foo: "Bar", Baz: "Qux" } }
       );
     });
 
