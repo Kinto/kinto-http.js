@@ -64,6 +64,44 @@ export function updateRequest(path, { data, permissions }, options = {}) {
 /**
  * @private
  */
+export function jsonPatchPermissionsRequest(
+  path,
+  permissions,
+  opType,
+  options = {}
+) {
+  const {
+    headers,
+    safe,
+    last_modified,
+  } = { ...requestDefaults, ...options };
+
+  const ops = [];
+
+  for (const [type, principals] of Object.entries(permissions)) {
+    for (const principal of principals) {
+      ops.push({
+        op: opType,
+        path: `/permissions/${type}/${principal}`,
+      });
+    }
+  }
+
+  return {
+    method: "PATCH",
+    path,
+    headers: {
+      ...headers,
+      ...safeHeader(safe, last_modified),
+      "Content-Type": "application/json-patch+json",
+    },
+    body: ops,
+  };
+}
+
+/**
+ * @private
+ */
 export function deleteRequest(path, options = {}) {
   const { headers, safe, last_modified } = {
     ...requestDefaults,
