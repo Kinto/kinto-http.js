@@ -1,4 +1,4 @@
-import { toDataBody, isObject, capable } from "./utils";
+import { getOptionWithDefault, toDataBody, isObject, capable } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
@@ -38,6 +38,10 @@ export default class Bucket {
      * @ignore
      */
     this._isBatch = !!options.batch;
+    /**
+     * @ignore
+     */
+    this._safe = !!options.safe;
   }
 
   /**
@@ -60,6 +64,18 @@ export default class Bucket {
   }
 
   /**
+   * Get the value of "safe" for a given request, using the
+   * per-request option if present or falling back to our default
+   * otherwise.
+   *
+   * @param {Object} options The options for a request.
+   * @returns {Boolean}
+   */
+  _getSafe(options) {
+    return getOptionWithDefault(options, "safe", this._safe);
+  }
+
+  /**
    * Selects a collection.
    *
    * @param  {String}  name              The collection name.
@@ -72,6 +88,7 @@ export default class Bucket {
     return new Collection(this.client, this, name, {
       ...this._bucketOptions(options),
       batch: this._isBatch,
+      safe: this._getSafe(options),
     });
   }
 
@@ -119,7 +136,7 @@ export default class Bucket {
     const request = requests.updateRequest(
       path,
       { data: bucket, permissions },
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -170,7 +187,7 @@ export default class Bucket {
     const request = requests.createRequest(
       path,
       { data, permissions },
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -193,7 +210,10 @@ export default class Bucket {
     const { id, last_modified } = collectionObj;
     const reqOptions = this._bucketOptions({ last_modified, ...options });
     const path = endpoint("collection", this.name, id);
-    const request = requests.deleteRequest(path, reqOptions);
+    const request = requests.deleteRequest(path, {
+      ...reqOptions,
+      safe: this._getSafe(options),
+    });
     return this.client.execute(request);
   }
 
@@ -248,7 +268,7 @@ export default class Bucket {
     const request = requests.createRequest(
       path,
       { data, permissions },
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -282,7 +302,7 @@ export default class Bucket {
     const request = requests.updateRequest(
       path,
       { data, permissions },
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -302,7 +322,10 @@ export default class Bucket {
     const { id, last_modified } = groupObj;
     const reqOptions = this._bucketOptions({ last_modified, ...options });
     const path = endpoint("group", this.name, id);
-    const request = requests.deleteRequest(path, reqOptions);
+    const request = requests.deleteRequest(path, {
+      ...reqOptions,
+      safe: this._getSafe(options),
+    });
     return this.client.execute(request);
   }
 
@@ -341,7 +364,7 @@ export default class Bucket {
     const request = requests.updateRequest(
       path,
       { data, permissions },
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -367,7 +390,7 @@ export default class Bucket {
       path,
       permissions,
       "add",
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -393,7 +416,7 @@ export default class Bucket {
       path,
       permissions,
       "remove",
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -413,6 +436,7 @@ export default class Bucket {
     return this.client.batch(fn, {
       ...this._bucketOptions(options),
       bucket: this.name,
+      safe: this._getSafe(options),
     });
   }
 }

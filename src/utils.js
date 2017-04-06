@@ -75,6 +75,27 @@ export function omit(obj, ...keys) {
 }
 
 /**
+ * Get an option for a given request with a fallback.
+ *
+ * This is the JS equivalent of dict.get(key, fallback). We use it to
+ * let users specify per-method-call options while falling back to a
+ * per-object option if it's absent.
+ *
+ * @private
+ * @param {Object} options  The options passed to an arbitrary
+ *     method.
+ * @param {String} key      The option to look up.
+ * @param {Object} fallback The value to use if the key isn't present.
+ * @returns [Object]
+ */
+export function getOptionWithDefault(options, key, fallback) {
+  if (options.hasOwnProperty(key)) {
+    return options[key];
+  }
+  return fallback;
+}
+
+/**
  * Always returns a resource data object from the provided argument.
  *
  * @private

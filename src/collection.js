@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 
-import { capable, toDataBody, isObject } from "./utils";
+import { capable, getOptionWithDefault, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -50,10 +50,16 @@ export default class Collection {
         ...options.headers,
       },
     };
+
     /**
      * @ignore
      */
     this._isBatch = !!options.batch;
+
+    /**
+     * @ignore
+     */
+    this._safe = !!options.safe;
   }
 
   /**
@@ -74,6 +80,18 @@ export default class Collection {
       ...options,
       headers,
     };
+  }
+
+  /**
+   * Get the value of "safe" for a given request, using the
+   * per-request option if present or falling back to our default
+   * otherwise.
+   *
+   * @param {Object} options The options for a request.
+   * @returns {Boolean}
+   */
+  _getSafe(options) {
+    return getOptionWithDefault(options, "safe", this._safe);
   }
 
   /**
@@ -127,7 +145,7 @@ export default class Collection {
     const request = requests.updateRequest(
       path,
       { data, permissions },
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -167,7 +185,7 @@ export default class Collection {
     const request = requests.updateRequest(
       path,
       { data, permissions },
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -193,7 +211,7 @@ export default class Collection {
       path,
       permissions,
       "add",
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -219,7 +237,7 @@ export default class Collection {
       path,
       permissions,
       "remove",
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -241,7 +259,7 @@ export default class Collection {
     const request = requests.createRequest(
       path,
       { data: record, permissions },
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -270,7 +288,7 @@ export default class Collection {
       path,
       dataURI,
       { data: record, permissions },
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     await this.client.execute(addAttachmentRequest, { stringify: false });
     return this.getRecord(id);
@@ -289,7 +307,10 @@ export default class Collection {
   async removeAttachment(recordId, options = {}) {
     const reqOptions = this._collOptions(options);
     const path = endpoint("attachment", this.bucket.name, this.name, recordId);
-    const request = requests.deleteRequest(path, reqOptions);
+    const request = requests.deleteRequest(path, {
+      ...reqOptions,
+      safe: this._getSafe(options),
+    });
     return this.client.execute(request);
   }
 
@@ -317,7 +338,7 @@ export default class Collection {
     const request = requests.updateRequest(
       path,
       { data: record, permissions },
-      reqOptions
+      { ...reqOptions, safe: this._getSafe(options) }
     );
     return this.client.execute(request);
   }
@@ -340,7 +361,10 @@ export default class Collection {
     const { id, last_modified } = recordObj;
     const reqOptions = this._collOptions({ last_modified, ...options });
     const path = endpoint("record", this.bucket.name, this.name, id);
-    const request = requests.deleteRequest(path, reqOptions);
+    const request = requests.deleteRequest(path, {
+      ...reqOptions,
+      safe: this._getSafe(options),
+    });
     return this.client.execute(request);
   }
 
@@ -494,6 +518,7 @@ export default class Collection {
       ...reqOptions,
       bucket: this.bucket.name,
       collection: this.name,
+      safe: this._getSafe(options),
     });
   }
 }

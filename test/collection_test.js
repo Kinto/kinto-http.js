@@ -309,7 +309,7 @@ describe("Collection", () => {
           data: record,
           permissions: undefined,
         },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        { headers: { Foo: "Bar", Baz: "Qux" }, safe: false }
       );
     });
 
@@ -377,7 +377,7 @@ describe("Collection", () => {
           data: record,
           permissions: undefined,
         },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        { headers: { Foo: "Bar", Baz: "Qux" }, safe: false }
       );
     });
 
@@ -446,6 +446,7 @@ describe("Collection", () => {
         {
           last_modified: undefined,
           headers: { Foo: "Bar", Baz: "Qux" },
+          safe: false,
         }
       );
     });
@@ -573,6 +574,7 @@ describe("Collection", () => {
         bucket: "blog",
         collection: "posts",
         headers: { Foo: "Bar", Baz: "Qux" },
+        safe: false,
       });
     });
   });

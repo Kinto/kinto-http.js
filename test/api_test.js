@@ -117,7 +117,7 @@ describe("KintoClient", () => {
 
     it("should accept a safe option", () => {
       const api = new KintoClient(sampleRemote, { safe: true });
-      expect(api.defaultReqOptions.safe).eql(true);
+      expect(api._safe).eql(true);
     });
   });
 

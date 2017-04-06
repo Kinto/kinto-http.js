@@ -864,6 +864,7 @@ describe("Bucket", () => {
       sinon.assert.calledWith(client.batch, fn, {
         bucket: "blog",
         headers: {},
+        safe: false,
       });
     });
 

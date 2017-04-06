@@ -1,6 +1,7 @@
 "use strict";
 
 import {
+  getOptionWithDefault,
   partition,
   pMap,
   omit,
@@ -65,12 +66,12 @@ export default class KintoClientBase {
       bucket: options.bucket || "default",
       headers: options.headers || {},
       retry: options.retry || 0,
-      safe: !!options.safe,
     };
 
     this._options = options;
     this._requests = [];
     this._isBatch = !!options.batch;
+    this._safe = !!options.safe;
 
     // public properties
     /**
@@ -175,7 +176,10 @@ export default class KintoClientBase {
    */
   bucket(name, options = {}) {
     const bucketOptions = omit(this._getRequestOptions(options), "bucket");
-    return new Bucket(this, name, bucketOptions);
+    return new Bucket(this, name, {
+      ...bucketOptions,
+      safe: this._getSafe(options),
+    });
   }
 
   /**
@@ -201,6 +205,19 @@ export default class KintoClientBase {
         ...options.headers,
       },
     };
+  }
+
+  /**
+   * Get the value of "safe" for a given request, using the
+   * per-request option if present or falling back to our default
+   * otherwise.
+   *
+   * @private
+   * @param {Object} options The options for a request.
+   * @returns {Boolean}
+   */
+  _getSafe(options) {
+    return getOptionWithDefault(options, "safe", this._safe);
   }
 
   /**
@@ -323,6 +340,7 @@ export default class KintoClientBase {
       ...this._options,
       ...this._getRequestOptions(options),
       batch: true,
+      safe: this._getSafe(options),
     });
     let bucketBatch, collBatch;
     if (options.bucket) {
@@ -539,7 +557,14 @@ export default class KintoClientBase {
     }
     const path = data.id ? endpoint("bucket", data.id) : endpoint("bucket");
     return this.execute(
-      requests.createRequest(path, { data, permissions }, reqOptions)
+      requests.createRequest(
+        path,
+        { data, permissions },
+        {
+          ...reqOptions,
+          safe: this._getSafe(options),
+        }
+      )
     );
   }
 
@@ -562,7 +587,12 @@ export default class KintoClientBase {
     const path = endpoint("bucket", bucketObj.id);
     const { last_modified } = { bucketObj };
     const reqOptions = this._getRequestOptions({ last_modified, ...options });
-    return this.execute(requests.deleteRequest(path, reqOptions));
+    return this.execute(
+      requests.deleteRequest(path, {
+        ...reqOptions,
+        safe: this._getSafe(options),
+      })
+    );
   }
 
   /**
@@ -579,6 +609,11 @@ export default class KintoClientBase {
   async deleteBuckets(options = {}) {
     const reqOptions = this._getRequestOptions(options);
     const path = endpoint("bucket");
-    return this.execute(requests.deleteRequest(path, reqOptions));
+    return this.execute(
+      requests.deleteRequest(path, {
+        ...reqOptions,
+        safe: this._getSafe(options),
+      })
+    );
   }
 }
