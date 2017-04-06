@@ -335,7 +335,7 @@ export default class Bucket {
       throw new Error("A permissions object is required.");
     }
     const path = endpoint("bucket", this.name);
-    const reqOptions = { ...this._bucketOptions(options) };
+    const reqOptions = this._bucketOptions(options);
     const { last_modified } = options;
     const data = { last_modified };
     const request = requests.updateRequest(
