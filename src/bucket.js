@@ -55,7 +55,6 @@ export default class Bucket {
       ...this.options,
       ...options,
       headers,
-      batch: this._isBatch,
     };
   }
 
@@ -69,12 +68,10 @@ export default class Bucket {
    * @return {Collection}
    */
   collection(name, options = {}) {
-    return new Collection(
-      this.client,
-      this,
-      name,
-      this._bucketOptions(options)
-    );
+    return new Collection(this.client, this, name, {
+      ...this._bucketOptions(options),
+      batch: this._isBatch,
+    });
   }
 
   /**

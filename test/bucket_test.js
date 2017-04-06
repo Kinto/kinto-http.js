@@ -864,7 +864,6 @@ describe("Bucket", () => {
       sinon.assert.calledWith(client.batch, fn, {
         bucket: "blog",
         headers: {},
-        batch: false,
       });
     });
 
@@ -880,7 +879,6 @@ describe("Bucket", () => {
         bucket: "blog",
         headers: { Foo: "Bar", Baz: "Qux" },
         safe: true,
-        batch: false,
       });
     });
   });
