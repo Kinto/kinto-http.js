@@ -18,6 +18,8 @@ export default class Collection {
    * @param  {Object}       [options={}]      The options object.
    * @param  {Object}       [options.headers] The headers object option.
    * @param  {Boolean}      [options.safe]    The safe option.
+   * @param  {Boolean}      [options.batch]   (Private) Whether this
+   *     Collection is operating as part of a batch.
    */
   constructor(client, bucket, name, options = {}) {
     /**
