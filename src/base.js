@@ -195,7 +195,6 @@ export default class KintoClientBase {
     return {
       ...this.defaultReqOptions,
       ...options,
-      batch: this._isBatch,
       // Note: headers should never be overriden but extended
       headers: {
         ...this.defaultReqOptions.headers,
