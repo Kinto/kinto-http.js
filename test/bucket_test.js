@@ -140,7 +140,6 @@ describe("Bucket", () => {
           safe: false,
         }).options
       ).eql({
-        bucket: "blog",
         headers: { Foo: "Bar", Baz: "Qux" },
         safe: false,
         batch: false,

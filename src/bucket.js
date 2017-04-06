@@ -55,7 +55,6 @@ export default class Bucket {
       ...this.options,
       ...options,
       headers,
-      bucket: this.name,
       batch: this._isBatch,
     };
   }
@@ -412,6 +411,9 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async batch(fn, options = {}) {
-    return this.client.batch(fn, this._bucketOptions(options));
+    return this.client.batch(fn, {
+      ...this._bucketOptions(options),
+      bucket: this.name,
+    });
   }
 }
