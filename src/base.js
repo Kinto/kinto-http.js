@@ -311,6 +311,7 @@ export default class KintoClientBase {
    * @param  {Function} fn                        The function to use for describing batch ops.
    * @param  {Object}   [options={}]              The options object.
    * @param  {Boolean}  [options.safe]            The safe option.
+   * @param  {Number}   [options.retry]           The retry option.
    * @param  {String}   [options.bucket]          The bucket name option.
    * @param  {String}   [options.collection]      The collection name option.
    * @param  {Object}   [options.headers]         The headers object option.
@@ -346,6 +347,14 @@ export default class KintoClientBase {
    *
    * @private
    * @param  {Object}  request             The request object.
+   * @param  {String}  request.path        The path to fetch, relative
+   *     to the Kinto server root.
+   * @param  {String}  [request.method="GET"] The method to use in the
+   *     request.
+   * @param  {Body}    [request.body]      The request body.
+   * @param  {Object}  [request.headers={}] The request headers.
+   * @param  {Number}  [request.retry=0]   The number of times to
+   *     retry a request if the server responds with Retry-After.
    * @param  {Object}  [options={}]        The options object.
    * @param  {Boolean} [options.raw=false] If true, resolve with full response
    * @param  {Boolean} [options.stringify=true] If true, serialize body data to
@@ -364,6 +373,12 @@ export default class KintoClientBase {
       return raw ? { json: msg, headers: { get() {} } } : msg;
     }
     await this.fetchServerSettings();
+    // FIXME: Because any fetch() option is accepted here, `request`
+    // could have lots of parameters that wouldn't be accepted as part
+    // of a batch request. This makes it easier to shoot yourself in
+    // the foot. We should probably only pass through the four
+    // parameters accepted in a batch request: method, body, path, and
+    // headers.
     const result = await this.http.request(this.remote + request.path, {
       ...request,
       body: stringify ? JSON.stringify(request.body) : request.body,
@@ -371,7 +386,40 @@ export default class KintoClientBase {
     return raw ? result : result.json;
   }
 
+  /**
+   * Fetch some pages from a paginated list, following the `next-page`
+   * header automatically until we have fetched the requested number
+   * of pages. Return a response with a `.next()` method that can be
+   * called to fetch more results.
+   *
+   * @private
+   * @param  {String}  path
+   *     The path to make the request to.
+   * @param  {Object}  params
+   *     The parameters to use when making the request.
+   * @param  {String}  [params.sort="-last_modified"]
+   *     The sorting order to use when fetching.
+   * @param  {Object}  [params.filters={}]
+   *     The filters to send in the request.
+   * @param  {Number}  [params.limit=undefined]
+   *     The limit to send in the request. Undefined means no limit.
+   * @param  {Number}  [params.pages=undefined]
+   *     The number of pages to fetch. Undefined means one page. Pass
+   *     Infinity to fetch everything.
+   * @param  {String}  [params.since=undefined]
+   *     The ETag from which to start fetching.
+   * @param  {Object}  [options={}]
+   *     Additional request-level parameters to use in all requests.
+   * @param  {Object}  [options.headers={}]
+   *     Headers to use during all requests.
+   * @param  {Number}  [options.retry=0]
+   *     Number of times to retry each request if the server responds
+   *     with Retry-After.
+   */
   async paginatedList(path, params, options = {}) {
+    // FIXME: this is called even in batch requests, which doesn't
+    // make any sense (since all batch requests get a "dummy"
+    // response; see execute() above).
     const { sort, filters, limit, pages, since } = {
       sort: "-last_modified",
       ...params,
@@ -436,6 +484,8 @@ export default class KintoClientBase {
 
     return handleResponse(
       await this.execute(
+        // FIXME: path should override options, and we should probably
+        // not respect options.method or options.body
         { path: path + "?" + querystring, ...options },
         { raw: true }
       )

@@ -158,7 +158,7 @@ export default class HTTP {
    * @param  {String} url               The URL.
    * @param  {Object} [options={}]      The fetch() options object.
    * @param  {Object} [options.headers] The request headers object (default: {})
-   * @param  {Object} [options.retry]   Number of retries (default: 0)
+   * @param  {Number} [options.retry]   Number of retries (default: 0)
    * @return {Promise}
    */
   async request(url, options = { headers: {}, retry: 0 }) {

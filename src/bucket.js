@@ -16,6 +16,7 @@ export default class Bucket {
    * @param  {Object}      [options={}]      The headers object option.
    * @param  {Object}      [options.headers] The headers object option.
    * @param  {Boolean}     [options.safe]    The safe option.
+   * @param  {Number}      [options.retry]   The retry option.
    */
   constructor(client, name, options = {}) {
     /**
@@ -404,6 +405,7 @@ export default class Bucket {
    * @param  {Object}   [options={}]         The options object.
    * @param  {Object}   [options.headers]    The headers object option.
    * @param  {Boolean}  [options.safe]       The safe option.
+   * @param  {Number}   [options.retry]      The retry option.
    * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
