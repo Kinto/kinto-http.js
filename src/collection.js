@@ -121,7 +121,7 @@ export default class Collection {
       throw new Error("A collection object is required.");
     }
     const reqOptions = this._collOptions(options);
-    const { permissions } = reqOptions;
+    const { permissions } = options;
 
     const path = endpoint("collection", this.bucket.name, this.name);
     const request = requests.updateRequest(
@@ -236,7 +236,7 @@ export default class Collection {
    */
   async createRecord(record, options = {}) {
     const reqOptions = this._collOptions(options);
-    const { permissions } = reqOptions;
+    const { permissions } = options;
     const path = endpoint("record", this.bucket.name, this.name, record.id);
     const request = requests.createRequest(
       path,
@@ -263,7 +263,7 @@ export default class Collection {
   @capable(["attachments"])
   async addAttachment(dataURI, record = {}, options = {}) {
     const reqOptions = this._collOptions(options);
-    const { permissions } = reqOptions;
+    const { permissions } = options;
     const id = record.id || uuid.v4();
     const path = endpoint("attachment", this.bucket.name, this.name, id);
     const addAttachmentRequest = requests.addAttachmentRequest(
@@ -312,7 +312,7 @@ export default class Collection {
       throw new Error("A record id is required.");
     }
     const reqOptions = this._collOptions(options);
-    const { permissions } = reqOptions;
+    const { permissions } = options;
     const path = endpoint("record", this.bucket.name, this.name, record.id);
     const request = requests.updateRequest(
       path,

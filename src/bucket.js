@@ -164,7 +164,7 @@ export default class Bucket {
    */
   async createCollection(id, options = {}) {
     const reqOptions = this._bucketOptions(options);
-    const { permissions, data = {} } = reqOptions;
+    const { permissions, data = {} } = options;
     data.id = id;
     const path = endpoint("collection", this.name, id);
     const request = requests.createRequest(

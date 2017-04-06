@@ -533,7 +533,7 @@ export default class KintoClientBase {
    */
   async createBucket(id, options = {}) {
     const reqOptions = this._getRequestOptions(options);
-    const { data = {}, permissions } = reqOptions;
+    const { data = {}, permissions } = options;
     if (id != null) {
       data.id = id;
     }
