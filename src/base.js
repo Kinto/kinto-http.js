@@ -398,8 +398,8 @@ export default class KintoClientBase {
    * JSON.
    * @return {Promise<Object, Error>}
    */
-  async execute(request, options = { raw: false, stringify: true }) {
-    const { raw, stringify } = options;
+  async execute(request, options = {}) {
+    const { raw = false, stringify = true } = options;
     // If we're within a batch, add the request to the stack to send at once.
     if (this._isBatch) {
       this._requests.push(request);
