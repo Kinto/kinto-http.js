@@ -110,11 +110,6 @@ describe("KintoClient", () => {
       expect(new KintoClient(sampleRemote, { events }).events).eql(events);
     });
 
-    it("should accept a bucket option", () => {
-      const api = new KintoClient(sampleRemote, { bucket: "custom" });
-      expect(api.defaultReqOptions.bucket).eql("custom");
-    });
-
     it("should accept a safe option", () => {
       const api = new KintoClient(sampleRemote, { safe: true });
       expect(api._safe).eql(true);
@@ -154,9 +149,11 @@ describe("KintoClient", () => {
         batch: false,
       };
 
-      expect(api.bucket("foo", options)).to.have
-        .property("options")
-        .eql(options);
+      const bucket = api.bucket("foo", options);
+      expect(bucket).property("_safe", options.safe);
+      expect(bucket).property("_retry", options.retry);
+      expect(bucket).property("_headers").eql(options.headers);
+      expect(bucket).property("_isBatch", options.batch);
     });
   });
 

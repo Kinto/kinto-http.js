@@ -4,7 +4,6 @@ import {
   getOptionWithDefault,
   partition,
   pMap,
-  omit,
   qsify,
   support,
   nobatch,
@@ -57,16 +56,6 @@ export default class KintoClientBase {
     }
     this._backoffReleaseTime = null;
 
-    /**
-     * Default request options container.
-     * @private
-     * @type {Object}
-     */
-    this.defaultReqOptions = {
-      bucket: options.bucket || "default",
-    };
-
-    this._options = options;
     this._requests = [];
     this._isBatch = !!options.batch;
     this._retry = options.retry || 0;
@@ -171,38 +160,16 @@ export default class KintoClientBase {
    * @param  {Object}  [options={}]      The request options.
    * @param  {Boolean} [options.safe]    The resulting safe option.
    * @param  {Number}  [options.retry]   The resulting retry option.
-   * @param  {String}  [options.bucket]  The resulting bucket name option.
    * @param  {Object}  [options.headers] The extended headers object option.
    * @return {Bucket}
    */
   bucket(name, options = {}) {
-    const bucketOptions = omit(this._getRequestOptions(options), "bucket");
     return new Bucket(this, name, {
-      ...bucketOptions,
+      batch: this._isBatch,
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
       retry: this._getRetry(options),
     });
-  }
-
-  /**
-   * Generates a request options object, deeply merging the client configured
-   * defaults with the ones provided as argument.
-   *
-   * Note: Headers won't be overriden but merged with instance default ones.
-   *
-   * @private
-   * @param    {Object}  [options={}]      The request options.
-   * @property {Boolean} [options.safe]    The resulting safe option.
-   * @property {String}  [options.bucket]  The resulting bucket name option.
-   * @property {Object}  [options.headers] The extended headers object option.
-   * @return   {Object}
-   */
-  _getRequestOptions(options = {}) {
-    return {
-      ...this.defaultReqOptions,
-      ...options,
-    };
   }
 
   /**
@@ -255,11 +222,9 @@ export default class KintoClientBase {
       return this.serverInfo;
     }
     const path = this.remote + endpoint("root");
-    const reqOptions = this._getRequestOptions(options);
     const { json } = await this.http.request(
       path,
       {
-        ...reqOptions,
         headers: this._getHeaders(options),
       },
       {
@@ -327,7 +292,6 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   async _batchRequests(requests, options = {}) {
-    const reqOptions = this._getRequestOptions(options);
     const headers = this._getHeaders(options);
     if (!requests.length) {
       return [];
@@ -340,7 +304,9 @@ export default class KintoClientBase {
     }
     const { responses } = await this.execute(
       {
-        ...reqOptions,
+        // FIXME: is this really necessary, since it's also present in
+        // the "defaults"?
+        headers: headers,
         path: endpoint("batch"),
         method: "POST",
         body: {
@@ -374,8 +340,7 @@ export default class KintoClientBase {
   @nobatch("Can't use batch within a batch!")
   async batch(fn, options = {}) {
     const rootBatch = new KintoClientBase(this.remote, {
-      ...this._options,
-      ...this._getRequestOptions(options),
+      events: this.events,
       batch: true,
       safe: this._getSafe(options),
       // FIXME: this doesn't actually matter, probably, since it gets
@@ -572,15 +537,11 @@ export default class KintoClientBase {
   @capable(["permissions_endpoint"])
   async listPermissions(options = {}) {
     const path = endpoint("permissions");
-    const reqOptions = {
-      ...this._getRequestOptions(options),
-      headers: this._getHeaders(options),
-    };
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
     const paginationOptions = { sort: "id", ...options };
     return this.paginatedList(path, paginationOptions, {
-      ...reqOptions,
+      headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
   }
@@ -594,9 +555,7 @@ export default class KintoClientBase {
    */
   async listBuckets(options = {}) {
     const path = endpoint("bucket");
-    const reqOptions = this._getRequestOptions(options);
     return this.paginatedList(path, options, {
-      ...reqOptions,
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -613,7 +572,6 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   async createBucket(id, options = {}) {
-    const reqOptions = this._getRequestOptions(options);
     const { data = {}, permissions } = options;
     if (id != null) {
       data.id = id;
@@ -624,7 +582,6 @@ export default class KintoClientBase {
         path,
         { data, permissions },
         {
-          ...reqOptions,
           headers: this._getHeaders(options),
           safe: this._getSafe(options),
         }
@@ -650,11 +607,10 @@ export default class KintoClientBase {
       throw new Error("A bucket id is required.");
     }
     const path = endpoint("bucket", bucketObj.id);
-    const { last_modified } = { bucketObj };
-    const reqOptions = this._getRequestOptions({ last_modified, ...options });
+    const { last_modified } = { ...bucketObj, ...options };
     return this.execute(
       requests.deleteRequest(path, {
-        ...reqOptions,
+        last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }),
@@ -674,11 +630,10 @@ export default class KintoClientBase {
    */
   @support("1.4", "2.0")
   async deleteBuckets(options = {}) {
-    const reqOptions = this._getRequestOptions(options);
     const path = endpoint("bucket");
     return this.execute(
       requests.deleteRequest(path, {
-        ...reqOptions,
+        last_modified: options.last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }),

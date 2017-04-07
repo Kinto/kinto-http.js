@@ -37,7 +37,9 @@ describe("Bucket", () => {
         headers: { Foo: "Bar" },
         safe: true,
       };
-      expect(getBlogBucket(options).options).eql(options);
+      const bucket = getBlogBucket(options);
+      expect(bucket).property("_headers", options.headers);
+      expect(bucket).property("_safe", options.safe);
     });
   });
 
@@ -131,20 +133,17 @@ describe("Bucket", () => {
     });
 
     it("should propagate bucket options", () => {
-      expect(
-        getBlogBucket({
-          headers: { Foo: "Bar" },
-          safe: true,
-        }).collection("posts", {
-          headers: { Baz: "Qux" },
-          safe: false,
-        }).options
-      ).eql({
-        headers: { Foo: "Bar", Baz: "Qux" },
-        retry: 0,
+      const collection = getBlogBucket({
+        headers: { Foo: "Bar" },
+        safe: true,
+      }).collection("posts", {
+        headers: { Baz: "Qux" },
         safe: false,
-        batch: false,
       });
+      expect(collection._headers).eql({ Foo: "Bar", Baz: "Qux" });
+      expect(collection._retry).eql(0);
+      expect(collection._safe).eql(false);
+      expect(collection._isBatch).eql(false);
     });
   });
 

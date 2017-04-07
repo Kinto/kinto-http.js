@@ -38,16 +38,6 @@ export default class Collection {
     this.name = name;
 
     /**
-     * The default collection options object, embedding the default bucket ones.
-     * @ignore
-     * @type {Object}
-     */
-    this.options = {
-      ...this.bucket.options,
-      ...options,
-    };
-
-    /**
      * @ignore
      */
     this._isBatch = !!options.batch;
@@ -60,23 +50,8 @@ export default class Collection {
     // FIXME: This is kind of ugly; shouldn't the bucket be responsible
     // for doing the merge?
     this._headers = {
-      ...(this.bucket.options && this.bucket.options.headers),
+      ...this.bucket._headers,
       ...options.headers,
-    };
-  }
-
-  /**
-   * Merges passed request options with default bucket and collection ones, if
-   * any.
-   *
-   * @private
-   * @param  {Object} [options={}] The options to merge.
-   * @return {Object}              The merged options.
-   */
-  _collOptions(options = {}) {
-    return {
-      ...this.options,
-      ...options,
     };
   }
 
@@ -121,9 +96,7 @@ export default class Collection {
    */
   async getTotalRecords(options = {}) {
     const path = endpoint("record", this.bucket.name, this.name);
-    const reqOptions = this._collOptions(options);
     const request = {
-      ...reqOptions,
       headers: this._getHeaders(options),
       path,
       method: "HEAD",
@@ -143,9 +116,8 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   async getData(options = {}) {
-    const reqOptions = this._collOptions(options);
     const path = endpoint("collection", this.bucket.name, this.name);
-    const request = { ...reqOptions, headers: this._getHeaders(options), path };
+    const request = { headers: this._getHeaders(options), path };
     const { data } = await this.client.execute(request, {
       retry: this._getRetry(options),
     });
@@ -166,15 +138,15 @@ export default class Collection {
     if (!isObject(data)) {
       throw new Error("A collection object is required.");
     }
-    const reqOptions = this._collOptions(options);
     const { permissions } = options;
+    const { last_modified } = { ...data, ...options };
 
     const path = endpoint("collection", this.bucket.name, this.name);
     const request = requests.updateRequest(
       path,
       { data, permissions },
       {
-        ...reqOptions,
+        last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -191,8 +163,7 @@ export default class Collection {
    */
   async getPermissions(options = {}) {
     const path = endpoint("collection", this.bucket.name, this.name);
-    const reqOptions = this._collOptions(options);
-    const request = { ...reqOptions, headers: this._getHeaders(options), path };
+    const request = { headers: this._getHeaders(options), path };
     const { permissions } = await this.client.execute(request, {
       retry: this._getRetry(options),
     });
@@ -213,14 +184,12 @@ export default class Collection {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
-    const reqOptions = this._collOptions(options);
     const path = endpoint("collection", this.bucket.name, this.name);
     const data = { last_modified: options.last_modified };
     const request = requests.updateRequest(
       path,
       { data, permissions },
       {
-        ...reqOptions,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -244,13 +213,12 @@ export default class Collection {
     }
     const path = endpoint("collection", this.bucket.name, this.name);
     const { last_modified } = options;
-    const reqOptions = { last_modified, ...this._collOptions(options) };
     const request = requests.jsonPatchPermissionsRequest(
       path,
       permissions,
       "add",
       {
-        ...reqOptions,
+        last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -274,13 +242,12 @@ export default class Collection {
     }
     const path = endpoint("collection", this.bucket.name, this.name);
     const { last_modified } = options;
-    const reqOptions = { last_modified, ...this._collOptions(options) };
     const request = requests.jsonPatchPermissionsRequest(
       path,
       permissions,
       "remove",
       {
-        ...reqOptions,
+        last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -299,14 +266,12 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   async createRecord(record, options = {}) {
-    const reqOptions = this._collOptions(options);
     const { permissions } = options;
     const path = endpoint("record", this.bucket.name, this.name, record.id);
     const request = requests.createRequest(
       path,
       { data: record, permissions },
       {
-        ...reqOptions,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -330,16 +295,18 @@ export default class Collection {
    */
   @capable(["attachments"])
   async addAttachment(dataURI, record = {}, options = {}) {
-    const reqOptions = this._collOptions(options);
     const { permissions } = options;
     const id = record.id || uuid.v4();
     const path = endpoint("attachment", this.bucket.name, this.name, id);
+    const { last_modified } = { ...record, ...options };
     const addAttachmentRequest = requests.addAttachmentRequest(
       path,
       dataURI,
       { data: record, permissions },
       {
-        ...reqOptions,
+        last_modified,
+        filename: options.filename,
+        gzipped: options.gzipped,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -362,10 +329,10 @@ export default class Collection {
    */
   @capable(["attachments"])
   async removeAttachment(recordId, options = {}) {
-    const reqOptions = this._collOptions(options);
+    const { last_modified } = options;
     const path = endpoint("attachment", this.bucket.name, this.name, recordId);
     const request = requests.deleteRequest(path, {
-      ...reqOptions,
+      last_modified,
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
@@ -390,17 +357,23 @@ export default class Collection {
     if (!record.id) {
       throw new Error("A record id is required.");
     }
-    const reqOptions = this._collOptions(options);
     const { permissions } = options;
+    let updateOptions = {
+      headers: this._getHeaders(options),
+      safe: this._getSafe(options),
+    };
+    const { last_modified } = { ...record, ...options };
+    if (last_modified) {
+      updateOptions = { ...updateOptions, last_modified };
+    }
+    if (options.patch) {
+      updateOptions = { ...updateOptions, patch: options.patch };
+    }
     const path = endpoint("record", this.bucket.name, this.name, record.id);
     const request = requests.updateRequest(
       path,
       { data: record, permissions },
-      {
-        ...reqOptions,
-        headers: this._getHeaders(options),
-        safe: this._getSafe(options),
-      }
+      updateOptions
     );
     return this.client.execute(request, { retry: this._getRetry(options) });
   }
@@ -420,11 +393,11 @@ export default class Collection {
     if (!recordObj.id) {
       throw new Error("A record id is required.");
     }
-    const { id, last_modified } = recordObj;
-    const reqOptions = this._collOptions({ last_modified, ...options });
+    const { id } = recordObj;
+    const { last_modified } = { ...recordObj, ...options };
     const path = endpoint("record", this.bucket.name, this.name, id);
     const request = requests.deleteRequest(path, {
-      ...reqOptions,
+      last_modified,
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
@@ -441,8 +414,7 @@ export default class Collection {
    */
   async getRecord(id, options = {}) {
     const path = endpoint("record", this.bucket.name, this.name, id);
-    const reqOptions = this._collOptions(options);
-    const request = { ...reqOptions, headers: this._getHeaders(options), path };
+    const request = { headers: this._getHeaders(options), path };
     return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
@@ -481,12 +453,10 @@ export default class Collection {
    */
   async listRecords(options = {}) {
     const path = endpoint("record", this.bucket.name, this.name);
-    const reqOptions = this._collOptions(options);
     if (options.hasOwnProperty("at")) {
       return this.getSnapshot(options.at);
     } else {
       return this.client.paginatedList(path, options, {
-        ...reqOptions,
         headers: this._getHeaders(options),
         retry: this._getRetry(options),
       });
@@ -580,14 +550,16 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   async batch(fn, options = {}) {
-    const reqOptions = this._collOptions(options);
-    return this.client.batch(fn, {
-      ...reqOptions,
+    let batchOptions = {
       bucket: this.bucket.name,
       collection: this.name,
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
       safe: this._getSafe(options),
-    });
+    };
+    if (options.aggregate) {
+      batchOptions = { ...batchOptions, aggregate: options.aggregate };
+    }
+    return this.client.batch(fn, batchOptions);
   }
 }

@@ -29,12 +29,6 @@ export default class Bucket {
      */
     this.name = name;
     /**
-     * The default options object.
-     * @ignore
-     * @type {Object}
-     */
-    this.options = options;
-    /**
      * @ignore
      */
     this._isBatch = !!options.batch;
@@ -44,20 +38,6 @@ export default class Bucket {
     this._headers = options.headers || {};
     this._retry = options.retry || 0;
     this._safe = !!options.safe;
-  }
-
-  /**
-   * Merges passed request options with default bucket ones, if any.
-   *
-   * @private
-   * @param  {Object} [options={}] The options to merge.
-   * @return {Object}              The merged options.
-   */
-  _bucketOptions(options = {}) {
-    return {
-      ...this.options,
-      ...options,
-    };
   }
 
   /**
@@ -103,7 +83,6 @@ export default class Bucket {
    */
   collection(name, options = {}) {
     return new Collection(this.client, this, name, {
-      ...this._bucketOptions(options),
       batch: this._isBatch,
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -119,9 +98,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async getData(options = {}) {
-    const reqOptions = { ...this._bucketOptions(options) };
     const request = {
-      ...reqOptions,
       headers: this._getHeaders(options),
       path: endpoint("bucket", this.name),
     };
@@ -156,13 +133,14 @@ export default class Bucket {
     }
 
     const path = endpoint("bucket", bucketId);
-    const { permissions } = options;
-    const reqOptions = { ...this._bucketOptions(options) };
+    const { patch, permissions } = options;
+    const { last_modified } = { ...data, ...options };
     const request = requests.updateRequest(
       path,
       { data: bucket, permissions },
       {
-        ...reqOptions,
+        last_modified,
+        patch,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -180,9 +158,7 @@ export default class Bucket {
   @capable(["history"])
   async listHistory(options = {}) {
     const path = endpoint("history", this.name);
-    const reqOptions = this._bucketOptions(options);
     return this.client.paginatedList(path, options, {
-      ...reqOptions,
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -197,9 +173,7 @@ export default class Bucket {
    */
   async listCollections(options = {}) {
     const path = endpoint("collection", this.name);
-    const reqOptions = this._bucketOptions(options);
     return this.client.paginatedList(path, options, {
-      ...reqOptions,
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -217,7 +191,6 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async createCollection(id, options = {}) {
-    const reqOptions = this._bucketOptions(options);
     const { permissions, data = {} } = options;
     data.id = id;
     const path = endpoint("collection", this.name, id);
@@ -225,7 +198,6 @@ export default class Bucket {
       path,
       { data, permissions },
       {
-        ...reqOptions,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -248,11 +220,11 @@ export default class Bucket {
     if (!collectionObj.id) {
       throw new Error("A collection id is required.");
     }
-    const { id, last_modified } = collectionObj;
-    const reqOptions = this._bucketOptions({ last_modified, ...options });
+    const { id } = collectionObj;
+    const { last_modified } = { ...collectionObj, ...options };
     const path = endpoint("collection", this.name, id);
     const request = requests.deleteRequest(path, {
-      ...reqOptions,
+      last_modified,
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
@@ -268,9 +240,7 @@ export default class Bucket {
    */
   async listGroups(options = {}) {
     const path = endpoint("group", this.name);
-    const reqOptions = this._bucketOptions(options);
     return this.client.paginatedList(path, options, {
-      ...reqOptions,
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -285,9 +255,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async getGroup(id, options = {}) {
-    const reqOptions = { ...this._bucketOptions(options) };
     const request = {
-      ...reqOptions,
       headers: this._getHeaders(options),
       path: endpoint("group", this.name, id),
     };
@@ -307,7 +275,6 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async createGroup(id, members = [], options = {}) {
-    const reqOptions = this._bucketOptions(options);
     const data = {
       ...options.data,
       id,
@@ -319,7 +286,6 @@ export default class Bucket {
       path,
       { data, permissions },
       {
-        ...reqOptions,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -346,18 +312,19 @@ export default class Bucket {
     if (!group.id) {
       throw new Error("A group id is required.");
     }
-    const reqOptions = this._bucketOptions(options);
     const data = {
       ...options.data,
       ...group,
     };
     const path = endpoint("group", this.name, group.id);
-    const { permissions } = options;
+    const { patch, permissions } = options;
+    const { last_modified } = { ...data, ...options };
     const request = requests.updateRequest(
       path,
       { data, permissions },
       {
-        ...reqOptions,
+        last_modified,
+        patch,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -377,11 +344,11 @@ export default class Bucket {
    */
   async deleteGroup(group, options = {}) {
     const groupObj = toDataBody(group);
-    const { id, last_modified } = groupObj;
-    const reqOptions = this._bucketOptions({ last_modified, ...options });
+    const { id } = groupObj;
+    const { last_modified } = { ...groupObj, ...options };
     const path = endpoint("group", this.name, id);
     const request = requests.deleteRequest(path, {
-      ...reqOptions,
+      last_modified,
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
@@ -396,9 +363,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async getPermissions(options = {}) {
-    const reqOptions = this._bucketOptions(options);
     const request = {
-      ...reqOptions,
       headers: this._getHeaders(options),
       path: endpoint("bucket", this.name),
     };
@@ -423,14 +388,12 @@ export default class Bucket {
       throw new Error("A permissions object is required.");
     }
     const path = endpoint("bucket", this.name);
-    const reqOptions = this._bucketOptions(options);
     const { last_modified } = options;
     const data = { last_modified };
     const request = requests.updateRequest(
       path,
       { data, permissions },
       {
-        ...reqOptions,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -454,13 +417,12 @@ export default class Bucket {
     }
     const path = endpoint("bucket", this.name);
     const { last_modified } = options;
-    const reqOptions = { last_modified, ...this._bucketOptions(options) };
     const request = requests.jsonPatchPermissionsRequest(
       path,
       permissions,
       "add",
       {
-        ...reqOptions,
+        last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -484,13 +446,12 @@ export default class Bucket {
     }
     const path = endpoint("bucket", this.name);
     const { last_modified } = options;
-    const reqOptions = { last_modified, ...this._bucketOptions(options) };
     const request = requests.jsonPatchPermissionsRequest(
       path,
       permissions,
       "remove",
       {
-        ...reqOptions,
+        last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
@@ -510,12 +471,15 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async batch(fn, options = {}) {
-    return this.client.batch(fn, {
-      ...this._bucketOptions(options),
+    let batchOptions = {
       bucket: this.name,
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
       safe: this._getSafe(options),
-    });
+    };
+    if (options.aggregate) {
+      batchOptions = { ...batchOptions, aggregate: options.aggregate };
+    }
+    return this.client.batch(fn, batchOptions);
   }
 }
