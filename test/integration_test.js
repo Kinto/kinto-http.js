@@ -896,9 +896,10 @@ describe("Integration tests", function() {
             .should.eventually.become(["c3", "c1", "c2", "c4"]);
         });
 
-        it.only("should work in a batch", () => {
+        it("should work in a batch", () => {
           return api
             .batch(batch => batch.bucket("custom").listCollections())
+            .then(([{ body }]) => body.data.map(coll => coll.id))
             .should.eventually.become(["c4", "c3", "c2", "c1"]);
         });
 
