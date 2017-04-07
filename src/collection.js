@@ -45,10 +45,6 @@ export default class Collection {
     this.options = {
       ...this.bucket.options,
       ...options,
-      headers: {
-        ...(this.bucket.options && this.bucket.options.headers),
-        ...options.headers,
-      },
     };
 
     /**
@@ -60,6 +56,12 @@ export default class Collection {
      * @ignore
      */
     this._safe = !!options.safe;
+    // FIXME: This is kind of ugly; shouldn't the bucket be responsible
+    // for doing the merge?
+    this._headers = {
+      ...(this.bucket.options && this.bucket.options.headers),
+      ...options.headers,
+    };
   }
 
   /**
@@ -71,14 +73,22 @@ export default class Collection {
    * @return {Object}              The merged options.
    */
   _collOptions(options = {}) {
-    const headers = {
-      ...(this.options && this.options.headers),
-      ...options.headers,
-    };
     return {
       ...this.options,
       ...options,
-      headers,
+    };
+  }
+
+  /**
+   * Get the value of "headers" for a given request, merging the
+   * per-request headers with our own "default" headers.
+   *
+   * @private
+   */
+  _getHeaders(options) {
+    return {
+      ...this._headers,
+      ...options.headers,
     };
   }
 
@@ -104,7 +114,12 @@ export default class Collection {
   async getTotalRecords(options = {}) {
     const path = endpoint("record", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
-    const request = { ...reqOptions, path, method: "HEAD" };
+    const request = {
+      ...reqOptions,
+      headers: this._getHeaders(options),
+      path,
+      method: "HEAD",
+    };
     const { headers } = await this.client.execute(request, { raw: true });
     return parseInt(headers.get("Total-Records"), 10);
   }
@@ -119,7 +134,7 @@ export default class Collection {
   async getData(options = {}) {
     const reqOptions = this._collOptions(options);
     const path = endpoint("collection", this.bucket.name, this.name);
-    const request = { ...reqOptions, path };
+    const request = { ...reqOptions, headers: this._getHeaders(options), path };
     const { data } = await this.client.execute(request);
     return data;
   }
@@ -145,7 +160,11 @@ export default class Collection {
     const request = requests.updateRequest(
       path,
       { data, permissions },
-      { ...reqOptions, safe: this._getSafe(options) }
+      {
+        ...reqOptions,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
     return this.client.execute(request);
   }
@@ -160,7 +179,7 @@ export default class Collection {
   async getPermissions(options = {}) {
     const path = endpoint("collection", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
-    const request = { ...reqOptions, path };
+    const request = { ...reqOptions, headers: this._getHeaders(options), path };
     const { permissions } = await this.client.execute(request);
     return permissions;
   }
@@ -185,7 +204,11 @@ export default class Collection {
     const request = requests.updateRequest(
       path,
       { data, permissions },
-      { ...reqOptions, safe: this._getSafe(options) }
+      {
+        ...reqOptions,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
     return this.client.execute(request);
   }
@@ -211,7 +234,11 @@ export default class Collection {
       path,
       permissions,
       "add",
-      { ...reqOptions, safe: this._getSafe(options) }
+      {
+        ...reqOptions,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
     return this.client.execute(request);
   }
@@ -237,7 +264,11 @@ export default class Collection {
       path,
       permissions,
       "remove",
-      { ...reqOptions, safe: this._getSafe(options) }
+      {
+        ...reqOptions,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
     return this.client.execute(request);
   }
@@ -259,7 +290,11 @@ export default class Collection {
     const request = requests.createRequest(
       path,
       { data: record, permissions },
-      { ...reqOptions, safe: this._getSafe(options) }
+      {
+        ...reqOptions,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
     return this.client.execute(request);
   }
@@ -288,7 +323,11 @@ export default class Collection {
       path,
       dataURI,
       { data: record, permissions },
-      { ...reqOptions, safe: this._getSafe(options) }
+      {
+        ...reqOptions,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
     await this.client.execute(addAttachmentRequest, { stringify: false });
     return this.getRecord(id);
@@ -309,6 +348,7 @@ export default class Collection {
     const path = endpoint("attachment", this.bucket.name, this.name, recordId);
     const request = requests.deleteRequest(path, {
       ...reqOptions,
+      headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
     return this.client.execute(request);
@@ -338,7 +378,11 @@ export default class Collection {
     const request = requests.updateRequest(
       path,
       { data: record, permissions },
-      { ...reqOptions, safe: this._getSafe(options) }
+      {
+        ...reqOptions,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
     return this.client.execute(request);
   }
@@ -363,6 +407,7 @@ export default class Collection {
     const path = endpoint("record", this.bucket.name, this.name, id);
     const request = requests.deleteRequest(path, {
       ...reqOptions,
+      headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
     return this.client.execute(request);
@@ -379,7 +424,7 @@ export default class Collection {
   async getRecord(id, options = {}) {
     const path = endpoint("record", this.bucket.name, this.name, id);
     const reqOptions = this._collOptions(options);
-    const request = { ...reqOptions, path };
+    const request = { ...reqOptions, headers: this._getHeaders(options), path };
     return this.client.execute(request);
   }
 
@@ -422,7 +467,10 @@ export default class Collection {
     if (options.hasOwnProperty("at")) {
       return this.getSnapshot(options.at);
     } else {
-      return this.client.paginatedList(path, options, reqOptions);
+      return this.client.paginatedList(path, options, {
+        ...reqOptions,
+        headers: this._getHeaders(options),
+      });
     }
   }
 
@@ -518,6 +566,7 @@ export default class Collection {
       ...reqOptions,
       bucket: this.bucket.name,
       collection: this.name,
+      headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
   }

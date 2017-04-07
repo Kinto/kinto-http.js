@@ -64,7 +64,6 @@ export default class KintoClientBase {
      */
     this.defaultReqOptions = {
       bucket: options.bucket || "default",
-      headers: options.headers || {},
       retry: options.retry || 0,
     };
 
@@ -72,6 +71,7 @@ export default class KintoClientBase {
     this._requests = [];
     this._isBatch = !!options.batch;
     this._safe = !!options.safe;
+    this._headers = options.headers || {};
 
     // public properties
     /**
@@ -178,6 +178,7 @@ export default class KintoClientBase {
     const bucketOptions = omit(this._getRequestOptions(options), "bucket");
     return new Bucket(this, name, {
       ...bucketOptions,
+      headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
   }
@@ -199,11 +200,24 @@ export default class KintoClientBase {
     return {
       ...this.defaultReqOptions,
       ...options,
-      // Note: headers should never be overriden but extended
-      headers: {
-        ...this.defaultReqOptions.headers,
-        ...options.headers,
-      },
+    };
+  }
+
+  /**
+   * Get the value of "headers" for a given request, merging the
+   * per-request headers with our own "default" headers.
+   *
+   * Note that unlike other options, headers aren't overridden, but
+   * merged instead.
+   *
+   * @private
+   * @param {Object} options The options for a request.
+   * @returns {Object}
+   */
+  _getHeaders(options) {
+    return {
+      ...this._headers,
+      ...options.headers,
     };
   }
 
@@ -233,7 +247,10 @@ export default class KintoClientBase {
     }
     const path = this.remote + endpoint("root");
     const reqOptions = this._getRequestOptions(options);
-    const { json } = await this.http.request(path, reqOptions);
+    const { json } = await this.http.request(path, {
+      ...reqOptions,
+      headers: this._getHeaders(options),
+    });
     this.serverInfo = json;
     return this.serverInfo;
   }
@@ -296,7 +313,7 @@ export default class KintoClientBase {
    */
   async _batchRequests(requests, options = {}) {
     const reqOptions = this._getRequestOptions(options);
-    const { headers } = reqOptions;
+    const headers = this._getHeaders(options);
     if (!requests.length) {
       return [];
     }
@@ -341,6 +358,9 @@ export default class KintoClientBase {
       ...this._getRequestOptions(options),
       batch: true,
       safe: this._getSafe(options),
+      // FIXME: this doesn't actually matter, probably, since it gets
+      // passed as "default headers" in the batch?
+      headers: this._getHeaders(options),
     });
     let bucketBatch, collBatch;
     if (options.bucket) {
@@ -503,6 +523,9 @@ export default class KintoClientBase {
       await this.execute(
         // FIXME: path should override options, and we should probably
         // not respect options.method or options.body
+        // N.B.: This doesn't use _getHeaders, because all calls to
+        // `paginatedList` are assumed to come from calls that already
+        // have headers merged at e.g. the bucket or collection level.
         { path: path + "?" + querystring, ...options },
         { raw: true }
       )
@@ -519,7 +542,10 @@ export default class KintoClientBase {
   @capable(["permissions_endpoint"])
   async listPermissions(options = {}) {
     const path = endpoint("permissions");
-    const reqOptions = this._getRequestOptions(options);
+    const reqOptions = {
+      ...this._getRequestOptions(options),
+      headers: this._getHeaders(options),
+    };
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
     const paginationOptions = { sort: "id", ...options };
@@ -536,7 +562,10 @@ export default class KintoClientBase {
   async listBuckets(options = {}) {
     const path = endpoint("bucket");
     const reqOptions = this._getRequestOptions(options);
-    return this.paginatedList(path, options, reqOptions);
+    return this.paginatedList(path, options, {
+      ...reqOptions,
+      headers: this._getHeaders(options),
+    });
   }
 
   /**
@@ -562,6 +591,7 @@ export default class KintoClientBase {
         { data, permissions },
         {
           ...reqOptions,
+          headers: this._getHeaders(options),
           safe: this._getSafe(options),
         }
       )
@@ -590,6 +620,7 @@ export default class KintoClientBase {
     return this.execute(
       requests.deleteRequest(path, {
         ...reqOptions,
+        headers: this._getHeaders(options),
         safe: this._getSafe(options),
       })
     );
@@ -612,6 +643,7 @@ export default class KintoClientBase {
     return this.execute(
       requests.deleteRequest(path, {
         ...reqOptions,
+        headers: this._getHeaders(options),
         safe: this._getSafe(options),
       })
     );
