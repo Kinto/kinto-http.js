@@ -520,14 +520,13 @@ describe("Collection", () => {
     });
 
     it("should support passing custom headers", () => {
-      coll.client.defaultReqOptions.headers = { Foo: "Bar" };
-      coll.listRecords({ headers: { Baz: "Qux" } });
+      coll.listRecords({ headers: { "Another-Header": "Hello" } });
 
       sinon.assert.calledWithMatch(
         coll.client.paginatedList,
         "/buckets",
         {},
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        { headers: { Foo: "Bar", Baz: "Qux", "Another-Header": "Hello" } }
       );
     });
 
