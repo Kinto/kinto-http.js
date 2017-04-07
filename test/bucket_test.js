@@ -141,6 +141,7 @@ describe("Bucket", () => {
         }).options
       ).eql({
         headers: { Foo: "Bar", Baz: "Qux" },
+        retry: 0,
         safe: false,
         batch: false,
       });
@@ -864,6 +865,7 @@ describe("Bucket", () => {
       sinon.assert.calledWith(client.batch, fn, {
         bucket: "blog",
         headers: {},
+        retry: 0,
         safe: false,
       });
     });
@@ -879,6 +881,7 @@ describe("Bucket", () => {
       sinon.assert.calledWith(client.batch, fn, {
         bucket: "blog",
         headers: { Foo: "Bar", Baz: "Qux" },
+        retry: 0,
         safe: true,
       });
     });

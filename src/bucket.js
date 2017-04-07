@@ -42,6 +42,7 @@ export default class Bucket {
      * @ignore
      */
     this._headers = options.headers || {};
+    this._retry = options.retry || 0;
     this._safe = !!options.safe;
   }
 
@@ -85,6 +86,13 @@ export default class Bucket {
   }
 
   /**
+   * As _getSafe, but for "retry".
+   */
+  _getRetry(options) {
+    return getOptionWithDefault(options, "retry", this._retry);
+  }
+
+  /**
    * Selects a collection.
    *
    * @param  {String}  name              The collection name.
@@ -98,6 +106,7 @@ export default class Bucket {
       ...this._bucketOptions(options),
       batch: this._isBatch,
       headers: this._getHeaders(options),
+      retry: this._getRetry(options),
       safe: this._getSafe(options),
     });
   }
@@ -116,7 +125,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path: endpoint("bucket", this.name),
     };
-    const { data } = await this.client.execute(request);
+    const { data } = await this.client.execute(request, {
+      retry: this._getRetry(options),
+    });
     return data;
   }
 
@@ -156,7 +167,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -173,6 +184,7 @@ export default class Bucket {
     return this.client.paginatedList(path, options, {
       ...reqOptions,
       headers: this._getHeaders(options),
+      retry: this._getRetry(options),
     });
   }
 
@@ -189,6 +201,7 @@ export default class Bucket {
     return this.client.paginatedList(path, options, {
       ...reqOptions,
       headers: this._getHeaders(options),
+      retry: this._getRetry(options),
     });
   }
 
@@ -217,7 +230,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -243,7 +256,7 @@ export default class Bucket {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -259,6 +272,7 @@ export default class Bucket {
     return this.client.paginatedList(path, options, {
       ...reqOptions,
       headers: this._getHeaders(options),
+      retry: this._getRetry(options),
     });
   }
 
@@ -277,7 +291,7 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path: endpoint("group", this.name, id),
     };
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -310,7 +324,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -348,7 +362,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -371,7 +385,7 @@ export default class Bucket {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -388,7 +402,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path: endpoint("bucket", this.name),
     };
-    const { permissions } = await this.client.execute(request);
+    const { permissions } = await this.client.execute(request, {
+      retry: this._getRetry(options),
+    });
     return permissions;
   }
 
@@ -419,7 +435,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -449,7 +465,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -479,7 +495,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -498,6 +514,7 @@ export default class Bucket {
       ...this._bucketOptions(options),
       bucket: this.name,
       headers: this._getHeaders(options),
+      retry: this._getRetry(options),
       safe: this._getSafe(options),
     });
   }

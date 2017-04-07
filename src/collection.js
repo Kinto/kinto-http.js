@@ -55,6 +55,7 @@ export default class Collection {
     /**
      * @ignore
      */
+    this._retry = options.retry || 0;
     this._safe = !!options.safe;
     // FIXME: This is kind of ugly; shouldn't the bucket be responsible
     // for doing the merge?
@@ -105,6 +106,13 @@ export default class Collection {
   }
 
   /**
+   * As _getSafe, but for "retry".
+   */
+  _getRetry(options) {
+    return getOptionWithDefault(options, "retry", this._retry);
+  }
+
+  /**
    * Retrieves the total number of records in this collection.
    *
    * @param  {Object} [options={}]      The options object.
@@ -120,7 +128,10 @@ export default class Collection {
       path,
       method: "HEAD",
     };
-    const { headers } = await this.client.execute(request, { raw: true });
+    const { headers } = await this.client.execute(request, {
+      raw: true,
+      retry: this._getRetry(options),
+    });
     return parseInt(headers.get("Total-Records"), 10);
   }
 
@@ -135,7 +146,9 @@ export default class Collection {
     const reqOptions = this._collOptions(options);
     const path = endpoint("collection", this.bucket.name, this.name);
     const request = { ...reqOptions, headers: this._getHeaders(options), path };
-    const { data } = await this.client.execute(request);
+    const { data } = await this.client.execute(request, {
+      retry: this._getRetry(options),
+    });
     return data;
   }
 
@@ -166,7 +179,7 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -180,7 +193,9 @@ export default class Collection {
     const path = endpoint("collection", this.bucket.name, this.name);
     const reqOptions = this._collOptions(options);
     const request = { ...reqOptions, headers: this._getHeaders(options), path };
-    const { permissions } = await this.client.execute(request);
+    const { permissions } = await this.client.execute(request, {
+      retry: this._getRetry(options),
+    });
     return permissions;
   }
 
@@ -210,7 +225,7 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -240,7 +255,7 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -270,7 +285,7 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -296,7 +311,7 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -329,7 +344,10 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    await this.client.execute(addAttachmentRequest, { stringify: false });
+    await this.client.execute(addAttachmentRequest, {
+      stringify: false,
+      retry: this._getRetry(options),
+    });
     return this.getRecord(id);
   }
 
@@ -351,7 +369,7 @@ export default class Collection {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -384,7 +402,7 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -410,7 +428,7 @@ export default class Collection {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -425,7 +443,7 @@ export default class Collection {
     const path = endpoint("record", this.bucket.name, this.name, id);
     const reqOptions = this._collOptions(options);
     const request = { ...reqOptions, headers: this._getHeaders(options), path };
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -470,6 +488,7 @@ export default class Collection {
       return this.client.paginatedList(path, options, {
         ...reqOptions,
         headers: this._getHeaders(options),
+        retry: this._getRetry(options),
       });
     }
   }
@@ -567,6 +586,7 @@ export default class Collection {
       bucket: this.bucket.name,
       collection: this.name,
       headers: this._getHeaders(options),
+      retry: this._getRetry(options),
       safe: this._getSafe(options),
     });
   }

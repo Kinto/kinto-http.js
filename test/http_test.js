@@ -299,7 +299,7 @@ describe("HTTP class", () => {
             .stub(global, "fetch")
             .returns(fakeServerResponse(200, {}, { "Retry-After": "1000" }));
 
-          return http.request("/", { retry: 0 }).then(_ => {
+          return http.request("/", {}, { retry: 0 }).then(_ => {
             expect(events.emit.lastCall.args[0]).eql("retry-after");
             expect(events.emit.lastCall.args[1]).eql(2000000);
           });
@@ -331,7 +331,7 @@ describe("HTTP class", () => {
             .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
           fetch.onCall(1).returns(fakeServerResponse(200, success));
           return http
-            .request("/", { retry: 1 })
+            .request("/", {}, { retry: 1 })
             .then(res => res.json)
             .should.eventually.become(success);
         });
@@ -347,7 +347,7 @@ describe("HTTP class", () => {
             .onCall(2)
             .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
           return http
-            .request("/", { retry: 2 })
+            .request("/", {}, { retry: 2 })
             .should.eventually.be.rejectedWith(Error, /HTTP 503/);
         });
       });

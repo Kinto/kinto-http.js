@@ -64,12 +64,12 @@ export default class KintoClientBase {
      */
     this.defaultReqOptions = {
       bucket: options.bucket || "default",
-      retry: options.retry || 0,
     };
 
     this._options = options;
     this._requests = [];
     this._isBatch = !!options.batch;
+    this._retry = options.retry || 0;
     this._safe = !!options.safe;
     this._headers = options.headers || {};
 
@@ -170,6 +170,7 @@ export default class KintoClientBase {
    * @param  {String}  name              The bucket name.
    * @param  {Object}  [options={}]      The request options.
    * @param  {Boolean} [options.safe]    The resulting safe option.
+   * @param  {Number}  [options.retry]   The resulting retry option.
    * @param  {String}  [options.bucket]  The resulting bucket name option.
    * @param  {Object}  [options.headers] The extended headers object option.
    * @return {Bucket}
@@ -180,6 +181,7 @@ export default class KintoClientBase {
       ...bucketOptions,
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
+      retry: this._getRetry(options),
     });
   }
 
@@ -235,6 +237,13 @@ export default class KintoClientBase {
   }
 
   /**
+   * As _getSafe, but for "retry".
+   */
+  _getRetry(options) {
+    return getOptionWithDefault(options, "retry", this._retry);
+  }
+
+  /**
    * Retrieves server information and persist them locally. This operation is
    * usually performed a single time during the instance lifecycle.
    *
@@ -247,10 +256,16 @@ export default class KintoClientBase {
     }
     const path = this.remote + endpoint("root");
     const reqOptions = this._getRequestOptions(options);
-    const { json } = await this.http.request(path, {
-      ...reqOptions,
-      headers: this._getHeaders(options),
-    });
+    const { json } = await this.http.request(
+      path,
+      {
+        ...reqOptions,
+        headers: this._getHeaders(options),
+      },
+      {
+        retry: this._getRetry(options),
+      }
+    );
     this.serverInfo = json;
     return this.serverInfo;
   }
@@ -323,15 +338,20 @@ export default class KintoClientBase {
       const chunks = partition(requests, maxRequests);
       return pMap(chunks, chunk => this._batchRequests(chunk, options));
     }
-    const { responses } = await this.execute({
-      ...reqOptions,
-      path: endpoint("batch"),
-      method: "POST",
-      body: {
-        defaults: { headers },
-        requests: requests,
+    const { responses } = await this.execute(
+      {
+        ...reqOptions,
+        path: endpoint("batch"),
+        method: "POST",
+        body: {
+          defaults: { headers },
+          requests: requests,
+        },
       },
-    });
+      {
+        retry: this._getRetry(options),
+      }
+    );
     return responses;
   }
 
@@ -361,6 +381,7 @@ export default class KintoClientBase {
       // FIXME: this doesn't actually matter, probably, since it gets
       // passed as "default headers" in the batch?
       headers: this._getHeaders(options),
+      retry: this._getRetry(options),
     });
     let bucketBatch, collBatch;
     if (options.bucket) {
@@ -390,11 +411,11 @@ export default class KintoClientBase {
    *     request.
    * @param  {Body}    [request.body]      The request body.
    * @param  {Object}  [request.headers={}] The request headers.
-   * @param  {Number}  [request.retry=0]   The number of times to
-   *     retry a request if the server responds with Retry-After.
    * @param  {Object}  [options={}]        The options object.
    * @param  {Boolean} [options.raw=false] If true, resolve with full response
    * @param  {Boolean} [options.stringify=true] If true, serialize body data to
+   * @param  {Number}  [options.retry=0]   The number of times to
+   *     retry a request if the server responds with Retry-After.
    * JSON.
    * @return {Promise<Object, Error>}
    */
@@ -416,10 +437,16 @@ export default class KintoClientBase {
     // the foot. We should probably only pass through the four
     // parameters accepted in a batch request: method, body, path, and
     // headers.
-    const result = await this.http.request(this.remote + request.path, {
-      ...request,
-      body: stringify ? JSON.stringify(request.body) : request.body,
-    });
+    const result = await this.http.request(
+      this.remote + request.path,
+      {
+        ...request,
+        body: stringify ? JSON.stringify(request.body) : request.body,
+      },
+      {
+        retry: this._getRetry(options),
+      }
+    );
     return raw ? result : result.json;
   }
 
@@ -527,7 +554,10 @@ export default class KintoClientBase {
         // `paginatedList` are assumed to come from calls that already
         // have headers merged at e.g. the bucket or collection level.
         { path: path + "?" + querystring, ...options },
-        { raw: true }
+        // N.B. This doesn't use _getRetry, because all calls to
+        // `paginatedList` are assumed to come from calls that already
+        // used `_getRetry` at e.g. the bucket or collection level.
+        { raw: true, retry: options.retry || 0 }
       )
     );
   }
@@ -549,7 +579,10 @@ export default class KintoClientBase {
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
     const paginationOptions = { sort: "id", ...options };
-    return this.paginatedList(path, paginationOptions, reqOptions);
+    return this.paginatedList(path, paginationOptions, {
+      ...reqOptions,
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -565,6 +598,7 @@ export default class KintoClientBase {
     return this.paginatedList(path, options, {
       ...reqOptions,
       headers: this._getHeaders(options),
+      retry: this._getRetry(options),
     });
   }
 
@@ -594,7 +628,8 @@ export default class KintoClientBase {
           headers: this._getHeaders(options),
           safe: this._getSafe(options),
         }
-      )
+      ),
+      { retry: this._getRetry(options) }
     );
   }
 
@@ -622,7 +657,8 @@ export default class KintoClientBase {
         ...reqOptions,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
-      })
+      }),
+      { retry: this._getRetry(options) }
     );
   }
 
@@ -645,7 +681,8 @@ export default class KintoClientBase {
         ...reqOptions,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
-      })
+      }),
+      { retry: this._getRetry(options) }
     );
   }
 }

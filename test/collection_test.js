@@ -574,6 +574,7 @@ describe("Collection", () => {
         bucket: "blog",
         collection: "posts",
         headers: { Foo: "Bar", Baz: "Qux" },
+        retry: 0,
         safe: false,
       });
     });
