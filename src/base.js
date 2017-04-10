@@ -298,7 +298,7 @@ export default class KintoClientBase {
       {
         // FIXME: is this really necessary, since it's also present in
         // the "defaults"?
-        headers: headers,
+        headers,
         path: endpoint("batch"),
         method: "POST",
         body: {
