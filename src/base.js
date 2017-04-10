@@ -1,14 +1,6 @@
 "use strict";
 
-import {
-  getOptionWithDefault,
-  partition,
-  pMap,
-  qsify,
-  support,
-  nobatch,
-  toDataBody,
-} from "./utils";
+import { partition, pMap, qsify, support, nobatch, toDataBody } from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
@@ -200,14 +192,14 @@ export default class KintoClientBase {
    * @returns {Boolean}
    */
   _getSafe(options) {
-    return getOptionWithDefault(options, "safe", this._safe);
+    return { safe: this._safe, ...options }.safe;
   }
 
   /**
    * As _getSafe, but for "retry".
    */
   _getRetry(options) {
-    return getOptionWithDefault(options, "retry", this._retry);
+    return { retry: this._retry, ...options }.retry;
   }
 
   /**

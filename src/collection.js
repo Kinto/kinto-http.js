@@ -1,6 +1,6 @@
 import { v4 as uuid } from "uuid";
 
-import { capable, getOptionWithDefault, toDataBody, isObject } from "./utils";
+import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 
@@ -77,14 +77,14 @@ export default class Collection {
    * @returns {Boolean}
    */
   _getSafe(options) {
-    return getOptionWithDefault(options, "safe", this._safe);
+    return { safe: this._safe, ...options }.safe;
   }
 
   /**
    * As _getSafe, but for "retry".
    */
   _getRetry(options) {
-    return getOptionWithDefault(options, "retry", this._retry);
+    return { retry: this._retry, ...options }.retry;
   }
 
   /**
