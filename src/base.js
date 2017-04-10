@@ -222,12 +222,8 @@ export default class KintoClientBase {
     const path = this.remote + endpoint("root");
     const { json } = await this.http.request(
       path,
-      {
-        headers: this._getHeaders(options),
-      },
-      {
-        retry: this._getRetry(options),
-      }
+      { headers: this._getHeaders(options) },
+      { retry: this._getRetry(options) }
     );
     this.serverInfo = json;
     return this.serverInfo;
@@ -312,9 +308,7 @@ export default class KintoClientBase {
           requests,
         },
       },
-      {
-        retry: this._getRetry(options),
-      }
+      { retry: this._getRetry(options) }
     );
     return responses;
   }
@@ -403,9 +397,7 @@ export default class KintoClientBase {
         headers: request.headers,
         body: stringify ? JSON.stringify(request.body) : request.body,
       },
-      {
-        retry: this._getRetry(options),
-      }
+      { retry: this._getRetry(options) }
     );
     return raw ? result : result.json;
   }
