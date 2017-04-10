@@ -866,6 +866,7 @@ describe("Bucket", () => {
         headers: {},
         retry: 0,
         safe: false,
+        aggregate: false,
       });
     });
 
@@ -882,6 +883,7 @@ describe("Bucket", () => {
         headers: { Foo: "Bar", Baz: "Qux" },
         retry: 0,
         safe: true,
+        aggregate: false,
       });
     });
   });

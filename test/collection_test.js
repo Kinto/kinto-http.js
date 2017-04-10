@@ -377,7 +377,12 @@ describe("Collection", () => {
           data: record,
           permissions: undefined,
         },
-        { headers: { Foo: "Bar", Baz: "Qux" }, safe: false }
+        {
+          headers: { Foo: "Bar", Baz: "Qux" },
+          safe: false,
+          last_modified: undefined,
+          patch: false,
+        }
       );
     });
 
@@ -575,6 +580,7 @@ describe("Collection", () => {
         headers: { Foo: "Bar", Baz: "Qux" },
         retry: 0,
         safe: false,
+        aggregate: false,
       });
     });
   });

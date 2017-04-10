@@ -504,15 +504,12 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async batch(fn, options = {}) {
-    let batchOptions = {
+    return this.client.batch(fn, {
       bucket: this.name,
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
       safe: this._getSafe(options),
-    };
-    if (options.aggregate) {
-      batchOptions = { ...batchOptions, aggregate: options.aggregate };
-    }
-    return this.client.batch(fn, batchOptions);
+      aggregate: !!options.aggregate,
+    });
   }
 }

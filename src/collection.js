@@ -383,22 +383,17 @@ export default class Collection {
       throw new Error("A record id is required.");
     }
     const { permissions } = options;
-    let updateOptions = {
-      headers: this._getHeaders(options),
-      safe: this._getSafe(options),
-    };
     const { last_modified } = { ...record, ...options };
-    if (last_modified) {
-      updateOptions = { ...updateOptions, last_modified };
-    }
-    if (options.patch) {
-      updateOptions = { ...updateOptions, patch: options.patch };
-    }
     const path = endpoint("record", this.bucket.name, this.name, record.id);
     const request = requests.updateRequest(
       path,
       { data: record, permissions },
-      updateOptions
+      {
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+        last_modified,
+        patch: !!options.patch,
+      }
     );
     return this.client.execute(request, { retry: this._getRetry(options) });
   }
@@ -581,16 +576,13 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   async batch(fn, options = {}) {
-    let batchOptions = {
+    return this.client.batch(fn, {
       bucket: this.bucket.name,
       collection: this.name,
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
       safe: this._getSafe(options),
-    };
-    if (options.aggregate) {
-      batchOptions = { ...batchOptions, aggregate: options.aggregate };
-    }
-    return this.client.batch(fn, batchOptions);
+      aggregate: !!options.aggregate,
+    });
   }
 }
