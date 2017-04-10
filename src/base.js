@@ -391,16 +391,16 @@ export default class KintoClientBase {
       return raw ? { json: msg, headers: { get() {} } } : msg;
     }
     await this.fetchServerSettings();
-    // FIXME: Because any fetch() option is accepted here, `request`
-    // could have lots of parameters that wouldn't be accepted as part
-    // of a batch request. This makes it easier to shoot yourself in
-    // the foot. We should probably only pass through the four
-    // parameters accepted in a batch request: method, body, path, and
-    // headers.
     const result = await this.http.request(
       this.remote + request.path,
       {
-        ...request,
+        // Limit requests to only those parts that would be allowed in
+        // a batch request -- don't pass through other fancy fetch()
+        // options like integrity, redirect, mode because they will
+        // break on a batch request.  A batch request only allows
+        // headers, method, path (above), and body.
+        method: request.method,
+        headers: request.headers,
         body: stringify ? JSON.stringify(request.body) : request.body,
       },
       {
