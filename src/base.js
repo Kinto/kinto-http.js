@@ -309,7 +309,7 @@ export default class KintoClientBase {
         method: "POST",
         body: {
           defaults: { headers },
-          requests: requests,
+          requests,
         },
       },
       {
