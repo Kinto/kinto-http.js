@@ -142,9 +142,9 @@ export default class HTTP {
   /**
    * @private
    */
-  async retry(url, retryAfter, options) {
+  async retry(url, retryAfter, request, options) {
     await delay(retryAfter);
-    return this.request(url, { ...options, retry: options.retry - 1 });
+    return this.request(url, request, { ...options, retry: options.retry - 1 });
   }
 
   /**
@@ -156,22 +156,25 @@ export default class HTTP {
    * - `{Headers} headers` The response headers object; see the ES6 fetch() spec.
    *
    * @param  {String} url               The URL.
-   * @param  {Object} [options={}]      The fetch() options object.
-   * @param  {Object} [options.headers] The request headers object (default: {})
-   * @param  {Object} [options.retry]   Number of retries (default: 0)
+   * @param  {Object} [request={}]      The request object, passed to
+   *     fetch() as its options object.
+   * @param  {Object} [request.headers] The request headers object (default: {})
+   * @param  {Object} [options={}]      Options for making the
+   *     request
+   * @param  {Number} [options.retry]   Number of retries (default: 0)
    * @return {Promise}
    */
-  async request(url, options = { headers: {}, retry: 0 }) {
+  async request(url, request = { headers: {} }, options = { retry: 0 }) {
     // Ensure default request headers are always set
-    options.headers = { ...HTTP.DEFAULT_REQUEST_HEADERS, ...options.headers };
+    request.headers = { ...HTTP.DEFAULT_REQUEST_HEADERS, ...request.headers };
     // If a multipart body is provided, remove any custom Content-Type header as
     // the fetch() implementation will add the correct one for us.
-    if (options.body && typeof options.body.append === "function") {
-      delete options.headers["Content-Type"];
+    if (request.body && typeof request.body.append === "function") {
+      delete request.headers["Content-Type"];
     }
-    options.mode = this.requestMode;
+    request.mode = this.requestMode;
 
-    const response = await this.timedFetch(url, options);
+    const response = await this.timedFetch(url, request);
     const { status, headers } = response;
 
     this._checkForDeprecationHeader(headers);
@@ -181,7 +184,7 @@ export default class HTTP {
     const retryAfter = this._checkForRetryAfterHeader(status, headers);
     // If number of allowed of retries is not exhausted, retry the same request.
     if (retryAfter && options.retry > 0) {
-      return this.retry(url, retryAfter, options);
+      return this.retry(url, retryAfter, request, options);
     } else {
       return this.processResponse(response);
     }

@@ -1,14 +1,6 @@
 "use strict";
 
-import {
-  partition,
-  pMap,
-  omit,
-  qsify,
-  support,
-  nobatch,
-  toDataBody,
-} from "./utils";
+import { partition, pMap, qsify, support, nobatch, toDataBody } from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
@@ -56,21 +48,11 @@ export default class KintoClientBase {
     }
     this._backoffReleaseTime = null;
 
-    /**
-     * Default request options container.
-     * @private
-     * @type {Object}
-     */
-    this.defaultReqOptions = {
-      bucket: options.bucket || "default",
-      headers: options.headers || {},
-      retry: options.retry || 0,
-      safe: !!options.safe,
-    };
-
-    this._options = options;
     this._requests = [];
     this._isBatch = !!options.batch;
+    this._retry = options.retry || 0;
+    this._safe = !!options.safe;
+    this._headers = options.headers || {};
 
     // public properties
     /**
@@ -169,39 +151,57 @@ export default class KintoClientBase {
    * @param  {String}  name              The bucket name.
    * @param  {Object}  [options={}]      The request options.
    * @param  {Boolean} [options.safe]    The resulting safe option.
-   * @param  {String}  [options.bucket]  The resulting bucket name option.
+   * @param  {Number}  [options.retry]   The resulting retry option.
    * @param  {Object}  [options.headers] The extended headers object option.
    * @return {Bucket}
    */
   bucket(name, options = {}) {
-    const bucketOptions = omit(this._getRequestOptions(options), "bucket");
-    return new Bucket(this, name, bucketOptions);
+    return new Bucket(this, name, {
+      batch: this._isBatch,
+      headers: this._getHeaders(options),
+      safe: this._getSafe(options),
+      retry: this._getRetry(options),
+    });
   }
 
   /**
-   * Generates a request options object, deeply merging the client configured
-   * defaults with the ones provided as argument.
+   * Get the value of "headers" for a given request, merging the
+   * per-request headers with our own "default" headers.
    *
-   * Note: Headers won't be overriden but merged with instance default ones.
+   * Note that unlike other options, headers aren't overridden, but
+   * merged instead.
    *
    * @private
-   * @param    {Object}  [options={}]      The request options.
-   * @property {Boolean} [options.safe]    The resulting safe option.
-   * @property {String}  [options.bucket]  The resulting bucket name option.
-   * @property {Object}  [options.headers] The extended headers object option.
-   * @return   {Object}
+   * @param {Object} options The options for a request.
+   * @returns {Object}
    */
-  _getRequestOptions(options = {}) {
+  _getHeaders(options) {
     return {
-      ...this.defaultReqOptions,
-      ...options,
-      batch: this._isBatch,
-      // Note: headers should never be overriden but extended
-      headers: {
-        ...this.defaultReqOptions.headers,
-        ...options.headers,
-      },
+      ...this._headers,
+      ...options.headers,
     };
+  }
+
+  /**
+   * Get the value of "safe" for a given request, using the
+   * per-request option if present or falling back to our default
+   * otherwise.
+   *
+   * @private
+   * @param {Object} options The options for a request.
+   * @returns {Boolean}
+   */
+  _getSafe(options) {
+    return { safe: this._safe, ...options }.safe;
+  }
+
+  /**
+   * As _getSafe, but for "retry".
+   *
+   * @private
+   */
+  _getRetry(options) {
+    return { retry: this._retry, ...options }.retry;
   }
 
   /**
@@ -209,6 +209,10 @@ export default class KintoClientBase {
    * usually performed a single time during the instance lifecycle.
    *
    * @param  {Object}  [options={}] The request options.
+   * @param  {Object}  [options.headers={}] Headers to use when making
+   *     this request.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async fetchServerInfo(options = {}) {
@@ -216,8 +220,11 @@ export default class KintoClientBase {
       return this.serverInfo;
     }
     const path = this.remote + endpoint("root");
-    const reqOptions = this._getRequestOptions(options);
-    const { json } = await this.http.request(path, reqOptions);
+    const { json } = await this.http.request(
+      path,
+      { headers: this._getHeaders(options) },
+      { retry: this._getRetry(options) }
+    );
     this.serverInfo = json;
     return this.serverInfo;
   }
@@ -279,8 +286,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   async _batchRequests(requests, options = {}) {
-    const reqOptions = this._getRequestOptions(options);
-    const { headers } = reqOptions;
+    const headers = this._getHeaders(options);
     if (!requests.length) {
       return [];
     }
@@ -290,15 +296,20 @@ export default class KintoClientBase {
       const chunks = partition(requests, maxRequests);
       return pMap(chunks, chunk => this._batchRequests(chunk, options));
     }
-    const { responses } = await this.execute({
-      ...reqOptions,
-      path: endpoint("batch"),
-      method: "POST",
-      body: {
-        defaults: { headers },
-        requests: requests,
+    const { responses } = await this.execute(
+      {
+        // FIXME: is this really necessary, since it's also present in
+        // the "defaults"?
+        headers,
+        path: endpoint("batch"),
+        method: "POST",
+        body: {
+          defaults: { headers },
+          requests,
+        },
       },
-    });
+      { retry: this._getRetry(options) }
+    );
     return responses;
   }
 
@@ -311,6 +322,7 @@ export default class KintoClientBase {
    * @param  {Function} fn                        The function to use for describing batch ops.
    * @param  {Object}   [options={}]              The options object.
    * @param  {Boolean}  [options.safe]            The safe option.
+   * @param  {Number}   [options.retry]           The retry option.
    * @param  {String}   [options.bucket]          The bucket name option.
    * @param  {String}   [options.collection]      The collection name option.
    * @param  {Object}   [options.headers]         The headers object option.
@@ -320,9 +332,10 @@ export default class KintoClientBase {
   @nobatch("Can't use batch within a batch!")
   async batch(fn, options = {}) {
     const rootBatch = new KintoClientBase(this.remote, {
-      ...this._options,
-      ...this._getRequestOptions(options),
+      events: this.events,
       batch: true,
+      safe: this._getSafe(options),
+      retry: this._getRetry(options),
     });
     let bucketBatch, collBatch;
     if (options.bucket) {
@@ -346,14 +359,22 @@ export default class KintoClientBase {
    *
    * @private
    * @param  {Object}  request             The request object.
+   * @param  {String}  request.path        The path to fetch, relative
+   *     to the Kinto server root.
+   * @param  {String}  [request.method="GET"] The method to use in the
+   *     request.
+   * @param  {Body}    [request.body]      The request body.
+   * @param  {Object}  [request.headers={}] The request headers.
    * @param  {Object}  [options={}]        The options object.
    * @param  {Boolean} [options.raw=false] If true, resolve with full response
    * @param  {Boolean} [options.stringify=true] If true, serialize body data to
+   * @param  {Number}  [options.retry=0]   The number of times to
+   *     retry a request if the server responds with Retry-After.
    * JSON.
    * @return {Promise<Object, Error>}
    */
-  async execute(request, options = { raw: false, stringify: true }) {
-    const { raw, stringify } = options;
+  async execute(request, options = {}) {
+    const { raw = false, stringify = true } = options;
     // If we're within a batch, add the request to the stack to send at once.
     if (this._isBatch) {
       this._requests.push(request);
@@ -364,14 +385,57 @@ export default class KintoClientBase {
       return raw ? { json: msg, headers: { get() {} } } : msg;
     }
     await this.fetchServerSettings();
-    const result = await this.http.request(this.remote + request.path, {
-      ...request,
-      body: stringify ? JSON.stringify(request.body) : request.body,
-    });
+    const result = await this.http.request(
+      this.remote + request.path,
+      {
+        // Limit requests to only those parts that would be allowed in
+        // a batch request -- don't pass through other fancy fetch()
+        // options like integrity, redirect, mode because they will
+        // break on a batch request.  A batch request only allows
+        // headers, method, path (above), and body.
+        method: request.method,
+        headers: request.headers,
+        body: stringify ? JSON.stringify(request.body) : request.body,
+      },
+      { retry: this._getRetry(options) }
+    );
     return raw ? result : result.json;
   }
 
+  /**
+   * Fetch some pages from a paginated list, following the `next-page`
+   * header automatically until we have fetched the requested number
+   * of pages. Return a response with a `.next()` method that can be
+   * called to fetch more results.
+   *
+   * @private
+   * @param  {String}  path
+   *     The path to make the request to.
+   * @param  {Object}  params
+   *     The parameters to use when making the request.
+   * @param  {String}  [params.sort="-last_modified"]
+   *     The sorting order to use when fetching.
+   * @param  {Object}  [params.filters={}]
+   *     The filters to send in the request.
+   * @param  {Number}  [params.limit=undefined]
+   *     The limit to send in the request. Undefined means no limit.
+   * @param  {Number}  [params.pages=undefined]
+   *     The number of pages to fetch. Undefined means one page. Pass
+   *     Infinity to fetch everything.
+   * @param  {String}  [params.since=undefined]
+   *     The ETag from which to start fetching.
+   * @param  {Object}  [options={}]
+   *     Additional request-level parameters to use in all requests.
+   * @param  {Object}  [options.headers={}]
+   *     Headers to use during all requests.
+   * @param  {Number}  [options.retry=0]
+   *     Number of times to retry each request if the server responds
+   *     with Retry-After.
+   */
   async paginatedList(path, params, options = {}) {
+    // FIXME: this is called even in batch requests, which doesn't
+    // make any sense (since all batch requests get a "dummy"
+    // response; see execute() above).
     const { sort, filters, limit, pages, since } = {
       sort: "-last_modified",
       ...params,
@@ -436,8 +500,14 @@ export default class KintoClientBase {
 
     return handleResponse(
       await this.execute(
-        { path: path + "?" + querystring, ...options },
-        { raw: true }
+        // N.B.: This doesn't use _getHeaders, because all calls to
+        // `paginatedList` are assumed to come from calls that already
+        // have headers merged at e.g. the bucket or collection level.
+        { headers: options.headers, path: path + "?" + querystring },
+        // N.B. This doesn't use _getRetry, because all calls to
+        // `paginatedList` are assumed to come from calls that already
+        // used `_getRetry` at e.g. the bucket or collection level.
+        { raw: true, retry: options.retry || 0 }
       )
     );
   }
@@ -446,30 +516,40 @@ export default class KintoClientBase {
    * Lists all permissions.
    *
    * @param  {Object} [options={}]      The options object.
-   * @param  {Object} [options.headers] The headers object option.
+   * @param  {Object} [options.headers={}] Headers to use when making
+   *     this request.
+   * @param  {Number} [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object[], Error>}
    */
   @capable(["permissions_endpoint"])
   async listPermissions(options = {}) {
     const path = endpoint("permissions");
-    const reqOptions = this._getRequestOptions(options);
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
     const paginationOptions = { sort: "id", ...options };
-    return this.paginatedList(path, paginationOptions, reqOptions);
+    return this.paginatedList(path, paginationOptions, {
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+    });
   }
 
   /**
    * Retrieves the list of buckets.
    *
    * @param  {Object} [options={}]      The options object.
-   * @param  {Object} [options.headers] The headers object option.
+   * @param  {Object} [options.headers={}] Headers to use when making
+   *     this request.
+   * @param  {Number} [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object[], Error>}
    */
   async listBuckets(options = {}) {
     const path = endpoint("bucket");
-    const reqOptions = this._getRequestOptions(options);
-    return this.paginatedList(path, options, reqOptions);
+    return this.paginatedList(path, options, {
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -480,17 +560,26 @@ export default class KintoClientBase {
    * @param  {Boolean}      [options.data]    The bucket data option.
    * @param  {Boolean}      [options.safe]    The safe option.
    * @param  {Object}       [options.headers] The headers object option.
+   * @param  {Number}       [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async createBucket(id, options = {}) {
-    const reqOptions = this._getRequestOptions(options);
-    const { data = {}, permissions } = reqOptions;
+    const { data = {}, permissions } = options;
     if (id != null) {
       data.id = id;
     }
     const path = data.id ? endpoint("bucket", data.id) : endpoint("bucket");
     return this.execute(
-      requests.createRequest(path, { data, permissions }, reqOptions)
+      requests.createRequest(
+        path,
+        { data, permissions },
+        {
+          headers: this._getHeaders(options),
+          safe: this._getSafe(options),
+        }
+      ),
+      { retry: this._getRetry(options) }
     );
   }
 
@@ -502,6 +591,8 @@ export default class KintoClientBase {
    * @param  {Object}        [options={}]            The options object.
    * @param  {Boolean}       [options.safe]          The safe option.
    * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Number}        [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -511,9 +602,15 @@ export default class KintoClientBase {
       throw new Error("A bucket id is required.");
     }
     const path = endpoint("bucket", bucketObj.id);
-    const { last_modified } = { bucketObj };
-    const reqOptions = this._getRequestOptions({ last_modified, ...options });
-    return this.execute(requests.deleteRequest(path, reqOptions));
+    const { last_modified } = { ...bucketObj, ...options };
+    return this.execute(
+      requests.deleteRequest(path, {
+        last_modified,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }),
+      { retry: this._getRetry(options) }
+    );
   }
 
   /**
@@ -528,8 +625,14 @@ export default class KintoClientBase {
    */
   @support("1.4", "2.0")
   async deleteBuckets(options = {}) {
-    const reqOptions = this._getRequestOptions(options);
     const path = endpoint("bucket");
-    return this.execute(requests.deleteRequest(path, reqOptions));
+    return this.execute(
+      requests.deleteRequest(path, {
+        last_modified: options.last_modified,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }),
+      { retry: this._getRetry(options) }
+    );
   }
 }

@@ -70,7 +70,7 @@ describe("KintoClient", () => {
       expect(
         new KintoClient(sampleRemote, {
           headers: { Foo: "Bar" },
-        }).defaultReqOptions.headers
+        })._headers
       ).eql({ Foo: "Bar" });
     });
 
@@ -110,14 +110,9 @@ describe("KintoClient", () => {
       expect(new KintoClient(sampleRemote, { events }).events).eql(events);
     });
 
-    it("should accept a bucket option", () => {
-      const api = new KintoClient(sampleRemote, { bucket: "custom" });
-      expect(api.defaultReqOptions.bucket).eql("custom");
-    });
-
     it("should accept a safe option", () => {
       const api = new KintoClient(sampleRemote, { safe: true });
-      expect(api.defaultReqOptions.safe).eql(true);
+      expect(api._safe).eql(true);
     });
   });
 
@@ -154,9 +149,11 @@ describe("KintoClient", () => {
         batch: false,
       };
 
-      expect(api.bucket("foo", options)).to.have
-        .property("options")
-        .eql(options);
+      const bucket = api.bucket("foo", options);
+      expect(bucket).property("_safe", options.safe);
+      expect(bucket).property("_retry", options.retry);
+      expect(bucket).property("_headers").eql(options.headers);
+      expect(bucket).property("_isBatch", options.batch);
     });
   });
 
@@ -313,7 +310,7 @@ describe("KintoClient", () => {
         ];
 
         beforeEach(() => {
-          api.defaultReqOptions.headers = { Authorization: "Basic plop" };
+          api._headers = { Authorization: "Basic plop" };
           return api
             .bucket("default")
             .collection("blog")
@@ -922,7 +919,7 @@ describe("KintoClient", () => {
       });
 
       it("should support passing custom headers", () => {
-        api.defaultReqOptions.headers = { Foo: "Bar" };
+        api._headers = { Foo: "Bar" };
         api.listPermissions({ headers: { Baz: "Qux" } }).then(() => {
           sinon.assert.calledWithMatch(api.execute, {
             headers: { Foo: "Bar", Baz: "Qux" },
@@ -969,7 +966,7 @@ describe("KintoClient", () => {
     });
 
     it("should support passing custom headers", () => {
-      api.defaultReqOptions.headers = { Foo: "Bar" };
+      api._headers = { Foo: "Bar" };
       api.listBuckets({ headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
@@ -1047,7 +1044,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.defaultReqOptions.headers = { Foo: "Bar" };
+      api._headers = { Foo: "Bar" };
 
       api.createBucket("foo", { headers: { Baz: "Qux" } });
 
@@ -1100,7 +1097,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.defaultReqOptions.headers = { Foo: "Bar" };
+      api._headers = { Foo: "Bar" };
 
       api.deleteBucket("plop", { headers: { Baz: "Qux" } });
 
@@ -1136,7 +1133,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api.defaultReqOptions.headers = { Foo: "Bar" };
+      api._headers = { Foo: "Bar" };
 
       return api.deleteBuckets({ headers: { Baz: "Qux" } }).then(_ => {
         sinon.assert.calledWithMatch(requests.deleteRequest, "/buckets", {

@@ -309,7 +309,7 @@ describe("Collection", () => {
           data: record,
           permissions: undefined,
         },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        { headers: { Foo: "Bar", Baz: "Qux" }, safe: false }
       );
     });
 
@@ -377,7 +377,12 @@ describe("Collection", () => {
           data: record,
           permissions: undefined,
         },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        {
+          headers: { Foo: "Bar", Baz: "Qux" },
+          safe: false,
+          last_modified: undefined,
+          patch: false,
+        }
       );
     });
 
@@ -446,6 +451,7 @@ describe("Collection", () => {
         {
           last_modified: undefined,
           headers: { Foo: "Bar", Baz: "Qux" },
+          safe: false,
         }
       );
     });
@@ -519,14 +525,13 @@ describe("Collection", () => {
     });
 
     it("should support passing custom headers", () => {
-      coll.client.defaultReqOptions.headers = { Foo: "Bar" };
-      coll.listRecords({ headers: { Baz: "Qux" } });
+      coll.listRecords({ headers: { "Another-Header": "Hello" } });
 
       sinon.assert.calledWithMatch(
         coll.client.paginatedList,
         "/buckets",
         {},
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        { headers: { Foo: "Bar", Baz: "Qux", "Another-Header": "Hello" } }
       );
     });
 
@@ -573,6 +578,9 @@ describe("Collection", () => {
         bucket: "blog",
         collection: "posts",
         headers: { Foo: "Bar", Baz: "Qux" },
+        retry: 0,
+        safe: false,
+        aggregate: false,
       });
     });
   });

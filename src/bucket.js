@@ -16,6 +16,7 @@ export default class Bucket {
    * @param  {Object}      [options={}]      The headers object option.
    * @param  {Object}      [options.headers] The headers object option.
    * @param  {Boolean}     [options.safe]    The safe option.
+   * @param  {Number}      [options.retry]   The retry option.
    */
   constructor(client, name, options = {}) {
     /**
@@ -28,36 +29,50 @@ export default class Bucket {
      */
     this.name = name;
     /**
-     * The default options object.
-     * @ignore
-     * @type {Object}
-     */
-    this.options = options;
-    /**
      * @ignore
      */
     this._isBatch = !!options.batch;
+    /**
+     * @ignore
+     */
+    this._headers = options.headers || {};
+    this._retry = options.retry || 0;
+    this._safe = !!options.safe;
   }
 
   /**
-   * Merges passed request options with default bucket ones, if any.
+   * Get the value of "headers" for a given request, merging the
+   * per-request headers with our own "default" headers.
    *
    * @private
-   * @param  {Object} [options={}] The options to merge.
-   * @return {Object}              The merged options.
    */
-  _bucketOptions(options = {}) {
-    const headers = {
-      ...(this.options && this.options.headers),
+  _getHeaders(options) {
+    return {
+      ...this._headers,
       ...options.headers,
     };
-    return {
-      ...this.options,
-      ...options,
-      headers,
-      bucket: this.name,
-      batch: this._isBatch,
-    };
+  }
+
+  /**
+   * Get the value of "safe" for a given request, using the
+   * per-request option if present or falling back to our default
+   * otherwise.
+   *
+   * @private
+   * @param {Object} options The options for a request.
+   * @returns {Boolean}
+   */
+  _getSafe(options) {
+    return { safe: this._safe, ...options }.safe;
+  }
+
+  /**
+   * As _getSafe, but for "retry".
+   *
+   * @private
+   */
+  _getRetry(options) {
+    return { retry: this._retry, ...options }.retry;
   }
 
   /**
@@ -70,12 +85,12 @@ export default class Bucket {
    * @return {Collection}
    */
   collection(name, options = {}) {
-    return new Collection(
-      this.client,
-      this,
-      name,
-      this._bucketOptions(options)
-    );
+    return new Collection(this.client, this, name, {
+      batch: this._isBatch,
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+      safe: this._getSafe(options),
+    });
   }
 
   /**
@@ -83,12 +98,18 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getData(options = {}) {
-    const reqOptions = { ...this._bucketOptions(options) };
-    const request = { ...reqOptions, path: endpoint("bucket", this.name) };
-    const { data } = await this.client.execute(request);
+    const request = {
+      headers: this._getHeaders(options),
+      path: endpoint("bucket", this.name),
+    };
+    const { data } = await this.client.execute(request, {
+      retry: this._getRetry(options),
+    });
     return data;
   }
 
@@ -96,8 +117,10 @@ export default class Bucket {
    * Set bucket data.
    * @param  {Object}  data                    The bucket data object.
    * @param  {Object}  [options={}]            The options object.
-   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Object}  [options.headers={}]    The headers object option.
    * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean} [options.patch]         The patch option.
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
@@ -117,14 +140,19 @@ export default class Bucket {
     }
 
     const path = endpoint("bucket", bucketId);
-    const { permissions } = options;
-    const reqOptions = { ...this._bucketOptions(options) };
+    const { patch, permissions } = options;
+    const { last_modified } = { ...data, ...options };
     const request = requests.updateRequest(
       path,
       { data: bucket, permissions },
-      reqOptions
+      {
+        last_modified,
+        patch,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -132,13 +160,17 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Array<Object>, Error>}
    */
   @capable(["history"])
   async listHistory(options = {}) {
     const path = endpoint("history", this.name);
-    const reqOptions = this._bucketOptions(options);
-    return this.client.paginatedList(path, options, reqOptions);
+    return this.client.paginatedList(path, options, {
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -146,12 +178,16 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Array<Object>, Error>}
    */
   async listCollections(options = {}) {
     const path = endpoint("collection", this.name);
-    const reqOptions = this._bucketOptions(options);
-    return this.client.paginatedList(path, options, reqOptions);
+    return this.client.paginatedList(path, options, {
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -161,21 +197,25 @@ export default class Bucket {
    * @param  {Object}  [options={}]          The options object.
    * @param  {Boolean} [options.safe]        The safe option.
    * @param  {Object}  [options.headers]     The headers object option.
+   * @param  {Number}  [options.retry=0]     Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}  [options.permissions] The permissions object.
    * @param  {Object}  [options.data]        The data object.
    * @return {Promise<Object, Error>}
    */
   async createCollection(id, options = {}) {
-    const reqOptions = this._bucketOptions(options);
-    const { permissions, data = {} } = reqOptions;
+    const { permissions, data = {} } = options;
     data.id = id;
     const path = endpoint("collection", this.name, id);
     const request = requests.createRequest(
       path,
       { data, permissions },
-      reqOptions
+      {
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -184,6 +224,8 @@ export default class Bucket {
    * @param  {Object|String} collection              The collection to delete.
    * @param  {Object}        [options={}]            The options object.
    * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Number}        [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean}       [options.safe]          The safe option.
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
@@ -193,11 +235,15 @@ export default class Bucket {
     if (!collectionObj.id) {
       throw new Error("A collection id is required.");
     }
-    const { id, last_modified } = collectionObj;
-    const reqOptions = this._bucketOptions({ last_modified, ...options });
+    const { id } = collectionObj;
+    const { last_modified } = { ...collectionObj, ...options };
     const path = endpoint("collection", this.name, id);
-    const request = requests.deleteRequest(path, reqOptions);
-    return this.client.execute(request);
+    const request = requests.deleteRequest(path, {
+      last_modified,
+      headers: this._getHeaders(options),
+      safe: this._getSafe(options),
+    });
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -205,12 +251,16 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Array<Object>, Error>}
    */
   async listGroups(options = {}) {
     const path = endpoint("group", this.name);
-    const reqOptions = this._bucketOptions(options);
-    return this.client.paginatedList(path, options, reqOptions);
+    return this.client.paginatedList(path, options, {
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -219,12 +269,16 @@ export default class Bucket {
    * @param  {String} id                The group id.
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getGroup(id, options = {}) {
-    const reqOptions = { ...this._bucketOptions(options) };
-    const request = { ...reqOptions, path: endpoint("group", this.name, id) };
-    return this.client.execute(request);
+    const request = {
+      headers: this._getHeaders(options),
+      path: endpoint("group", this.name, id),
+    };
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -237,10 +291,11 @@ export default class Bucket {
    * @param  {Object}            [options.permissions] The permissions object.
    * @param  {Boolean}           [options.safe]        The safe option.
    * @param  {Object}            [options.headers]     The headers object option.
+   * @param  {Number}            [options.retry=0]     Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async createGroup(id, members = [], options = {}) {
-    const reqOptions = this._bucketOptions(options);
     const data = {
       ...options.data,
       id,
@@ -251,9 +306,12 @@ export default class Bucket {
     const request = requests.createRequest(
       path,
       { data, permissions },
-      reqOptions
+      {
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -265,6 +323,8 @@ export default class Bucket {
    * @param  {Object}  [options.permissions]   The permissions object.
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -275,19 +335,24 @@ export default class Bucket {
     if (!group.id) {
       throw new Error("A group id is required.");
     }
-    const reqOptions = this._bucketOptions(options);
     const data = {
       ...options.data,
       ...group,
     };
     const path = endpoint("group", this.name, group.id);
-    const { permissions } = options;
+    const { patch, permissions } = options;
+    const { last_modified } = { ...data, ...options };
     const request = requests.updateRequest(
       path,
       { data, permissions },
-      reqOptions
+      {
+        last_modified,
+        patch,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -296,17 +361,23 @@ export default class Bucket {
    * @param  {Object|String} group                   The group to delete.
    * @param  {Object}        [options={}]            The options object.
    * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Number}        [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean}       [options.safe]          The safe option.
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
   async deleteGroup(group, options = {}) {
     const groupObj = toDataBody(group);
-    const { id, last_modified } = groupObj;
-    const reqOptions = this._bucketOptions({ last_modified, ...options });
+    const { id } = groupObj;
+    const { last_modified } = { ...groupObj, ...options };
     const path = endpoint("group", this.name, id);
-    const request = requests.deleteRequest(path, reqOptions);
-    return this.client.execute(request);
+    const request = requests.deleteRequest(path, {
+      last_modified,
+      headers: this._getHeaders(options),
+      safe: this._getSafe(options),
+    });
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -314,12 +385,18 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getPermissions(options = {}) {
-    const reqOptions = this._bucketOptions(options);
-    const request = { ...reqOptions, path: endpoint("bucket", this.name) };
-    const { permissions } = await this.client.execute(request);
+    const request = {
+      headers: this._getHeaders(options),
+      path: endpoint("bucket", this.name),
+    };
+    const { permissions } = await this.client.execute(request, {
+      retry: this._getRetry(options),
+    });
     return permissions;
   }
 
@@ -329,7 +406,9 @@ export default class Bucket {
    * @param  {Object}  permissions             The permissions object.
    * @param  {Object}  [options={}]            The options object
    * @param  {Boolean} [options.safe]          The safe option.
-   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Object}  [options.headers={}]    The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -338,15 +417,17 @@ export default class Bucket {
       throw new Error("A permissions object is required.");
     }
     const path = endpoint("bucket", this.name);
-    const reqOptions = { ...this._bucketOptions(options) };
     const { last_modified } = options;
     const data = { last_modified };
     const request = requests.updateRequest(
       path,
       { data, permissions },
-      reqOptions
+      {
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -356,6 +437,8 @@ export default class Bucket {
    * @param  {Object}  [options={}]            The options object
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -365,14 +448,17 @@ export default class Bucket {
     }
     const path = endpoint("bucket", this.name);
     const { last_modified } = options;
-    const reqOptions = { last_modified, ...this._bucketOptions(options) };
     const request = requests.jsonPatchPermissionsRequest(
       path,
       permissions,
       "add",
-      reqOptions
+      {
+        last_modified,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -382,6 +468,8 @@ export default class Bucket {
    * @param  {Object}  [options={}]            The options object
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -391,14 +479,17 @@ export default class Bucket {
     }
     const path = endpoint("bucket", this.name);
     const { last_modified } = options;
-    const reqOptions = { last_modified, ...this._bucketOptions(options) };
     const request = requests.jsonPatchPermissionsRequest(
       path,
       permissions,
       "remove",
-      reqOptions
+      {
+        last_modified,
+        headers: this._getHeaders(options),
+        safe: this._getSafe(options),
+      }
     );
-    return this.client.execute(request);
+    return this.client.execute(request, { retry: this._getRetry(options) });
   }
 
   /**
@@ -408,10 +499,17 @@ export default class Bucket {
    * @param  {Object}   [options={}]         The options object.
    * @param  {Object}   [options.headers]    The headers object option.
    * @param  {Boolean}  [options.safe]       The safe option.
+   * @param  {Number}   [options.retry=0]    The retry option.
    * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
   async batch(fn, options = {}) {
-    return this.client.batch(fn, this._bucketOptions(options));
+    return this.client.batch(fn, {
+      bucket: this.name,
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+      safe: this._getSafe(options),
+      aggregate: !!options.aggregate,
+    });
   }
 }
