@@ -209,6 +209,10 @@ export default class KintoClientBase {
    * usually performed a single time during the instance lifecycle.
    *
    * @param  {Object}  [options={}] The request options.
+   * @param  {Object}  [options.headers={}] Headers to use when making
+   *     this request.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async fetchServerInfo(options = {}) {
@@ -520,7 +524,10 @@ export default class KintoClientBase {
    * Lists all permissions.
    *
    * @param  {Object} [options={}]      The options object.
-   * @param  {Object} [options.headers] The headers object option.
+   * @param  {Object} [options.headers={}] Headers to use when making
+   *     this request.
+   * @param  {Number} [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object[], Error>}
    */
   @capable(["permissions_endpoint"])
@@ -539,7 +546,10 @@ export default class KintoClientBase {
    * Retrieves the list of buckets.
    *
    * @param  {Object} [options={}]      The options object.
-   * @param  {Object} [options.headers] The headers object option.
+   * @param  {Object} [options.headers={}] Headers to use when making
+   *     this request.
+   * @param  {Number} [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object[], Error>}
    */
   async listBuckets(options = {}) {
@@ -558,6 +568,8 @@ export default class KintoClientBase {
    * @param  {Boolean}      [options.data]    The bucket data option.
    * @param  {Boolean}      [options.safe]    The safe option.
    * @param  {Object}       [options.headers] The headers object option.
+   * @param  {Number}       [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async createBucket(id, options = {}) {
@@ -587,6 +599,8 @@ export default class KintoClientBase {
    * @param  {Object}        [options={}]            The options object.
    * @param  {Boolean}       [options.safe]          The safe option.
    * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Number}        [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */

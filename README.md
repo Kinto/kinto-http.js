@@ -128,10 +128,10 @@ const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
 
 #### Options
 
-- `safe`: Adds concurrency headers to every requests. (default: `true`)
+- `safe`: Adds concurrency headers to every requests. (default: `false`)
 - `events`: The events handler. If none provided an `EventEmitter` instance will be created
 - `headers`: The key-value headers to pass to each request. (default: `{}`)
-- `retry`: Number of retries when the server fails to process the request. (default: `0`)
+- `retry`: Number of retries to make when the server responds with a `Retry-After` response. (default: `0`)
 - `bucket`: The default bucket to use. (default: `"default"`)
 - `requestMode`: The HTTP [CORS](https://fetch.spec.whatwg.org/#concept-request-mode) mode. (default: `"cors"`)
 - `timeout`: The requests timeout in milliseconds. (default: `null`, which means "no timeout")
@@ -1340,13 +1340,15 @@ Both `bucket()` and `collection()` methods accept an `options` object as a secon
 
 - `{Object} headers`: Custom headers to send along the request;
 - `{Boolean} safe`: Ensure safe transactional operations; read more about that below.
+- `{Number} retry`: Default number of times to retry requests when faced with transient errors.
 
 Sample usage:
 
 ```js
 client.bucket("blog", {
   headers: {"X-Hello": "Hello!"},
-  safe: true
+  safe: true,
+  retry: 2,
 });
 ```
 
@@ -1358,7 +1360,8 @@ This works at the collection level as well:
 client.bucket("blog")
   .collection("posts", {
     headers: {"X-Hello": "Hello!"},
-    safe: true
+    safe: true,
+    retry: 2,
   });
 ```
 
@@ -1371,7 +1374,8 @@ client.bucket("blog")
   .collection("posts")
   .updateRecord(updatedRecord, {
     headers: {"X-Hello": "Hello!"},
-    safe: true
+    safe: true,
+    retry: 2,
   });
 ```
 
@@ -1494,7 +1498,7 @@ client.bucket("blog").collection("posts")
 
 > ##### Notes
 >
-> If you plan on fetching all the available pages, you can set the `pages` option to `Infinity`. Be aware that for large datasets this strategy can possibly issue an important amount of HTTP requests.
+> If you plan on fetching all the available pages, you can set the `pages` option to `Infinity`. Be aware that for large datasets this strategy can possibly issue an excessive number of HTTP requests.
 
 
 ## Events
@@ -1535,7 +1539,7 @@ client.events.on("deprecated", function(event) {
 
 ### The `retry-after` event
 
-When an error occurs on server, a `Retry-After` HTTP header indicates the duration in seconds that clients should wait before retrying the request.
+Some errors on the server side are transient (service unavailable or integrity errors). A `Retry-After` HTTP header in the response indicates the duration in seconds that clients should wait before retrying the request.
 
 The `retry-after` event notifies what is the timestamp you should wait until before performing another operation:
 
@@ -1549,7 +1553,7 @@ client.events.on("retry-after", function(releaseTime) {
 ```
 
 > #### Note:
-> Eventually, we would like to automate the retry behaviour for requests. See https://github.com/Kinto/kinto-http.js/issues/34
+> We also automatically retry all requests that have a Retry-After response.
 
 ## Browser Compatibility
 

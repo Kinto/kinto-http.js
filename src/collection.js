@@ -95,6 +95,8 @@ export default class Collection {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Number, Error>}
    */
   async getTotalRecords(options = {}) {
@@ -116,6 +118,8 @@ export default class Collection {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getData(options = {}) {
@@ -132,6 +136,8 @@ export default class Collection {
    * @param  {Object}   data                    The collection data object.
    * @param  {Object}   [options={}]            The options object.
    * @param  {Object}   [options.headers]       The headers object option.
+   * @param  {Number}   [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean}  [options.safe]          The safe option.
    * @param  {Boolean}  [options.patch]         The patch option.
    * @param  {Number}   [options.last_modified] The last_modified option.
@@ -162,6 +168,8 @@ export default class Collection {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getPermissions(options = {}) {
@@ -179,6 +187,8 @@ export default class Collection {
    * @param  {Object}   permissions             The permissions object.
    * @param  {Object}   [options={}]            The options object
    * @param  {Object}   [options.headers]       The headers object option.
+   * @param  {Number}   [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean}  [options.safe]          The safe option.
    * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
@@ -207,6 +217,8 @@ export default class Collection {
    * @param  {Object}  [options={}]            The options object
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -236,6 +248,8 @@ export default class Collection {
    * @param  {Object}  [options={}]            The options object
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -264,6 +278,8 @@ export default class Collection {
    * @param  {Object}  record                The record to create.
    * @param  {Object}  [options={}]          The options object.
    * @param  {Object}  [options.headers]     The headers object option.
+   * @param  {Number}  [options.retry=0]     Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean} [options.safe]        The safe option.
    * @param  {Object}  [options.permissions] The permissions option.
    * @return {Promise<Object, Error>}
@@ -289,6 +305,8 @@ export default class Collection {
    * @param  {Object}  [record={}]             The record data.
    * @param  {Object}  [options={}]            The options object.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @param  {Object}  [options.permissions]   The permissions option.
@@ -327,6 +345,8 @@ export default class Collection {
    * @param  {Object}  recordId                The record id.
    * @param  {Object}  [options={}]            The options object.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Number}  [options.last_modified] The last_modified option.
    */
@@ -348,6 +368,8 @@ export default class Collection {
    * @param  {Object}  record                  The record to update.
    * @param  {Object}  [options={}]            The options object.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @param  {Object}  [options.permissions]   The permissions option.
@@ -387,6 +409,8 @@ export default class Collection {
    * @param  {Object|String} record                  The record to delete.
    * @param  {Object}        [options={}]            The options object.
    * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Number}        [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean}       [options.safe]          The safe option.
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
@@ -413,6 +437,8 @@ export default class Collection {
    * @param  {String} id                The record id to retrieve.
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getRecord(id, options = {}) {
@@ -446,6 +472,8 @@ export default class Collection {
    *
    * @param  {Object}   [options={}]                    The options object.
    * @param  {Object}   [options.headers]               The headers object option.
+   * @param  {Number}   [options.retry=0]               Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}   [options.filters=[]]            The filters object.
    * @param  {String}   [options.sort="-last_modified"] The sort field.
    * @param  {String}   [options.at]                    The timestamp to get a snapshot at.

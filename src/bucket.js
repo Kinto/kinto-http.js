@@ -98,6 +98,8 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getData(options = {}) {
@@ -115,8 +117,10 @@ export default class Bucket {
    * Set bucket data.
    * @param  {Object}  data                    The bucket data object.
    * @param  {Object}  [options={}]            The options object.
-   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Object}  [options.headers={}]    The headers object option.
    * @param  {Boolean} [options.safe]          The safe option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean} [options.patch]         The patch option.
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
@@ -156,6 +160,8 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Array<Object>, Error>}
    */
   @capable(["history"])
@@ -172,6 +178,8 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Array<Object>, Error>}
    */
   async listCollections(options = {}) {
@@ -189,6 +197,8 @@ export default class Bucket {
    * @param  {Object}  [options={}]          The options object.
    * @param  {Boolean} [options.safe]        The safe option.
    * @param  {Object}  [options.headers]     The headers object option.
+   * @param  {Number}  [options.retry=0]     Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}  [options.permissions] The permissions object.
    * @param  {Object}  [options.data]        The data object.
    * @return {Promise<Object, Error>}
@@ -214,6 +224,8 @@ export default class Bucket {
    * @param  {Object|String} collection              The collection to delete.
    * @param  {Object}        [options={}]            The options object.
    * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Number}        [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean}       [options.safe]          The safe option.
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
@@ -239,6 +251,8 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Array<Object>, Error>}
    */
   async listGroups(options = {}) {
@@ -255,6 +269,8 @@ export default class Bucket {
    * @param  {String} id                The group id.
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getGroup(id, options = {}) {
@@ -275,6 +291,8 @@ export default class Bucket {
    * @param  {Object}            [options.permissions] The permissions object.
    * @param  {Boolean}           [options.safe]        The safe option.
    * @param  {Object}            [options.headers]     The headers object option.
+   * @param  {Number}            [options.retry=0]     Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async createGroup(id, members = [], options = {}) {
@@ -305,6 +323,8 @@ export default class Bucket {
    * @param  {Object}  [options.permissions]   The permissions object.
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -341,6 +361,8 @@ export default class Bucket {
    * @param  {Object|String} group                   The group to delete.
    * @param  {Object}        [options={}]            The options object.
    * @param  {Object}        [options.headers]       The headers object option.
+   * @param  {Number}        [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Boolean}       [options.safe]          The safe option.
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
@@ -363,6 +385,8 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getPermissions(options = {}) {
@@ -382,7 +406,9 @@ export default class Bucket {
    * @param  {Object}  permissions             The permissions object.
    * @param  {Object}  [options={}]            The options object
    * @param  {Boolean} [options.safe]          The safe option.
-   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Object}  [options.headers={}]    The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -411,6 +437,8 @@ export default class Bucket {
    * @param  {Object}  [options={}]            The options object
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -440,6 +468,8 @@ export default class Bucket {
    * @param  {Object}  [options={}]            The options object
    * @param  {Boolean} [options.safe]          The safe option.
    * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Number}  [options.retry=0]       Number of retries to make
+   *     when faced with transient errors.
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
@@ -469,7 +499,7 @@ export default class Bucket {
    * @param  {Object}   [options={}]         The options object.
    * @param  {Object}   [options.headers]    The headers object option.
    * @param  {Boolean}  [options.safe]       The safe option.
-   * @param  {Number}   [options.retry]      The retry option.
+   * @param  {Number}   [options.retry=0]    The retry option.
    * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
