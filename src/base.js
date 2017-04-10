@@ -337,9 +337,6 @@ export default class KintoClientBase {
       events: this.events,
       batch: true,
       safe: this._getSafe(options),
-      // FIXME: this doesn't actually matter, probably, since it gets
-      // passed as "default headers" in the batch?
-      headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
     let bucketBatch, collBatch;
