@@ -73,6 +73,7 @@ export default class Collection {
    * per-request option if present or falling back to our default
    * otherwise.
    *
+   * @private
    * @param {Object} options The options for a request.
    * @returns {Boolean}
    */
@@ -82,6 +83,8 @@ export default class Collection {
 
   /**
    * As _getSafe, but for "retry".
+   *
+   * @private
    */
   _getRetry(options) {
     return { retry: this._retry, ...options }.retry;

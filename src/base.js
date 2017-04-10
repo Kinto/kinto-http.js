@@ -197,6 +197,8 @@ export default class KintoClientBase {
 
   /**
    * As _getSafe, but for "retry".
+   *
+   * @private
    */
   _getRetry(options) {
     return { retry: this._retry, ...options }.retry;
