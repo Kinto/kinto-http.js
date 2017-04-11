@@ -642,6 +642,25 @@ describe("KintoClient", () => {
     });
   });
 
+  /** @test {KintoClient#execute} */
+  describe("#execute()", () => {
+    it("should ensure passing defined allowed defined request options", () => {
+      sinon.stub(api, "fetchServerInfo").returns(Promise.resolve({}));
+      const request = sinon
+        .stub(api.http, "request")
+        .returns(Promise.resolve({}));
+
+      return api.execute({ path: "/foo", garbage: true }).then(() => {
+        sinon.assert.calledWith(
+          request,
+          "http://fake-server/v1/foo",
+          {},
+          { retry: 0 }
+        );
+      });
+    });
+  });
+
   /** @test {KintoClient#paginatedList} */
   describe("#paginatedList()", () => {
     const ETag = '"42"';
