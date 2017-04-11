@@ -315,3 +315,17 @@ export function createFormData(dataURL, body, options = {}) {
   }
   return formData;
 }
+
+/**
+ * Clones an object with all its undefined keys removed.
+ * @private
+ */
+export function cleanUndefinedProperties(obj) {
+  const result = {};
+  for (const key in obj) {
+    if (typeof obj[key] !== "undefined") {
+      result[key] = obj[key];
+    }
+  }
+  return result;
+}

@@ -1,6 +1,14 @@
 "use strict";
 
-import { partition, pMap, qsify, support, nobatch, toDataBody } from "./utils";
+import {
+  partition,
+  pMap,
+  qsify,
+  support,
+  nobatch,
+  toDataBody,
+  cleanUndefinedProperties,
+} from "./utils";
 import HTTP from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
@@ -387,7 +395,7 @@ export default class KintoClientBase {
     await this.fetchServerSettings();
     const result = await this.http.request(
       this.remote + request.path,
-      {
+      cleanUndefinedProperties({
         // Limit requests to only those parts that would be allowed in
         // a batch request -- don't pass through other fancy fetch()
         // options like integrity, redirect, mode because they will
@@ -396,7 +404,7 @@ export default class KintoClientBase {
         method: request.method,
         headers: request.headers,
         body: stringify ? JSON.stringify(request.body) : request.body,
-      },
+      }),
       { retry: this._getRetry(options) }
     );
     return raw ? result : result.json;

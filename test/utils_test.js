@@ -14,6 +14,7 @@ import {
   nobatch,
   parseDataURL,
   extractFileInfo,
+  cleanUndefinedProperties,
 } from "../src/utils";
 
 chai.should();
@@ -358,6 +359,14 @@ describe("Utils", () => {
 
       expect(blob.length).eql(4);
       expect(name).eql("t.txt");
+    });
+  });
+
+  describe("cleanUndefinedProperties()", () => {
+    it("should remove undefined properties from an object", () => {
+      const obj1 = cleanUndefinedProperties({ a: 1, b: undefined });
+      expect(obj1.hasOwnProperty("a")).eql(true);
+      expect(obj1.hasOwnProperty("b")).eql(false);
     });
   });
 });
