@@ -70,6 +70,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [From 1.x to 2.x](#from-1-x-to-2-x)
   - [Contributing](#contributing)
      - [Coding style](#coding-style)
+     - [Integration tests](#integration-tests)
 
 ---
 
