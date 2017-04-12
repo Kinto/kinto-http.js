@@ -1,5 +1,7 @@
 "use strict";
 
+import "babel-polyfill";
+
 import { EventEmitter } from "events";
 
 import KintoClientBase from "./base";
