@@ -42,11 +42,7 @@ export function createRequest(path, { data, permissions }, options = {}) {
  * @private
  */
 export function updateRequest(path, { data, permissions }, options = {}) {
-  const {
-    headers,
-    safe,
-    patch,
-  } = { ...requestDefaults, ...options };
+  const { headers, safe, patch } = { ...requestDefaults, ...options };
   const { last_modified } = { ...data, ...options };
 
   if (Object.keys(omit(data, "id", "last_modified")).length === 0) {
@@ -70,11 +66,7 @@ export function jsonPatchPermissionsRequest(
   opType,
   options = {}
 ) {
-  const {
-    headers,
-    safe,
-    last_modified,
-  } = { ...requestDefaults, ...options };
+  const { headers, safe, last_modified } = { ...requestDefaults, ...options };
 
   const ops = [];
 
