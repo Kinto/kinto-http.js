@@ -257,14 +257,11 @@ describe("KintoClient", () => {
     });
 
     function executeBatch(fixtures, options) {
-      return api.bucket("default").collection("blog").batch(
-        batch => {
-          for (const article of fixtures) {
-            batch.createRecord(article);
-          }
-        },
-        options
-      );
+      return api.bucket("default").collection("blog").batch(batch => {
+        for (const article of fixtures) {
+          batch.createRecord(article);
+        }
+      }, options);
     }
 
     describe("Batch client setup", () => {

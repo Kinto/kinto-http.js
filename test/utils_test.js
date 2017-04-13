@@ -59,12 +59,9 @@ describe("Utils", () => {
     it("should preserve order of entries", () => {
       return pMap([100, 50], x => {
         return new Promise(resolve => {
-          setTimeout(
-            () => {
-              resolve(x);
-            },
-            x
-          );
+          setTimeout(() => {
+            resolve(x);
+          }, x);
         });
       }).should.become([100, 50]);
     });
@@ -73,13 +70,10 @@ describe("Utils", () => {
       const logged = [];
       return pMap([100, 50], x => {
         return new Promise(resolve => {
-          setTimeout(
-            () => {
-              logged.push(x);
-              resolve(x);
-            },
-            x
-          );
+          setTimeout(() => {
+            logged.push(x);
+            resolve(x);
+          }, x);
         });
       }).then(_ => expect(logged).eql([100, 50]));
     });

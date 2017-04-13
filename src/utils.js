@@ -10,17 +10,14 @@ export function partition(array, n) {
   if (n <= 0) {
     return array;
   }
-  return array.reduce(
-    (acc, x, i) => {
-      if (i === 0 || i % n === 0) {
-        acc.push([x]);
-      } else {
-        acc[acc.length - 1].push(x);
-      }
-      return acc;
-    },
-    []
-  );
+  return array.reduce((acc, x, i) => {
+    if (i === 0 || i % n === 0) {
+      acc.push([x]);
+    } else {
+      acc[acc.length - 1].push(x);
+    }
+    return acc;
+  }, []);
 }
 
 /**
@@ -44,13 +41,10 @@ export function delay(ms) {
  */
 export async function pMap(list, fn) {
   let results = [];
-  await list.reduce(
-    async function(promise, entry) {
-      await promise;
-      results = results.concat(await fn(entry));
-    },
-    Promise.resolve()
-  );
+  await list.reduce(async function(promise, entry) {
+    await promise;
+    results = results.concat(await fn(entry));
+  }, Promise.resolve());
   return results;
 }
 
@@ -63,15 +57,12 @@ export async function pMap(list, fn) {
  * @return {Object}
  */
 export function omit(obj, ...keys) {
-  return Object.keys(obj).reduce(
-    (acc, key) => {
-      if (keys.indexOf(key) === -1) {
-        acc[key] = obj[key];
-      }
-      return acc;
-    },
-    {}
-  );
+  return Object.keys(obj).reduce((acc, key) => {
+    if (keys.indexOf(key) === -1) {
+      acc[key] = obj[key];
+    }
+    return acc;
+  }, {});
 }
 
 /**
@@ -268,13 +259,10 @@ export function parseDataURL(dataURL) {
   const props = match[1];
   const base64 = match[2];
   const [type, ...rawParams] = props.split(";");
-  const params = rawParams.reduce(
-    (acc, param) => {
-      const [key, value] = param.split("=");
-      return { ...acc, [key]: value };
-    },
-    {}
-  );
+  const params = rawParams.reduce((acc, param) => {
+    const [key, value] = param.split("=");
+    return { ...acc, [key]: value };
+  }, {});
   return { ...params, type, base64 };
 }
 

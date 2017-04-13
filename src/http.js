@@ -71,13 +71,10 @@ export default class HTTP {
       // Detect if a request has timed out.
       let _timeoutId;
       if (this.timeout) {
-        _timeoutId = setTimeout(
-          () => {
-            hasTimedout = true;
-            reject(new Error("Request timeout."));
-          },
-          this.timeout
-        );
+        _timeoutId = setTimeout(() => {
+          hasTimedout = true;
+          reject(new Error("Request timeout."));
+        }, this.timeout);
       }
       function proceedWithHandler(fn) {
         return arg => {

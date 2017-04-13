@@ -15,8 +15,8 @@ chai.should();
 chai.config.includeStack = true;
 
 const skipLocalServer = !!process.env.TEST_KINTO_SERVER;
-const TEST_KINTO_SERVER = process.env.TEST_KINTO_SERVER ||
-  "http://0.0.0.0:8888/v1";
+const TEST_KINTO_SERVER =
+  process.env.TEST_KINTO_SERVER || "http://0.0.0.0:8888/v1";
 
 function startServer(server, options) {
   return !skipLocalServer && server.start(options);
@@ -650,7 +650,8 @@ describe("Integration tests", function() {
             batch.createGroup("g2", [], { data: { size: 13 } });
             batch.createGroup("g3", [], { data: { size: 38 } });
             batch.createGroup("g4", [], { data: { size: -4 } });
-          }));
+          })
+        );
       });
 
       describe(".getData()", () => {
@@ -685,10 +686,7 @@ describe("Integration tests", function() {
           return bucket
             .setData({ a: 1 })
             .then(() => bucket.setData({ b: 2 }, { patch: true }))
-            .then(({
-              data,
-              permissions,
-            }) => {
+            .then(({ data, permissions }) => {
               expect(data.a).eql(1);
               expect(data.b).eql(2);
               expect(permissions.read).to.include("github:jon");
@@ -974,7 +972,8 @@ describe("Integration tests", function() {
             .then(res => generated = res.data.id)
             .then(_ => bucket.listCollections())
             .then(({ data }) =>
-              expect(data.some(x => x.id === generated)).eql(true));
+              expect(data.some(x => x.id === generated)).eql(true)
+            );
         });
 
         describe("Safe option", () => {
@@ -1045,7 +1044,8 @@ describe("Integration tests", function() {
                 bucket.deleteCollection("posts", {
                   safe: true,
                   last_modified: data.last_modified - 1000,
-                }))
+                })
+              )
               .should.be.rejectedWith(Error, /412 Precondition Failed/);
           });
         });
@@ -1137,7 +1137,8 @@ describe("Integration tests", function() {
             .then(res => generated = res.data.id)
             .then(_ => bucket.listGroups())
             .then(({ data }) =>
-              expect(data.some(x => x.id === generated)).eql(true));
+              expect(data.some(x => x.id === generated)).eql(true)
+            );
         });
 
         describe("Safe option", () => {
@@ -1221,7 +1222,8 @@ describe("Integration tests", function() {
               data: { title: "foo", blah: 42 },
             })
             .then(({ data }) =>
-              bucket.updateGroup({ id: data.id, blah: 43 }, { patch: true }))
+              bucket.updateGroup({ id: data.id, blah: 43 }, { patch: true })
+            )
             .then(_ => bucket.listGroups())
             .then(({ data }) => {
               expect(data[0].title).eql("foo");
@@ -1245,7 +1247,8 @@ describe("Integration tests", function() {
                     last_modified: 1,
                   },
                   { safe: true }
-                ))
+                )
+              )
               .should.be.rejectedWith(Error, /412 Precondition Failed/);
           });
 
@@ -1268,7 +1271,8 @@ describe("Integration tests", function() {
                     title: "foo",
                   },
                   { safe: true }
-                ))
+                )
+              )
               .should.be.rejectedWith(Error, /412 Precondition Failed/);
           });
         });
@@ -1292,7 +1296,8 @@ describe("Integration tests", function() {
                 bucket.deleteGroup("posts", {
                   safe: true,
                   last_modified: data.last_modified - 1000,
-                }))
+                })
+              )
               .should.be.rejectedWith(Error, /412 Precondition Failed/);
           });
         });
@@ -1495,7 +1500,8 @@ describe("Integration tests", function() {
                           title: "foo",
                         },
                         { safe: true }
-                      ))
+                      )
+                    )
                     .should.be.rejectedWith(Error, /412 Precondition Failed/);
                 });
               });
@@ -1522,7 +1528,8 @@ describe("Integration tests", function() {
               return coll
                 .createRecord({ title: "foo" })
                 .then(({ data }) =>
-                  coll.updateRecord({ ...data, title: "mod" }))
+                  coll.updateRecord({ ...data, title: "mod" })
+                )
                 .then(_ => coll.listRecords())
                 .then(({ data }) => data[0].title)
                 .should.become("mod");
@@ -1532,7 +1539,8 @@ describe("Integration tests", function() {
               return coll
                 .createRecord({ title: "foo", blah: 42 })
                 .then(({ data }) =>
-                  coll.updateRecord({ id: data.id, blah: 43 }, { patch: true }))
+                  coll.updateRecord({ id: data.id, blah: 43 }, { patch: true })
+                )
                 .then(_ => coll.listRecords())
                 .then(({ data }) => {
                   expect(data[0].title).eql("foo");
@@ -1565,7 +1573,8 @@ describe("Integration tests", function() {
                         last_modified: 1,
                       },
                       { safe: true }
-                    ))
+                    )
+                  )
                   .should.be.rejectedWith(Error, /412 Precondition Failed/);
               });
 
@@ -1587,7 +1596,8 @@ describe("Integration tests", function() {
                         title: "foo",
                       },
                       { safe: true }
-                    ))
+                    )
+                  )
                   .should.be.rejectedWith(Error, /412 Precondition Failed/);
               });
             });
@@ -1611,7 +1621,8 @@ describe("Integration tests", function() {
                     coll.deleteRecord(data.id, {
                       last_modified: 1,
                       safe: true,
-                    }))
+                    })
+                  )
                   .should.be.rejectedWith(Error, /412 Precondition Failed/);
               });
             });
@@ -1620,8 +1631,8 @@ describe("Integration tests", function() {
           describe(".addAttachment()", () => {
             describe("With filename", () => {
               const input = "test";
-              const dataURL = "data:text/plain;name=test.txt;base64," +
-                btoa(input);
+              const dataURL =
+                "data:text/plain;name=test.txt;base64," + btoa(input);
 
               let result;
 
@@ -1692,8 +1703,8 @@ describe("Integration tests", function() {
 
           describe(".removeAttachment()", () => {
             const input = "test";
-            const dataURL = "data:text/plain;name=test.txt;base64," +
-              btoa(input);
+            const dataURL =
+              "data:text/plain;name=test.txt;base64," + btoa(input);
 
             let recordId;
 
