@@ -417,7 +417,6 @@ export default class KintoClientBase {
         "operation and should not be consumed.";
       return raw ? { json: msg, headers: { get() {} } } : msg;
     }
-    await this.fetchServerSettings();
     const result = await this.http.request(
       this.remote + request.path,
       cleanUndefinedProperties({
