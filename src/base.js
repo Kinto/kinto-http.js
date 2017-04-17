@@ -213,6 +213,29 @@ export default class KintoClientBase {
   }
 
   /**
+   * Retrieves the server's "hello" endpoint. This endpoint reveals
+   * server capabilities and settings as well as telling the client
+   * "who they are" according to their given authorization headers.
+   *
+   * @private
+   * @param  {Object}  [options={}] The request options.
+   * @param  {Object}  [options.headers={}] Headers to use when making
+   *     this request.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
+   * @return {Promise<Object, Error>}
+   */
+  async _getHello(options = {}) {
+    const path = this.remote + endpoint("root");
+    const { json } = await this.http.request(
+      path,
+      { headers: this._getHeaders(options) },
+      { retry: this._getRetry(options) }
+    );
+    return json;
+  }
+
+  /**
    * Retrieves server information and persist them locally. This operation is
    * usually performed a single time during the instance lifecycle.
    *
@@ -227,13 +250,7 @@ export default class KintoClientBase {
     if (this.serverInfo) {
       return this.serverInfo;
     }
-    const path = this.remote + endpoint("root");
-    const { json } = await this.http.request(
-      path,
-      { headers: this._getHeaders(options) },
-      { retry: this._getRetry(options) }
-    );
-    this.serverInfo = json;
+    this.serverInfo = await this._getHello(options);
     return this.serverInfo;
   }
 
@@ -244,7 +261,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  async fetchServerSettings(options = {}) {
+  async fetchServerSettings(options) {
     const { settings } = await this.fetchServerInfo(options);
     return settings;
   }
@@ -269,7 +286,7 @@ export default class KintoClientBase {
    */
   @nobatch("This operation is not supported within a batch operation.")
   async fetchUser(options = {}) {
-    const { user } = await this.fetchServerInfo(options);
+    const { user } = await this._getHello(options);
     return user;
   }
 
@@ -388,8 +405,7 @@ export default class KintoClientBase {
       this._requests.push(request);
       // Resolve with a message in case people attempt at consuming the result
       // from within a batch operation.
-      const msg =
-        "This result is generated from within a batch " +
+      const msg = "This result is generated from within a batch " +
         "operation and should not be consumed.";
       return raw ? { json: msg, headers: { get() {} } } : msg;
     }
