@@ -240,8 +240,6 @@ export default class KintoClientBase {
    * usually performed a single time during the instance lifecycle.
    *
    * @param  {Object}  [options={}] The request options.
-   * @param  {Object}  [options.headers={}] Headers to use when making
-   *     this request.
    * @param  {Number}  [options.retry=0]    Number of retries to make
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
@@ -250,7 +248,7 @@ export default class KintoClientBase {
     if (this.serverInfo) {
       return this.serverInfo;
     }
-    this.serverInfo = await this._getHello(options);
+    this.serverInfo = await this._getHello({ retry: this._getRetry(options) });
     return this.serverInfo;
   }
 
@@ -258,6 +256,8 @@ export default class KintoClientBase {
    * Retrieves Kinto server settings.
    *
    * @param  {Object}  [options={}] The request options.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
@@ -270,6 +270,8 @@ export default class KintoClientBase {
    * Retrieve server capabilities information.
    *
    * @param  {Object}  [options={}] The request options.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
@@ -282,6 +284,10 @@ export default class KintoClientBase {
    * Retrieve authenticated user information.
    *
    * @param  {Object}  [options={}] The request options.
+   * @param  {Object}  [options.headers={}] Headers to use when making
+   *     this request.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
@@ -294,6 +300,8 @@ export default class KintoClientBase {
    * Retrieve authenticated user information.
    *
    * @param  {Object}  [options={}] The request options.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
