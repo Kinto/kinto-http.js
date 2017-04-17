@@ -323,7 +323,9 @@ export default class KintoClientBase {
     if (!requests.length) {
       return [];
     }
-    const serverSettings = await this.fetchServerSettings();
+    const serverSettings = await this.fetchServerSettings({
+      retry: this._getRetry(options),
+    });
     const maxRequests = serverSettings["batch_max_requests"];
     if (maxRequests && requests.length > maxRequests) {
       const chunks = partition(requests, maxRequests);
