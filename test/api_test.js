@@ -835,11 +835,8 @@ describe("KintoClient", () => {
         const { http } = api;
         sandbox
           .stub(http, "request")
-          // settings retrieval
-          .onFirstCall()
-          .returns(Promise.resolve({ json: { settings: {} } }))
           // first page
-          .onSecondCall()
+          .onFirstCall()
           .returns(
             Promise.resolve({
               headers: { get: () => "http://next-page/" },
@@ -847,7 +844,7 @@ describe("KintoClient", () => {
             })
           )
           // second page
-          .onThirdCall()
+          .onSecondCall()
           .returns(
             Promise.resolve({
               headers: { get: () => {} },
@@ -865,11 +862,8 @@ describe("KintoClient", () => {
         const { http } = api;
         sandbox
           .stub(http, "request")
-          // settings retrieval
-          .onFirstCall()
-          .returns(Promise.resolve({ json: { settings: {} } }))
           // first page
-          .onSecondCall()
+          .onFirstCall()
           .returns(
             Promise.resolve({
               headers: { get: () => "http://next-page/" },
@@ -887,11 +881,8 @@ describe("KintoClient", () => {
         const { http } = api;
         sandbox
           .stub(http, "request")
-          // settings retrieval
-          .onFirstCall()
-          .returns(Promise.resolve({ json: { settings: {} } }))
           // first page
-          .onSecondCall()
+          .onFirstCall()
           .returns(
             Promise.resolve({
               headers: { get: () => "1337" },

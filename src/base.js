@@ -213,12 +213,33 @@ export default class KintoClientBase {
   }
 
   /**
+   * Retrieves the server's "hello" endpoint. This endpoint reveals
+   * server capabilities and settings as well as telling the client
+   * "who they are" according to their given authorization headers.
+   *
+   * @private
+   * @param  {Object}  [options={}] The request options.
+   * @param  {Object}  [options.headers={}] Headers to use when making
+   *     this request.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
+   * @return {Promise<Object, Error>}
+   */
+  async _getHello(options = {}) {
+    const path = this.remote + endpoint("root");
+    const { json } = await this.http.request(
+      path,
+      { headers: this._getHeaders(options) },
+      { retry: this._getRetry(options) }
+    );
+    return json;
+  }
+
+  /**
    * Retrieves server information and persist them locally. This operation is
    * usually performed a single time during the instance lifecycle.
    *
    * @param  {Object}  [options={}] The request options.
-   * @param  {Object}  [options.headers={}] Headers to use when making
-   *     this request.
    * @param  {Number}  [options.retry=0]    Number of retries to make
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
@@ -227,13 +248,7 @@ export default class KintoClientBase {
     if (this.serverInfo) {
       return this.serverInfo;
     }
-    const path = this.remote + endpoint("root");
-    const { json } = await this.http.request(
-      path,
-      { headers: this._getHeaders(options) },
-      { retry: this._getRetry(options) }
-    );
-    this.serverInfo = json;
+    this.serverInfo = await this._getHello({ retry: this._getRetry(options) });
     return this.serverInfo;
   }
 
@@ -241,10 +256,12 @@ export default class KintoClientBase {
    * Retrieves Kinto server settings.
    *
    * @param  {Object}  [options={}] The request options.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  async fetchServerSettings(options = {}) {
+  async fetchServerSettings(options) {
     const { settings } = await this.fetchServerInfo(options);
     return settings;
   }
@@ -253,6 +270,8 @@ export default class KintoClientBase {
    * Retrieve server capabilities information.
    *
    * @param  {Object}  [options={}] The request options.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
@@ -265,11 +284,15 @@ export default class KintoClientBase {
    * Retrieve authenticated user information.
    *
    * @param  {Object}  [options={}] The request options.
+   * @param  {Object}  [options.headers={}] Headers to use when making
+   *     this request.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
   async fetchUser(options = {}) {
-    const { user } = await this.fetchServerInfo(options);
+    const { user } = await this._getHello(options);
     return user;
   }
 
@@ -277,6 +300,8 @@ export default class KintoClientBase {
    * Retrieve authenticated user information.
    *
    * @param  {Object}  [options={}] The request options.
+   * @param  {Number}  [options.retry=0]    Number of retries to make
+   *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
@@ -298,7 +323,9 @@ export default class KintoClientBase {
     if (!requests.length) {
       return [];
     }
-    const serverSettings = await this.fetchServerSettings();
+    const serverSettings = await this.fetchServerSettings({
+      retry: this._getRetry(options),
+    });
     const maxRequests = serverSettings["batch_max_requests"];
     if (maxRequests && requests.length > maxRequests) {
       const chunks = partition(requests, maxRequests);
@@ -393,7 +420,6 @@ export default class KintoClientBase {
         "operation and should not be consumed.";
       return raw ? { json: msg, headers: { get() {} } } : msg;
     }
-    await this.fetchServerSettings();
     const result = await this.http.request(
       this.remote + request.path,
       cleanUndefinedProperties({

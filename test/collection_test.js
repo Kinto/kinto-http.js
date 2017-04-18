@@ -549,11 +549,10 @@ describe("Collection", () => {
         sandbox.restore();
         sandbox.stub(global, "setTimeout", fn => setImmediate(fn));
         const fetch = sandbox.stub(global, "fetch");
-        fetch.onCall(0).returns(fakeServerResponse(200, {}));
         fetch
-          .onCall(1)
+          .onCall(0)
           .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
-        fetch.onCall(2).returns(fakeServerResponse(200, response));
+        fetch.onCall(1).returns(fakeServerResponse(200, response));
       });
 
       it("should retry the request if option is specified", () => {
