@@ -415,7 +415,8 @@ export default class KintoClientBase {
       this._requests.push(request);
       // Resolve with a message in case people attempt at consuming the result
       // from within a batch operation.
-      const msg = "This result is generated from within a batch " +
+      const msg =
+        "This result is generated from within a batch " +
         "operation and should not be consumed.";
       return raw ? { json: msg, headers: { get() {} } } : msg;
     }
