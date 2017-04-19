@@ -10,6 +10,8 @@ import { SUPPORTED_PROTOCOL_VERSION as SPV } from "../src/base";
 import * as requests from "../src/requests";
 import Bucket from "../src/bucket";
 
+import endpoint from "../src/endpoint";
+
 chai.use(chaiAsPromised);
 chai.should();
 chai.config.includeStack = true;
@@ -1153,6 +1155,14 @@ describe("KintoClient", () => {
       api.serverInfo = { http_api_version: "1.3" };
 
       return api.deleteBuckets().should.be.rejectedWith(Error, /Version/);
+    });
+  });
+
+  /** @test {KintoClient#endpoint} */
+  describe("#endpoint()", () => {
+    it("should forward calls to endpoint", () => {
+      return KintoClient.endpoint("root")
+        .should.equal(endpoint("root"));
     });
   });
 });
