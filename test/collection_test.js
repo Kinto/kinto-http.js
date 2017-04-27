@@ -262,7 +262,7 @@ describe("Collection", () => {
           data: { a: 1 },
           permissions: undefined,
         },
-        { headers: { Foo: "Bar", Baz: "Qux" }, patch: false }
+        { headers: { Foo: "Bar", Baz: "Qux" } }
       );
     });
 
@@ -278,7 +278,6 @@ describe("Collection", () => {
         },
         {
           headers: { Foo: "Bar", Baz: "Qux" },
-          patch: false,
           safe: true,
           last_modified: 42,
         }
