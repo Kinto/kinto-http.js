@@ -156,7 +156,7 @@ export default class Collection {
       { data, permissions },
       {
         last_modified,
-        patch: !!patch,
+        patch,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }
