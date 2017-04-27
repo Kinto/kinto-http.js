@@ -71,6 +71,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
   - [Contributing](#contributing)
      - [Coding style](#coding-style)
      - [Integration tests](#integration-tests)
+     - [Releasing](#releasing)
 
 ---
 
@@ -1594,3 +1595,8 @@ It's possible to run the integration test suite against an external Kinto server
 ```
 $ TEST_KINTO_SERVER=https://my.kinto-server.tld/v1 npm test
 ```
+
+### Releasing
+
+If you need to release a new version of kinto-http.js, you can follow
+[the Release documentation](https://github.com/Kinto/kinto-http.js/wiki/Releasing).
