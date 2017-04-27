@@ -147,7 +147,7 @@ export default class Collection {
     if (!isObject(data)) {
       throw new Error("A collection object is required.");
     }
-    const { permissions } = options;
+    const { patch, permissions } = options;
     const { last_modified } = { ...data, ...options };
 
     const path = endpoint("collection", this.bucket.name, this.name);
@@ -156,6 +156,7 @@ export default class Collection {
       { data, permissions },
       {
         last_modified,
+        patch,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }

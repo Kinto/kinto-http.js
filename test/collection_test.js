@@ -262,7 +262,7 @@ describe("Collection", () => {
           data: { a: 1 },
           permissions: undefined,
         },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        { headers: { Foo: "Bar", Baz: "Qux" }, patch: false }
       );
     });
 
@@ -278,8 +278,26 @@ describe("Collection", () => {
         },
         {
           headers: { Foo: "Bar", Baz: "Qux" },
+          patch: false,
           safe: true,
           last_modified: 42,
+        }
+      );
+    });
+
+    it("should handle the patch option", () => {
+      coll.setData({ a: 1 }, { patch: true });
+
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog/collections/posts",
+        {
+          data: { a: 1 },
+          permissions: undefined,
+        },
+        {
+          headers: { Foo: "Bar", Baz: "Qux" },
+          patch: true,
         }
       );
     });
