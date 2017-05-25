@@ -1,6 +1,8 @@
 kinto-http.js
 =============
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/Kinto/kinto-http.js.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/Kinto/kinto-http.js.svg?branch=master)](https://travis-ci.org/Kinto/kinto-http.js)
 
 A JavaScript HTTP Client for the [Kinto](http://kinto-storage.org/) API.
