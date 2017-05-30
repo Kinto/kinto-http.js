@@ -253,11 +253,12 @@ describe("KintoClient", () => {
   /** @test {KintoClient#batch} */
   describe("#batch", () => {
     beforeEach(() => {
-      sandbox.stub(api, "fetchServerSettings").returns(
+      const fetchServerSettings = sandbox.stub().returns(
         Promise.resolve({
           batch_max_requests: 3,
         })
       );
+      sandbox.stub(api, "fetchServerSettings").get(() => fetchServerSettings);
     });
 
     function executeBatch(fixtures, options) {
