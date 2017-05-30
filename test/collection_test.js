@@ -564,7 +564,7 @@ describe("Collection", () => {
 
       beforeEach(() => {
         sandbox.restore();
-        sandbox.stub(global, "setTimeout", fn => setImmediate(fn));
+        sandbox.stub(global, "setTimeout").callsFake(setImmediate);
         const fetch = sandbox.stub(global, "fetch");
         fetch
           .onCall(0)
@@ -585,12 +585,13 @@ describe("Collection", () => {
   /** @test {Collection#batch} */
   describe("#batch()", () => {
     it("should batch operations", () => {
-      sandbox.stub(client, "batch");
+      const batchStub = sandbox.stub();
+      sandbox.stub(client, "batch").get(() => batchStub);
       const fn = batch => {};
 
       coll.batch(fn);
 
-      sinon.assert.calledWith(client.batch, fn, {
+      sinon.assert.calledWith(batchStub, fn, {
         bucket: "blog",
         collection: "posts",
         headers: { Foo: "Bar", Baz: "Qux" },

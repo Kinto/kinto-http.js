@@ -853,7 +853,8 @@ describe("Bucket", () => {
   /** @test {Bucket#batch} */
   describe("#batch()", () => {
     beforeEach(() => {
-      sandbox.stub(client, "batch");
+      const batchStub = sandbox.stub();
+      sandbox.stub(client, "batch").get(() => batchStub);
     });
 
     it("should batch operations for this bucket", () => {

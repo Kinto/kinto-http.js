@@ -171,9 +171,13 @@ describe("KintoClient", () => {
 
     it("should store server settings into the serverSettings property", () => {
       api.serverSettings = { a: 1 };
-      sandbox.stub(global, "fetch");
+      sandbox
+        .stub(global, "fetch")
+        .returns(fakeServerResponse(200, fakeServerInfo));
 
-      api.fetchServerInfo();
+      return api.fetchServerInfo().then(_ => {
+        expect(api).property("serverInfo").deep.equal(fakeServerInfo);
+      });
     });
 
     it("should not fetch server settings if they're cached already", () => {
@@ -249,11 +253,12 @@ describe("KintoClient", () => {
   /** @test {KintoClient#batch} */
   describe("#batch", () => {
     beforeEach(() => {
-      sandbox.stub(api, "fetchServerSettings").returns(
+      const fetchServerSettings = sandbox.stub().returns(
         Promise.resolve({
           batch_max_requests: 3,
         })
       );
+      sandbox.stub(api, "fetchServerSettings").get(() => fetchServerSettings);
     });
 
     function executeBatch(fixtures, options) {
@@ -379,7 +384,7 @@ describe("KintoClient", () => {
         };
 
         beforeEach(() => {
-          sandbox.stub(global, "setTimeout", fn => setImmediate(fn));
+          sandbox.stub(global, "setTimeout").callsFake(setImmediate);
 
           fetch
             .onCall(0)
