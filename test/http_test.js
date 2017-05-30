@@ -314,7 +314,9 @@ describe("HTTP class", () => {
           // Avoid actually waiting real time for retries in test suites.
           // We can't use Sinon fakeTimers since we can't tick the fake
           // clock at the right moment (just after request failure).
-          sandbox.stub(global, "setTimeout", (fn, time) => setImmediate(fn));
+          sandbox
+            .stub(global, "setTimeout")
+            .callsFake((fn, time) => setImmediate(fn));
         });
 
         it("should not retry the request by default", () => {

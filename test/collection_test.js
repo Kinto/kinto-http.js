@@ -564,7 +564,7 @@ describe("Collection", () => {
 
       beforeEach(() => {
         sandbox.restore();
-        sandbox.stub(global, "setTimeout", fn => setImmediate(fn));
+        sandbox.stub(global, "setTimeout").callsFake(setImmediate);
         const fetch = sandbox.stub(global, "fetch");
         fetch
           .onCall(0)

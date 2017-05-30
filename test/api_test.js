@@ -384,7 +384,7 @@ describe("KintoClient", () => {
         };
 
         beforeEach(() => {
-          sandbox.stub(global, "setTimeout", fn => setImmediate(fn));
+          sandbox.stub(global, "setTimeout").callsFake(setImmediate);
 
           fetch
             .onCall(0)
