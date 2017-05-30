@@ -171,9 +171,13 @@ describe("KintoClient", () => {
 
     it("should store server settings into the serverSettings property", () => {
       api.serverSettings = { a: 1 };
-      sandbox.stub(global, "fetch");
+      sandbox
+        .stub(global, "fetch")
+        .returns(fakeServerResponse(200, fakeServerInfo));
 
-      api.fetchServerInfo();
+      return api.fetchServerInfo().then(_ => {
+        expect(api).property("serverInfo").deep.equal(fakeServerInfo);
+      });
     });
 
     it("should not fetch server settings if they're cached already", () => {
