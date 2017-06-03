@@ -1897,7 +1897,10 @@ describe("Integration tests", function() {
 
               describe("Mixed CRUD operations", () => {
                 let rec4 = {};
-                let s1 = [], s2 = [], s3 = [], s4 = [];
+                let s1 = [],
+                  s2 = [],
+                  s3 = [],
+                  s4 = [];
                 let rec1up = 0;
 
                 beforeEach(() => {
