@@ -36,8 +36,8 @@ export function aggregate(responses = [], requests = []) {
         // XXX: specifying the type is probably superfluous
         type: "outgoing",
         local: request.body,
-        remote: (response.body.details && response.body.details.existing) ||
-          null,
+        remote:
+          (response.body.details && response.body.details.existing) || null,
       });
     } else {
       acc.errors.push({

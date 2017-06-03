@@ -488,7 +488,8 @@ export default class KintoClientBase {
       _limit: limit,
       _since: since,
     });
-    let results = [], current = 0;
+    let results = [],
+      current = 0;
 
     const next = async function(nextPage) {
       if (!nextPage) {
