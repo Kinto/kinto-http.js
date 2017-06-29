@@ -1417,10 +1417,9 @@ describe("Integration tests", function() {
 
           describe(".removePermissions()", () => {
             beforeEach(() => {
-              return Promise.all([
-                coll.setPermissions({ read: ["github:n1k0"] }),
-                coll.setData({ a: 1 }),
-              ]);
+              return coll
+                .setPermissions({ read: ["github:n1k0"] })
+                .then(() => coll.setData({ a: 1 }));
             });
 
             it("should pop collection permissions", () => {
