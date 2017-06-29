@@ -33,9 +33,6 @@ describe("Integration tests", function() {
   this.timeout(0);
 
   before(() => {
-    if (skipLocalServer) {
-      return;
-    }
     let kintoConfigPath = __dirname + "/kinto.ini";
     if (process.env.SERVER && process.env.SERVER !== "master") {
       kintoConfigPath = `${__dirname}/kinto-${process.env.SERVER}.ini`;
