@@ -71,7 +71,7 @@
     "chai-as-promised": "^7.0.0",
     "coveralls": "^2.11.16",
     "esdoc": "^0.5.2",
-    "esdoc-importpath-plugin": "0.1.3",
+    "esdoc-importpath-plugin": "0.1.4",
     "eslint": "4.1.1",
     "form-data": "^2.1.2",
     "husky": "^0.14.0",
@@ -80,7 +80,7 @@
     "kinto-node-test-server": "^1.0.0",
     "lint-staged": "^4.0.0",
     "mocha": "^3.2.0",
-    "prettier": "^1.4.2",
+    "prettier": "^1.5.1",
     "sinon": "^2.3.1",
     "toctoc": "^0.2.3",
     "uglifyify": "^4.0.1"
