@@ -108,7 +108,7 @@ import KintoClient from "kinto-http";
 Or (ES5):
 
 ```js
-var KintoClient = require("kinto-http").default;
+var KintoClient = require("kinto-http");
 ```
 
 Note that this HTTP client can be transparently used server side or in a regular browser page. In the browser, creating an instance is achieved that way:
