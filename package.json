@@ -13,7 +13,6 @@
     "dist-noshim": "browserify -s KintoClient -g uglifyify --ignore babel-polyfill -e src/index.js -o dist/kinto-http.noshim.js -t [ babelify --sourceMapRelative . ]",
     "dist-prod": "browserify -s KintoClient -g uglifyify -e src/index.js -o dist/kinto-http.min.js -t [ babelify --sourceMapRelative . ]",
     "dist-fx": "BABEL_ENV=firefox browserify -s KintoHttpClient --ignore events --bare -e fx-src/index.js -o temp.jsm -t [ babelify --sourceMapRelative . ] && mkdir -p dist && cp fx-src/jsm_prefix.js dist/moz-kinto-http-client.js && echo \"\n/*\n * Version $npm_package_version - $(git rev-parse --short HEAD)\n */\n\" >> dist/moz-kinto-http-client.js && cat temp.jsm >> dist/moz-kinto-http-client.js && rm temp.jsm",
-    "precommit": "lint-staged",
     "prepublish": "npm run build:readme",
     "publish-to-npm": "npm run build && npm run dist && npm publish",
     "report-coverage": "npm run test-cover && ./node_modules/coveralls/bin/coveralls.js < ./coverage/lcov.info",
@@ -25,13 +24,6 @@
     "lint": "eslint src test"
   },
   "prettierOptions": "--trailing-comma es5 --semi",
-  "lint-staged": {
-    "{src,test}/**/*.js": [
-      "npm run lint",
-      "npm run cs-format",
-      "git add"
-    ]
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kinto/kinto-http.js.git"
@@ -74,11 +66,9 @@
     "esdoc-importpath-plugin": "0.1.4",
     "eslint": "4.2.0",
     "form-data": "^2.1.2",
-    "husky": "^0.14.0",
     "isomorphic-fetch": "^2.2.1",
     "jsdom": "^11.0.0",
     "kinto-node-test-server": "^1.0.0",
-    "lint-staged": "^4.0.0",
     "mocha": "^3.2.0",
     "prettier": "^1.5.1",
     "sinon": "^2.3.1",
