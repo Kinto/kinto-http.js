@@ -1590,6 +1590,13 @@ The `cs-check` command ensures all files conform to that style:
 $ npm run cs-check
 ```
 
+Consider installing the pre-commit hooks that automatically format
+your code and check that it's lint-free. To do so:
+
+- Install `pre-commit`, for example using `pip install --user pre-commit`
+- `pre-commit install` to set up the hooks
+- If you have any leftover `.git/hooks/pre-commit.legacy`, you can safely delete it.
+
 ### Integration tests
 
 It's possible to run the integration test suite against an external Kinto server instance. To do so you need to define the `TEST_KINTO_SERVER` environment variable and set it to the server base URL:
