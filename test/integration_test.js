@@ -743,10 +743,9 @@ describe("Integration tests", function() {
 
       describe(".addPermissions()", () => {
         beforeEach(() => {
-          return Promise.all([
-            bucket.setPermissions({ read: ["github:n1k0"] }),
-            bucket.setData({ a: 1 }),
-          ]);
+          return bucket
+            .setPermissions({ read: ["github:n1k0"] })
+            .then(() => bucket.setData({ a: 1 }));
         });
 
         it("should append bucket permissions", () => {
@@ -764,10 +763,9 @@ describe("Integration tests", function() {
 
       describe(".removePermissions()", () => {
         beforeEach(() => {
-          return Promise.all([
-            bucket.setPermissions({ read: ["github:n1k0"] }),
-            bucket.setData({ a: 1 }),
-          ]);
+          return bucket
+            .setPermissions({ read: ["github:n1k0"] })
+            .then(() => bucket.setData({ a: 1 }));
         });
 
         it("should pop bucket permissions", () => {
@@ -1396,10 +1394,9 @@ describe("Integration tests", function() {
 
           describe(".addPermissions()", () => {
             beforeEach(() => {
-              return Promise.all([
-                coll.setPermissions({ read: ["github:n1k0"] }),
-                coll.setData({ a: 1 }),
-              ]);
+              return coll
+                .setPermissions({ read: ["github:n1k0"] })
+                .then(() => coll.setData({ a: 1 }));
             });
 
             it("should append collection permissions", () => {
