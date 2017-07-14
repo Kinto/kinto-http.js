@@ -141,43 +141,28 @@ describe("Utils", () => {
       expect(support()).to.be.a("function");
     });
 
-    it("should make decorated method checking the version", () => {
-      class FakeClient {
-        fetchHTTPApiVersion() {
-          return Promise.resolve(); // simulates a successful checkVersion call
-        }
-
-        @support()
-        test() {
-          return Promise.resolve();
-        }
-      }
-
-      return new FakeClient().test().should.be.fullfilled;
-    });
-
     it("should make decorated method resolve on version match", () => {
       class FakeClient {
         fetchHTTPApiVersion() {
-          return Promise.resolve(); // simulates a successful checkVersion call
+          return Promise.resolve("1.4"); // simulates a successful checkVersion call
         }
 
-        @support()
+        @support("1.0", "2.0")
         test() {
           return Promise.resolve();
         }
       }
 
-      return new FakeClient().test().should.be.fullfilled;
+      return new FakeClient().test().should.be.fulfilled;
     });
 
     it("should make decorated method rejecting on version mismatch", () => {
       class FakeClient {
         fetchHTTPApiVersion() {
-          return Promise.reject(); // simulates a failing checkVersion call
+          return Promise.resolve("1.4"); // simulates a failing checkVersion call
         }
 
-        @support()
+        @support("1.5", "2.0")
         test() {
           return Promise.resolve();
         }
@@ -214,16 +199,16 @@ describe("Utils", () => {
     it("should make decorated method checking the capabilities", () => {
       class FakeClient {
         fetchServerCapabilities() {
-          return Promise.resolve(); // simulates a successful checkVersion call
+          return Promise.resolve({}); // simulates a successful checkVersion call
         }
 
-        @capable()
+        @capable([])
         test() {
           return Promise.resolve();
         }
       }
 
-      return new FakeClient().test().should.be.fullfilled;
+      return new FakeClient().test().should.be.fulfilled;
     });
 
     it("should make decorated method resolve on capability match", () => {
@@ -242,7 +227,7 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.fullfilled;
+      return new FakeClient().test().should.be.fulfilled;
     });
 
     it("should make decorated method rejecting on missing capability", () => {
@@ -260,25 +245,6 @@ describe("Utils", () => {
       return new FakeClient()
         .test()
         .should.be.rejectedWith(Error, /default not present/);
-    });
-
-    it("should check for an attached client instance", () => {
-      class FakeClient {
-        constructor() {
-          this.client = {
-            fetchServerCapabilities() {
-              return Promise.resolve({ default: {} });
-            },
-          };
-        }
-
-        @capable()
-        test() {
-          return Promise.resolve();
-        }
-      }
-
-      return new FakeClient().test().should.be.fullfilled;
     });
   });
 
@@ -299,7 +265,7 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.fullfilled;
+      return new FakeClient().test().should.be.fulfilled;
     });
 
     it("should make decorated method to throw if in batch", () => {

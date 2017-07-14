@@ -59,7 +59,7 @@
     "babelify": "^7.3.0",
     "browserify": "^14.0.0",
     "btoa": "^1.1.2",
-    "chai": "^3.5.0",
+    "chai": "^4.1.0",
     "chai-as-promised": "^7.0.0",
     "coveralls": "^2.11.16",
     "esdoc": "^0.5.2",
