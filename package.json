@@ -63,7 +63,7 @@
     "chai-as-promised": "^7.0.0",
     "coveralls": "^2.11.16",
     "esdoc": "^1.0.1",
-    "esdoc-importpath-plugin": "0.1.4",
+    "esdoc-importpath-plugin": "1.0.0",
     "eslint": "4.2.0",
     "form-data": "^2.1.2",
     "isomorphic-fetch": "^2.2.1",
