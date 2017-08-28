@@ -152,7 +152,9 @@ describe("KintoClient", () => {
       const bucket = api.bucket("foo", options);
       expect(bucket).property("_safe", options.safe);
       expect(bucket).property("_retry", options.retry);
-      expect(bucket).property("_headers").eql(options.headers);
+      expect(bucket)
+        .property("_headers")
+        .eql(options.headers);
       expect(bucket).property("_isBatch", options.batch);
     });
   });
@@ -176,7 +178,9 @@ describe("KintoClient", () => {
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       return api.fetchServerInfo().then(_ => {
-        expect(api).property("serverInfo").deep.equal(fakeServerInfo);
+        expect(api)
+          .property("serverInfo")
+          .deep.equal(fakeServerInfo);
       });
     });
 
@@ -230,7 +234,10 @@ describe("KintoClient", () => {
         .stub(global, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
-      return api.fetchUser().should.eventually.have.property("fake").eql(true);
+      return api
+        .fetchUser()
+        .should.eventually.have.property("fake")
+        .eql(true);
     });
   });
 
@@ -262,11 +269,14 @@ describe("KintoClient", () => {
     });
 
     function executeBatch(fixtures, options) {
-      return api.bucket("default").collection("blog").batch(batch => {
-        for (const article of fixtures) {
-          batch.createRecord(article);
-        }
-      }, options);
+      return api
+        .bucket("default")
+        .collection("blog")
+        .batch(batch => {
+          for (const article of fixtures) {
+            batch.createRecord(article);
+          }
+        }, options);
     }
 
     describe("Batch client setup", () => {

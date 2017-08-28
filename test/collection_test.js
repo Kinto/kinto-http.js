@@ -62,7 +62,9 @@ describe("Collection", () => {
         })
       );
 
-      return getBlogPostsCollection().getTotalRecords().should.become(42);
+      return getBlogPostsCollection()
+        .getTotalRecords()
+        .should.become(42);
     });
   });
 
@@ -82,7 +84,9 @@ describe("Collection", () => {
       const response = { data: { foo: "bar" } };
       sandbox.stub(client, "execute").returns(Promise.resolve(response));
 
-      return getBlogPostsCollection().getData().should.become({ foo: "bar" });
+      return getBlogPostsCollection()
+        .getData()
+        .should.become({ foo: "bar" });
     });
   });
 

@@ -35,18 +35,20 @@ describe("batch module", () => {
         { status: 503, body: { err: 2 } },
       ];
 
-      expect(aggregate(responses, _requests)).to.have.property("errors").eql([
-        {
-          error: { err: 1 },
-          path: "foo1",
-          sent: _requests[0],
-        },
-        {
-          error: { err: 2 },
-          path: "foo2",
-          sent: _requests[1],
-        },
-      ]);
+      expect(aggregate(responses, _requests))
+        .to.have.property("errors")
+        .eql([
+          {
+            error: { err: 1 },
+            path: "foo1",
+            sent: _requests[0],
+          },
+          {
+            error: { err: 2 },
+            path: "foo2",
+            sent: _requests[1],
+          },
+        ]);
     });
 
     it("should expose HTTP 200<=x<400 responses in the published list", () => {
@@ -59,8 +61,8 @@ describe("batch module", () => {
         { status: 201, body: { data: { id: 2 } } },
       ];
 
-      expect(aggregate(responses, _requests)).to.have
-        .property("published")
+      expect(aggregate(responses, _requests))
+        .to.have.property("published")
         .eql(responses.map(r => r.body));
     });
 
@@ -74,13 +76,15 @@ describe("batch module", () => {
         { status: 404, body: { errno: 110, code: 404, error: "Not found" } },
       ];
 
-      expect(aggregate(responses, _requests)).to.have.property("skipped").eql(
-        responses.map(r => ({
-          id: "123",
-          path: "records/123",
-          error: r.body,
-        }))
-      );
+      expect(aggregate(responses, _requests))
+        .to.have.property("skipped")
+        .eql(
+          responses.map(r => ({
+            id: "123",
+            path: "records/123",
+            error: r.body,
+          }))
+        );
     });
 
     it("should expose HTTP 412 responses in the conflicts list", () => {
@@ -93,8 +97,8 @@ describe("batch module", () => {
         { status: 412, body: {} },
       ];
 
-      expect(aggregate(responses, _requests)).to.have
-        .property("conflicts")
+      expect(aggregate(responses, _requests))
+        .to.have.property("conflicts")
         .eql([
           {
             type: "outgoing",
