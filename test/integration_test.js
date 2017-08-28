@@ -101,7 +101,12 @@ describe("Integration tests", function() {
             coll.createRecord({ a: 1 });
             coll.createRecord({ a: 2 });
           })
-          .then(_ => api.bucket("default").collection("posts").listRecords())
+          .then(_ =>
+            api
+              .bucket("default")
+              .collection("posts")
+              .listRecords()
+          )
           .then(res => res.data)
           .should.eventually.have.length.of(2);
       });
@@ -115,7 +120,12 @@ describe("Integration tests", function() {
             coll.createRecord({ a: 1 });
             coll.createRecord({ a: 2 });
           })
-          .then(_ => api.bucket("default").collection("posts").listRecords())
+          .then(_ =>
+            api
+              .bucket("default")
+              .collection("posts")
+              .listRecords()
+          )
           .then(res => res.data)
           .should.eventually.have.length.of(2);
       });
@@ -163,8 +173,8 @@ describe("Integration tests", function() {
           });
 
           it("should create a bucket", () => {
-            expect(result).to.have
-              .property("data")
+            expect(result)
+              .to.have.property("data")
               .to.have.property("id")
               .to.be.a("string");
           });
@@ -176,15 +186,15 @@ describe("Integration tests", function() {
           });
 
           it("should create a bucket with the passed id", () => {
-            expect(result).to.have
-              .property("data")
+            expect(result)
+              .to.have.property("data")
               .to.have.property("id")
               .eql("foo");
           });
 
           it("should create a bucket having a list of write permissions", () => {
-            expect(result).to.have
-              .property("permissions")
+            expect(result)
+              .to.have.property("permissions")
               .to.have.property("write")
               .to.be.a("array");
           });
@@ -221,8 +231,8 @@ describe("Integration tests", function() {
         });
 
         it("should create a bucket having a list of write permissions", () => {
-          expect(result).to.have
-            .property("permissions")
+          expect(result)
+            .to.have.property("permissions")
             .to.have.property("read")
             .to.eql(["github:n1k0"]);
         });
@@ -420,7 +430,12 @@ describe("Integration tests", function() {
               coll.createRecord({ title: "art1" });
               coll.createRecord({ title: "art2" });
             })
-            .then(_ => api.bucket("custom").collection("blog").listRecords())
+            .then(_ =>
+              api
+                .bucket("custom")
+                .collection("blog")
+                .listRecords()
+            )
             .then(({ data }) => data.map(record => record.title))
             .should.become(["art2", "art1"]);
         });
@@ -439,7 +454,12 @@ describe("Integration tests", function() {
                 coll.createRecord({ title: "art" + i });
               }
             })
-            .then(_ => api.bucket("custom").collection("blog").listRecords())
+            .then(_ =>
+              api
+                .bucket("custom")
+                .collection("blog")
+                .listRecords()
+            )
             .should.eventually.have.property("data")
             .to.have.length.of(10);
         });
@@ -662,11 +682,15 @@ describe("Integration tests", function() {
         });
 
         it("should retrieve the bucket identifier", () => {
-          expect(result).to.have.property("id").eql("custom");
+          expect(result)
+            .to.have.property("id")
+            .eql("custom");
         });
 
         it("should retrieve bucket last_modified value", () => {
-          expect(result).to.have.property("last_modified").to.be.gt(1);
+          expect(result)
+            .to.have.property("last_modified")
+            .to.be.gt(1);
         });
       });
 
@@ -994,8 +1018,8 @@ describe("Integration tests", function() {
           });
 
           it("should create a collection having a list of write permissions", () => {
-            expect(result).to.have
-              .property("permissions")
+            expect(result)
+              .to.have.property("permissions")
               .to.have.property("read")
               .to.eql(["github:n1k0"]);
           });
@@ -1013,8 +1037,8 @@ describe("Integration tests", function() {
           });
 
           it("should create a collection having the expected data attached", () => {
-            expect(result).to.have
-              .property("data")
+            expect(result)
+              .to.have.property("data")
               .to.have.property("foo")
               .eql("bar");
           });
@@ -1159,8 +1183,8 @@ describe("Integration tests", function() {
           });
 
           it("should create a collection having a list of write permissions", () => {
-            expect(result).to.have
-              .property("permissions")
+            expect(result)
+              .to.have.property("permissions")
               .to.have.property("read")
               .to.eql(["github:n1k0"]);
             expect(result.data.members).to.include("twitter:leplatrem");
@@ -1179,8 +1203,8 @@ describe("Integration tests", function() {
           });
 
           it("should create a collection having the expected data attached", () => {
-            expect(result).to.have
-              .property("data")
+            expect(result)
+              .to.have.property("data")
               .to.have.property("foo")
               .eql("bar");
             expect(result.data.members).to.include("twitter:leplatrem");
@@ -1636,23 +1660,23 @@ describe("Integration tests", function() {
               });
 
               it("should create a record with an attachment", () => {
-                expect(result).to.have
-                  .property("data")
+                expect(result)
+                  .to.have.property("data")
                   .to.have.property("attachment")
                   .to.have.property("size")
                   .eql(input.length);
               });
 
               it("should create a record with provided record data", () => {
-                expect(result).to.have
-                  .property("data")
+                expect(result)
+                  .to.have.property("data")
                   .to.have.property("foo")
                   .eql("bar");
               });
 
               it("should create a record with provided permissions", () => {
-                expect(result).to.have
-                  .property("permissions")
+                expect(result)
+                  .to.have.property("permissions")
                   .to.have.property("write")
                   .contains("github:n1k0");
               });

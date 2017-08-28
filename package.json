@@ -23,7 +23,7 @@
     "test-nocover": "babel-node node_modules/.bin/_mocha --require ./test/setup-jsdom.js 'test/**/*_test.js'",
     "lint": "eslint src test"
   },
-  "prettierOptions": "--trailing-comma es5 --semi",
+  "prettierOptions": "--trailing-comma es5",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Kinto/kinto-http.js.git"
@@ -70,7 +70,7 @@
     "jsdom": "^11.0.0",
     "kinto-node-test-server": "^1.0.0",
     "mocha": "^3.2.0",
-    "prettier": "^1.5.1",
+    "prettier": "^1.6.0",
     "sinon": "^3.2.0",
     "toctoc": "^0.2.3",
     "uglifyify": "^4.0.1"

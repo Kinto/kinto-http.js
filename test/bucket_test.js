@@ -59,7 +59,9 @@ describe("Bucket", () => {
       const response = { data: { foo: "bar" }, permissions: {} };
       sandbox.stub(client, "execute").returns(Promise.resolve(response));
 
-      return getBlogBucket().getData().should.become({ foo: "bar" });
+      return getBlogBucket()
+        .getData()
+        .should.become({ foo: "bar" });
     });
   });
 
@@ -116,7 +118,9 @@ describe("Bucket", () => {
     });
 
     it("should resolve with json result", () => {
-      return getBlogBucket().setData({ a: 1 }).should.become({ data: 1 });
+      return getBlogBucket()
+        .setData({ a: 1 })
+        .should.become({ data: 1 });
     });
   });
 
@@ -180,7 +184,9 @@ describe("Bucket", () => {
     });
 
     it("should return the list of collections", () => {
-      return getBlogBucket().listCollections().should.become(data);
+      return getBlogBucket()
+        .listCollections()
+        .should.become(data);
     });
   });
 
@@ -401,7 +407,9 @@ describe("Bucket", () => {
     });
 
     it("should return the list of groups", () => {
-      return getBlogBucket().listGroups().should.become(data);
+      return getBlogBucket()
+        .listGroups()
+        .should.become(data);
     });
   });
 
@@ -424,7 +432,9 @@ describe("Bucket", () => {
     });
 
     it("should return the group", () => {
-      return getBlogBucket().getGroup("foo").should.become(fakeGroup);
+      return getBlogBucket()
+        .getGroup("foo")
+        .should.become(fakeGroup);
     });
   });
 
