@@ -32,9 +32,9 @@ describe("HTTP class", () => {
     });
 
     it("should accept a requestMode option", () => {
-      expect(new HTTP(events, { requestMode: "no-cors" }).requestMode).eql(
-        "no-cors"
-      );
+      expect(new HTTP(events, {
+          requestMode: "no-cors",
+        }).requestMode).eql("no-cors");
     });
 
     it("should complain if an events handler is not provided", () => {
@@ -54,9 +54,7 @@ describe("HTTP class", () => {
       it("should set default headers", () => {
         http.request("/");
 
-        expect(fetch.firstCall.args[1].headers).eql(
-          HTTP.DEFAULT_REQUEST_HEADERS
-        );
+        expect(fetch.firstCall.args[1].headers).eql(HTTP.DEFAULT_REQUEST_HEADERS);
       });
 
       it("should merge custom headers with default ones", () => {
@@ -124,11 +122,9 @@ describe("HTTP class", () => {
 
     describe("Request timeout", () => {
       it("should timeout the request", () => {
-        sandbox.stub(global, "fetch").returns(
-          new Promise(resolve => {
+        sandbox.stub(global, "fetch").returns(new Promise(resolve => {
             setTimeout(resolve, 20000);
-          })
-        );
+          }));
         return http.request("/").should.be.rejectedWith(Error, /timeout/);
       });
     });
@@ -148,21 +144,23 @@ describe("HTTP class", () => {
 
     describe("Malformed JSON response", () => {
       it("should reject with an appropriate message", () => {
-        sandbox.stub(global, "fetch").returns(
-          Promise.resolve({
-            status: 200,
-            headers: {
-              get(name) {
-                if (name !== "Alert") {
-                  return "fake";
-                }
+        sandbox
+          .stub(global, "fetch")
+          .returns(
+            Promise.resolve({
+              status: 200,
+              headers: {
+                get(name) {
+                  if (name !== "Alert") {
+                    return "fake";
+                  }
+                },
               },
-            },
-            text() {
-              return Promise.resolve("invalid JSON");
-            },
-          })
-        );
+              text() {
+                return Promise.resolve("invalid JSON");
+              },
+            })
+          );
 
         return http
           .request("/")
@@ -175,21 +173,23 @@ describe("HTTP class", () => {
 
     describe("Business error responses", () => {
       it("should reject on status code > 400", () => {
-        sandbox.stub(global, "fetch").returns(
-          fakeServerResponse(400, {
-            code: 400,
-            details: [
-              {
-                description: "data is missing",
-                location: "body",
-                name: "data",
-              },
-            ],
-            errno: 107,
-            error: "Invalid parameters",
-            message: "data is missing",
-          })
-        );
+        sandbox
+          .stub(global, "fetch")
+          .returns(
+            fakeServerResponse(400, {
+              code: 400,
+              details: [
+                {
+                  description: "data is missing",
+                  location: "body",
+                  name: "data",
+                },
+              ],
+              errno: 107,
+              error: "Invalid parameters",
+              message: "data is missing",
+            })
+          );
 
         return http
           .request("/")
@@ -201,11 +201,7 @@ describe("HTTP class", () => {
     });
 
     describe("Deprecation header", () => {
-      const eolObject = {
-        code: "soft-eol",
-        url: "http://eos-url",
-        message: "This service will soon be decommissioned",
-      };
+      const eolObject = { code: "soft-eol", url: "http://eos-url", message: "This service will soon be decommissioned" };
 
       beforeEach(() => {
         sandbox.stub(console, "warn");
@@ -221,11 +217,7 @@ describe("HTTP class", () => {
 
         return http.request("/").then(_ => {
           sinon.assert.calledOnce(console.warn);
-          sinon.assert.calledWithExactly(
-            console.warn,
-            eolObject.message,
-            eolObject.url
-          );
+          sinon.assert.calledWithExactly(console.warn, eolObject.message, eolObject.url);
         });
       });
 
@@ -236,11 +228,7 @@ describe("HTTP class", () => {
 
         return http.request("/").then(_ => {
           sinon.assert.calledOnce(console.warn);
-          sinon.assert.calledWithExactly(
-            console.warn,
-            "Unable to parse Alert header message",
-            "dafuq"
-          );
+          sinon.assert.calledWithExactly(console.warn, "Unable to parse Alert header message", "dafuq");
         });
       });
 

@@ -55,9 +55,7 @@ describe("Integration tests", function() {
     if (serverDidCrash) {
       // Server errors have been encountered, raise to break the build
       const trace = logLines.join("\n");
-      throw new Error(
-        `Kinto server crashed while running the test suite.\n\n${trace}`
-      );
+      throw new Error(`Kinto server crashed while running the test suite.\n\n${trace}`);
     }
     return server.killAll();
   });
@@ -101,12 +99,10 @@ describe("Integration tests", function() {
             coll.createRecord({ a: 1 });
             coll.createRecord({ a: 2 });
           })
-          .then(_ =>
-            api
+          .then(_ => api
               .bucket("default")
               .collection("posts")
-              .listRecords()
-          )
+              .listRecords())
           .then(res => res.data)
           .should.eventually.have.length.of(2);
       });
@@ -120,12 +116,10 @@ describe("Integration tests", function() {
             coll.createRecord({ a: 1 });
             coll.createRecord({ a: 2 });
           })
-          .then(_ =>
-            api
+          .then(_ => api
               .bucket("default")
               .collection("posts")
-              .listRecords()
-          )
+              .listRecords())
           .then(res => res.data)
           .should.eventually.have.length.of(2);
       });
@@ -222,11 +216,7 @@ describe("Integration tests", function() {
       describe("permissions option", () => {
         beforeEach(() => {
           return api
-            .createBucket("foo", {
-              permissions: {
-                read: ["github:n1k0"],
-              },
-            })
+            .createBucket("foo", { permissions: { read: ["github:n1k0"] } })
             .then(res => (result = res));
         });
 
@@ -285,16 +275,14 @@ describe("Integration tests", function() {
       });
 
       it("should delete all buckets", () => {
-        return (
-          api
+        return (api
             .deleteBuckets()
             // Note: Server tends to take a lot of time to perform this operation,
             // so we're delaying check a little.
             .then(_ => delayedPromise(50))
             .then(_ => api.listBuckets())
             .then(({ data }) => data)
-            .should.become([])
-        );
+            .should.become([]) );
       });
     });
 
@@ -430,12 +418,10 @@ describe("Integration tests", function() {
               coll.createRecord({ title: "art1" });
               coll.createRecord({ title: "art2" });
             })
-            .then(_ =>
-              api
+            .then(_ => api
                 .bucket("custom")
                 .collection("blog")
-                .listRecords()
-            )
+                .listRecords())
             .then(({ data }) => data.map(record => record.title))
             .should.become(["art2", "art1"]);
         });
@@ -454,12 +440,10 @@ describe("Integration tests", function() {
                 coll.createRecord({ title: "art" + i });
               }
             })
-            .then(_ =>
-              api
+            .then(_ => api
                 .bucket("custom")
                 .collection("blog")
-                .listRecords()
-            )
+                .listRecords())
             .should.eventually.have.property("data")
             .to.have.length.of(10);
         });
@@ -496,9 +480,7 @@ describe("Integration tests", function() {
             });
 
             it("should contain the list of succesful publications", () => {
-              expect(
-                results.published.map(body => body.data)
-              ).to.have.length.of(4);
+              expect(results.published.map(body => body.data)).to.have.length.of(4);
             });
           });
 
@@ -578,11 +560,7 @@ describe("Integration tests", function() {
 
       it("should warn when the server sends a deprecation Alert header", () => {
         return api.fetchServerSettings().then(_ => {
-          sinon.assert.calledWithExactly(
-            console.warn,
-            "Boom",
-            "http://www.perdu.com"
-          );
+          sinon.assert.calledWithExactly(console.warn, "Boom", "http://www.perdu.com");
         });
       });
     });
@@ -659,8 +637,7 @@ describe("Integration tests", function() {
 
       beforeEach(() => {
         bucket = api.bucket("custom");
-        return api.createBucket("custom").then(_ =>
-          bucket.batch(batch => {
+        return api.createBucket("custom").then(_ => bucket.batch(batch => {
             batch.createCollection("c1", { data: { size: 24 } });
             batch.createCollection("c2", { data: { size: 13 } });
             batch.createCollection("c3", { data: { size: 38 } });
@@ -670,8 +647,7 @@ describe("Integration tests", function() {
             batch.createGroup("g2", [], { data: { size: 13 } });
             batch.createGroup("g3", [], { data: { size: 38 } });
             batch.createGroup("g4", [], { data: { size: -4 } });
-          })
-        );
+          }));
       });
 
       describe(".getData()", () => {
@@ -755,10 +731,7 @@ describe("Integration tests", function() {
             return bucket
               .setPermissions(
                 { read: ["github:n1k0"] },
-                {
-                  safe: true,
-                  last_modified: 1,
-                }
+                { safe: true, last_modified: 1 }
               )
               .should.be.rejectedWith(Error, /412 Precondition Failed/);
           });
@@ -1030,9 +1003,7 @@ describe("Integration tests", function() {
 
           beforeEach(() => {
             return bucket
-              .createCollection("posts", {
-                data: { foo: "bar" },
-              })
+              .createCollection("posts", { data: { foo: "bar" } })
               .then(res => (result = res));
           });
 
@@ -1406,10 +1377,7 @@ describe("Integration tests", function() {
                 return coll
                   .setPermissions(
                     { read: ["github:n1k0"] },
-                    {
-                      safe: true,
-                      last_modified: 1,
-                    }
+                    { safe: true, last_modified: 1 }
                   )
                   .should.be.rejectedWith(Error, /412 Precondition Failed/);
               });
@@ -1480,13 +1448,7 @@ describe("Integration tests", function() {
             describe("Safe option", () => {
               it("should perform concurrency checks", () => {
                 return coll
-                  .setData(
-                    { signed: true },
-                    {
-                      safe: true,
-                      last_modified: 1,
-                    }
-                  )
+                  .setData({ signed: true }, { safe: true, last_modified: 1 })
                   .should.be.rejectedWith(Error, /412 Precondition Failed/);
               });
             });
@@ -1521,10 +1483,7 @@ describe("Integration tests", function() {
             });
 
             describe("Record id provided", () => {
-              const record = {
-                id: "37f727ed-c8c4-461b-80ac-de874992165c",
-                title: "foo",
-              };
+              const record = { id: "37f727ed-c8c4-461b-80ac-de874992165c", title: "foo" };
 
               it("should create a record", () => {
                 return coll
@@ -1644,8 +1603,7 @@ describe("Integration tests", function() {
           describe(".addAttachment()", () => {
             describe("With filename", () => {
               const input = "test";
-              const dataURL =
-                "data:text/plain;name=test.txt;base64," + btoa(input);
+              const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
 
               let result;
 
@@ -1716,8 +1674,7 @@ describe("Integration tests", function() {
 
           describe(".removeAttachment()", () => {
             const input = "test";
-            const dataURL =
-              "data:text/plain;name=test.txt;base64," + btoa(input);
+            const dataURL = "data:text/plain;name=test.txt;base64," + btoa(input);
 
             let recordId;
 
@@ -1767,11 +1724,9 @@ describe("Integration tests", function() {
             });
 
             it("should order records by field", () => {
-              return Promise.all(
-                ["art3", "art1", "art2"].map(title => {
+              return Promise.all(["art3", "art1", "art2"].map(title => {
                   return coll.createRecord({ title });
-                })
-              )
+                }))
                 .then(_ => coll.listRecords({ sort: "title" }))
                 .then(({ data }) => data.map(record => record.title))
                 .should.eventually.become(["art1", "art2", "art3"]);
