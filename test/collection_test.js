@@ -41,26 +41,21 @@ describe("Collection", () => {
 
       getBlogPostsCollection().getTotalRecords();
 
-      sinon.assert.calledWithMatch(
-        client.execute,
-        {
-          method: "HEAD",
-          path: "/buckets/blog/collections/posts/records",
-        },
-        { raw: true }
-      );
+      sinon.assert.calledWithMatch(client.execute, { method: "HEAD", path: "/buckets/blog/collections/posts/records" }, { raw: true });
     });
 
     it("should resolve with the Total-Records header value", () => {
-      sandbox.stub(client, "execute").returns(
-        Promise.resolve({
-          headers: {
-            get() {
-              return 42;
+      sandbox
+        .stub(client, "execute")
+        .returns(
+          Promise.resolve({
+            headers: {
+              get() {
+                return 42;
+              },
             },
-          },
-        })
-      );
+          })
+        );
 
       return getBlogPostsCollection()
         .getTotalRecords()
@@ -93,12 +88,14 @@ describe("Collection", () => {
   /** @test {Collection#getPermissions} */
   describe("#getPermissions()", () => {
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(
-        Promise.resolve({
-          data: {},
-          permissions: { write: ["fakeperms"] },
-        })
-      );
+      sandbox
+        .stub(client, "execute")
+        .returns(
+          Promise.resolve({
+            data: {},
+            permissions: { write: ["fakeperms"] },
+          })
+        );
     });
 
     it("should retrieve permissions", () => {
@@ -118,32 +115,13 @@ describe("Collection", () => {
     it("should set permissions", () => {
       coll.setPermissions(fakePermissions);
 
-      sinon.assert.calledWithMatch(
-        requests.updateRequest,
-        "/buckets/blog/collections/posts",
-        {
-          data: { last_modified: undefined },
-          permissions: fakePermissions,
-        },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
-      );
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", { data: { last_modified: undefined }, permissions: fakePermissions }, { headers: { Foo: "Bar", Baz: "Qux" } });
     });
 
     it("should handle the safe option", () => {
       coll.setPermissions(fakePermissions, { safe: true, last_modified: 42 });
 
-      sinon.assert.calledWithMatch(
-        requests.updateRequest,
-        "/buckets/blog/collections/posts",
-        {
-          data: { last_modified: 42 },
-          permissions: fakePermissions,
-        },
-        {
-          headers: { Foo: "Bar", Baz: "Qux" },
-          safe: true,
-        }
-      );
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", { data: { last_modified: 42 }, permissions: fakePermissions }, { headers: { Foo: "Bar", Baz: "Qux" }, safe: true });
     });
 
     it("should resolve with json result", () => {
@@ -201,32 +179,13 @@ describe("Collection", () => {
     it("should pop permissions", () => {
       coll.setPermissions(fakePermissions);
 
-      sinon.assert.calledWithMatch(
-        requests.updateRequest,
-        "/buckets/blog/collections/posts",
-        {
-          data: { last_modified: undefined },
-          permissions: fakePermissions,
-        },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
-      );
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", { data: { last_modified: undefined }, permissions: fakePermissions }, { headers: { Foo: "Bar", Baz: "Qux" } });
     });
 
     it("should handle the safe option", () => {
       coll.setPermissions(fakePermissions, { safe: true, last_modified: 42 });
 
-      sinon.assert.calledWithMatch(
-        requests.updateRequest,
-        "/buckets/blog/collections/posts",
-        {
-          data: { last_modified: 42 },
-          permissions: fakePermissions,
-        },
-        {
-          headers: { Foo: "Bar", Baz: "Qux" },
-          safe: true,
-        }
-      );
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", { data: { last_modified: 42 }, permissions: fakePermissions }, { headers: { Foo: "Bar", Baz: "Qux" }, safe: true });
     });
 
     it("should resolve with json result", () => {
@@ -259,50 +218,19 @@ describe("Collection", () => {
     it("should set the data", () => {
       coll.setData({ a: 1 });
 
-      sinon.assert.calledWithMatch(
-        requests.updateRequest,
-        "/buckets/blog/collections/posts",
-        {
-          data: { a: 1 },
-          permissions: undefined,
-        },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
-      );
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", { data: { a: 1 }, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" } });
     });
 
     it("should handle the safe option", () => {
       coll.setData({ a: 1 }, { safe: true, last_modified: 42 });
 
-      sinon.assert.calledWithMatch(
-        requests.updateRequest,
-        "/buckets/blog/collections/posts",
-        {
-          data: { a: 1 },
-          permissions: undefined,
-        },
-        {
-          headers: { Foo: "Bar", Baz: "Qux" },
-          safe: true,
-          last_modified: 42,
-        }
-      );
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", { data: { a: 1 }, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" }, safe: true, last_modified: 42 });
     });
 
     it("should handle the patch option", () => {
       coll.setData({ a: 1 }, { patch: true });
 
-      sinon.assert.calledWithMatch(
-        requests.updateRequest,
-        "/buckets/blog/collections/posts",
-        {
-          data: { a: 1 },
-          permissions: undefined,
-        },
-        {
-          headers: { Foo: "Bar", Baz: "Qux" },
-          patch: true,
-        }
-      );
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts", { data: { a: 1 }, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" }, patch: true });
     });
 
     it("should resolve with json result", () => {
@@ -323,15 +251,7 @@ describe("Collection", () => {
 
       coll.createRecord(record);
 
-      sinon.assert.calledWith(
-        requests.createRequest,
-        "/buckets/blog/collections/posts/records",
-        {
-          data: record,
-          permissions: undefined,
-        },
-        { headers: { Foo: "Bar", Baz: "Qux" }, safe: false }
-      );
+      sinon.assert.calledWith(requests.createRequest, "/buckets/blog/collections/posts/records", { data: record, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" }, safe: false });
     });
 
     it("should accept a safe option", () => {
@@ -339,18 +259,7 @@ describe("Collection", () => {
 
       coll.createRecord(record, { safe: true });
 
-      sinon.assert.calledWithMatch(
-        requests.createRequest,
-        "/buckets/blog/collections/posts/records",
-        {
-          data: record,
-          permissions: undefined,
-        },
-        {
-          safe: true,
-          headers: { Foo: "Bar", Baz: "Qux" },
-        }
-      );
+      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/collections/posts/records", { data: record, permissions: undefined }, { safe: true, headers: { Foo: "Bar", Baz: "Qux" } });
     });
 
     it("should execute the expected request", () => {
@@ -391,20 +300,7 @@ describe("Collection", () => {
 
       coll.updateRecord(record);
 
-      sinon.assert.calledWith(
-        requests.updateRequest,
-        "/buckets/blog/collections/posts/records/2",
-        {
-          data: record,
-          permissions: undefined,
-        },
-        {
-          headers: { Foo: "Bar", Baz: "Qux" },
-          safe: false,
-          last_modified: undefined,
-          patch: false,
-        }
-      );
+      sinon.assert.calledWith(requests.updateRequest, "/buckets/blog/collections/posts/records/2", { data: record, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" }, safe: false, last_modified: undefined, patch: false });
     });
 
     it("should accept a safe option", () => {
@@ -412,18 +308,7 @@ describe("Collection", () => {
 
       coll.updateRecord({ ...record, last_modified: 42 }, { safe: true });
 
-      sinon.assert.calledWithMatch(
-        requests.updateRequest,
-        "/buckets/blog/collections/posts/records/2",
-        {
-          data: { ...record, last_modified: 42 },
-          permissions: undefined,
-        },
-        {
-          safe: true,
-          headers: { Foo: "Bar", Baz: "Qux" },
-        }
-      );
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts/records/2", { data: { ...record, last_modified: 42 }, permissions: undefined }, { safe: true, headers: { Foo: "Bar", Baz: "Qux" } });
     });
 
     it("should accept a patch option", () => {
@@ -431,18 +316,7 @@ describe("Collection", () => {
 
       coll.updateRecord(record, { patch: true });
 
-      sinon.assert.calledWithMatch(
-        requests.updateRequest,
-        "/buckets/blog/collections/posts/records/2",
-        {
-          data: record,
-          permissions: undefined,
-        },
-        {
-          patch: true,
-          headers: { Foo: "Bar", Baz: "Qux" },
-        }
-      );
+      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/collections/posts/records/2", { data: record, permissions: undefined }, { patch: true, headers: { Foo: "Bar", Baz: "Qux" } });
     });
 
     it("should resolve with response body", () => {
@@ -537,23 +411,13 @@ describe("Collection", () => {
     it("should execute expected request", () => {
       coll.listRecords({ _since: "42" });
 
-      sinon.assert.calledWithMatch(
-        coll.client.paginatedList,
-        "/buckets/blog/collections/posts/records",
-        { _since: "42" },
-        { headers: { Baz: "Qux", Foo: "Bar" } }
-      );
+      sinon.assert.calledWithMatch(coll.client.paginatedList, "/buckets/blog/collections/posts/records", { _since: "42" }, { headers: { Baz: "Qux", Foo: "Bar" } });
     });
 
     it("should support passing custom headers", () => {
       coll.listRecords({ headers: { "Another-Header": "Hello" } });
 
-      sinon.assert.calledWithMatch(
-        coll.client.paginatedList,
-        "/buckets",
-        {},
-        { headers: { Foo: "Bar", Baz: "Qux", "Another-Header": "Hello" } }
-      );
+      sinon.assert.calledWithMatch(coll.client.paginatedList, "/buckets", {}, { headers: { Foo: "Bar", Baz: "Qux", "Another-Header": "Hello" } });
     });
 
     it("should resolve with a result object", () => {
