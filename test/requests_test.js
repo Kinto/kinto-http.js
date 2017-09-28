@@ -22,9 +22,11 @@ describe("requests module", () => {
     });
 
     it("should return a PUT creation request when an id is provided", () => {
-      expect(requests.createRequest("/foo", {
+      expect(
+        requests.createRequest("/foo", {
           data: { id: "foo" },
-        })).eql({
+        })
+      ).eql({
         body: {
           data: {
             id: "foo",
@@ -52,7 +54,9 @@ describe("requests module", () => {
     });
 
     it("should support a safe option", () => {
-      expect(requests.createRequest("/foo", { data: { id: "foo" } }, { safe: true }))
+      expect(
+        requests.createRequest("/foo", { data: { id: "foo" } }, { safe: true })
+      )
         .to.have.property("headers")
         .to.have.property("If-None-Match")
         .eql("*");
@@ -75,9 +79,10 @@ describe("requests module", () => {
     });
 
     it("should raise for safe with no last_modified passed", () => {
-      expect(() =>
-        requests.deleteRequest("/foo", { safe: true })
-      ).to.Throw(Error, /requires a last_modified/);
+      expect(() => requests.deleteRequest("/foo", { safe: true })).to.Throw(
+        Error,
+        /requires a last_modified/
+      );
     });
 
     it("should support a safe option with a last_modified option", () => {
@@ -90,9 +95,11 @@ describe("requests module", () => {
 
   describe("updateRequest()", () => {
     it("should return a update request", () => {
-      expect(requests.updateRequest("/foo", {
+      expect(
+        requests.updateRequest("/foo", {
           data: { id: "foo", age: 42 },
-        })).eql({
+        })
+      ).eql({
         body: {
           data: { id: "foo", age: 42 },
           permissions: undefined,
@@ -104,24 +111,34 @@ describe("requests module", () => {
     });
 
     it("should accept a headers option", () => {
-      expect(requests.updateRequest("/foo", { data: { id: "foo" } }, { headers: { Foo: "Bar" } }))
+      expect(
+        requests.updateRequest(
+          "/foo",
+          { data: { id: "foo" } },
+          { headers: { Foo: "Bar" } }
+        )
+      )
         .to.have.property("headers")
         .eql({ Foo: "Bar" });
     });
 
     it("should accept a permissions option", () => {
       const permissions = { read: ["github:n1k0"] };
-      expect(requests.updateRequest("/foo", {
+      expect(
+        requests.updateRequest("/foo", {
           data: { id: "foo" },
           permissions,
-        }))
+        })
+      )
         .to.have.property("body")
         .to.have.property("permissions")
         .eql(permissions);
     });
 
     it("should accept a patch option", () => {
-      expect(requests.updateRequest("/foo", { data: { id: "foo" } }, { patch: true }))
+      expect(
+        requests.updateRequest("/foo", { data: { id: "foo" } }, { patch: true })
+      )
         .to.have.property("method")
         .eql("PATCH");
     });
@@ -134,21 +151,35 @@ describe("requests module", () => {
     });
 
     it("should support a safe option with no last_modified passed", () => {
-      expect(requests.updateRequest("/foo", { data: { id: "foo", a: 1 } }, { safe: true }))
+      expect(
+        requests.updateRequest(
+          "/foo",
+          { data: { id: "foo", a: 1 } },
+          { safe: true }
+        )
+      )
         .to.have.property("headers")
         .to.have.property("If-None-Match")
         .eql("*");
     });
 
     it("should support a safe option with a last_modified passed", () => {
-      expect(requests.updateRequest("/foo", { data: { id: "foo", last_modified: 42 } }, { safe: true }))
+      expect(
+        requests.updateRequest(
+          "/foo",
+          { data: { id: "foo", last_modified: 42 } },
+          { safe: true }
+        )
+      )
         .to.have.property("headers")
         .to.have.property("If-Match")
         .eql('"42"');
     });
 
     it("should accept a patch option", () => {
-      expect(requests.updateRequest("/foo", { data: { id: "foo" } }, { patch: true }))
+      expect(
+        requests.updateRequest("/foo", { data: { id: "foo" } }, { patch: true })
+      )
         .to.have.property("method")
         .eql("PATCH");
     });
@@ -163,7 +194,14 @@ describe("requests module", () => {
     });
 
     it("should accept a headers option", () => {
-      expect(requests.addAttachmentRequest("/foo", dataURL, {}, { headers: { Foo: "Bar" } }))
+      expect(
+        requests.addAttachmentRequest(
+          "/foo",
+          dataURL,
+          {},
+          { headers: { Foo: "Bar" } }
+        )
+      )
         .to.have.property("headers")
         .eql({ Foo: "Bar" });
     });
@@ -176,20 +214,31 @@ describe("requests module", () => {
     });
 
     it("should support a safe option with a last_modified option", () => {
-      expect(requests.addAttachmentRequest("/foo", dataURL, {}, { safe: true, last_modified: 42 }))
+      expect(
+        requests.addAttachmentRequest(
+          "/foo",
+          dataURL,
+          {},
+          { safe: true, last_modified: 42 }
+        )
+      )
         .to.have.property("headers")
         .to.have.property("If-Match")
         .eql('"42"');
     });
 
     it("should support a gzipped option passed with true", () => {
-      expect(requests.addAttachmentRequest("/foo", dataURL, {}, { gzipped: true }))
+      expect(
+        requests.addAttachmentRequest("/foo", dataURL, {}, { gzipped: true })
+      )
         .to.have.property("path")
         .eql("/foo?gzipped=true");
     });
 
     it("should support a gzipped option passed with false", () => {
-      expect(requests.addAttachmentRequest("/foo", dataURL, {}, { gzipped: false }))
+      expect(
+        requests.addAttachmentRequest("/foo", dataURL, {}, { gzipped: false })
+      )
         .to.have.property("path")
         .eql("/foo?gzipped=false");
     });
