@@ -35,13 +35,19 @@ describe("KintoClient", () => {
     const sampleRemote = `http://test/${SPV}`;
 
     it("should check that `remote` is a string", () => {
-      expect(() => new KintoClient(42, {
+      expect(
+        () =>
+          new KintoClient(42, {
             events,
-          })).to.Throw(Error, /Invalid remote URL/);
+          })
+      ).to.Throw(Error, /Invalid remote URL/);
     });
 
     it("should validate `remote` arg value", () => {
-      expect(() => new KintoClient("http://nope")).to.Throw(Error, /The remote URL must contain the version/);
+      expect(() => new KintoClient("http://nope")).to.Throw(
+        Error,
+        /The remote URL must contain the version/
+      );
     });
 
     it("should strip any trailing slash", () => {
@@ -63,20 +69,27 @@ describe("KintoClient", () => {
     });
 
     it("should accept a headers option", () => {
-      expect(new KintoClient(sampleRemote, {
+      expect(
+        new KintoClient(sampleRemote, {
           headers: { Foo: "Bar" },
-        })._headers).eql({ Foo: "Bar" });
+        })._headers
+      ).eql({ Foo: "Bar" });
     });
 
     it("should validate protocol version", () => {
-      expect(() => new KintoClient("http://test/v999")).to.Throw(Error, /^Unsupported protocol version/);
+      expect(() => new KintoClient("http://test/v999")).to.Throw(
+        Error,
+        /^Unsupported protocol version/
+      );
     });
 
     it("should propagate the requestMode option to the child HTTP instance", () => {
       const requestMode = "no-cors";
-      expect(new KintoClient(sampleRemote, {
+      expect(
+        new KintoClient(sampleRemote, {
           requestMode,
-        }).http.requestMode).eql(requestMode);
+        }).http.requestMode
+      ).eql(requestMode);
     });
 
     it("should keep the default timeout in the child HTTP instance", () => {
@@ -85,13 +98,17 @@ describe("KintoClient", () => {
 
     it("should propagate the timeout option to the child HTTP instance", () => {
       const timeout = 1000;
-      expect(new KintoClient(sampleRemote, {
+      expect(
+        new KintoClient(sampleRemote, {
           timeout,
-        }).http.timeout).eql(timeout);
+        }).http.timeout
+      ).eql(timeout);
     });
 
     it("should create an event emitter if none is provided", () => {
-      expect(new KintoClient(sampleRemote).events).to.be.an.instanceOf(EventEmitter);
+      expect(new KintoClient(sampleRemote).events).to.be.an.instanceOf(
+        EventEmitter
+      );
     });
 
     it("should expose provided event emitter as a property", () => {
@@ -131,7 +148,12 @@ describe("KintoClient", () => {
     });
 
     it("should propagate default req options to bucket instance", () => {
-      const options = { safe: true, retry: 0, headers: { Foo: "Bar" }, batch: false };
+      const options = {
+        safe: true,
+        retry: 0,
+        headers: { Foo: "Bar" },
+        batch: false,
+      };
 
       const bucket = api.bucket("foo", options);
       expect(bucket).property("_safe", options.safe);
@@ -244,13 +266,11 @@ describe("KintoClient", () => {
   /** @test {KintoClient#batch} */
   describe("#batch", () => {
     beforeEach(() => {
-      const fetchServerSettings = sandbox
-        .stub()
-        .returns(
-          Promise.resolve({
-            batch_max_requests: 3,
-          })
-        );
+      const fetchServerSettings = sandbox.stub().returns(
+        Promise.resolve({
+          batch_max_requests: 3,
+        })
+      );
       sandbox.stub(api, "fetchServerSettings").get(() => fetchServerSettings);
     });
 
@@ -297,7 +317,11 @@ describe("KintoClient", () => {
       });
 
       describe("non-empty request list", () => {
-        const fixtures = [{ title: "art1" }, { title: "art2" }, { title: "art3" }];
+        const fixtures = [
+          { title: "art1" },
+          { title: "art2" },
+          { title: "art3" },
+        ];
 
         beforeEach(() => {
           api._headers = { Authorization: "Basic plop" };
@@ -365,7 +389,11 @@ describe("KintoClient", () => {
       });
 
       describe("Retry", () => {
-        const response = { status: 201, path: `/${SPV}/buckets/blog/collections/articles/records`, body: { data: { id: 1, title: "art" } } };
+        const response = {
+          status: 201,
+          path: `/${SPV}/buckets/blog/collections/articles/records`,
+          body: { data: { id: 1, title: "art" } },
+        };
 
         beforeEach(() => {
           sandbox.stub(global, "setTimeout").callsFake(setImmediate);
@@ -373,13 +401,11 @@ describe("KintoClient", () => {
           fetch
             .onCall(0)
             .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
-          fetch
-            .onCall(1)
-            .returns(
-              fakeServerResponse(200, {
-                responses: [response],
-              })
-            );
+          fetch.onCall(1).returns(
+            fakeServerResponse(200, {
+              responses: [response],
+            })
+          );
         });
 
         it("should retry the request if option is specified", () => {
@@ -396,34 +422,47 @@ describe("KintoClient", () => {
       const fixtures = [{ id: 1, title: "art1" }, { id: 2, title: "art2" }];
 
       it("should reject on HTTP 400", () => {
-        sandbox
-          .stub(global, "fetch")
-          .returns(
-            fakeServerResponse(400, {
-              error: true,
-              errno: 117,
-              message: "http 400",
-            })
-          );
+        sandbox.stub(global, "fetch").returns(
+          fakeServerResponse(400, {
+            error: true,
+            errno: 117,
+            message: "http 400",
+          })
+        );
 
-        return executeBatch(fixtures).should.eventually.be.rejectedWith(Error, /HTTP 400/);
+        return executeBatch(fixtures).should.eventually.be.rejectedWith(
+          Error,
+          /HTTP 400/
+        );
       });
 
       it("should reject on HTTP error status code", () => {
-        sandbox
-          .stub(global, "fetch")
-          .returns(
-            fakeServerResponse(500, {
-              error: true,
-              message: "http 500",
-            })
-          );
+        sandbox.stub(global, "fetch").returns(
+          fakeServerResponse(500, {
+            error: true,
+            message: "http 500",
+          })
+        );
 
-        return executeBatch(fixtures).should.eventually.be.rejectedWith(Error, /HTTP 500/);
+        return executeBatch(fixtures).should.eventually.be.rejectedWith(
+          Error,
+          /HTTP 500/
+        );
       });
 
       it("should expose succesful subrequest responses", () => {
-        const responses = [{ status: 201, path: `/${SPV}/buckets/blog/collections/articles/records`, body: { data: fixtures[0] } }, { status: 201, path: `/${SPV}/buckets/blog/collections/articles/records`, body: { data: fixtures[1] } }];
+        const responses = [
+          {
+            status: 201,
+            path: `/${SPV}/buckets/blog/collections/articles/records`,
+            body: { data: fixtures[0] },
+          },
+          {
+            status: 201,
+            path: `/${SPV}/buckets/blog/collections/articles/records`,
+            body: { data: fixtures[1] },
+          },
+        ];
         sandbox
           .stub(global, "fetch")
           .returns(fakeServerResponse(200, { responses }));
@@ -433,7 +472,13 @@ describe("KintoClient", () => {
 
       it("should expose failing subrequest responses", () => {
         const missingRemotely = fixtures[0];
-        const responses = [{ status: 404, path: `/${SPV}/buckets/blog/collections/articles/records/1`, body: missingRemotely }];
+        const responses = [
+          {
+            status: 404,
+            path: `/${SPV}/buckets/blog/collections/articles/records/1`,
+            body: missingRemotely,
+          },
+        ];
         sandbox
           .stub(global, "fetch")
           .returns(fakeServerResponse(200, { responses }));
@@ -442,7 +487,13 @@ describe("KintoClient", () => {
       });
 
       it("should resolve with encountered HTTP 500", () => {
-        const responses = [{ status: 500, path: `/${SPV}/buckets/blog/collections/articles/records/1`, body: { 500: true } }];
+        const responses = [
+          {
+            status: 500,
+            path: `/${SPV}/buckets/blog/collections/articles/records/1`,
+            body: { 500: true },
+          },
+        ];
         sandbox
           .stub(global, "fetch")
           .returns(fakeServerResponse(200, { responses }));
@@ -451,7 +502,13 @@ describe("KintoClient", () => {
       });
 
       it("should expose encountered HTTP 412", () => {
-        const responses = [{ status: 412, path: `/${SPV}/buckets/blog/collections/articles/records/1`, body: { details: { existing: { title: "foo" } } } }];
+        const responses = [
+          {
+            status: 412,
+            path: `/${SPV}/buckets/blog/collections/articles/records/1`,
+            body: { details: { existing: { title: "foo" } } },
+          },
+        ];
         sandbox
           .stub(global, "fetch")
           .returns(fakeServerResponse(200, { responses }));
@@ -462,39 +519,48 @@ describe("KintoClient", () => {
 
     describe("Chunked requests", () => {
       // 4 operations, one more than the test limit which is 3
-      const fixtures = [{ id: 1, title: "foo" }, { id: 2, title: "bar" }, { id: 3, title: "baz" }, { id: 4, title: "qux" }];
+      const fixtures = [
+        { id: 1, title: "foo" },
+        { id: 2, title: "bar" },
+        { id: 3, title: "baz" },
+        { id: 4, title: "qux" },
+      ];
 
       it("should chunk batch requests", () => {
         sandbox
           .stub(global, "fetch")
           .onFirstCall()
-          .returns(fakeServerResponse(200, {
+          .returns(
+            fakeServerResponse(200, {
               responses: [
                 { status: 200, body: { data: 1 } },
                 { status: 200, body: { data: 2 } },
                 { status: 200, body: { data: 3 } },
               ],
-            }))
+            })
+          )
           .onSecondCall()
-          .returns(fakeServerResponse(200, {
+          .returns(
+            fakeServerResponse(200, {
               responses: [{ status: 200, body: { data: 4 } }],
-            }));
+            })
+          );
         return executeBatch(fixtures)
           .then(res => res.map(response => response.body.data))
           .should.become([1, 2, 3, 4]);
       });
 
       it("should not chunk batch requests if setting is falsy", () => {
-        api.fetchServerSettings.returns(Promise.resolve({
+        api.fetchServerSettings.returns(
+          Promise.resolve({
             batch_max_requests: null,
-          }));
-        sandbox
-          .stub(global, "fetch")
-          .returns(
-            fakeServerResponse(200, {
-              responses: [],
-            })
-          );
+          })
+        );
+        sandbox.stub(global, "fetch").returns(
+          fakeServerResponse(200, {
+            responses: [],
+          })
+        );
         return executeBatch(fixtures).then(_ => sinon.assert.calledOnce(fetch));
       });
 
@@ -502,19 +568,23 @@ describe("KintoClient", () => {
         sandbox
           .stub(global, "fetch")
           .onFirstCall()
-          .returns(fakeServerResponse(200, {
+          .returns(
+            fakeServerResponse(200, {
               responses: [
                 { status: 412, body: { details: { existing: { id: 1 } } } },
                 { status: 412, body: { details: { existing: { id: 2 } } } },
                 { status: 412, body: {} },
               ],
-            }))
+            })
+          )
           .onSecondCall()
-          .returns(fakeServerResponse(200, {
+          .returns(
+            fakeServerResponse(200, {
               responses: [
                 { status: 412, body: { details: { existing: { id: 4 } } } },
               ],
-            }));
+            })
+          );
         return executeBatch(fixtures)
           .then(res => res.map(response => response.status))
           .should.become([412, 412, 412, 412]);
@@ -524,27 +594,35 @@ describe("KintoClient", () => {
         sandbox
           .stub(global, "fetch")
           .onFirstCall()
-          .returns(new Promise(resolve => {
+          .returns(
+            new Promise(resolve => {
               function onTimeout() {
-                resolve(fakeServerResponse(200, {
+                resolve(
+                  fakeServerResponse(200, {
                     responses: [
                       { status: 200, body: { data: 1 } },
                       { status: 200, body: { data: 2 } },
                       { status: 200, body: { data: 3 } },
                     ],
-                  }));
+                  })
+                );
               }
               setTimeout(onTimeout, 100);
-            }))
+            })
+          )
           .onSecondCall()
-          .returns(new Promise(resolve => {
+          .returns(
+            new Promise(resolve => {
               function onTimeout() {
-                resolve(fakeServerResponse(200, {
+                resolve(
+                  fakeServerResponse(200, {
                     responses: [{ status: 200, body: { data: 4 } }],
-                  }));
+                  })
+                );
               }
               setTimeout(onTimeout, 5);
-            }));
+            })
+          );
         return executeBatch(fixtures)
           .then(res => res.map(response => response.body.data))
           .should.become([1, 2, 3, 4]);
@@ -552,7 +630,12 @@ describe("KintoClient", () => {
     });
 
     describe("Aggregate mode", () => {
-      const fixtures = [{ title: "art1" }, { title: "art2" }, { title: "art3" }, { title: "art4" }];
+      const fixtures = [
+        { title: "art1" },
+        { title: "art2" },
+        { title: "art3" },
+        { title: "art4" },
+      ];
 
       it("should resolve with an aggregated result object", () => {
         const responses = [];
@@ -578,7 +661,12 @@ describe("KintoClient", () => {
         .returns(Promise.resolve({}));
 
       return api.execute({ path: "/foo", garbage: true }).then(() => {
-        sinon.assert.calledWith(request, "http://fake-server/v1/foo", {}, { retry: 0 });
+        sinon.assert.calledWith(
+          request,
+          "http://fake-server/v1/foo",
+          {},
+          { retry: 0 }
+        );
       });
     });
   });
@@ -592,34 +680,40 @@ describe("KintoClient", () => {
     describe("No pagination", () => {
       beforeEach(() => {
         // Since listRecords use `raw: true`, stub with full response:
-        sandbox
-          .stub(api, "execute")
-          .returns(
-            Promise.resolve({
-              json: { data: [{ a: 1 }] },
-              headers: {
-                get: name => {
-                  if (name === "ETag") {
-                    return ETag;
-                  } else if (name === "Total-Records") {
-                    return String(totalRecords);
-                  }
-                },
+        sandbox.stub(api, "execute").returns(
+          Promise.resolve({
+            json: { data: [{ a: 1 }] },
+            headers: {
+              get: name => {
+                if (name === "ETag") {
+                  return ETag;
+                } else if (name === "Total-Records") {
+                  return String(totalRecords);
+                }
               },
-            })
-          );
+            },
+          })
+        );
       });
 
       it("should execute expected request", () => {
         api.paginatedList(path);
 
-        sinon.assert.calledWithMatch(api.execute, { path: `${path}?_sort=-last_modified` }, { raw: true });
+        sinon.assert.calledWithMatch(
+          api.execute,
+          { path: `${path}?_sort=-last_modified` },
+          { raw: true }
+        );
       });
 
       it("should sort records", () => {
         api.paginatedList(path, { sort: "title" });
 
-        sinon.assert.calledWithMatch(api.execute, { path: `${path}?_sort=title` }, { raw: true });
+        sinon.assert.calledWithMatch(
+          api.execute,
+          { path: `${path}?_sort=title` },
+          { raw: true }
+        );
       });
 
       it("should resolve with records list", () => {
@@ -676,68 +770,72 @@ describe("KintoClient", () => {
 
     describe("Filtering", () => {
       beforeEach(() => {
-        sandbox
-          .stub(api, "execute")
-          .returns(
-            Promise.resolve({
-              json: { data: [] },
-              headers: { get: () => {} },
-            })
-          );
+        sandbox.stub(api, "execute").returns(
+          Promise.resolve({
+            json: { data: [] },
+            headers: { get: () => {} },
+          })
+        );
       });
 
       it("should generate the expected filtering query string", () => {
         api.paginatedList(path, { sort: "x", filters: { min_y: 2, not_z: 3 } });
 
         const expectedQS = "min_y=2&not_z=3&_sort=x";
-        sinon.assert.calledWithMatch(api.execute, { path: `${path}?${expectedQS}` }, { raw: true });
+        sinon.assert.calledWithMatch(
+          api.execute,
+          { path: `${path}?${expectedQS}` },
+          { raw: true }
+        );
       });
 
       it("shouldn't need an explicit sort parameter", () => {
         api.paginatedList(path, { filters: { min_y: 2, not_z: 3 } });
 
         const expectedQS = "min_y=2&not_z=3&_sort=-last_modified";
-        sinon.assert.calledWithMatch(api.execute, { path: `${path}?${expectedQS}` }, { raw: true });
+        sinon.assert.calledWithMatch(
+          api.execute,
+          { path: `${path}?${expectedQS}` },
+          { raw: true }
+        );
       });
     });
 
     describe("Pagination", () => {
       let headersgetSpy;
       it("should issue a request with the specified limit applied", () => {
-        sandbox
-          .stub(api, "execute")
-          .returns(
-            Promise.resolve({
-              json: { data: [] },
-              headers: { get: headersgetSpy },
-            })
-          );
+        sandbox.stub(api, "execute").returns(
+          Promise.resolve({
+            json: { data: [] },
+            headers: { get: headersgetSpy },
+          })
+        );
 
         api.paginatedList(path, { limit: 2 });
 
         const expectedQS = "_sort=-last_modified&_limit=2";
-        sinon.assert.calledWithMatch(api.execute, { path: `${path}?${expectedQS}` }, { raw: true });
+        sinon.assert.calledWithMatch(
+          api.execute,
+          { path: `${path}?${expectedQS}` },
+          { raw: true }
+        );
       });
 
       it("should query for next page", () => {
         const { http } = api;
         headersgetSpy = sandbox.stub().returns("http://next-page/");
-        sandbox
-          .stub(api, "execute")
-          .returns(
-            Promise.resolve({
-              json: { data: [] },
-              headers: { get: headersgetSpy },
-            })
-          );
-        sandbox
-          .stub(http, "request")
-          .returns(
-            Promise.resolve({
-              headers: { get: () => {} },
-              json: { data: [] },
-            })
-          );
+        sandbox.stub(api, "execute").returns(
+          Promise.resolve({
+            json: { data: [] },
+            headers: { get: headersgetSpy },
+          })
+        );
+        sandbox.stub(http, "request").returns(
+          Promise.resolve({
+            headers: { get: () => {} },
+            json: { data: [] },
+          })
+        );
 
         return api.paginatedList(path, { limit: 2, pages: 2 }).then(_ => {
           sinon.assert.calledWith(http.request, "http://next-page/");
@@ -750,16 +848,20 @@ describe("KintoClient", () => {
           .stub(http, "request")
           // first page
           .onFirstCall()
-          .returns(Promise.resolve({
+          .returns(
+            Promise.resolve({
               headers: { get: () => "http://next-page/" },
               json: { data: [1, 2] },
-            }))
+            })
+          )
           // second page
           .onSecondCall()
-          .returns(Promise.resolve({
+          .returns(
+            Promise.resolve({
               headers: { get: () => {} },
               json: { data: [3] },
-            }));
+            })
+          );
 
         return api
           .paginatedList(path, { limit: 2, pages: 2 })
@@ -773,10 +875,12 @@ describe("KintoClient", () => {
           .stub(http, "request")
           // first page
           .onFirstCall()
-          .returns(Promise.resolve({
+          .returns(
+            Promise.resolve({
               headers: { get: () => "http://next-page/" },
               json: { data: [1, 2] },
-            }));
+            })
+          );
 
         return api
           .paginatedList(path)
@@ -790,10 +894,12 @@ describe("KintoClient", () => {
           .stub(http, "request")
           // first page
           .onFirstCall()
-          .returns(Promise.resolve({
+          .returns(
+            Promise.resolve({
               headers: { get: () => "1337" },
               json: { data: [1, 2] },
-            }));
+            })
+          );
 
         return api
           .paginatedList(path)
@@ -867,14 +973,24 @@ describe("KintoClient", () => {
     it("should execute expected request", () => {
       api.listBuckets({ _since: "42" });
 
-      sinon.assert.calledWithMatch(api.paginatedList, "/buckets", { _since: "42" }, { headers: {} });
+      sinon.assert.calledWithMatch(
+        api.paginatedList,
+        "/buckets",
+        { _since: "42" },
+        { headers: {} }
+      );
     });
 
     it("should support passing custom headers", () => {
       api._headers = { Foo: "Bar" };
       api.listBuckets({ headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(api.paginatedList, "/buckets", {}, { headers: { Foo: "Bar", Baz: "Qux" } });
+      sinon.assert.calledWithMatch(
+        api.paginatedList,
+        "/buckets",
+        {},
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
     });
 
     it("should resolve with a result object", () => {
@@ -895,19 +1011,34 @@ describe("KintoClient", () => {
     it("should execute expected request", () => {
       api.createBucket("foo");
 
-      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/foo", { data: { id: "foo" }, permissions: undefined }, { headers: {}, safe: false });
+      sinon.assert.calledWithMatch(
+        requests.createRequest,
+        "/buckets/foo",
+        { data: { id: "foo" }, permissions: undefined },
+        { headers: {}, safe: false }
+      );
     });
 
     it("should accept a data option", () => {
       api.createBucket("foo", { data: { a: 1 } });
 
-      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/foo", { data: { id: "foo", a: 1 }, permissions: undefined }, { headers: {}, safe: false });
+      sinon.assert.calledWithMatch(
+        requests.createRequest,
+        "/buckets/foo",
+        { data: { id: "foo", a: 1 }, permissions: undefined },
+        { headers: {}, safe: false }
+      );
     });
 
     it("should accept a safe option", () => {
       api.createBucket("foo", { safe: true });
 
-      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/foo", { data: { id: "foo" }, permissions: undefined }, { headers: {}, safe: true });
+      sinon.assert.calledWithMatch(
+        requests.createRequest,
+        "/buckets/foo",
+        { data: { id: "foo" }, permissions: undefined },
+        { headers: {}, safe: true }
+      );
     });
 
     it("should extend request headers with optional ones", () => {
@@ -915,7 +1046,12 @@ describe("KintoClient", () => {
 
       api.createBucket("foo", { headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/foo", { data: { id: "foo" }, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" }, safe: false });
+      sinon.assert.calledWithMatch(
+        requests.createRequest,
+        "/buckets/foo",
+        { data: { id: "foo" }, permissions: undefined },
+        { headers: { Foo: "Bar", Baz: "Qux" }, safe: false }
+      );
     });
   });
 

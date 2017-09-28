@@ -174,9 +174,11 @@ describe("Utils", () => {
     it("should check for an attached client instance", () => {
       class FakeClient {
         constructor() {
-          this.client = { fetchHTTPApiVersion() {
+          this.client = {
+            fetchHTTPApiVersion() {
               return Promise.reject(); // simulates a failing checkVersion call
-            } };
+            },
+          };
         }
 
         @support()
@@ -284,14 +286,14 @@ describe("Utils", () => {
 
   describe("parseDataURL()", () => {
     it("should extract expected properties", () => {
-      expect(parseDataURL("data:image/png;encoding=utf-8;name=a.png;base64,b64")).eql(
-        {
-          type: "image/png",
-          name: "a.png",
-          base64: "b64",
-          encoding: "utf-8",
-        }
-      );
+      expect(
+        parseDataURL("data:image/png;encoding=utf-8;name=a.png;base64,b64")
+      ).eql({
+        type: "image/png",
+        name: "a.png",
+        base64: "b64",
+        encoding: "utf-8",
+      });
     });
 
     it("should support dataURL without name", () => {
@@ -302,9 +304,10 @@ describe("Utils", () => {
     });
 
     it("should throw an error when the data url is invalid", () => {
-      expect(() =>
-        expect(parseDataURL("gni"))
-      ).to.throw(Error, "Invalid data-url: gni...");
+      expect(() => expect(parseDataURL("gni"))).to.throw(
+        Error,
+        "Invalid data-url: gni..."
+      );
     });
   });
 

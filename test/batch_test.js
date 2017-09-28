@@ -26,10 +26,16 @@ describe("batch module", () => {
     });
 
     it("should expose HTTP 500 errors in the errors list", () => {
-      const _requests = [requests.createRequest("foo1", {
+      const _requests = [
+        requests.createRequest("foo1", {
           data: { id: 1 },
-        }), requests.createRequest("foo2", { data: { id: 2 } })];
-      const responses = [{ status: 500, body: { err: 1 } }, { status: 503, body: { err: 2 } }];
+        }),
+        requests.createRequest("foo2", { data: { id: 2 } }),
+      ];
+      const responses = [
+        { status: 500, body: { err: 1 } },
+        { status: 503, body: { err: 2 } },
+      ];
 
       expect(aggregate(responses, _requests))
         .to.have.property("errors")
@@ -48,10 +54,16 @@ describe("batch module", () => {
     });
 
     it("should expose HTTP 200<=x<400 responses in the published list", () => {
-      const _requests = [requests.createRequest("foo", {
+      const _requests = [
+        requests.createRequest("foo", {
           data: { id: 1 },
-        }), requests.createRequest("foo", { data: { id: 2 } })];
-      const responses = [{ status: 200, body: { data: { id: 1 } } }, { status: 201, body: { data: { id: 2 } } }];
+        }),
+        requests.createRequest("foo", { data: { id: 2 } }),
+      ];
+      const responses = [
+        { status: 200, body: { data: { id: 1 } } },
+        { status: 201, body: { data: { id: 2 } } },
+      ];
 
       expect(aggregate(responses, _requests))
         .to.have.property("published")
@@ -59,25 +71,39 @@ describe("batch module", () => {
     });
 
     it("should expose HTTP 404 responses in the skipped list", () => {
-      const _requests = [requests.createRequest("records/123", {
+      const _requests = [
+        requests.createRequest("records/123", {
           data: { id: 1 },
-        }), requests.createRequest("records/123", { data: { id: 2 } })];
-      const responses = [{ status: 404, body: { errno: 110, code: 404, error: "Not found" } }, { status: 404, body: { errno: 110, code: 404, error: "Not found" } }];
+        }),
+        requests.createRequest("records/123", { data: { id: 2 } }),
+      ];
+      const responses = [
+        { status: 404, body: { errno: 110, code: 404, error: "Not found" } },
+        { status: 404, body: { errno: 110, code: 404, error: "Not found" } },
+      ];
 
       expect(aggregate(responses, _requests))
         .to.have.property("skipped")
-        .eql(responses.map(r => ({
+        .eql(
+          responses.map(r => ({
             id: "123",
             path: "records/123",
             error: r.body,
-          })));
+          }))
+        );
     });
 
     it("should expose HTTP 412 responses in the conflicts list", () => {
-      const _requests = [requests.createRequest("records/123", {
+      const _requests = [
+        requests.createRequest("records/123", {
           data: { id: 1 },
-        }), requests.createRequest("records/123", { data: { id: 2 } })];
-      const responses = [{ status: 412, body: { details: { existing: { remote: true } } } }, { status: 412, body: {} }];
+        }),
+        requests.createRequest("records/123", { data: { id: 2 } }),
+      ];
+      const responses = [
+        { status: 412, body: { details: { existing: { remote: true } } } },
+        { status: 412, body: {} },
+      ];
 
       expect(aggregate(responses, _requests))
         .to.have.property("conflicts")
@@ -99,16 +125,26 @@ describe("batch module", () => {
       let _requests, responses, results;
 
       beforeEach(() => {
-        _requests = [requests.createRequest("collections/abc/records/123", {
+        _requests = [
+          requests.createRequest("collections/abc/records/123", {
             data: { id: 1 },
-          }), requests.createRequest("collections/abc/records/123", {
+          }),
+          requests.createRequest("collections/abc/records/123", {
             data: { id: 2 },
-          }), requests.createRequest("collections/abc/records/123", {
+          }),
+          requests.createRequest("collections/abc/records/123", {
             data: { id: 3 },
-          }), requests.createRequest("collections/abc/records/123", {
+          }),
+          requests.createRequest("collections/abc/records/123", {
             data: { id: 4, a: 1 },
-          })];
-        responses = [{ status: 500, path: "path1", body: { err: 1 } }, { status: 200, body: { data: { foo: "bar" } } }, { status: 404, body: { errno: 110, code: 404, error: "Not found" } }, { status: 412, body: { details: { existing: { remote: true } } } }];
+          }),
+        ];
+        responses = [
+          { status: 500, path: "path1", body: { err: 1 } },
+          { status: 200, body: { data: { foo: "bar" } } },
+          { status: 404, body: { errno: 110, code: 404, error: "Not found" } },
+          { status: 412, body: { details: { existing: { remote: true } } } },
+        ];
 
         results = aggregate(responses, _requests);
       });

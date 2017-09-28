@@ -69,19 +69,34 @@ describe("Bucket", () => {
     it("should set the bucket data", () => {
       getBlogBucket().setData({ a: 1 });
 
-      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog", { data: { id: "blog", a: 1 }, permissions: undefined }, { headers: {} });
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog",
+        { data: { id: "blog", a: 1 }, permissions: undefined },
+        { headers: {} }
+      );
     });
 
     it("should handle the patch option", () => {
       getBlogBucket().setData({ a: 1 }, { patch: true });
 
-      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog", { data: { id: "blog", a: 1 }, permissions: undefined }, { patch: true });
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog",
+        { data: { id: "blog", a: 1 }, permissions: undefined },
+        { patch: true }
+      );
     });
 
     it("should handle the safe option", () => {
       getBlogBucket().setData({ a: 1 }, { safe: true, last_modified: 42 });
 
-      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog", { data: { id: "blog", a: 1 }, permissions: undefined }, { headers: {}, safe: true, last_modified: 42 });
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog",
+        { data: { id: "blog", a: 1 }, permissions: undefined },
+        { headers: {}, safe: true, last_modified: 42 }
+      );
     });
 
     it("should resolve with json result", () => {
@@ -94,7 +109,9 @@ describe("Bucket", () => {
   /** @test {Bucket#collection} */
   describe("#collection()", () => {
     it("should return a Collection instance", () => {
-      expect(getBlogBucket().collection("posts")).to.be.an.instanceOf(Collection);
+      expect(getBlogBucket().collection("posts")).to.be.an.instanceOf(
+        Collection
+      );
     });
 
     it("should return a named collection", () => {
@@ -124,7 +141,12 @@ describe("Bucket", () => {
     it("should list bucket collections", () => {
       getBlogBucket().listCollections({ _since: "42" });
 
-      sinon.assert.calledWithMatch(client.paginatedList, "/buckets/blog/collections", { _since: "42" }, { headers: {} });
+      sinon.assert.calledWithMatch(
+        client.paginatedList,
+        "/buckets/blog/collections",
+        { _since: "42" },
+        { headers: {} }
+      );
     });
 
     it("should merge default options", () => {
@@ -132,7 +154,12 @@ describe("Bucket", () => {
         headers: { Foo: "Bar" },
       }).listCollections({ headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(client.paginatedList, "/buckets/blog/collections", {}, { headers: { Foo: "Bar", Baz: "Qux" } });
+      sinon.assert.calledWithMatch(
+        client.paginatedList,
+        "/buckets/blog/collections",
+        {},
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
     });
 
     it("should return the list of collections", () => {
@@ -152,7 +179,12 @@ describe("Bucket", () => {
     it("should accept a safe option", () => {
       getBlogBucket().createCollection("foo", { safe: true });
 
-      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/collections/foo", { data: { id: "foo" }, permissions: undefined }, { safe: true });
+      sinon.assert.calledWithMatch(
+        requests.createRequest,
+        "/buckets/blog/collections/foo",
+        { data: { id: "foo" }, permissions: undefined },
+        { safe: true }
+      );
     });
 
     it("should extend request headers with optional ones", () => {
@@ -160,14 +192,24 @@ describe("Bucket", () => {
         headers: { Foo: "Bar" },
       }).createCollection("foo", { headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/collections/foo", { data: { id: "foo" }, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" } });
+      sinon.assert.calledWithMatch(
+        requests.createRequest,
+        "/buckets/blog/collections/foo",
+        { data: { id: "foo" }, permissions: undefined },
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
     });
 
     describe("Named collection", () => {
       it("should create a named collection", () => {
         getBlogBucket().createCollection("foo");
 
-        sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/collections/foo", { data: { id: "foo" }, permissions: undefined }, { headers: {} });
+        sinon.assert.calledWithMatch(
+          requests.createRequest,
+          "/buckets/blog/collections/foo",
+          { data: { id: "foo" }, permissions: undefined },
+          { headers: {} }
+        );
       });
 
       it("should merge default options", () => {
@@ -176,7 +218,12 @@ describe("Bucket", () => {
           safe: true,
         }).createCollection("foo", { headers: { Baz: "Qux" } });
 
-        sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/collections/foo", { data: { id: "foo" }, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" }, safe: true });
+        sinon.assert.calledWithMatch(
+          requests.createRequest,
+          "/buckets/blog/collections/foo",
+          { data: { id: "foo" }, permissions: undefined },
+          { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
+        );
       });
     });
 
@@ -184,7 +231,12 @@ describe("Bucket", () => {
       it("should create an unnamed collection", () => {
         getBlogBucket().createCollection();
 
-        sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/collections", { data: { id: undefined }, permissions: undefined }, { headers: {} });
+        sinon.assert.calledWithMatch(
+          requests.createRequest,
+          "/buckets/blog/collections",
+          { data: { id: undefined }, permissions: undefined },
+          { headers: {} }
+        );
       });
 
       it("should merge default options", () => {
@@ -193,7 +245,12 @@ describe("Bucket", () => {
           safe: true,
         }).createCollection({}, { headers: { Baz: "Qux" } });
 
-        sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/collections", { data: {}, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" }, safe: true });
+        sinon.assert.calledWithMatch(
+          requests.createRequest,
+          "/buckets/blog/collections",
+          { data: {}, permissions: undefined },
+          { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
+        );
       });
     });
   });
@@ -242,7 +299,10 @@ describe("Bucket", () => {
     });
 
     it("should rely on the provided last_modified for the safe option", () => {
-      getBlogBucket().deleteCollection({ id: "todelete", last_modified: 42 }, { safe: true });
+      getBlogBucket().deleteCollection(
+        { id: "todelete", last_modified: 42 },
+        { safe: true }
+      );
 
       sinon.assert.calledWithMatch(
         requests.deleteRequest,
@@ -280,7 +340,12 @@ describe("Bucket", () => {
     it("should list bucket groups", () => {
       getBlogBucket().listGroups({ _since: "42" });
 
-      sinon.assert.calledWithMatch(client.paginatedList, "/buckets/blog/groups", { _since: "42" }, { headers: {} });
+      sinon.assert.calledWithMatch(
+        client.paginatedList,
+        "/buckets/blog/groups",
+        { _since: "42" },
+        { headers: {} }
+      );
     });
 
     it("should merge default options", () => {
@@ -288,7 +353,12 @@ describe("Bucket", () => {
         headers: { Foo: "Bar" },
       }).listGroups({ headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(client.paginatedList, "/buckets/blog/groups", {}, { headers: { Foo: "Bar", Baz: "Qux" } });
+      sinon.assert.calledWithMatch(
+        client.paginatedList,
+        "/buckets/blog/groups",
+        {},
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
     });
 
     it("should return the list of groups", () => {
@@ -333,7 +403,12 @@ describe("Bucket", () => {
     it("should accept a safe option", () => {
       getBlogBucket().createGroup("foo", [], { safe: true });
 
-      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/groups/foo", { data: { id: "foo", members: [] }, permissions: undefined }, { safe: true });
+      sinon.assert.calledWithMatch(
+        requests.createRequest,
+        "/buckets/blog/groups/foo",
+        { data: { id: "foo", members: [] }, permissions: undefined },
+        { safe: true }
+      );
     });
 
     it("should extend request headers with optional ones", () => {
@@ -341,20 +416,41 @@ describe("Bucket", () => {
         headers: { Foo: "Bar" },
       }).createGroup("foo", [], { headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/groups/foo", { data: { id: "foo", members: [] }, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" } });
+      sinon.assert.calledWithMatch(
+        requests.createRequest,
+        "/buckets/blog/groups/foo",
+        { data: { id: "foo", members: [] }, permissions: undefined },
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
     });
 
     it("should create a group with empty list of members", () => {
       getBlogBucket().createGroup("foo");
 
-      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/groups/foo", { data: { id: "foo", members: [] }, permissions: undefined }, { headers: {} });
+      sinon.assert.calledWithMatch(
+        requests.createRequest,
+        "/buckets/blog/groups/foo",
+        { data: { id: "foo", members: [] }, permissions: undefined },
+        { headers: {} }
+      );
     });
 
     it("should create a group with optional data and permissions", () => {
-      const group = { data: { age: 21 }, permissions: { write: ["github:leplatrem"] } };
+      const group = {
+        data: { age: 21 },
+        permissions: { write: ["github:leplatrem"] },
+      };
       getBlogBucket().createGroup("foo", [], group);
 
-      sinon.assert.calledWithMatch(requests.createRequest, "/buckets/blog/groups/foo", { data: { id: "foo", members: [], age: 21 }, permissions: group.permissions }, { headers: {} });
+      sinon.assert.calledWithMatch(
+        requests.createRequest,
+        "/buckets/blog/groups/foo",
+        {
+          data: { id: "foo", members: [], age: 21 },
+          permissions: group.permissions,
+        },
+        { headers: {} }
+      );
     });
   });
 
@@ -380,7 +476,12 @@ describe("Bucket", () => {
     it("should accept a patch option", () => {
       getBlogBucket().updateGroup({ id: "foo", members: [] }, { patch: true });
 
-      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/groups/foo", { data: { id: "foo", members: [] }, permissions: undefined }, { patch: true });
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog/groups/foo",
+        { data: { id: "foo", members: [] }, permissions: undefined },
+        { patch: true }
+      );
     });
 
     it("should extend request headers with optional ones", () => {
@@ -388,7 +489,12 @@ describe("Bucket", () => {
         headers: { Foo: "Bar" },
       }).updateGroup({ id: "foo", members: [] }, { headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/groups/foo", { data: { id: "foo", members: [] }, permissions: undefined }, { headers: { Foo: "Bar", Baz: "Qux" } });
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog/groups/foo",
+        { data: { id: "foo", members: [] }, permissions: undefined },
+        { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
     });
 
     it("should update the group from first argument", () => {
@@ -404,10 +510,21 @@ describe("Bucket", () => {
     });
 
     it("should update the group with optional data and permissions", () => {
-      const group = { data: { age: 21 }, permissions: { write: ["github:leplatrem"] } };
+      const group = {
+        data: { age: 21 },
+        permissions: { write: ["github:leplatrem"] },
+      };
       getBlogBucket().updateGroup({ id: "foo", members: [] }, group);
 
-      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog/groups/foo", { data: { id: "foo", members: [], age: 21 }, permissions: group.permissions }, { headers: {} });
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog/groups/foo",
+        {
+          data: { id: "foo", members: [], age: 21 },
+          permissions: group.permissions,
+        },
+        { headers: {} }
+      );
     });
   });
 
@@ -455,7 +572,10 @@ describe("Bucket", () => {
     });
 
     it("should rely on the provided last_modified for the safe option", () => {
-      getBlogBucket().deleteGroup({ id: "todelete", last_modified: 42 }, { safe: true });
+      getBlogBucket().deleteGroup(
+        { id: "todelete", last_modified: 42 },
+        { safe: true }
+      );
 
       sinon.assert.calledWithMatch(
         requests.deleteRequest,
@@ -485,14 +605,12 @@ describe("Bucket", () => {
   /** @test {Bucket#getPermissions} */
   describe("#getPermissions()", () => {
     beforeEach(() => {
-      sandbox
-        .stub(client, "execute")
-        .returns(
-          Promise.resolve({
-            data: {},
-            permissions: { write: ["fakeperms"] },
-          })
-        );
+      sandbox.stub(client, "execute").returns(
+        Promise.resolve({
+          data: {},
+          permissions: { write: ["fakeperms"] },
+        })
+      );
     });
 
     it("should retrieve permissions", () => {
@@ -518,14 +636,12 @@ describe("Bucket", () => {
 
     beforeEach(() => {
       sandbox.stub(requests, "updateRequest");
-      sandbox
-        .stub(client, "execute")
-        .returns(
-          Promise.resolve({
-            data: {},
-            permissions: fakePermissions,
-          })
-        );
+      sandbox.stub(client, "execute").returns(
+        Promise.resolve({
+          data: {},
+          permissions: fakePermissions,
+        })
+      );
     });
 
     it("should set permissions", () => {
@@ -541,7 +657,12 @@ describe("Bucket", () => {
 
       bucket.setPermissions(fakePermissions, { headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog", { permissions: fakePermissions, data: { last_modified: undefined } }, { headers: { Foo: "Bar", Baz: "Qux" }, safe: true });
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog",
+        { permissions: fakePermissions, data: { last_modified: undefined } },
+        { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
+      );
     });
 
     it("should accept a last_modified option", () => {
@@ -549,7 +670,12 @@ describe("Bucket", () => {
 
       bucket.setPermissions(fakePermissions, { last_modified: 42 });
 
-      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog", { data: { last_modified: 42 }, permissions: fakePermissions }, { safe: true });
+      sinon.assert.calledWithMatch(
+        requests.updateRequest,
+        "/buckets/blog",
+        { data: { last_modified: 42 }, permissions: fakePermissions },
+        { safe: true }
+      );
     });
 
     it("should resolve with response data", () => {
@@ -566,20 +692,23 @@ describe("Bucket", () => {
 
     beforeEach(() => {
       sandbox.stub(requests, "jsonPatchPermissionsRequest");
-      sandbox
-        .stub(client, "execute")
-        .returns(
-          Promise.resolve({
-            data: {},
-            permissions: fakePermissions,
-          })
-        );
+      sandbox.stub(client, "execute").returns(
+        Promise.resolve({
+          data: {},
+          permissions: fakePermissions,
+        })
+      );
     });
 
     it("should append permissions", () => {
       getBlogBucket().addPermissions(fakePermissions);
 
-      sinon.assert.calledWithMatch(requests.jsonPatchPermissionsRequest, "/buckets/blog", fakePermissions, "add");
+      sinon.assert.calledWithMatch(
+        requests.jsonPatchPermissionsRequest,
+        "/buckets/blog",
+        fakePermissions,
+        "add"
+      );
     });
 
     it("should merge default options", () => {
@@ -603,20 +732,23 @@ describe("Bucket", () => {
 
     beforeEach(() => {
       sandbox.stub(requests, "jsonPatchPermissionsRequest");
-      sandbox
-        .stub(client, "execute")
-        .returns(
-          Promise.resolve({
-            data: {},
-            permissions: fakePermissions,
-          })
-        );
+      sandbox.stub(client, "execute").returns(
+        Promise.resolve({
+          data: {},
+          permissions: fakePermissions,
+        })
+      );
     });
 
     it("should pop permissions", () => {
       getBlogBucket().removePermissions(fakePermissions);
 
-      sinon.assert.calledWithMatch(requests.jsonPatchPermissionsRequest, "/buckets/blog", fakePermissions, "remove");
+      sinon.assert.calledWithMatch(
+        requests.jsonPatchPermissionsRequest,
+        "/buckets/blog",
+        fakePermissions,
+        "remove"
+      );
     });
 
     it("should merge default options", () => {
