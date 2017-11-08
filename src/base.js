@@ -28,8 +28,8 @@ export const SUPPORTED_PROTOCOL_VERSION = "v1";
  * @example
  * const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
  * client.bucket("default")
-*    .collection("my-blog")
-*    .createRecord({title: "First article"})
+ *    .collection("my-blog")
+ *    .createRecord({title: "First article"})
  *   .then(console.log.bind(console))
  *   .catch(console.error.bind(console));
  */
