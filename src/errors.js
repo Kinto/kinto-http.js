@@ -23,3 +23,16 @@ export default {
   202: "Service deprecated",
   999: "Internal Server Error",
 };
+
+class NetworkTimeoutError extends Error {
+  constructor(url, options, ...params) {
+    super(...params);
+
+    Error.captureStackTrace(this, NetworkTimeoutError);
+
+    this.url = url;
+    this.options = options;
+  }
+}
+
+export { NetworkTimeoutError };

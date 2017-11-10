@@ -6,6 +6,7 @@ import sinon from "sinon";
 import { EventEmitter } from "events";
 import { fakeServerResponse } from "./test_utils.js";
 import HTTP from "../src/http.js";
+import { NetworkTimeoutError } from "../src/errors.js";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -131,7 +132,7 @@ describe("HTTP class", () => {
             setTimeout(resolve, 20000);
           })
         );
-        return http.request("/").should.be.rejectedWith(Error, /timeout/);
+        return http.request("/").should.be.rejectedWith(NetworkTimeoutError);
       });
     });
 

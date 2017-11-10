@@ -2,6 +2,7 @@
 
 import { delay } from "./utils";
 import ERROR_CODES from "./errors";
+import { NetworkTimeoutError } from "./errors";
 
 /**
  * Enhanced HTTP client for the Kinto protocol.
@@ -73,7 +74,7 @@ export default class HTTP {
       if (this.timeout) {
         _timeoutId = setTimeout(() => {
           hasTimedout = true;
-          reject(new Error("Request timeout."));
+          reject(new NetworkTimeoutError(url, options));
         }, this.timeout);
       }
       function proceedWithHandler(fn) {
