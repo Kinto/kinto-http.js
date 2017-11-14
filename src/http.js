@@ -112,31 +112,31 @@ export default class HTTP {
       error.stack = err.stack;
       throw error;
     }
-    return this.formatResponse(response, json);
+    if (status >= 400) {
+      return this.throwServerResponse(response, json);
+    }
+    return { status, json, headers };
   }
 
   /**
    * @private
    */
-  formatResponse(response, json) {
-    const { status, statusText, headers } = response;
-    if (json && status >= 400) {
-      let message = `HTTP ${status} ${json.error || ""}: `;
-      if (json.errno && json.errno in ERROR_CODES) {
-        const errnoMsg = ERROR_CODES[json.errno];
-        message += errnoMsg;
-        if (json.message && json.message !== errnoMsg) {
-          message += ` (${json.message})`;
-        }
-      } else {
-        message += statusText || "";
+  throwServerResponse(response, json) {
+    const { status, statusText } = response;
+    let message = `HTTP ${status} ${json.error || ""}: `;
+    if (json.errno && json.errno in ERROR_CODES) {
+      const errnoMsg = ERROR_CODES[json.errno];
+      message += errnoMsg;
+      if (json.message && json.message !== errnoMsg) {
+        message += ` (${json.message})`;
       }
-      const error = new Error(message.trim());
-      error.response = response;
-      error.data = json;
-      throw error;
+    } else {
+      message += statusText || "";
     }
-    return { status, json, headers };
+    const error = new Error(message.trim());
+    error.response = response;
+    error.data = json;
+    throw error;
   }
 
   /**
