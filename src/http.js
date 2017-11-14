@@ -97,11 +97,11 @@ export default class HTTP {
    * @private
    */
   async processResponse(response) {
-    const { status } = response;
+    const { status, headers } = response;
     const text = await response.text();
     // Check if we have a body; if so parse it as JSON.
     if (text.length === 0) {
-      return this.formatResponse(response, null);
+      return { status, json: null, headers };
     }
     let json;
     try {
