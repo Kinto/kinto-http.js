@@ -103,14 +103,16 @@ export default class HTTP {
     if (text.length === 0) {
       return this.formatResponse(response, null);
     }
+    let json;
     try {
-      return this.formatResponse(response, JSON.parse(text));
+      json = JSON.parse(text);
     } catch (err) {
       const error = new Error(`HTTP ${status || 0}; ${err}`);
       error.response = response;
       error.stack = err.stack;
       throw error;
     }
+    return this.formatResponse(response, json);
   }
 
   /**
