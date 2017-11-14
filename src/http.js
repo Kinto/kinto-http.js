@@ -1,8 +1,11 @@
 "use strict";
 
 import { delay } from "./utils";
-import ERROR_CODES from "./errors";
-import { NetworkTimeoutError, UnparseableResponseError } from "./errors";
+import {
+  NetworkTimeoutError,
+  ServerResponse,
+  UnparseableResponseError,
+} from "./errors";
 
 /**
  * Enhanced HTTP client for the Kinto protocol.
@@ -109,30 +112,9 @@ export default class HTTP {
       }
     }
     if (status >= 400) {
-      return this.throwServerResponse(response, json);
+      throw new ServerResponse(response, json);
     }
     return { status, json, headers };
-  }
-
-  /**
-   * @private
-   */
-  throwServerResponse(response, json) {
-    const { status, statusText } = response;
-    let message = `HTTP ${status} ${(json && json.error) || ""}: `;
-    if (json && json.errno && json.errno in ERROR_CODES) {
-      const errnoMsg = ERROR_CODES[json.errno];
-      message += errnoMsg;
-      if (json.message && json.message !== errnoMsg) {
-        message += ` (${json.message})`;
-      }
-    } else {
-      message += statusText || "";
-    }
-    const error = new Error(message.trim());
-    error.response = response;
-    error.data = json;
-    throw error;
   }
 
   /**

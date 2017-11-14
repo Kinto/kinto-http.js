@@ -2,7 +2,7 @@
  * Kinto server error code descriptors.
  * @type {Object}
  */
-export default {
+const ERROR_CODES = {
   104: "Missing Authorization Token",
   105: "Invalid Authorization Token",
   106: "Request body was not valid JSON",
@@ -23,6 +23,8 @@ export default {
   202: "Service deprecated",
   999: "Internal Server Error",
 };
+
+export default ERROR_CODES;
 
 class NetworkTimeoutError extends Error {
   constructor(url, options, ...params) {
@@ -53,4 +55,37 @@ class UnparseableResponseError extends Error {
   }
 }
 
-export { NetworkTimeoutError, UnparseableResponseError };
+/**
+ * "Error" subclass representing a >=400 response from the server.
+ *
+ * Whether or not this is an error depends on your application.
+ *
+ * The `json` field can be undefined if the server responded with an
+ * empty response body. This shouldn't generally happen. Most "bad"
+ * responses come with a JSON error description, or (if they're
+ * fronted by a CDN or nginx or something) occasionally non-JSON
+ * responses (which become UnparseableResponseErrors, above).
+ */
+class ServerResponse extends Error {
+  constructor(response, json) {
+    const { status, statusText } = response;
+    let message = `HTTP ${status} ${(json && json.error) || ""}: `;
+    if (json && json.errno && json.errno in ERROR_CODES) {
+      const errnoMsg = ERROR_CODES[json.errno];
+      message += errnoMsg;
+      if (json.message && json.message !== errnoMsg) {
+        message += ` (${json.message})`;
+      }
+    } else {
+      message += statusText || "";
+    }
+
+    super(message.trim());
+    Error.captureStackTrace(this, ServerResponse);
+
+    this.response = response;
+    this.data = json;
+  }
+}
+
+export { NetworkTimeoutError, ServerResponse, UnparseableResponseError };
