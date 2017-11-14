@@ -68,16 +68,31 @@ class UnparseableResponseError extends Error {
  */
 class ServerResponse extends Error {
   constructor(response, json) {
-    const { status, statusText } = response;
-    let message = `HTTP ${status} ${(json && json.error) || ""}: `;
-    if (json && json.errno && json.errno in ERROR_CODES) {
-      const errnoMsg = ERROR_CODES[json.errno];
-      message += errnoMsg;
-      if (json.message && json.message !== errnoMsg) {
-        message += ` (${json.message})`;
+    const { status } = response;
+    let { statusText } = response;
+    let errnoMsg;
+
+    if (json) {
+      // Try to fill in information from the JSON error.
+      statusText = json.error || statusText;
+
+      // Take errnoMsg from either ERROR_CODES or json.message.
+      if (json.errno && json.errno in ERROR_CODES) {
+        errnoMsg = ERROR_CODES[json.errno];
+      } else if (json.message) {
+        errnoMsg = json.message;
       }
-    } else {
-      message += statusText || "";
+
+      // If we had both ERROR_CODES and json.message, and they differ,
+      // combine them.
+      if (errnoMsg && json.message && json.message !== errnoMsg) {
+        errnoMsg += ` (${json.message})`;
+      }
+    }
+
+    let message = `HTTP ${status} ${statusText}`;
+    if (errnoMsg) {
+      message += `: ${errnoMsg}`;
     }
 
     super(message.trim());
