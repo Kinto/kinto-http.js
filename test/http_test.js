@@ -6,7 +6,10 @@ import sinon from "sinon";
 import { EventEmitter } from "events";
 import { fakeServerResponse } from "./test_utils.js";
 import HTTP from "../src/http.js";
-import { NetworkTimeoutError } from "../src/errors.js";
+import {
+  NetworkTimeoutError,
+  UnparseableResponseError,
+} from "../src/errors.js";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -162,7 +165,7 @@ describe("HTTP class", () => {
               },
             },
             text() {
-              return Promise.resolve("invalid JSON");
+              return Promise.resolve("an example of invalid JSON");
             },
           })
         );
@@ -170,8 +173,8 @@ describe("HTTP class", () => {
         return http
           .request("/")
           .should.be.rejectedWith(
-            Error,
-            /HTTP 200; SyntaxError: Unexpected token/
+            UnparseableResponseError,
+            /HTTP 200; SyntaxError: Unexpected token.+an example of invalid JSON/
           );
       });
     });

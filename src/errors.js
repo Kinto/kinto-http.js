@@ -35,4 +35,22 @@ class NetworkTimeoutError extends Error {
   }
 }
 
-export { NetworkTimeoutError };
+class UnparseableResponseError extends Error {
+  constructor(response, body, error) {
+    const { status } = response;
+
+    super(
+      `Response from server unparseable (HTTP ${status || 0}; ${error}): ${
+        body
+      }`
+    );
+    Error.captureStackTrace(this, UnparseableResponseError);
+
+    this.status = status;
+    this.response = response;
+    this.stack = error.stack;
+    this.error = error;
+  }
+}
+
+export { NetworkTimeoutError, UnparseableResponseError };

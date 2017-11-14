@@ -2,7 +2,7 @@
 
 import { delay } from "./utils";
 import ERROR_CODES from "./errors";
-import { NetworkTimeoutError } from "./errors";
+import { NetworkTimeoutError, UnparseableResponseError } from "./errors";
 
 /**
  * Enhanced HTTP client for the Kinto protocol.
@@ -107,10 +107,7 @@ export default class HTTP {
     try {
       json = JSON.parse(text);
     } catch (err) {
-      const error = new Error(`HTTP ${status || 0}; ${err}`);
-      error.response = response;
-      error.stack = err.stack;
-      throw error;
+      throw new UnparseableResponseError(response, text, err);
     }
     if (status >= 400) {
       return this.throwServerResponse(response, json);
