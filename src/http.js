@@ -100,14 +100,13 @@ export default class HTTP {
     const { status, headers } = response;
     const text = await response.text();
     // Check if we have a body; if so parse it as JSON.
-    if (text.length === 0) {
-      return { status, json: null, headers };
-    }
     let json;
-    try {
-      json = JSON.parse(text);
-    } catch (err) {
-      throw new UnparseableResponseError(response, text, err);
+    if (text.length !== 0) {
+      try {
+        json = JSON.parse(text);
+      } catch (err) {
+        throw new UnparseableResponseError(response, text, err);
+      }
     }
     if (status >= 400) {
       return this.throwServerResponse(response, json);
@@ -120,8 +119,8 @@ export default class HTTP {
    */
   throwServerResponse(response, json) {
     const { status, statusText } = response;
-    let message = `HTTP ${status} ${json.error || ""}: `;
-    if (json.errno && json.errno in ERROR_CODES) {
+    let message = `HTTP ${status} ${(json && json.error) || ""}: `;
+    if (json && json.errno && json.errno in ERROR_CODES) {
       const errnoMsg = ERROR_CODES[json.errno];
       message += errnoMsg;
       if (json.message && json.message !== errnoMsg) {
