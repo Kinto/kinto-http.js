@@ -4,6 +4,9 @@
       "presets": ["es2015"],
       "plugins": [
         "babel-plugin-transform-decorators-legacy",
+        ["babel-plugin-transform-builtin-extend", {
+          "globals": ["Error"]
+        }],
         "transform-object-rest-spread",
         "transform-async-to-generator"
       ]
@@ -11,6 +14,9 @@
     "firefox": {
       "plugins": [
         "babel-plugin-transform-decorators-legacy",
+        ["babel-plugin-transform-builtin-extend", {
+          "globals": ["Error"]
+        }],
         "transform-es2015-modules-commonjs",
         "transform-object-rest-spread"
       ]

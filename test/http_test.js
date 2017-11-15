@@ -6,6 +6,11 @@ import sinon from "sinon";
 import { EventEmitter } from "events";
 import { fakeServerResponse } from "./test_utils.js";
 import HTTP from "../src/http.js";
+import {
+  NetworkTimeoutError,
+  ServerResponse,
+  UnparseableResponseError,
+} from "../src/errors.js";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -131,7 +136,7 @@ describe("HTTP class", () => {
             setTimeout(resolve, 20000);
           })
         );
-        return http.request("/").should.be.rejectedWith(Error, /timeout/);
+        return http.request("/").should.be.rejectedWith(NetworkTimeoutError);
       });
     });
 
@@ -161,7 +166,7 @@ describe("HTTP class", () => {
               },
             },
             text() {
-              return Promise.resolve("invalid JSON");
+              return Promise.resolve("an example of invalid JSON");
             },
           })
         );
@@ -169,8 +174,8 @@ describe("HTTP class", () => {
         return http
           .request("/")
           .should.be.rejectedWith(
-            Error,
-            /HTTP 200; SyntaxError: Unexpected token/
+            UnparseableResponseError,
+            /HTTP 200; SyntaxError: Unexpected token.+an example of invalid JSON/
           );
       });
     });
@@ -196,9 +201,30 @@ describe("HTTP class", () => {
         return http
           .request("/")
           .should.be.rejectedWith(
-            Error,
+            ServerResponse,
             /HTTP 400 Invalid parameters: Invalid request parameter \(data is missing\)/
           );
+      });
+
+      it("should reject on status code > 400 even with empty body", () => {
+        sandbox.stub(global, "fetch").resolves({
+          status: 400,
+          statusText: "Cake Is A Lie",
+          headers: {
+            get(name) {
+              if (name === "Content-Length") {
+                return 0;
+              }
+            },
+          },
+          text() {
+            return Promise.resolve("");
+          },
+        });
+
+        return http
+          .request("/")
+          .should.be.rejectedWith(ServerResponse, /HTTP 400 Cake Is A Lie$/);
       });
     });
 

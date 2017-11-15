@@ -2,7 +2,7 @@
  * Kinto server error code descriptors.
  * @type {Object}
  */
-export default {
+const ERROR_CODES = {
   104: "Missing Authorization Token",
   105: "Invalid Authorization Token",
   106: "Request body was not valid JSON",
@@ -23,3 +23,84 @@ export default {
   202: "Service deprecated",
   999: "Internal Server Error",
 };
+
+export default ERROR_CODES;
+
+class NetworkTimeoutError extends Error {
+  constructor(url, options, ...params) {
+    super(...params);
+
+    Error.captureStackTrace(this, NetworkTimeoutError);
+
+    this.url = url;
+    this.options = options;
+  }
+}
+
+class UnparseableResponseError extends Error {
+  constructor(response, body, error) {
+    const { status } = response;
+
+    super(
+      `Response from server unparseable (HTTP ${status || 0}; ${error}): ${
+        body
+      }`
+    );
+    Error.captureStackTrace(this, UnparseableResponseError);
+
+    this.status = status;
+    this.response = response;
+    this.stack = error.stack;
+    this.error = error;
+  }
+}
+
+/**
+ * "Error" subclass representing a >=400 response from the server.
+ *
+ * Whether or not this is an error depends on your application.
+ *
+ * The `json` field can be undefined if the server responded with an
+ * empty response body. This shouldn't generally happen. Most "bad"
+ * responses come with a JSON error description, or (if they're
+ * fronted by a CDN or nginx or something) occasionally non-JSON
+ * responses (which become UnparseableResponseErrors, above).
+ */
+class ServerResponse extends Error {
+  constructor(response, json) {
+    const { status } = response;
+    let { statusText } = response;
+    let errnoMsg;
+
+    if (json) {
+      // Try to fill in information from the JSON error.
+      statusText = json.error || statusText;
+
+      // Take errnoMsg from either ERROR_CODES or json.message.
+      if (json.errno && json.errno in ERROR_CODES) {
+        errnoMsg = ERROR_CODES[json.errno];
+      } else if (json.message) {
+        errnoMsg = json.message;
+      }
+
+      // If we had both ERROR_CODES and json.message, and they differ,
+      // combine them.
+      if (errnoMsg && json.message && json.message !== errnoMsg) {
+        errnoMsg += ` (${json.message})`;
+      }
+    }
+
+    let message = `HTTP ${status} ${statusText}`;
+    if (errnoMsg) {
+      message += `: ${errnoMsg}`;
+    }
+
+    super(message.trim());
+    Error.captureStackTrace(this, ServerResponse);
+
+    this.response = response;
+    this.data = json;
+  }
+}
+
+export { NetworkTimeoutError, ServerResponse, UnparseableResponseError };

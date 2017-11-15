@@ -1,7 +1,11 @@
 "use strict";
 
 import { delay } from "./utils";
-import ERROR_CODES from "./errors";
+import {
+  NetworkTimeoutError,
+  ServerResponse,
+  UnparseableResponseError,
+} from "./errors";
 
 /**
  * Enhanced HTTP client for the Kinto protocol.
@@ -73,7 +77,7 @@ export default class HTTP {
       if (this.timeout) {
         _timeoutId = setTimeout(() => {
           hasTimedout = true;
-          reject(new Error("Request timeout."));
+          reject(new NetworkTimeoutError(url, options));
         }, this.timeout);
       }
       function proceedWithHandler(fn) {
@@ -96,42 +100,19 @@ export default class HTTP {
    * @private
    */
   async processResponse(response) {
-    const { status } = response;
+    const { status, headers } = response;
     const text = await response.text();
     // Check if we have a body; if so parse it as JSON.
-    if (text.length === 0) {
-      return this.formatResponse(response, null);
-    }
-    try {
-      return this.formatResponse(response, JSON.parse(text));
-    } catch (err) {
-      const error = new Error(`HTTP ${status || 0}; ${err}`);
-      error.response = response;
-      error.stack = err.stack;
-      throw error;
-    }
-  }
-
-  /**
-   * @private
-   */
-  formatResponse(response, json) {
-    const { status, statusText, headers } = response;
-    if (json && status >= 400) {
-      let message = `HTTP ${status} ${json.error || ""}: `;
-      if (json.errno && json.errno in ERROR_CODES) {
-        const errnoMsg = ERROR_CODES[json.errno];
-        message += errnoMsg;
-        if (json.message && json.message !== errnoMsg) {
-          message += ` (${json.message})`;
-        }
-      } else {
-        message += statusText || "";
+    let json;
+    if (text.length !== 0) {
+      try {
+        json = JSON.parse(text);
+      } catch (err) {
+        throw new UnparseableResponseError(response, text, err);
       }
-      const error = new Error(message.trim());
-      error.response = response;
-      error.data = json;
-      throw error;
+    }
+    if (status >= 400) {
+      throw new ServerResponse(response, json);
     }
     return { status, json, headers };
   }
