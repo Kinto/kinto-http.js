@@ -206,6 +206,30 @@ describe("HTTP class", () => {
           );
       });
 
+      it("should expose JSON error bodies", () => {
+        const errorBody = {
+          code: 400,
+          details: [
+            {
+              description: "data is missing",
+              location: "body",
+              name: "data",
+            },
+          ],
+          errno: 107,
+          error: "Invalid parameters",
+          message: "data is missing",
+        };
+        sandbox
+          .stub(global, "fetch")
+          .returns(fakeServerResponse(400, errorBody));
+
+        return http
+          .request("/")
+          .should.be.rejectedWith(ServerResponse)
+          .and.eventually.deep.property("data", errorBody);
+      });
+
       it("should reject on status code > 400 even with empty body", () => {
         sandbox.stub(global, "fetch").resolves({
           status: 400,
@@ -299,6 +323,17 @@ describe("HTTP class", () => {
           .returns(fakeServerResponse(200, {}, { Backoff: "1000" }));
 
         return http.request("/").then(_ => {
+          expect(events.emit.firstCall.args[0]).eql("backoff");
+          expect(events.emit.firstCall.args[1]).eql(2000000);
+        });
+      });
+
+      it("should emit a backoff event even on error responses", () => {
+        sandbox
+          .stub(global, "fetch")
+          .returns(fakeServerResponse(503, {}, { Backoff: "1000" }));
+
+        return http.request("/").should.be.rejected.then(() => {
           expect(events.emit.firstCall.args[0]).eql("backoff");
           expect(events.emit.firstCall.args[1]).eql(2000000);
         });
