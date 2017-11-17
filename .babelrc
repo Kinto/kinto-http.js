@@ -14,9 +14,6 @@
     "firefox": {
       "plugins": [
         "babel-plugin-transform-decorators-legacy",
-        ["babel-plugin-transform-builtin-extend", {
-          "globals": ["Error"]
-        }],
         "transform-es2015-modules-commonjs",
         "transform-object-rest-spread"
       ]
