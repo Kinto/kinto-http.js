@@ -30,7 +30,9 @@ class NetworkTimeoutError extends Error {
   constructor(url, options, ...params) {
     super(...params);
 
-    Error.captureStackTrace(this, NetworkTimeoutError);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, NetworkTimeoutError);
+    }
 
     this.url = url;
     this.options = options;
@@ -46,7 +48,10 @@ class UnparseableResponseError extends Error {
         body
       }`
     );
-    Error.captureStackTrace(this, UnparseableResponseError);
+
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, UnparseableResponseError);
+    }
 
     this.status = status;
     this.response = response;
@@ -96,7 +101,9 @@ class ServerResponse extends Error {
     }
 
     super(message.trim());
-    Error.captureStackTrace(this, ServerResponse);
+    if (Error.captureStackTrace) {
+      Error.captureStackTrace(this, ServerResponse);
+    }
 
     this.response = response;
     this.data = json;
