@@ -27,8 +27,10 @@ const ERROR_CODES = {
 export default ERROR_CODES;
 
 class NetworkTimeoutError extends Error {
-  constructor(url, options, ...params) {
-    super(...params);
+  constructor(url, options) {
+    super(
+      `Timeout while trying to access ${url} with ${JSON.stringify(options)}`
+    );
 
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, NetworkTimeoutError);
