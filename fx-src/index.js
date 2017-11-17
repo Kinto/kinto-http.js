@@ -21,14 +21,17 @@ import * as errors from "../src/errors";
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Timer.jsm");
-Cu.importGlobalProperties(['fetch']);
-const { EventEmitter } = Cu.import("resource://gre/modules/EventEmitter.jsm", {});
+Cu.importGlobalProperties(["fetch"]);
+const { EventEmitter } = Cu.import(
+  "resource://gre/modules/EventEmitter.jsm",
+  {}
+);
 
 export default class KintoHttpClient extends KintoClientBase {
-  constructor(remote, options={}) {
+  constructor(remote, options = {}) {
     const events = {};
     EventEmitter.decorate(events);
-    super(remote, {events, ...options});
+    super(remote, { events, ...options });
   }
 }
 
