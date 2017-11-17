@@ -16,6 +16,7 @@
 "use strict";
 
 import KintoClientBase from "../src/base";
+import * as errors from "../src/errors";
 
 const Cu = Components.utils;
 
@@ -30,6 +31,8 @@ export default class KintoHttpClient extends KintoClientBase {
     super(remote, {events, ...options});
   }
 }
+
+KintoHttpClient.errors = errors;
 
 // This fixes compatibility with CommonJS required by browserify.
 // See http://stackoverflow.com/questions/33505992/babel-6-changes-how-it-exports-default/33683495#33683495
