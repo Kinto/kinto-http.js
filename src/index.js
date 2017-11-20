@@ -1,10 +1,5 @@
 "use strict";
 
-// babel-polyfill can only be imported once
-if (!global._babelPolyfill) {
-  require("babel-polyfill");
-}
-
 import { EventEmitter } from "events";
 
 import KintoClientBase from "./base";
