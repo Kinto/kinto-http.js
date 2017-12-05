@@ -46,9 +46,8 @@ class UnparseableResponseError extends Error {
     const { status } = response;
 
     super(
-      `Response from server unparseable (HTTP ${status || 0}; ${error}): ${
-        body
-      }`
+      `Response from server unparseable (HTTP ${status ||
+        0}; ${error}): ${body}`
     );
 
     if (Error.captureStackTrace) {
