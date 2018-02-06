@@ -18,6 +18,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
   - [Authentication](#authentication)
      - [Using Basic Auth](#using-basic-auth)
      - [Using an OAuth Bearer Token](#using-an-oauth-bearer-token)
+     - [Change headers](#change-headers)
   - [Server information](#server-information)
   - [Buckets](#buckets)
      - [Listing buckets](#listing-buckets)
@@ -174,6 +175,22 @@ const kinto = new KintoClient("https://my.server.tld/v1", {
     Authorization: `Bearer ` + oauthBearerToken)
   }
 });
+```
+
+### Change headers
+
+Requests headers can be altered using `setHeaders()`.
+
+```js
+const kinto = new KintoClient("https://my.server.tld/v1");
+
+// Login somewhere...
+// [...]
+
+kinto.setHeaders({
+    Authorization: `Bearer ` + accessToken,
+});
+
 ```
 
 ## Server information

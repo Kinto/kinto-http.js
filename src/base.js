@@ -173,6 +173,20 @@ export default class KintoClientBase {
   }
 
   /**
+   * Set client "headers" for every requests, merging the potential headers
+   * passed in the constructor.
+   *
+   * @param {Object} headers The headers to merge with existing ones.
+   */
+  setHeaders(headers) {
+    this._headers = {
+      ...this._headers,
+      ...headers,
+    };
+    this.serverInfo = null;
+  }
+
+  /**
    * Get the value of "headers" for a given request, merging the
    * per-request headers with our own "default" headers.
    *

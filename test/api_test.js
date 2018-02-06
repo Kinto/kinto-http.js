@@ -122,6 +122,24 @@ describe("KintoClient", () => {
     });
   });
 
+  /** @test {KintoClient#setHeaders} */
+  describe("#setHeaders", () => {
+    let client;
+
+    beforeEach(() => {
+      client = new KintoClient(FAKE_SERVER_URL, {
+        headers: { Foo: "Bar", Authorization: "Biz" },
+      });
+    });
+
+    it("should override constructor headers", () => {
+      client.setHeaders({
+        Authorization: "Baz",
+      });
+      expect(client._headers).eql({ Foo: "Bar", Authorization: "Baz" });
+    });
+  });
+
   /** @test {KintoClient#backoff} */
   describe("get backoff()", () => {
     it("should provide the remaining backoff time in ms if any", () => {
@@ -196,6 +214,14 @@ describe("KintoClient", () => {
 
       api.fetchServerInfo();
       sinon.assert.notCalled(fetch);
+    });
+
+    it("should refresh server info if headers were changed", () => {
+      api.serverInfo = fakeServerInfo;
+      api.setHeaders({
+        Authorization: "Baz",
+      });
+      expect(api.serverInfo).eql(null);
     });
   });
 
