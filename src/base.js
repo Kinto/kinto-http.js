@@ -173,8 +173,7 @@ export default class KintoClientBase {
   }
 
   /**
-   * Set client "headers" for every requests, merging the potential headers
-   * passed in the constructor.
+   * Set client "headers" for every request, updating previous headers (if any).
    *
    * @param {Object} headers The headers to merge with existing ones.
    */
