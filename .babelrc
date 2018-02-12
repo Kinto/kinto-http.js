@@ -18,7 +18,7 @@
       "plugins": [
         "babel-plugin-transform-decorators-legacy",
         "transform-es2015-modules-commonjs",
-        "transform-object-rest-spread"
+        "syntax-object-rest-spread"
       ]
     }
   }
