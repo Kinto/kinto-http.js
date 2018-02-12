@@ -58,7 +58,7 @@ export async function pMap(list, fn) {
  */
 export function omit(obj, ...keys) {
   return Object.keys(obj).reduce((acc, key) => {
-    if (keys.indexOf(key) === -1) {
+    if (!keys.includes(key)) {
       acc[key] = obj[key];
     }
     return acc;
