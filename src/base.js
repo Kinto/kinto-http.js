@@ -511,10 +511,10 @@ export default class KintoClientBase {
       return processNextPage(nextPage);
     };
 
-    const processNextPage = async function(nextPage) {
+    const processNextPage = async nextPage => {
       const { headers } = options;
       return handleResponse(await this.http.request(nextPage, { headers }));
-    }.bind(this);
+    };
 
     const pageResults = (results, nextPage, etag, totalRecords) => {
       // ETag string is supposed to be opaque and stored «as-is».

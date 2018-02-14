@@ -18,11 +18,9 @@
 import KintoClientBase from "../src/base";
 import * as errors from "../src/errors";
 
-const Cu = Components.utils;
-
-Cu.import("resource://gre/modules/Timer.jsm");
+ChromeUtils.import("resource://gre/modules/Timer.jsm");
 Cu.importGlobalProperties(["fetch"]);
-const { EventEmitter } = Cu.import(
+const { EventEmitter } = ChromeUtils.import(
   "resource://gre/modules/EventEmitter.jsm",
   {}
 );
