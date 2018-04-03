@@ -69,7 +69,7 @@ describe("Integration tests", function() {
   beforeEach(function() {
     this.timeout(12500);
 
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
     const events = new EventEmitter();
     api = createClient({
       events,

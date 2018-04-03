@@ -21,7 +21,7 @@ describe("KintoClient", () => {
   let sandbox, api, events;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
     events = new EventEmitter();
     api = new KintoClient(FAKE_SERVER_URL, { events });
   });

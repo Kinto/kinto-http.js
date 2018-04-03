@@ -23,7 +23,7 @@ describe("Bucket", () => {
   }
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
     client = new KintoClient(FAKE_SERVER_URL);
   });
 
