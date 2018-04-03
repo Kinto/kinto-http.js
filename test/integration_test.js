@@ -305,8 +305,15 @@ describe("Integration tests", function() {
 
         it("should retrieve the list of permissions", () => {
           return api.listPermissions().then(({ data }) => {
-            expect(data).to.have.length.of(2);
-            expect(data.map(p => p.id).sort()).eql(["b1", "c1"]);
+            expect(data).to.have.length.of(3);
+            // One element is `bucket:create` which doesn't refer to
+            // any particular id. Remove it.
+            const isBucketCreate = p =>
+              p.permissions.length == 1 && p.permissions[0] === "bucket:create";
+            const bucketCreate = data.filter(isBucketCreate);
+            expect(bucketCreate.length).eql(1);
+            const remaining = data.filter(p => !isBucketCreate(p));
+            expect(remaining.map(p => p.id).sort()).eql(["b1", "c1"]);
           });
         });
       });
@@ -322,8 +329,8 @@ describe("Integration tests", function() {
 
         it("should retrieve the list of permissions", () => {
           return api.listPermissions({ pages: Infinity }).then(results => {
-            expect(results.data).to.have.length.of(15);
-            expect(results.totalRecords).eql(15);
+            expect(results.data).to.have.length.of(16);
+            expect(results.totalRecords).eql(16);
           });
         });
       });
