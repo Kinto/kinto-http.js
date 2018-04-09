@@ -69,7 +69,7 @@ describe("Integration tests", function() {
   beforeEach(function() {
     this.timeout(12500);
 
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
     const events = new EventEmitter();
     api = createClient({
       events,
@@ -295,6 +295,14 @@ describe("Integration tests", function() {
     });
 
     describe("#listPermissions", () => {
+      // FIXME: this feature was introduced between 8.2 and 8.3, and
+      // these tests run against master as well as an older Kinto
+      // version (see .travis.yml). If we ever bump the older version
+      // up to one where it also has bucket:create, we can clean this
+      // up.
+      let shouldHaveBucketCreate =
+        process.env.SERVER > "8.3" ||
+        (process.env.SERVER > "8.2" && process.env.SERVER.includes("dev"));
       describe("Single page of permissions", () => {
         beforeEach(() => {
           return api.batch(batch => {
@@ -305,6 +313,16 @@ describe("Integration tests", function() {
 
         it("should retrieve the list of permissions", () => {
           return api.listPermissions().then(({ data }) => {
+            if (shouldHaveBucketCreate) {
+              // One element is `bucket:create` which doesn't refer to
+              // any particular id. Remove it.
+              const isBucketCreate = p =>
+                p.permissions.length == 1 &&
+                p.permissions[0] === "bucket:create";
+              const bucketCreate = data.filter(isBucketCreate);
+              expect(bucketCreate.length).eql(1);
+              data = data.filter(p => !isBucketCreate(p));
+            }
             expect(data).to.have.length.of(2);
             expect(data.map(p => p.id).sort()).eql(["b1", "c1"]);
           });
@@ -322,8 +340,12 @@ describe("Integration tests", function() {
 
         it("should retrieve the list of permissions", () => {
           return api.listPermissions({ pages: Infinity }).then(results => {
-            expect(results.data).to.have.length.of(15);
-            expect(results.totalRecords).eql(15);
+            let expectedRecords = 15;
+            if (shouldHaveBucketCreate) {
+              expectedRecords++;
+            }
+            expect(results.data).to.have.length.of(expectedRecords);
+            expect(results.totalRecords).eql(expectedRecords);
           });
         });
       });

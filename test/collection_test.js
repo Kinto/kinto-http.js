@@ -20,7 +20,7 @@ describe("Collection", () => {
   let sandbox, client, coll;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
     client = new KintoClient(FAKE_SERVER_URL);
     const bucket = new Bucket(client, "blog", { headers: { Foo: "Bar" } });
     coll = new Collection(client, bucket, "posts", { headers: { Baz: "Qux" } });

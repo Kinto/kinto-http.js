@@ -21,7 +21,7 @@ describe("HTTP class", () => {
   let sandbox, events, http;
 
   beforeEach(() => {
-    sandbox = sinon.sandbox.create();
+    sandbox = sinon.createSandbox();
     events = new EventEmitter();
     http = new HTTP(events, { timeout: 100 });
   });
