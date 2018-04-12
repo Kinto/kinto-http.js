@@ -496,7 +496,9 @@ export default class Collection {
   async isHistoryComplete() {
     // We consider that if we have the collection creation event part of the
     // history, then all records change events have been tracked.
-    const { data: [oldestHistoryEntry] } = await this.bucket.listHistory({
+    const {
+      data: [oldestHistoryEntry],
+    } = await this.bucket.listHistory({
       limit: 1,
       filters: {
         action: "create",
@@ -545,7 +547,10 @@ export default class Collection {
     // Replay changes to compute the requested snapshot.
     const seenIds = new Set();
     let snapshot = [];
-    for (const { action, target: { data: record } } of changes) {
+    for (const {
+      action,
+      target: { data: record },
+    } of changes) {
       if (action == "delete") {
         seenIds.add(record.id); // ensure not reprocessing deleted entries
         snapshot = snapshot.filter(r => r.id !== record.id);

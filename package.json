@@ -80,7 +80,7 @@
     "jsdom": "^11.0.0",
     "kinto-node-test-server": "^1.0.0",
     "mocha": "^5.0.0",
-    "prettier": "^1.8.2",
+    "prettier": "1.12.0",
     "sinon": "^5.0.0",
     "toctoc": "^0.3.0",
     "uglifyify": "^4.0.1"
