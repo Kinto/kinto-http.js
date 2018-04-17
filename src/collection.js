@@ -515,7 +515,7 @@ export default class Collection {
   async listChangesBackTo(at) {
     // Ensure we have enough history data to retrieve the complete list of
     // changes.
-    if (!await this.isHistoryComplete()) {
+    if (!(await this.isHistoryComplete())) {
       throw new Error(
         "Computing a snapshot is only possible when the full history for a " +
           "collection is available. Here, the history plugin seems to have " +
