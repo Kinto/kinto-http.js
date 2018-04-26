@@ -83,7 +83,7 @@
     "prettier": "1.12.1",
     "sinon": "^5.0.0",
     "toctoc": "^0.3.0",
-    "uglifyify": "^4.0.1"
+    "uglifyify": "^5.0.0"
   },
   "engines": {
     "node": ">=6"
