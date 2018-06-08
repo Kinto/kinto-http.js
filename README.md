@@ -245,7 +245,7 @@ Sample result:
 ### Listing buckets
 
 ```js
-const { data } = await client.listBuckets([options]);
+const {data} = await client.listBuckets([options]);
 ```
 
 Sample result:
