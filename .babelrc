@@ -1,24 +1,22 @@
 {
   "env": {
     "development": {
-      "presets": ["es2015"],
+      "presets": ["@babel/env"],
       "plugins": [
-        "babel-plugin-transform-decorators-legacy",
+        ["@babel/plugin-proposal-decorators", {"legacy": true}],
         ["babel-plugin-transform-builtin-extend", {
           "globals": ["Error"]
         }],
-        "transform-object-rest-spread",
-        "transform-async-to-generator",
-        ["transform-runtime", {
-          "polyfill": false
-        }]
+        "@babel/plugin-proposal-object-rest-spread",
+        "@babel/plugin-transform-async-to-generator",
+        "@babel/plugin-transform-runtime",
       ]
     },
     "firefox": {
       "plugins": [
-        "babel-plugin-transform-decorators-legacy",
-        "transform-es2015-modules-commonjs",
-        "syntax-object-rest-spread"
+        ["@babel/plugin-proposal-decorators", {"legacy": true}],
+        "@babel/transform-modules-commonjs",
+        "@babel/syntax-object-rest-spread"
       ]
     }
   }
