@@ -87,7 +87,9 @@ describe("Integration tests", function() {
       return stopServer(server);
     });
 
-    beforeEach(() => server.flush());
+    beforeEach(() => {
+      return server.flush().then(_ => api.createAccount("user", "pass"));
+    });
 
     // XXX move this to batch tests
     describe("new batch", () => {
@@ -152,7 +154,7 @@ describe("Integration tests", function() {
 
       it("should retrieve user information", () => {
         return api.fetchUser().then(user => {
-          expect(user.id).to.match(/^basicauth:/);
+          expect(user.id).to.equal("account:user");
           expect(user.bucket).to.have.length.of(36);
         });
       });
@@ -319,6 +321,8 @@ describe("Integration tests", function() {
               expect(bucketCreate.length).eql(1);
               data = data.filter(p => !isBucketCreate(p));
             }
+            const isOwnAccount = p => p.uri == "/accounts/user";
+            data = data.filter(p => !isOwnAccount(p));
             expect(data).to.have.length.of(2);
             expect(data.map(p => p.id).sort()).eql(["b1", "c1"]);
           });
@@ -340,6 +344,7 @@ describe("Integration tests", function() {
             if (shouldHaveCreatePermission) {
               expectedRecords++;
             }
+            expectedRecords++; // for account:create
             expect(results.data).to.have.length.of(expectedRecords);
           });
         });
@@ -575,7 +580,9 @@ describe("Integration tests", function() {
 
     after(() => stopServer(server));
 
-    beforeEach(() => server.flush());
+    beforeEach(() => {
+      return server.flush().then(_ => api.createAccount("user", "pass"));
+    });
 
     it("should appropriately populate the backoff property", () => {
       // Issuing a first api call to retrieve backoff information
@@ -586,8 +593,6 @@ describe("Integration tests", function() {
   });
 
   describe("Deprecated protocol version", () => {
-    beforeEach(() => server.flush());
-
     describe("Soft EOL", () => {
       before(() => {
         const tomorrow = new Date(new Date().getTime() + 86400000)
@@ -646,7 +651,9 @@ describe("Integration tests", function() {
 
     after(() => stopServer(server));
 
-    beforeEach(() => server.flush());
+    beforeEach(() => {
+      return server.flush().then(_ => api.createAccount("user", "pass"));
+    });
 
     describe("Limited configured server pagination", () => {
       let collection;
@@ -680,7 +687,9 @@ describe("Integration tests", function() {
 
     after(() => stopServer(server));
 
-    beforeEach(() => server.flush());
+    beforeEach(() => {
+      return server.flush().then(_ => api.createAccount("user", "pass"));
+    });
 
     describe(".bucket()", () => {
       let bucket;

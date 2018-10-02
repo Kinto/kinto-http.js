@@ -165,7 +165,7 @@ const kinto = new KintoClient("https://my.server.tld/v1", {
 
 > #### Notes
 >
-> - As explained in the [server docs](http://kinto.readthedocs.io/en/stable/api/1.x/authentication.html#basic-auth), any string is accepted. You're not obliged to use the `username:password` format.
+> - As Kinto Accounts has become the default as of 11, you may need to create an account first.
 
 ### Using an OAuth Bearer Token
 
