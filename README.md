@@ -49,6 +49,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Updating an existing record](#updating-an-existing-record)
      - [Deleting record](#deleting-record)
      - [Listing records](#listing-records)
+     - [Total number of records](#total-number-of-records)
      - [Batching operations](#batching-operations)
   - [Listing all resource permissions](#listing-all-resource-permissions)
   - [Attachments](#attachments)
@@ -1147,6 +1148,23 @@ The result object exposes the following properties:
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
+### Total number of records
+
+```js
+const result = await client.bucket("blog").collection("posts")
+  .getTotalRecords();
+```
+
+Sample result:
+
+```js
+42
+```
+
+#### Options
+
+- `headers`: Custom headers object to send along the HTTP request
+- `retry`: Number of retries when request fails (default: 0)
 
 ### Batching operations
 
