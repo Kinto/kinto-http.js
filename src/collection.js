@@ -3,6 +3,7 @@ import { v4 as uuid } from "uuid";
 import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
+import { qsify } from "./utils";
 
 /**
  * Abstract representation of a selected collection.
@@ -118,12 +119,19 @@ export default class Collection {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Object} [options.query]   Query parameters to pass in
+   *     the request. This might be useful for features that aren't
+   *     yet supported by this library.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getData(options = {}) {
-    const path = endpoint("collection", this.bucket.name, this.name);
+    let path = endpoint("collection", this.bucket.name, this.name);
+    if (options.query) {
+      const querystring = qsify(options.query);
+      path = path + "?" + querystring;
+    }
     const request = { headers: this._getHeaders(options), path };
     const { data } = await this.client.execute(request, {
       retry: this._getRetry(options),

@@ -85,6 +85,16 @@ describe("Collection", () => {
         .getData()
         .should.become({ foo: "bar" });
     });
+
+    it("should pass filters through", () => {
+      sandbox.stub(client, "execute").returns(Promise.resolve());
+
+      getBlogPostsCollection().getData({ query: { _expected: '"123"' } });
+
+      sinon.assert.calledWithMatch(client.execute, {
+        path: "/buckets/blog/collections/posts?_expected=%22123%22",
+      });
+    });
   });
 
   /** @test {Collection#getPermissions} */
