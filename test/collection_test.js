@@ -86,13 +86,23 @@ describe("Collection", () => {
         .should.become({ foo: "bar" });
     });
 
-    it("should pass filters through", () => {
+    it("should pass query through", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve());
 
       getBlogPostsCollection().getData({ query: { _expected: '"123"' } });
 
       sinon.assert.calledWithMatch(client.execute, {
         path: "/buckets/blog/collections/posts?_expected=%22123%22",
+      });
+    });
+
+    it("supports _fields", () => {
+      sandbox.stub(client, "execute").returns(Promise.resolve());
+
+      getBlogPostsCollection().getData({ fields: ["a", "b"] });
+
+      sinon.assert.calledWithMatch(client.execute, {
+        path: "/buckets/blog/collections/posts?_fields=a,b",
       });
     });
   });

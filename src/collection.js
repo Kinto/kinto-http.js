@@ -122,6 +122,8 @@ export default class Collection {
    * @param  {Object} [options.query]   Query parameters to pass in
    *     the request. This might be useful for features that aren't
    *     yet supported by this library.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
