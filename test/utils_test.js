@@ -126,6 +126,12 @@ describe("Utils", () => {
       );
     });
 
+    it("should understand _fields", () => {
+      expect(addEndpointOptions("/a", { fields: ["a", "b"] })).eql(
+        "/a?_fields=a,b"
+      );
+    });
+
     it("should not add ? if no options", () => {
       expect(addEndpointOptions("/a")).eql("/a");
     });
