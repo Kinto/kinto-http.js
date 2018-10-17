@@ -440,12 +440,18 @@ export default class Collection {
    * @param  {String} id                The record id to retrieve.
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Object} [options.query]   Query parameters to pass in
+   *     the request. This might be useful for features that aren't
+   *     yet supported by this library.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getRecord(id, options = {}) {
-    const path = endpoint("record", this.bucket.name, this.name, id);
+    let path = endpoint("record", this.bucket.name, this.name, id);
+    path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
     return this.client.execute(request, { retry: this._getRetry(options) });
   }

@@ -481,6 +481,15 @@ describe("Collection", () => {
     it("should retrieve a record", () => {
       return coll.getRecord(1).should.become({ data: 1 });
     });
+
+    it("should support query and fields", () => {
+      coll.getRecord(1, { query: { a: "b" }, fields: ["c", "d"] });
+
+      sinon.assert.calledWith(client.execute, {
+        headers: { Baz: "Qux", Foo: "Bar" },
+        path: "/buckets/blog/collections/posts/records/1?a=b&_fields=c,d",
+      });
+    });
   });
 
   /** @test {Collection#listRecords} */

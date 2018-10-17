@@ -58,6 +58,17 @@ describe("Bucket", () => {
         .getData()
         .should.become({ foo: "bar" });
     });
+
+    it("should support query and fields", () => {
+      const response = { data: { foo: "bar" }, permissions: {} };
+      sandbox.stub(client, "execute").returns(Promise.resolve(response));
+
+      getBlogBucket().getData({ query: { a: "b" }, fields: ["c", "d"] });
+
+      sinon.assert.calledWithMatch(client.execute, {
+        path: "/buckets/blog?a=b&_fields=c,d",
+      });
+    });
   });
 
   describe("#setData()", () => {
@@ -390,6 +401,17 @@ describe("Bucket", () => {
       return getBlogBucket()
         .getGroup("foo")
         .should.become(fakeGroup);
+    });
+
+    it("should support query and fields", () => {
+      getBlogBucket().getGroup("foo", {
+        query: { a: "b" },
+        fields: ["c", "d"],
+      });
+
+      sinon.assert.calledWithMatch(client.execute, {
+        path: "/buckets/blog/groups/foo?a=b&_fields=c,d",
+      });
     });
   });
 
