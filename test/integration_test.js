@@ -301,6 +301,11 @@ describe("Integration tests", function() {
       // up to one where it also has bucket:create, we can clean this
       // up.
       let shouldHaveBucketCreate =
+        // People developing don't always set SERVER. Let's assume
+        // that means "master".
+        !process.env.SERVER ||
+        // "master" is greater than 8.3 but let's just be explicit here.
+        process.env.SERVER == "master" ||
         process.env.SERVER > "8.3" ||
         (process.env.SERVER > "8.2" && process.env.SERVER.includes("dev"));
       describe("Single page of permissions", () => {
