@@ -472,6 +472,8 @@ export default class KintoClientBase {
    *     Infinity to fetch everything.
    * @param  {String}  [params.since=undefined]
    *     The ETag from which to start fetching.
+   * @param  {Array}   [params.fields]
+   *     Limit response to just some fields.
    * @param  {Object}  [options={}]
    *     Additional request-level parameters to use in all requests.
    * @param  {Object}  [options.headers={}]
@@ -484,7 +486,7 @@ export default class KintoClientBase {
     // FIXME: this is called even in batch requests, which doesn't
     // make any sense (since all batch requests get a "dummy"
     // response; see execute() above).
-    const { sort, filters, limit, pages, since } = {
+    const { sort, filters, limit, pages, since, fields } = {
       sort: "-last_modified",
       ...params,
     };
@@ -495,12 +497,16 @@ export default class KintoClientBase {
       );
     }
 
-    const querystring = qsify({
+    let query = {
       ...filters,
       _sort: sort,
       _limit: limit,
       _since: since,
-    });
+    };
+    if (fields) {
+      query._fields = fields;
+    }
+    const querystring = qsify(query);
     let results = [],
       current = 0;
 
@@ -591,6 +597,9 @@ export default class KintoClientBase {
    *     this request.
    * @param  {Number} [options.retry=0]    Number of retries to make
    *     when faced with transient errors.
+   * @param  {Object} [options.filters={}] The filters object.
+   * @param  {Array}  [options.fields]     Limit response to
+   *     just some fields.
    * @return {Promise<Object[], Error>}
    */
   async listBuckets(options = {}) {

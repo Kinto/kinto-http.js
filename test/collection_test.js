@@ -531,6 +531,16 @@ describe("Collection", () => {
         .eql(data);
     });
 
+    it("should support filters and fields", () => {
+      coll.listRecords({ filters: { a: "b" }, fields: ["c", "d"] });
+
+      sinon.assert.calledWithMatch(
+        coll.client.paginatedList,
+        "/buckets/blog/collections/posts/records",
+        { filters: { a: "b" }, fields: ["c", "d"] }
+      );
+    });
+
     describe("Retry", () => {
       const response = { data: [{ id: 1, title: "art" }] };
 

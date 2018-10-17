@@ -483,12 +483,13 @@ export default class Collection {
    * @param  {Object}   [options.headers]               The headers object option.
    * @param  {Number}   [options.retry=0]               Number of retries to make
    *     when faced with transient errors.
-   * @param  {Object}   [options.filters=[]]            The filters object.
+   * @param  {Object}   [options.filters={}]            The filters object.
    * @param  {String}   [options.sort="-last_modified"] The sort field.
    * @param  {String}   [options.at]                    The timestamp to get a snapshot at.
    * @param  {String}   [options.limit=null]            The limit field.
    * @param  {String}   [options.pages=1]               The number of result pages to aggregate.
    * @param  {Number}   [options.since=null]            Only retrieve records modified since the provided timestamp.
+   * @param  {Array}    [options.fields]                Limit response to just some fields.
    * @return {Promise<Object, Error>}
    */
   async listRecords(options = {}) {

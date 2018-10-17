@@ -184,9 +184,12 @@ export default class Bucket {
    * Retrieves the list of collections in the current bucket.
    *
    * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.filters={}] The filters object.
    * @param  {Object} [options.headers] The headers object option.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
    * @return {Promise<Array<Object>, Error>}
    */
   async listCollections(options = {}) {
@@ -257,9 +260,12 @@ export default class Bucket {
    * Retrieves the list of groups in the current bucket.
    *
    * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.filters={}] The filters object.
    * @param  {Object} [options.headers] The headers object option.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
    * @return {Promise<Array<Object>, Error>}
    */
   async listGroups(options = {}) {

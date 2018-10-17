@@ -173,6 +173,19 @@ describe("Bucket", () => {
       );
     });
 
+    it("should support fiters and fields", () => {
+      getBlogBucket().listCollections({
+        filters: { a: "b" },
+        fields: ["c", "d"],
+      });
+
+      sinon.assert.calledWithMatch(
+        client.paginatedList,
+        "/buckets/blog/collections",
+        { filters: { a: "b" }, fields: ["c", "d"] }
+      );
+    });
+
     it("should return the list of collections", () => {
       return getBlogBucket()
         .listCollections()
@@ -369,6 +382,16 @@ describe("Bucket", () => {
         "/buckets/blog/groups",
         {},
         { headers: { Foo: "Bar", Baz: "Qux" } }
+      );
+    });
+
+    it("should support filters and fields", () => {
+      getBlogBucket().listGroups({ filters: { a: "b" }, fields: ["c", "d"] });
+
+      sinon.assert.calledWithMatch(
+        client.paginatedList,
+        "/buckets/blog/groups",
+        { filters: { a: "b" }, fields: ["c", "d"] }
       );
     });
 
