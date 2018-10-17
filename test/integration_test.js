@@ -300,7 +300,7 @@ describe("Integration tests", function() {
       // version (see .travis.yml). If we ever bump the older version
       // up to one where it also has bucket:create, we can clean this
       // up.
-      let shouldHaveBucketCreate =
+      let shouldHaveCreatePermission =
         // People developing don't always set SERVER. Let's assume
         // that means "master".
         !process.env.SERVER ||
@@ -318,12 +318,12 @@ describe("Integration tests", function() {
 
         it("should retrieve the list of permissions", () => {
           return api.listPermissions().then(({ data }) => {
-            if (shouldHaveBucketCreate) {
-              // One element is `bucket:create` which doesn't refer to
-              // any particular id. Remove it.
+            if (shouldHaveCreatePermission) {
+              // One element is for the root element which has
+              // `bucket:create` as well as `account:create`. Remove
+              // it.
               const isBucketCreate = p =>
-                p.permissions.length == 1 &&
-                p.permissions[0] === "bucket:create";
+                p.permissions.includes("bucket:create");
               const bucketCreate = data.filter(isBucketCreate);
               expect(bucketCreate.length).eql(1);
               data = data.filter(p => !isBucketCreate(p));
@@ -346,7 +346,7 @@ describe("Integration tests", function() {
         it("should retrieve the list of permissions", () => {
           return api.listPermissions({ pages: Infinity }).then(results => {
             let expectedRecords = 15;
-            if (shouldHaveBucketCreate) {
+            if (shouldHaveCreatePermission) {
               expectedRecords++;
             }
             expect(results.data).to.have.length.of(expectedRecords);
