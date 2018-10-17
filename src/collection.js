@@ -3,7 +3,7 @@ import { v4 as uuid } from "uuid";
 import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
-import { qsify } from "./utils";
+import { addEndpointOptions } from "./utils";
 
 /**
  * Abstract representation of a selected collection.
@@ -128,10 +128,7 @@ export default class Collection {
    */
   async getData(options = {}) {
     let path = endpoint("collection", this.bucket.name, this.name);
-    if (options.query) {
-      const querystring = qsify(options.query);
-      path = path + "?" + querystring;
-    }
+    path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
     const { data } = await this.client.execute(request, {
       retry: this._getRetry(options),

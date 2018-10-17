@@ -317,3 +317,18 @@ export function cleanUndefinedProperties(obj) {
   }
   return result;
 }
+
+/**
+ * Handle common query parameters for Kinto requests.
+ *
+ * @param  {String}  [path]  The endpoint base path.
+ * @param  {Object}  [options.query={}]  Additional query arguments.
+ */
+export function addEndpointOptions(path, options = {}) {
+  let query = { ...options.query };
+  const queryString = qsify(query);
+  if (queryString) {
+    return path + "?" + queryString;
+  }
+  return path;
+}

@@ -15,6 +15,7 @@ import {
   parseDataURL,
   extractFileInfo,
   cleanUndefinedProperties,
+  addEndpointOptions,
 } from "../src/utils";
 
 chai.should();
@@ -114,6 +115,19 @@ describe("Utils", () => {
 
     it("should escaped values", () => {
       expect(qsify({ a: ["é", "ə"], b: "&" })).eql("a=%C3%A9,%C9%99&b=%26");
+    });
+  });
+
+  /** @test {addEndpointOptions} */
+  describe("#addEndpointOptions", () => {
+    it("should add query options", () => {
+      expect(addEndpointOptions("/a", { query: { a: '"123"' } })).eql(
+        "/a?a=%22123%22"
+      );
+    });
+
+    it("should not add ? if no options", () => {
+      expect(addEndpointOptions("/a")).eql("/a");
     });
   });
 
