@@ -441,6 +441,21 @@ describe("Integration tests", function() {
       });
     });
 
+    describe("#createAccount", () => {
+      it("should create an account", () => {
+        return api
+          .createAccount("testuser", "testpw")
+          .then(() =>
+            createClient({
+              headers: { Authorization: "Basic " + btoa("testuser:testpw") },
+            }).fetchUser()
+          )
+          .then(user => {
+            expect(user.id).equal("account:testuser");
+          });
+      });
+    });
+
     describe("#batch", () => {
       describe("No chunked requests", () => {
         it("should allow batching operations", () => {
