@@ -65,6 +65,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Sorting](#sorting)
      - [Polling for changes](#polling-for-changes)
      - [Paginating results](#paginating-results)
+  - [Generic options for singular operations](#generic-options-for-singular-operations)
   - [Events](#events)
      - [The backoff event](#the-backoff-event)
      - [The deprecated event](#the-deprecated-event)
@@ -344,6 +345,7 @@ Sample result:
 - `headers`: Custom headers object to send along the HTTP request
 - `retry`: Number of retries when request fails (default: 0)
 
+This method accepts the [generic parameters for singular operations](#generic-options-for-singular-operations).
 
 ### Setting bucket data
 
@@ -737,6 +739,8 @@ Sample result:
 - `headers`: Custom headers object to send along the HTTP request
 - `retry`: Number of retries when request fails (default: 0)
 
+This method accepts the [generic parameters for singular operations](#generic-options-for-singular-operations).
+
 ### Updating an existing group
 
 ```js
@@ -878,6 +882,8 @@ Sample result:
 
 - `headers`: Custom headers object to send along the HTTP request
 - `retry`: Number of retries when request fails (default: 0)
+
+This method accepts the [generic parameters for singular operations](#generic-options-for-singular-operations).
 
 ### Setting collection data
 
@@ -1036,7 +1042,8 @@ Sample result:
 
 - `headers`: Custom headers object to send along the HTTP request
 - `retry`: Number of retries when request fails (default: 0)
-- `safe`: Ensures an existing record with this ID won't be overridden (default: `false`).
+
+This method accepts the [generic parameters for singular operations](#generic-options-for-singular-operations).
 
 ### Updating an existing record
 
@@ -1447,6 +1454,7 @@ Every list operations like [listBuckets()](#listing-buckets), [listCollections](
 - `limit`: The number of records to retrieve per page: unset by default, uses default server configuration;
 - `filters`: An object defining the filters to apply; read more about [what's supported](http://kinto.readthedocs.io/en/stable/api/1.x/filtering.html);
 - `since`: The ETag header value received from the last response from the server.
+- `fields`: The set of fields to return for each record (see the [selecting fields](https://kinto.readthedocs.io/en/stable/api/1.x/selecting_fields.html) documentation).
 
 ### Sorting
 
@@ -1497,6 +1505,14 @@ const {data, hasNextPage, next} = await client.bucket("blog").collection("posts"
 > ##### Notes
 >
 > If you plan on fetching all the available pages, you can set the `pages` option to `Infinity`. Be aware that for large datasets this strategy can possibly issue an excessive number of HTTP requests.
+
+
+## Generic options for singular operations
+
+"Singular" operations such as [Bucket#getData()](#getting-bucket-data), [Bucket#getGroup](#getting-a-bucket-group), [Collection#getData](#getting-collection-data), and [Collection#getRecord](#retrieving-an-existing-record) support some shared options:
+
+- `fields`: The set of fields to return for each record (see the [selecting fields](https://kinto.readthedocs.io/en/stable/api/1.x/selecting_fields.html) documentation).
+- `query`: Any extra query arguments to pass. This might be handy if you want to use a feature that this library doesn't support yet, or for implementing cache-busting URLs.
 
 
 ## Events
