@@ -30,8 +30,9 @@ export function createRequest(path, { data, permissions }, options = {}) {
     ...requestDefaults,
     ...options,
   };
+  const method = options.method || (data && data.id) ? "PUT" : "POST";
   return {
-    method: data && data.id ? "PUT" : "POST",
+    method,
     path,
     headers: { ...headers, ...safeHeader(safe) },
     body: { data, permissions },

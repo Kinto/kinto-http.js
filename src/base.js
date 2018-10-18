@@ -693,4 +693,15 @@ export default class KintoClientBase {
       { retry: this._getRetry(options) }
     );
   }
+
+  @capable(["accounts"])
+  async createAccount(username, password) {
+    return this.execute(
+      requests.createRequest(
+        `/accounts/${username}`,
+        { data: { password } },
+        { method: "PUT" }
+      )
+    );
+  }
 }
