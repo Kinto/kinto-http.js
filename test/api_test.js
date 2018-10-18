@@ -792,6 +792,14 @@ describe("KintoClient", () => {
           .should.eventually.have.property("hasNextPage")
           .eql(false);
       });
+
+      it("should pass fields through", () => {
+        api.paginatedList(path, { fields: ["c", "d"] });
+
+        sinon.assert.calledWithMatch(api.execute, {
+          path: `${path}?_sort=-last_modified&_fields=c,d`,
+        });
+      });
     });
 
     describe("Filtering", () => {
@@ -1024,6 +1032,15 @@ describe("KintoClient", () => {
         .listBuckets()
         .should.eventually.have.property("data")
         .eql(data);
+    });
+
+    it("should support filters and fields", () => {
+      api.listBuckets({ filters: { a: "b" }, fields: ["c", "d"] });
+
+      sinon.assert.calledWithMatch(api.paginatedList, "/buckets", {
+        filters: { a: "b" },
+        fields: ["c", "d"],
+      });
     });
   });
 

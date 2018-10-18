@@ -1,4 +1,4 @@
-import { toDataBody, isObject, capable } from "./utils";
+import { toDataBody, isObject, capable, addEndpointOptions } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
@@ -98,14 +98,21 @@ export default class Bucket {
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Object} [options.query]   Query parameters to pass in
+   *     the request. This might be useful for features that aren't
+   *     yet supported by this library.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getData(options = {}) {
+    let path = endpoint("bucket", this.name);
+    path = addEndpointOptions(path, options);
     const request = {
       headers: this._getHeaders(options),
-      path: endpoint("bucket", this.name),
+      path,
     };
     const { data } = await this.client.execute(request, {
       retry: this._getRetry(options),
@@ -177,9 +184,12 @@ export default class Bucket {
    * Retrieves the list of collections in the current bucket.
    *
    * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.filters={}] The filters object.
    * @param  {Object} [options.headers] The headers object option.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
    * @return {Promise<Array<Object>, Error>}
    */
   async listCollections(options = {}) {
@@ -250,9 +260,12 @@ export default class Bucket {
    * Retrieves the list of groups in the current bucket.
    *
    * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.filters={}] The filters object.
    * @param  {Object} [options.headers] The headers object option.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
    * @return {Promise<Array<Object>, Error>}
    */
   async listGroups(options = {}) {
@@ -264,19 +277,26 @@ export default class Bucket {
   }
 
   /**
-   * Creates a new group in current bucket.
+   * Fetches a group in current bucket.
    *
    * @param  {String} id                The group id.
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
+   * @param  {Object} [options.query]   Query parameters to pass in
+   *     the request. This might be useful for features that aren't
+   *     yet supported by this library.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
    * @return {Promise<Object, Error>}
    */
   async getGroup(id, options = {}) {
+    let path = endpoint("group", this.name, id);
+    path = addEndpointOptions(path, options);
     const request = {
       headers: this._getHeaders(options),
-      path: endpoint("group", this.name, id),
+      path,
     };
     return this.client.execute(request, { retry: this._getRetry(options) });
   }

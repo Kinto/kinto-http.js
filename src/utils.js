@@ -317,3 +317,23 @@ export function cleanUndefinedProperties(obj) {
   }
   return result;
 }
+
+/**
+ * Handle common query parameters for Kinto requests.
+ *
+ * @param  {String}  [path]  The endpoint base path.
+ * @param  {Array}   [options.fields]    Fields to limit the
+ *   request to.
+ * @param  {Object}  [options.query={}]  Additional query arguments.
+ */
+export function addEndpointOptions(path, options = {}) {
+  let query = { ...options.query };
+  if (options.fields) {
+    query._fields = options.fields;
+  }
+  const queryString = qsify(query);
+  if (queryString) {
+    return path + "?" + queryString;
+  }
+  return path;
+}

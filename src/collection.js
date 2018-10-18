@@ -3,7 +3,7 @@ import { v4 as uuid } from "uuid";
 import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
-import { qsify } from "./utils";
+import { addEndpointOptions } from "./utils";
 
 /**
  * Abstract representation of a selected collection.
@@ -122,16 +122,15 @@ export default class Collection {
    * @param  {Object} [options.query]   Query parameters to pass in
    *     the request. This might be useful for features that aren't
    *     yet supported by this library.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getData(options = {}) {
     let path = endpoint("collection", this.bucket.name, this.name);
-    if (options.query) {
-      const querystring = qsify(options.query);
-      path = path + "?" + querystring;
-    }
+    path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
     const { data } = await this.client.execute(request, {
       retry: this._getRetry(options),
@@ -441,12 +440,18 @@ export default class Collection {
    * @param  {String} id                The record id to retrieve.
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
+   * @param  {Object} [options.query]   Query parameters to pass in
+   *     the request. This might be useful for features that aren't
+   *     yet supported by this library.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
    * @param  {Number} [options.retry=0] Number of retries to make
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
   async getRecord(id, options = {}) {
-    const path = endpoint("record", this.bucket.name, this.name, id);
+    let path = endpoint("record", this.bucket.name, this.name, id);
+    path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
     return this.client.execute(request, { retry: this._getRetry(options) });
   }
@@ -478,12 +483,13 @@ export default class Collection {
    * @param  {Object}   [options.headers]               The headers object option.
    * @param  {Number}   [options.retry=0]               Number of retries to make
    *     when faced with transient errors.
-   * @param  {Object}   [options.filters=[]]            The filters object.
+   * @param  {Object}   [options.filters={}]            The filters object.
    * @param  {String}   [options.sort="-last_modified"] The sort field.
    * @param  {String}   [options.at]                    The timestamp to get a snapshot at.
    * @param  {String}   [options.limit=null]            The limit field.
    * @param  {String}   [options.pages=1]               The number of result pages to aggregate.
    * @param  {Number}   [options.since=null]            Only retrieve records modified since the provided timestamp.
+   * @param  {Array}    [options.fields]                Limit response to just some fields.
    * @return {Promise<Object, Error>}
    */
   async listRecords(options = {}) {
