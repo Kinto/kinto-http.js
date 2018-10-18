@@ -32,7 +32,7 @@ export function createRequest(path, { data, permissions }, options = {}) {
   };
   const method = options.method || (data && data.id) ? "PUT" : "POST";
   return {
-    method: method,
+    method,
     path,
     headers: { ...headers, ...safeHeader(safe) },
     body: { data, permissions },
