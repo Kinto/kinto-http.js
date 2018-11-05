@@ -5,7 +5,6 @@ import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 
 import Api from "../src";
-import { checkVersion } from "../src/utils";
 import { EventEmitter } from "events";
 import KintoServer from "kinto-node-test-server";
 import { delayedPromise } from "./test_utils";
@@ -265,14 +264,6 @@ describe("Integration tests", function() {
     });
 
     describe("#deleteBuckets()", () => {
-      before(function() {
-        try {
-          checkVersion(server.http_api_version, "1.4", "2.0");
-        } catch (err) {
-          this.skip();
-        }
-      });
-
       beforeEach(() => {
         return api.batch(batch => {
           batch.createBucket("b1");
