@@ -1,6 +1,6 @@
 language: python
 python:
- - "3.5"
+ - "3.6"
 env:
 - ACTION="run lint"
 - ACTION="run dist" # ensures building dist files doesn't break
