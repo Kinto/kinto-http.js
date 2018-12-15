@@ -78,7 +78,7 @@
     "eslint": "^5.0.0",
     "form-data": "^2.1.2",
     "isomorphic-fetch": "^2.2.1",
-    "jsdom": "^13.0.0",
+    "jsdom": "^13.1.0",
     "kinto-node-test-server": "^1.0.0",
     "mocha": "^5.0.0",
     "prettier": "^1.13.0",
