@@ -341,7 +341,6 @@ describe("Integration tests", function() {
               expectedRecords++;
             }
             expect(results.data).to.have.length.of(expectedRecords);
-            expect(results.totalRecords).eql(expectedRecords);
           });
         });
       });
@@ -1770,15 +1769,6 @@ describe("Integration tests", function() {
                 .then(_ => coll.listRecords())
                 .then(({ data }) => data.map(record => record.title))
                 .should.become(["foo"]);
-            });
-
-            it("should expose the total number of records", () => {
-              return coll
-                .createRecord({ a: 1 })
-                .then(() => coll.createRecord({ a: 2 }))
-                .then(() => coll.listRecords())
-                .should.eventually.have.property("totalRecords")
-                .eql(2);
             });
 
             it("should order records by field", () => {

@@ -700,7 +700,6 @@ describe("KintoClient", () => {
   /** @test {KintoClient#paginatedList} */
   describe("#paginatedList()", () => {
     const ETag = '"42"';
-    const totalRecords = 1337;
     const path = "/some/path";
 
     describe("No pagination", () => {
@@ -713,8 +712,6 @@ describe("KintoClient", () => {
               get: name => {
                 if (name === "ETag") {
                   return ETag;
-                } else if (name === "Total-Records") {
-                  return String(totalRecords);
                 }
               },
             },
@@ -747,13 +744,6 @@ describe("KintoClient", () => {
           .paginatedList(path)
           .should.eventually.have.property("data")
           .eql([{ a: 1 }]);
-      });
-
-      it("should resolve with number of total records", () => {
-        return api
-          .paginatedList(path)
-          .should.eventually.have.property("totalRecords")
-          .eql(1337);
       });
 
       it("should resolve with a next() function", () => {
@@ -920,25 +910,6 @@ describe("KintoClient", () => {
           .paginatedList(path)
           .should.eventually.have.property("hasNextPage")
           .eql(true);
-      });
-
-      it("should resolve with number of total records", () => {
-        const { http } = api;
-        sandbox
-          .stub(http, "request")
-          // first page
-          .onFirstCall()
-          .returns(
-            Promise.resolve({
-              headers: { get: () => "1337" },
-              json: { data: [1, 2] },
-            })
-          );
-
-        return api
-          .paginatedList(path)
-          .should.eventually.have.property("totalRecords")
-          .eql(1337);
       });
     });
 
