@@ -82,7 +82,7 @@
     "kinto-node-test-server": "^1.0.0",
     "mocha": "^5.0.0",
     "prettier": "^1.13.0",
-    "sinon": "^6.0.0",
+    "sinon": "^7.2.3",
     "toctoc": "^0.3.0",
     "uglifyify": "^5.0.0"
   },
