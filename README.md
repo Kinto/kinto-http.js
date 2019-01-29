@@ -38,6 +38,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Updating an existing group](#updating-an-existing-group)
      - [Deleting a group](#deleting-a-group)
      - [Listing bucket history](#listing-bucket-history)
+     - [Bucket ETag](#bucket-etag)
   - [Collections](#collections)
      - [Selecting a collection](#selecting-a-collection)
      - [Getting collection data](#getting-collection-data)
@@ -50,6 +51,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Deleting record](#deleting-record)
      - [Listing records](#listing-records)
      - [Total number of records](#total-number-of-records)
+     - [Collection ETag](#collection-etag)
      - [Batching operations](#batching-operations)
   - [Listing all resource permissions](#listing-all-resource-permissions)
   - [Attachments](#attachments)
@@ -853,6 +855,27 @@ Sample result:
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
+### Bucket ETag
+
+The bucket ETag is used for the `since` option in the [generic parameters for sorting, filtering and
+paginating results](#generic-options-for-list-operations) when dealing with buckets.
+
+```js
+const result = await client.bucket("blog")
+  .getETag();
+```
+
+Sample result:
+
+```js
+"1548699177099"
+```
+
+#### options
+
+- `headers`: custom headers object to send along the http request
+- `retry`: number of retries when request fails (default: 0)
+
 
 ## Collections
 
@@ -1142,7 +1165,7 @@ Sample result:
 
 The result object exposes the following properties:
 
-- `last_modified`: the [collection's timestamp](http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html). This value is opaque and should be reused as is, eg. passing it as a `since` option (see [Generic bucket and collection options](#generic-bucket-and-collection-options))
+- `last_modified`: the [collection's timestamp](http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html).
 - `next`: the [pagination](#paginating-results) helper to access the next page of results, if any
 - `totalRecords`: the total number of records in the **entire collection**. This number can alternatively be retrieved using the `getTotalRecords()` method of the collection API
 - `data`: the list of records
@@ -1168,10 +1191,31 @@ Sample result:
 42
 ```
 
-#### Options
+#### options
 
-- `headers`: Custom headers object to send along the HTTP request
-- `retry`: Number of retries when request fails (default: 0)
+- `headers`: custom headers object to send along the http request
+- `retry`: number of retries when request fails (default: 0)
+
+### Collection ETag
+
+The collection ETag is used for the `since` option in the [generic parameters for sorting, filtering
+and paginating results](#generic-options-for-list-operations) when dealing with collections.
+
+```js
+const result = await client.bucket("blog").collection("posts")
+  .getETag();
+```
+
+Sample result:
+
+```js
+"1548699177099"
+```
+
+#### options
+
+- `headers`: custom headers object to send along the http request
+- `retry`: number of retries when request fails (default: 0)
 
 ### Batching operations
 
