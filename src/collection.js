@@ -115,7 +115,7 @@ export default class Collection {
   }
 
   /**
-   * Retrieves the ETag of the collection, for use with the `since` filtering option.
+   * Retrieves the ETag of the records list, for use with the `since` filtering option.
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
@@ -123,7 +123,7 @@ export default class Collection {
    *     when faced with transient errors.
    * @return {Promise<String, Error>}
    */
-  async getETag(options = {}) {
+  async getRecordsTimestamp(options = {}) {
     const path = endpoint("record", this.bucket.name, this.name);
     const request = {
       headers: this._getHeaders(options),

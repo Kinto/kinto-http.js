@@ -31,14 +31,15 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Deleting a bucket](#deleting-a-bucket)
      - [Creating a collection](#creating-a-collection)
      - [Listing bucket collections](#listing-bucket-collections)
+     - [Collections list timestamp](#collections-list-timestamp)
      - [Deleting a collection](#deleting-a-collection)
      - [Creating a user group](#creating-a-user-group)
      - [Listing bucket groups](#listing-bucket-groups)
+     - [Groups list timestamp](#groups-list-timestamp)
      - [Getting a bucket group](#getting-a-bucket-group)
      - [Updating an existing group](#updating-an-existing-group)
      - [Deleting a group](#deleting-a-group)
      - [Listing bucket history](#listing-bucket-history)
-     - [Bucket ETag](#bucket-etag)
   - [Collections](#collections)
      - [Selecting a collection](#selecting-a-collection)
      - [Getting collection data](#getting-collection-data)
@@ -51,7 +52,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Deleting record](#deleting-record)
      - [Listing records](#listing-records)
      - [Total number of records](#total-number-of-records)
-     - [Collection ETag](#collection-etag)
+     - [Records list timestamp](#records-list-timestamp)
      - [Batching operations](#batching-operations)
   - [Listing all resource permissions](#listing-all-resource-permissions)
   - [Attachments](#attachments)
@@ -554,6 +555,26 @@ Sample result:
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
+### Collections list timestamp
+
+The timestmap of the collections list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+
+```js
+const result = await client.bucket("blog")
+  .getCollectionsTimestamp();
+```
+
+Sample result:
+
+```js
+"1548699177099"
+```
+
+#### Options
+
+- `headers`: custom headers object to send along the http request
+- `retry`: number of retries when request fails (default: 0)
+
 
 ### Deleting a collection
 
@@ -716,6 +737,25 @@ Sample result:
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
+### Groups list timestamp
+
+The timestmap of the groups list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+
+```js
+const result = await client.bucket("blog")
+  .getGroupsTimestamp();
+```
+
+Sample result:
+
+```js
+"1548699177099"
+```
+
+#### Options
+
+- `headers`: custom headers object to send along the http request
+- `retry`: number of retries when request fails (default: 0)
 
 ### Getting a bucket group
 
@@ -854,27 +894,6 @@ Sample result:
 - `retry`: Number of retries when request fails (default: 0)
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
-
-### Bucket ETag
-
-The bucket ETag is used for the `since` option in the [generic parameters for sorting, filtering and
-paginating results](#generic-options-for-list-operations) when dealing with buckets.
-
-```js
-const result = await client.bucket("blog")
-  .getETag();
-```
-
-Sample result:
-
-```js
-"1548699177099"
-```
-
-#### options
-
-- `headers`: custom headers object to send along the http request
-- `retry`: number of retries when request fails (default: 0)
 
 
 ## Collections
@@ -1196,14 +1215,14 @@ Sample result:
 - `headers`: custom headers object to send along the http request
 - `retry`: number of retries when request fails (default: 0)
 
-### Collection ETag
+### Records list timestamp
 
-The collection ETag is used for the `since` option in the [generic parameters for sorting, filtering
-and paginating results](#generic-options-for-list-operations) when dealing with collections.
+The timestmap of the records list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
 ```js
-const result = await client.bucket("blog").collection("posts")
-  .getETag();
+const result = await client.bucket("blog")
+  .collection("posts")
+  .getRecordsTimestamp();
 ```
 
 Sample result:
@@ -1212,10 +1231,11 @@ Sample result:
 "1548699177099"
 ```
 
-#### options
+#### Options
 
 - `headers`: custom headers object to send along the http request
 - `retry`: number of retries when request fails (default: 0)
+
 
 ### Batching operations
 

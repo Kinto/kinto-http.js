@@ -65,38 +65,6 @@ describe("Collection", () => {
     });
   });
 
-  /** @test {Collection#getETag} */
-  describe("#getETag()", () => {
-    it("should execute expected request", () => {
-      sandbox.stub(client, "execute").returns(Promise.resolve());
-
-      getBlogPostsCollection().getETag();
-
-      sinon.assert.calledWithMatch(
-        client.execute,
-        { method: "HEAD", path: "/buckets/blog/collections/posts/records" },
-        { raw: true }
-      );
-    });
-
-    it("should resolve with the ETag header value", () => {
-      const etag = '"tag"';
-      sandbox.stub(client, "execute").returns(
-        Promise.resolve({
-          headers: {
-            get(value) {
-              return value == "ETag" ? etag : null;
-            },
-          },
-        })
-      );
-
-      return getBlogPostsCollection()
-        .getETag()
-        .should.become(etag);
-    });
-  });
-
   /** @test {Collection#getData} */
   describe("#getData()", () => {
     it("should execute expected request", () => {
@@ -521,6 +489,38 @@ describe("Collection", () => {
         headers: { Baz: "Qux", Foo: "Bar" },
         path: "/buckets/blog/collections/posts/records/1?a=b&_fields=c,d",
       });
+    });
+  });
+
+  /** @test {Collection#getRecordsTimestamp} */
+  describe("#getRecordsTimestamp()", () => {
+    it("should execute expected request", () => {
+      sandbox.stub(client, "execute").returns(Promise.resolve());
+
+      getBlogPostsCollection().getRecordsTimestamp();
+
+      sinon.assert.calledWithMatch(
+        client.execute,
+        { method: "HEAD", path: "/buckets/blog/collections/posts/records" },
+        { raw: true }
+      );
+    });
+
+    it("should resolve with the ETag header value", () => {
+      const etag = '"42"';
+      sandbox.stub(client, "execute").returns(
+        Promise.resolve({
+          headers: {
+            get(value) {
+              return value == "ETag" ? etag : null;
+            },
+          },
+        })
+      );
+
+      return getBlogPostsCollection()
+        .getRecordsTimestamp()
+        .should.become(etag);
     });
   });
 
