@@ -115,6 +115,29 @@ export default class Collection {
   }
 
   /**
+   * Retrieves the ETag of the collection, for use with the `since` filtering option.
+   *
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
+   * @return {Promise<String, Error>}
+   */
+  async getETag(options = {}) {
+    const path = endpoint("record", this.bucket.name, this.name);
+    const request = {
+      headers: this._getHeaders(options),
+      path,
+      method: "HEAD",
+    };
+    const { headers } = await this.client.execute(request, {
+      raw: true,
+      retry: this._getRetry(options),
+    });
+    return headers.get("ETag");
+  }
+
+  /**
    * Retrieves collection data.
    *
    * @param  {Object} [options={}]      The options object.
