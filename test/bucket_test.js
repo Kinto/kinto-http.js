@@ -141,6 +141,38 @@ describe("Bucket", () => {
     });
   });
 
+  /** @test {Bucket#getCollectionsTimestamp} */
+  describe("#getCollectionsTimestamp()", () => {
+    it("should execute expected request", () => {
+      sandbox.stub(client, "execute").returns(Promise.resolve());
+
+      getBlogBucket().getCollectionsTimestamp();
+
+      sinon.assert.calledWithMatch(
+        client.execute,
+        { method: "HEAD", path: "/buckets/blog/collections" },
+        { raw: true }
+      );
+    });
+
+    it("should resolve with the ETag header value", () => {
+      const etag = '"42"';
+      sandbox.stub(client, "execute").returns(
+        Promise.resolve({
+          headers: {
+            get(value) {
+              return value == "ETag" ? etag : null;
+            },
+          },
+        })
+      );
+
+      return getBlogBucket()
+        .getCollectionsTimestamp()
+        .should.become(etag);
+    });
+  });
+
   /** @test {Bucket#listCollections} */
   describe("#listCollections()", () => {
     const data = [{ id: "a" }, { id: "b" }];
@@ -350,6 +382,38 @@ describe("Bucket", () => {
           headers: { Foo: "Bar", Baz: "Qux" },
         }
       );
+    });
+  });
+
+  /** @test {Bucket#getGroupsTimestamp} */
+  describe("#getGroupsTimestamp()", () => {
+    it("should execute expected request", () => {
+      sandbox.stub(client, "execute").returns(Promise.resolve());
+
+      getBlogBucket().getGroupsTimestamp();
+
+      sinon.assert.calledWithMatch(
+        client.execute,
+        { method: "HEAD", path: "/buckets/blog/groups" },
+        { raw: true }
+      );
+    });
+
+    it("should resolve with the ETag header value", () => {
+      const etag = '"42"';
+      sandbox.stub(client, "execute").returns(
+        Promise.resolve({
+          headers: {
+            get(value) {
+              return value == "ETag" ? etag : null;
+            },
+          },
+        })
+      );
+
+      return getBlogBucket()
+        .getGroupsTimestamp()
+        .should.become(etag);
     });
   });
 

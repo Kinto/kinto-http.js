@@ -94,6 +94,52 @@ export default class Bucket {
   }
 
   /**
+   * Retrieves the ETag of the collection list, for use with the `since` filtering option.
+   *
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
+   * @return {Promise<String, Error>}
+   */
+  async getCollectionsTimestamp(options = {}) {
+    const path = endpoint("collection", this.name);
+    const request = {
+      headers: this._getHeaders(options),
+      path,
+      method: "HEAD",
+    };
+    const { headers } = await this.client.execute(request, {
+      raw: true,
+      retry: this._getRetry(options),
+    });
+    return headers.get("ETag");
+  }
+
+  /**
+   * Retrieves the ETag of the group list, for use with the `since` filtering option.
+   *
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
+   * @return {Promise<String, Error>}
+   */
+  async getGroupsTimestamp(options = {}) {
+    const path = endpoint("group", this.name);
+    const request = {
+      headers: this._getHeaders(options),
+      path,
+      method: "HEAD",
+    };
+    const { headers } = await this.client.execute(request, {
+      raw: true,
+      retry: this._getRetry(options),
+    });
+    return headers.get("ETag");
+  }
+
+  /**
    * Retrieves bucket data.
    *
    * @param  {Object} [options={}]      The options object.

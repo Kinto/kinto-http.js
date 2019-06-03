@@ -31,9 +31,11 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Deleting a bucket](#deleting-a-bucket)
      - [Creating a collection](#creating-a-collection)
      - [Listing bucket collections](#listing-bucket-collections)
+     - [Collections list timestamp](#collections-list-timestamp)
      - [Deleting a collection](#deleting-a-collection)
      - [Creating a user group](#creating-a-user-group)
      - [Listing bucket groups](#listing-bucket-groups)
+     - [Groups list timestamp](#groups-list-timestamp)
      - [Getting a bucket group](#getting-a-bucket-group)
      - [Updating an existing group](#updating-an-existing-group)
      - [Deleting a group](#deleting-a-group)
@@ -50,6 +52,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
      - [Deleting record](#deleting-record)
      - [Listing records](#listing-records)
      - [Total number of records](#total-number-of-records)
+     - [Records list timestamp](#records-list-timestamp)
      - [Batching operations](#batching-operations)
   - [Listing all resource permissions](#listing-all-resource-permissions)
   - [Attachments](#attachments)
@@ -552,6 +555,26 @@ Sample result:
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
+### Collections list timestamp
+
+The timestamp of the collections list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+
+```js
+const result = await client.bucket("blog")
+  .getCollectionsTimestamp();
+```
+
+Sample result:
+
+```js
+"1548699177099"
+```
+
+#### Options
+
+- `headers`: custom headers object to send along the HTTP request
+- `retry`: number of retries when request fails (default: 0)
+
 
 ### Deleting a collection
 
@@ -714,6 +737,25 @@ Sample result:
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
+### Groups list timestamp
+
+The timestamp of the groups list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+
+```js
+const result = await client.bucket("blog")
+  .getGroupsTimestamp();
+```
+
+Sample result:
+
+```js
+"1548699177099"
+```
+
+#### Options
+
+- `headers`: custom headers object to send along the HTTP request
+- `retry`: number of retries when request fails (default: 0)
 
 ### Getting a bucket group
 
@@ -1142,7 +1184,7 @@ Sample result:
 
 The result object exposes the following properties:
 
-- `last_modified`: the [collection's timestamp](http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html). This value is opaque and should be reused as is, eg. passing it as a `since` option (see [Generic bucket and collection options](#generic-bucket-and-collection-options))
+- `last_modified`: the [collection's timestamp](http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html). (Note: this value is the same as the one returned by [`getRecordsTimestamp()`](#records-list-timestamp))
 - `next`: the [pagination](#paginating-results) helper to access the next page of results, if any
 - `totalRecords`: the total number of records in the **entire collection**. This number can alternatively be retrieved using the `getTotalRecords()` method of the collection API
 - `data`: the list of records
@@ -1170,8 +1212,30 @@ Sample result:
 
 #### Options
 
-- `headers`: Custom headers object to send along the HTTP request
-- `retry`: Number of retries when request fails (default: 0)
+- `headers`: custom headers object to send along the HTTP request
+- `retry`: number of retries when request fails (default: 0)
+
+### Records list timestamp
+
+The timestamp of the records list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+
+```js
+const result = await client.bucket("blog")
+  .collection("posts")
+  .getRecordsTimestamp();
+```
+
+Sample result:
+
+```js
+"1548699177099"
+```
+
+#### Options
+
+- `headers`: custom headers object to send along the HTTP request
+- `retry`: number of retries when request fails (default: 0)
+
 
 ### Batching operations
 
