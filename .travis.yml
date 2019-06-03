@@ -11,9 +11,9 @@ before_install:
 - export PATH=$HOME/.local/bin:$PATH
 - wget https://raw.githubusercontent.com/creationix/nvm/v0.33.0/nvm.sh -O ~/.nvm/nvm.sh
 - source ~/.nvm/nvm.sh
-- nvm install 6 # for Node v6
+- nvm install 10 # for Node v10
 - node --version
-- npm install
+- npm ci
 - curl https://raw.githubusercontent.com/Kinto/kinto/master/requirements.txt > versions.txt
 - if [[ $SERVER && $SERVER != "master" ]]; then pip install kinto==$SERVER; fi
 - if [[ $SERVER && $SERVER == "master" ]]; then pip install https://github.com/Kinto/kinto/zipball/master --constraint versions.txt; fi
