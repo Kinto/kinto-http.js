@@ -1,6 +1,6 @@
 {
   "name": "kinto-http",
-  "version": "4.6.1",
+  "version": "4.7.0",
   "description": "JavaScript HTTP client for the Kinto API.",
   "main": "lib/index.js",
   "scripts": {
