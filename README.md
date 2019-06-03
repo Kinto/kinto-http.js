@@ -557,7 +557,7 @@ This method accepts the [generic parameters for sorting, filtering and paginatin
 
 ### Collections list timestamp
 
-The timestmap of the collections list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+The timestamp of the collections list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
 ```js
 const result = await client.bucket("blog")
@@ -572,7 +572,7 @@ Sample result:
 
 #### Options
 
-- `headers`: custom headers object to send along the http request
+- `headers`: custom headers object to send along the HTTP request
 - `retry`: number of retries when request fails (default: 0)
 
 
@@ -739,7 +739,7 @@ This method accepts the [generic parameters for sorting, filtering and paginatin
 
 ### Groups list timestamp
 
-The timestmap of the groups list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+The timestamp of the groups list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
 ```js
 const result = await client.bucket("blog")
@@ -754,7 +754,7 @@ Sample result:
 
 #### Options
 
-- `headers`: custom headers object to send along the http request
+- `headers`: custom headers object to send along the HTTP request
 - `retry`: number of retries when request fails (default: 0)
 
 ### Getting a bucket group
@@ -1184,7 +1184,7 @@ Sample result:
 
 The result object exposes the following properties:
 
-- `last_modified`: the [collection's timestamp](http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html).
+- `last_modified`: the [collection's timestamp](http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html). (Note: this value is the same as the one returned by [`getRecordsTimestamp()`](#records-list-timestamp))
 - `next`: the [pagination](#paginating-results) helper to access the next page of results, if any
 - `totalRecords`: the total number of records in the **entire collection**. This number can alternatively be retrieved using the `getTotalRecords()` method of the collection API
 - `data`: the list of records
@@ -1210,14 +1210,14 @@ Sample result:
 42
 ```
 
-#### options
+#### Options
 
-- `headers`: custom headers object to send along the http request
+- `headers`: custom headers object to send along the HTTP request
 - `retry`: number of retries when request fails (default: 0)
 
 ### Records list timestamp
 
-The timestmap of the records list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
+The timestamp of the records list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
 ```js
 const result = await client.bucket("blog")
@@ -1233,7 +1233,7 @@ Sample result:
 
 #### Options
 
-- `headers`: custom headers object to send along the http request
+- `headers`: custom headers object to send along the HTTP request
 - `retry`: number of retries when request fails (default: 0)
 
 

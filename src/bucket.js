@@ -117,7 +117,7 @@ export default class Bucket {
   }
 
   /**
-   * Retrieves the ETag of the collection list, for use with the `since` filtering option.
+   * Retrieves the ETag of the group list, for use with the `since` filtering option.
    *
    * @param  {Object} [options={}]      The options object.
    * @param  {Object} [options.headers] The headers object option.
