@@ -497,7 +497,7 @@ export default class KintoClientBase {
       );
     }
 
-    let query = {
+    const query = {
       ...filters,
       _sort: sort,
       _limit: limit,

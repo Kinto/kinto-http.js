@@ -517,7 +517,7 @@ export default class Collection {
    */
   async listRecords(options = {}) {
     const path = endpoint("record", this.bucket.name, this.name);
-    if (options.hasOwnProperty("at")) {
+    if (Object.prototype.hasOwnProperty.call(options, "at")) {
       return this.getSnapshot(options.at);
     } else {
       return this.client.paginatedList(path, options, {

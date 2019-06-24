@@ -43,7 +43,8 @@ export async function pMap(list, fn) {
   let results = [];
   await list.reduce(async function(promise, entry) {
     await promise;
-    results = results.concat(await fn(entry));
+    const out = await fn(entry);
+    results = results.concat(out);
   }, Promise.resolve());
   return results;
 }
@@ -327,7 +328,7 @@ export function cleanUndefinedProperties(obj) {
  * @param  {Object}  [options.query={}]  Additional query arguments.
  */
 export function addEndpointOptions(path, options = {}) {
-  let query = { ...options.query };
+  const query = { ...options.query };
   if (options.fields) {
     query._fields = options.fields;
   }
