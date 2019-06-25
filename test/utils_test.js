@@ -345,8 +345,10 @@ describe("Utils", () => {
   describe("cleanUndefinedProperties()", () => {
     it("should remove undefined properties from an object", () => {
       const obj1 = cleanUndefinedProperties({ a: 1, b: undefined });
+      /* eslint-disable no-prototype-builtins */
       expect(obj1.hasOwnProperty("a")).eql(true);
       expect(obj1.hasOwnProperty("b")).eql(false);
+      /* eslint-enable no-prototype-builtins */
     });
   });
 });

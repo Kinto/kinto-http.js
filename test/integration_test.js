@@ -291,7 +291,7 @@ describe("Integration tests", function() {
       // version (see .travis.yml). If we ever bump the older version
       // up to one where it also has bucket:create, we can clean this
       // up.
-      let shouldHaveCreatePermission =
+      const shouldHaveCreatePermission =
         // People developing don't always set SERVER. Let's assume
         // that means "master".
         !process.env.SERVER ||
