@@ -125,10 +125,9 @@ export function addAttachmentRequest(
   const body = { data, permissions };
   const formData = createFormData(dataURI, body, options);
 
-  let customPath =
-    gzipped != null
-      ? (customPath = path + "?gzipped=" + (gzipped ? "true" : "false"))
-      : path;
+  const customPath = `${path}${
+    gzipped != null ? "?gzipped=" + (gzipped ? "true" : "false") : ""
+  }`;
 
   return {
     method: "POST",
