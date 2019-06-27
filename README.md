@@ -91,9 +91,7 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
 
 In the browser, you can load prebuilt scripts hosted on unpkg:
 
-- [kinto-http.js](https://unpkg.com/kinto-http/dist/kinto-http.js)
 - [kinto-http.min.js](https://unpkg.com/kinto-http/dist/kinto-http.min.js)
-- [kinto-http.noshim.js](https://unpkg.com/kinto-http/dist/kinto-http.noshim.js)
 
 ```html
 <script src="https://unpkg.com/kinto-http/dist/kinto-http.min.js"></script>
