@@ -15,7 +15,10 @@ global.fetch = global.window.fetch = require("isomorphic-fetch");
 
 // jsdom FormData & Blob implementations are inconsistent, exposing better ones
 global.FormData = require("form-data");
-global.Blob = sequences => Buffer.from(sequences[0]);
+function Blob(sequences) {
+  return Buffer.from(sequences[0]);
+}
+global.Blob = Blob;
 
 // atob & btoa polyfill for tests
 global.atob = require("atob");
