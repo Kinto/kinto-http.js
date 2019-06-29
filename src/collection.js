@@ -1,4 +1,4 @@
-import { v4 as uuid } from "uuid";
+import uuid from "uuid/v4";
 
 import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
@@ -348,7 +348,7 @@ export default class Collection {
   @capable(["attachments"])
   async addAttachment(dataURI, record = {}, options = {}) {
     const { permissions } = options;
-    const id = record.id || uuid.v4();
+    const id = record.id || uuid();
     const path = endpoint("attachment", this.bucket.name, this.name, id);
     const { last_modified } = { ...record, ...options };
     const addAttachmentRequest = requests.addAttachmentRequest(

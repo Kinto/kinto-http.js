@@ -19,7 +19,7 @@ const geckoBuild = {
       preferBuiltins: true,
     }),
     typescript({ include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"] }),
-    commonjs({ namedExports: { "node_modules/uuid/index.js": ["v4"] } }),
+    commonjs(),
   ],
 };
 
@@ -43,7 +43,7 @@ const browserBuild = {
       include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"],
     }),
     builtins(),
-    commonjs({ namedExports: { "node_modules/uuid/index.js": ["v4"] } }),
+    commonjs(),
     terser(),
   ],
 };
