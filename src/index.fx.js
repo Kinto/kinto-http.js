@@ -21,8 +21,6 @@ import * as errors from "./errors";
 const { setTimeout, clearTimeout } = ChromeUtils.import(
   "resource://gre/modules/Timer.jsm"
 );
-window.setTimeout = setTimeout;
-window.clearTimeout = clearTimeout;
 const { XPCOMUtils } = ChromeUtils.import(
   "resource://gre/modules/XPCOMUtils.jsm"
 );
