@@ -3,23 +3,8 @@ import typescript from "rollup-plugin-typescript";
 import resolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 import { terser } from "rollup-plugin-terser";
-
-function replaceGlobals() {
-  return {
-    name: "replaceGlobals",
-    renderChunk(code, chunk, options) {
-      const searchString =
-        "setTimeout: setTimeout$1, clearTimeout: clearTimeout$1";
-      const replacementString = "setTimeout, clearTimeout";
-
-      if (code.includes(searchString)) {
-        code = code.replace(searchString, replacementString);
-      }
-
-      return { code };
-    },
-  };
-}
+import inject from "rollup-plugin-inject";
+import path from "path";
 
 const geckoBuild = {
   input: "./src/index.fx.js",
@@ -31,13 +16,16 @@ const geckoBuild = {
     },
   ],
   plugins: [
+    inject({
+      setTimeout: [path.resolve("fx-src/timer.js"), "setTimeout"],
+      clearTimeout: [path.resolve("fx-src/timer.js"), "clearTimeout"],
+    }),
     resolve({
       mainFields: ["module", "main", "browser"],
       preferBuiltins: true,
     }),
     typescript({ include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"] }),
     commonjs({ ignoreGlobal: true }),
-    replaceGlobals(),
   ],
 };
 
