@@ -18,9 +18,6 @@
 import KintoClientBase from "../src/base";
 import * as errors from "../src/errors";
 
-const {setTimeout, clearTimeout} = ChromeUtils.import("resource://gre/modules/Timer.jsm");
-const {XPCOMUtils} = ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");
-XPCOMUtils.defineLazyGlobalGetters(global, ["fetch"]);
 const {EventEmitter} = ChromeUtils.import("resource://gre/modules/EventEmitter.jsm");
 
 export default class KintoHttpClient extends KintoClientBase {
