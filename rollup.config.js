@@ -3,8 +3,6 @@ import typescript from "rollup-plugin-typescript";
 import resolve from "rollup-plugin-node-resolve";
 import commonjs from "rollup-plugin-commonjs";
 import { terser } from "rollup-plugin-terser";
-import inject from "rollup-plugin-inject";
-import path from "path";
 
 const geckoBuild = {
   input: "./src/index.fx.js",
@@ -16,10 +14,6 @@ const geckoBuild = {
     },
   ],
   plugins: [
-    inject({
-      setTimeout: [path.resolve("fx-src/timer.js"), "setTimeout"],
-      clearTimeout: [path.resolve("fx-src/timer.js"), "clearTimeout"],
-    }),
     resolve({
       mainFields: ["module", "main", "browser"],
       preferBuiltins: true,
