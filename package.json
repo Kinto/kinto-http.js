@@ -63,7 +63,7 @@
     "esdoc-type-inference-plugin": "^1.0.2",
     "esdoc-undocumented-identifier-plugin": "^1.0.0",
     "esdoc-unexported-identifier-plugin": "^1.0.0",
-    "eslint": "^6.0.0",
+    "eslint": "^6.0.1",
     "eslint-config-prettier": "^6.0.0",
     "form-data": "^2.1.2",
     "http-server": "^0.11.1",
