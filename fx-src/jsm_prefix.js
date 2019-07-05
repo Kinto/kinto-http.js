@@ -21,3 +21,7 @@
 const global = this;
 
 var EXPORTED_SYMBOLS = ["KintoHttpClient"];
+
+const { setTimeout, clearTimeout } = ChromeUtils.import("resource://gre/modules/Timer.jsm");
+const { XPCOMUtils } = ChromeUtils.import("resource://gre/modules/XPCOMUtils.jsm");
+XPCOMUtils.defineLazyGlobalGetters(global, ["fetch"]);
