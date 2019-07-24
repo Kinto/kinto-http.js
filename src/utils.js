@@ -279,7 +279,14 @@ export function extractFileInfo(dataURL) {
   for (let i = 0; i < binary.length; i++) {
     array.push(binary.charCodeAt(i));
   }
-  const blob = new Blob([new Uint8Array(array)], { type });
+  let blob;
+  if (typeof Blob !== "undefined") {
+    // Running in a browser environment.
+    blob = new Blob([new Uint8Array(array)], { type });
+  } else {
+    // In NodeJS. Blob is not available.
+    blob = Buffer.from(array);
+  }
   return { blob, name };
 }
 

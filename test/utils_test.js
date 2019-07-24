@@ -337,8 +337,30 @@ describe("Utils", () => {
 
       const { blob, name } = extractFileInfo(dataURL);
 
+      expect(blob instanceof Buffer);
       expect(blob.length).eql(4);
       expect(name).eql("t.txt");
+    });
+
+    it("should use Blob if present", () => {
+      class MyBlob {
+        constructor(sequences, options) {
+          this.sequences = sequences;
+          this.options = options;
+        }
+      }
+      global.Blob = MyBlob;
+      const dataURL = "data:text/plain;name=t.txt;base64," + btoa("test");
+
+      const { blob } = extractFileInfo(dataURL);
+
+      const testAsChars = Array.from("test").map(c => c.charCodeAt(0));
+      expect(blob instanceof MyBlob);
+      expect(blob.sequences.length).eql(1);
+      expect(blob.sequences[0] instanceof Uint8Array);
+      expect(blob.sequences[0].length).eql(4);
+      expect(blob.sequences[0]).eql(new Uint8Array(testAsChars));
+      expect(blob.options).deep.equal({ type: "text/plain" });
     });
   });
 
