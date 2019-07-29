@@ -152,7 +152,7 @@ describe("HTTP class", () => {
             },
           })
           .should.be.rejectedWith(
-            'Timeout while trying to access / with {"mode":"cors","headers":{"Accept":"application/json","Content-Type":"application/json","Authorization":"XXX","User-agent":"mocha-test"}}'
+            'Timeout while trying to access / with {"mode":"cors","headers":{"Accept":"application/json","Content-Type":"application/json","Authorization":"**** (suppressed)","User-agent":"mocha-test"}}'
           );
       });
     });

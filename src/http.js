@@ -77,12 +77,17 @@ export default class HTTP {
       if (this.timeout) {
         _timeoutId = setTimeout(() => {
           hasTimedout = true;
-          reject(
-            new NetworkTimeoutError(
-              url,
-              replaceKey(options, "authorization", "**** (suppressed)")
-            )
-          );
+          if (options && options.headers) {
+            options = {
+              ...options,
+              headers: replaceKey(
+                options.headers,
+                "authorization",
+                "**** (suppressed)"
+              ),
+            };
+          }
+          reject(new NetworkTimeoutError(url, options));
         }, this.timeout);
       }
       function proceedWithHandler(fn) {
