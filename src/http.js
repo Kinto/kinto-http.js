@@ -1,6 +1,6 @@
 "use strict";
 
-import { delay } from "./utils";
+import { delay, replaceKey } from "./utils";
 import {
   NetworkTimeoutError,
   ServerResponse,
@@ -77,7 +77,12 @@ export default class HTTP {
       if (this.timeout) {
         _timeoutId = setTimeout(() => {
           hasTimedout = true;
-          reject(new NetworkTimeoutError(url, options));
+          reject(
+            new NetworkTimeoutError(
+              url,
+              replaceKey(options, "authorization", "**** (suppressed)")
+            )
+          );
         }, this.timeout);
       }
       function proceedWithHandler(fn) {

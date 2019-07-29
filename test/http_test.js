@@ -130,13 +130,30 @@ describe("HTTP class", () => {
     });
 
     describe("Request timeout", () => {
-      it("should timeout the request", () => {
+      beforeEach(() => {
         sandbox.stub(global, "fetch").returns(
           new Promise(resolve => {
             setTimeout(resolve, 20000);
           })
         );
+      });
+
+      it("should timeout the request", () => {
         return http.request("/").should.be.rejectedWith(NetworkTimeoutError);
+      });
+
+      it("should show request properties in error", () => {
+        return http
+          .request("/", {
+            mode: "cors",
+            headers: {
+              Authorization: "XXX",
+              "User-agent": "mocha-test",
+            },
+          })
+          .should.be.rejectedWith(
+            'Timeout while trying to access / with {"mode":"cors","headers":{"Accept":"application/json","Content-Type":"application/json","Authorization":"XXX","User-agent":"mocha-test"}}'
+          );
       });
     });
 
