@@ -67,6 +67,22 @@ export function omit(obj, ...keys) {
 }
 
 /**
+ * Replace an object key (case insensitive) value with the specified one.
+ *
+ * @private
+ * @param  {Object} obj
+ * @param  {String} key
+ * @param  {Object} value
+ * @return {Object}
+ */
+export function replaceKey(obj, key, value) {
+  return Object.keys(obj).reduce((acc, k) => {
+    acc[k] = k.toLowerCase() == key.toLowerCase() ? value : obj[k];
+    return acc;
+  }, {});
+}
+
+/**
  * Always returns a resource data object from the provided argument.
  *
  * @private
