@@ -67,6 +67,22 @@ export function omit(obj, ...keys) {
 }
 
 /**
+ * Replace an object key (case insensitive) value with the specified one.
+ *
+ * @private
+ * @param  {Object} obj
+ * @param  {String} key
+ * @param  {Object} value
+ * @return {Object}
+ */
+export function replaceKey(obj, key, value) {
+  return Object.keys(obj).reduce((acc, k) => {
+    acc[k] = k.toLowerCase() == key.toLowerCase() ? value : obj[k];
+    return acc;
+  }, {});
+}
+
+/**
  * Always returns a resource data object from the provided argument.
  *
  * @private
@@ -279,7 +295,14 @@ export function extractFileInfo(dataURL) {
   for (let i = 0; i < binary.length; i++) {
     array.push(binary.charCodeAt(i));
   }
-  const blob = new Blob([new Uint8Array(array)], { type });
+  let blob;
+  if (typeof Blob !== "undefined") {
+    // Running in a browser environment.
+    blob = new Blob([new Uint8Array(array)], { type });
+  } else {
+    // In NodeJS. Blob is not available.
+    blob = Buffer.from(array);
+  }
   return { blob, name };
 }
 
