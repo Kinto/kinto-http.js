@@ -1,11 +1,15 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Kinto HTTP client demo</title>
-    <script type="text/javascript" src="kinto-http.noshim.js"></script>
-</head>
-<body>
-    <input id="server" placeholder="https://kinto.server/v1" value="https://kinto-ota.dev.mozaws.net/v1"/>
+    <script type="text/javascript" src="kinto-http.min.js"></script>
+  </head>
+  <body>
+    <input
+      id="server"
+      placeholder="https://kinto.server/v1"
+      value="https://kinto.dev.mozaws.net/v1/"
+    />
     <button id="go">Go!</button>
     <pre id="capabilities"></pre>
 
@@ -13,11 +17,14 @@
       document.getElementById("go").onclick = () => {
         const server = document.getElementById("server").value;
         const client = new KintoClient(server);
-        client.fetchServerInfo()
-          .then((res) => {
-            document.getElementById("capabilities").innerText = JSON.stringify(res, null, 2);
-          });
+        client.fetchServerInfo().then(res => {
+          document.getElementById("capabilities").innerText = JSON.stringify(
+            res,
+            null,
+            2
+          );
+        });
       };
     </script>
-</body>
+  </body>
 </html>
