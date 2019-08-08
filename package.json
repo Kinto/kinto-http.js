@@ -3,7 +3,7 @@
   "version": "4.7.2",
   "description": "JavaScript HTTP client for the Kinto API.",
   "main": "lib/cjs-es5/index.js",
-  "module": "lib/es/index.js",
+  "module": "lib/esm/index.js",
   "unpkg": "dist/kinto-http.min.js",
   "scripts": {
     "build": "npm run build:es && npm run build:cjs-es5",
