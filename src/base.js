@@ -2,7 +2,6 @@
 
 import {
   partition,
-  pMap,
   qsify,
   support,
   nobatch,
@@ -343,7 +342,7 @@ export default class KintoClientBase {
     if (maxRequests && requests.length > maxRequests) {
       const chunks = partition(requests, maxRequests);
       const results = [];
-      for (let chunk of chunks) {
+      for (const chunk of chunks) {
         const result = await this._batchRequests(chunk, options);
         results.push(...result);
       }

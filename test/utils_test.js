@@ -5,8 +5,6 @@ import chai, { expect } from "chai";
 import {
   partition,
   delay,
-  pMap,
-  omit,
   qsify,
   checkVersion,
   support,
