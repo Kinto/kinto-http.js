@@ -239,7 +239,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   async _getHello(options = {}) {
-    const path = this.remote + endpoint("root");
+    const path = this.remote + endpoint.root();
     const { json } = await this.http.request(
       path,
       { headers: this._getHeaders(options) },
@@ -342,14 +342,19 @@ export default class KintoClientBase {
     const maxRequests = serverSettings["batch_max_requests"];
     if (maxRequests && requests.length > maxRequests) {
       const chunks = partition(requests, maxRequests);
-      return pMap(chunks, chunk => this._batchRequests(chunk, options));
+      const results = [];
+      for (let chunk of chunks) {
+        const result = await this._batchRequests(chunk, options);
+        results.push(...result);
+      }
+      return results;
     }
     const { responses } = await this.execute(
       {
         // FIXME: is this really necessary, since it's also present in
         // the "defaults"?
         headers,
-        path: endpoint("batch"),
+        path: endpoint.batch(),
         method: "POST",
         body: {
           defaults: { headers },
@@ -577,7 +582,7 @@ export default class KintoClientBase {
    */
   @capable(["permissions_endpoint"])
   async listPermissions(options = {}) {
-    const path = endpoint("permissions");
+    const path = endpoint.permissions();
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
     const paginationOptions = { sort: "id", ...options };
@@ -601,7 +606,7 @@ export default class KintoClientBase {
    * @return {Promise<Object[], Error>}
    */
   async listBuckets(options = {}) {
-    const path = endpoint("bucket");
+    const path = endpoint.bucket();
     return this.paginatedList(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -625,7 +630,7 @@ export default class KintoClientBase {
     if (id != null) {
       data.id = id;
     }
-    const path = data.id ? endpoint("bucket", data.id) : endpoint("bucket");
+    const path = data.id ? endpoint.bucket(data.id) : endpoint.bucket();
     return this.execute(
       requests.createRequest(
         path,
@@ -657,7 +662,7 @@ export default class KintoClientBase {
     if (!bucketObj.id) {
       throw new Error("A bucket id is required.");
     }
-    const path = endpoint("bucket", bucketObj.id);
+    const path = endpoint.bucket(bucketObj.id);
     const { last_modified } = { ...bucketObj, ...options };
     return this.execute(
       requests.deleteRequest(path, {
@@ -681,7 +686,7 @@ export default class KintoClientBase {
    */
   @support("1.4", "2.0")
   async deleteBuckets(options = {}) {
-    const path = endpoint("bucket");
+    const path = endpoint.bucket();
     return this.execute(
       requests.deleteRequest(path, {
         last_modified: options.last_modified,

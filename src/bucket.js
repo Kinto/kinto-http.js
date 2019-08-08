@@ -103,7 +103,7 @@ export default class Bucket {
    * @return {Promise<String, Error>}
    */
   async getCollectionsTimestamp(options = {}) {
-    const path = endpoint("collection", this.name);
+    const path = endpoint.collection(this.name);
     const request = {
       headers: this._getHeaders(options),
       path,
@@ -126,7 +126,7 @@ export default class Bucket {
    * @return {Promise<String, Error>}
    */
   async getGroupsTimestamp(options = {}) {
-    const path = endpoint("group", this.name);
+    const path = endpoint.group(this.name);
     const request = {
       headers: this._getHeaders(options),
       path,
@@ -154,7 +154,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async getData(options = {}) {
-    let path = endpoint("bucket", this.name);
+    let path = endpoint.bucket(this.name);
     path = addEndpointOptions(path, options);
     const request = {
       headers: this._getHeaders(options),
@@ -192,7 +192,7 @@ export default class Bucket {
       delete bucket.id;
     }
 
-    const path = endpoint("bucket", bucketId);
+    const path = endpoint.bucket(bucketId);
     const { patch, permissions } = options;
     const { last_modified } = { ...data, ...options };
     const request = requests.updateRequest(
@@ -219,7 +219,7 @@ export default class Bucket {
    */
   @capable(["history"])
   async listHistory(options = {}) {
-    const path = endpoint("history", this.name);
+    const path = endpoint.history(this.name);
     return this.client.paginatedList(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -239,7 +239,7 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   async listCollections(options = {}) {
-    const path = endpoint("collection", this.name);
+    const path = endpoint.collection(this.name);
     return this.client.paginatedList(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -262,7 +262,7 @@ export default class Bucket {
   async createCollection(id, options = {}) {
     const { permissions, data = {} } = options;
     data.id = id;
-    const path = endpoint("collection", this.name, id);
+    const path = endpoint.collection(this.name, id);
     const request = requests.createRequest(
       path,
       { data, permissions },
@@ -293,7 +293,7 @@ export default class Bucket {
     }
     const { id } = collectionObj;
     const { last_modified } = { ...collectionObj, ...options };
-    const path = endpoint("collection", this.name, id);
+    const path = endpoint.collection(this.name, id);
     const request = requests.deleteRequest(path, {
       last_modified,
       headers: this._getHeaders(options),
@@ -315,7 +315,7 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   async listGroups(options = {}) {
-    const path = endpoint("group", this.name);
+    const path = endpoint.group(this.name);
     return this.client.paginatedList(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -338,7 +338,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async getGroup(id, options = {}) {
-    let path = endpoint("group", this.name, id);
+    let path = endpoint.group(this.name, id);
     path = addEndpointOptions(path, options);
     const request = {
       headers: this._getHeaders(options),
@@ -367,7 +367,7 @@ export default class Bucket {
       id,
       members,
     };
-    const path = endpoint("group", this.name, id);
+    const path = endpoint.group(this.name, id);
     const { permissions } = options;
     const request = requests.createRequest(
       path,
@@ -405,7 +405,7 @@ export default class Bucket {
       ...options.data,
       ...group,
     };
-    const path = endpoint("group", this.name, group.id);
+    const path = endpoint.group(this.name, group.id);
     const { patch, permissions } = options;
     const { last_modified } = { ...data, ...options };
     const request = requests.updateRequest(
@@ -437,7 +437,7 @@ export default class Bucket {
     const groupObj = toDataBody(group);
     const { id } = groupObj;
     const { last_modified } = { ...groupObj, ...options };
-    const path = endpoint("group", this.name, id);
+    const path = endpoint.group(this.name, id);
     const request = requests.deleteRequest(path, {
       last_modified,
       headers: this._getHeaders(options),
@@ -458,7 +458,7 @@ export default class Bucket {
   async getPermissions(options = {}) {
     const request = {
       headers: this._getHeaders(options),
-      path: endpoint("bucket", this.name),
+      path: endpoint.bucket(this.name),
     };
     const { permissions } = await this.client.execute(request, {
       retry: this._getRetry(options),
@@ -482,7 +482,7 @@ export default class Bucket {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
-    const path = endpoint("bucket", this.name);
+    const path = endpoint.bucket(this.name);
     const { last_modified } = options;
     const data = { last_modified };
     const request = requests.updateRequest(
@@ -512,7 +512,7 @@ export default class Bucket {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
-    const path = endpoint("bucket", this.name);
+    const path = endpoint.bucket(this.name);
     const { last_modified } = options;
     const request = requests.jsonPatchPermissionsRequest(
       path,
@@ -543,7 +543,7 @@ export default class Bucket {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
-    const path = endpoint("bucket", this.name);
+    const path = endpoint.bucket(this.name);
     const { last_modified } = options;
     const request = requests.jsonPatchPermissionsRequest(
       path,

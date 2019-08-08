@@ -10,7 +10,7 @@ import {
   NetworkTimeoutError,
   ServerResponse,
   UnparseableResponseError,
-} from "../src/errors.js";
+} from "../src/errors";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -152,7 +152,7 @@ describe("HTTP class", () => {
             },
           })
           .should.be.rejectedWith(
-            'Timeout while trying to access / with {"mode":"cors","headers":{"Accept":"application/json","Content-Type":"application/json","Authorization":"**** (suppressed)","User-agent":"mocha-test"}}'
+            'Timeout while trying to access / with {"mode":"cors","headers":{"accept":"application/json","authorization":"**** (suppressed)","content-type":"application/json","user-agent":"mocha-test"}}'
           );
       });
     });

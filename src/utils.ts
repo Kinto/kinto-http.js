@@ -6,11 +6,11 @@
  * @param  {Number} n
  * @return {Array}
  */
-export function partition(array, n) {
+export function partition<T>(array: T[], n: number) {
   if (n <= 0) {
     return array;
   }
-  return array.reduce((acc, x, i) => {
+  return array.reduce<T[][]>((acc, x, i) => {
     if (i === 0 || i % n === 0) {
       acc.push([x]);
     } else {
@@ -25,61 +25,12 @@ export function partition(array, n) {
  *
  * @return Promise<void>
  */
-export function delay(ms) {
+export function delay(ms: number) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-/**
- * Maps a list to promises using the provided mapping function, executes them
- * sequentially then returns a Promise resolving with ordered results obtained.
- * Think of this as a sequential Promise.all.
- *
- * @private
- * @param  {Array}    list The list to map.
- * @param  {Function} fn   The mapping function.
- * @return {Promise}
- */
-export async function pMap(list, fn) {
-  let results = [];
-  await list.reduce(async function(promise, entry) {
-    await promise;
-    const out = await fn(entry);
-    results = results.concat(out);
-  }, Promise.resolve());
-  return results;
-}
-
-/**
- * Takes an object and returns a copy of it with the provided keys omitted.
- *
- * @private
- * @param  {Object}    obj  The source object.
- * @param  {...String} keys The keys to omit.
- * @return {Object}
- */
-export function omit(obj, ...keys) {
-  return Object.keys(obj).reduce((acc, key) => {
-    if (!keys.includes(key)) {
-      acc[key] = obj[key];
-    }
-    return acc;
-  }, {});
-}
-
-/**
- * Replace an object key (case insensitive) value with the specified one.
- *
- * @private
- * @param  {Object} obj
- * @param  {String} key
- * @param  {Object} value
- * @return {Object}
- */
-export function replaceKey(obj, key, value) {
-  return Object.keys(obj).reduce((acc, k) => {
-    acc[k] = k.toLowerCase() == key.toLowerCase() ? value : obj[k];
-    return acc;
-  }, {});
+interface Entity {
+  id: string;
 }
 
 /**
@@ -89,9 +40,9 @@ export function replaceKey(obj, key, value) {
  * @param  {Object|String} resource
  * @return {Object}
  */
-export function toDataBody(resource) {
+export function toDataBody<T extends Entity>(resource: T | string): Entity {
   if (isObject(resource)) {
-    return resource;
+    return resource as T;
   }
   if (typeof resource === "string") {
     return { id: resource };
@@ -106,16 +57,17 @@ export function toDataBody(resource) {
  * @param  {Object} obj
  * @return {String}
  */
-export function qsify(obj) {
-  const encode = v =>
+export function qsify(obj: { [key: string]: any }): string {
+  const encode = (v: any) =>
     encodeURIComponent(typeof v === "boolean" ? String(v) : v);
-  const stripUndefined = o => JSON.parse(JSON.stringify(o));
+  const stripUndefined = (o: { [key: string]: any }) =>
+    JSON.parse(JSON.stringify(o));
   const stripped = stripUndefined(obj);
   return Object.keys(stripped)
     .map(k => {
       const ks = encode(k) + "=";
       if (Array.isArray(stripped[k])) {
-        return ks + stripped[k].map(v => encode(v)).join(",");
+        return ks + stripped[k].map((v: any) => encode(v)).join(",");
       } else {
         return ks + encode(stripped[k]);
       }
@@ -131,8 +83,12 @@ export function qsify(obj) {
  * @param  {String} maxVersion The minimum supported version (exclusive).
  * @throws {Error} If the version is outside of the provided range.
  */
-export function checkVersion(version, minVersion, maxVersion) {
-  const extract = str => str.split(".").map(x => parseInt(x, 10));
+export function checkVersion(
+  version: string,
+  minVersion: string,
+  maxVersion: string
+) {
+  const extract = (str: string) => str.split(".").map(x => parseInt(x, 10));
   const [verMajor, verMinor] = extract(version);
   const [minMajor, minMinor] = extract(minVersion);
   const [maxMajor, maxMinor] = extract(maxVersion);
@@ -157,19 +113,23 @@ export function checkVersion(version, minVersion, maxVersion) {
  * @param  {String} max The required max version (inclusive).
  * @return {Function}
  */
-export function support(min, max) {
-  return function(target, key, descriptor) {
+export function support(min: string, max: string) {
+  return function(
+    target: any,
+    key: string,
+    descriptor: TypedPropertyDescriptor<Function>
+  ) {
     const fn = descriptor.value;
     return {
       configurable: true,
       get() {
-        const wrappedMethod = (...args) => {
+        const wrappedMethod = (...args: any): Promise<any> => {
           // "this" is the current instance which its method is decorated.
-          const client = "client" in this ? this.client : this;
+          const client = (this as any).client ? (this as any).client : this;
           return client
             .fetchHTTPApiVersion()
-            .then(version => checkVersion(version, min, max))
-            .then(() => fn.apply(this, args));
+            .then((version: string) => checkVersion(version, min, max))
+            .then(() => fn!.apply(this, args));
         };
         Object.defineProperty(this, key, {
           value: wrappedMethod,
@@ -189,18 +149,22 @@ export function support(min, max) {
  * @param  {Array<String>} capabilities The required capabilities.
  * @return {Function}
  */
-export function capable(capabilities) {
-  return function(target, key, descriptor) {
+export function capable(capabilities: string[]) {
+  return function(
+    target: any,
+    key: string,
+    descriptor: TypedPropertyDescriptor<Function>
+  ) {
     const fn = descriptor.value;
     return {
       configurable: true,
       get() {
-        const wrappedMethod = (...args) => {
+        const wrappedMethod = (...args: any): Promise<any> => {
           // "this" is the current instance which its method is decorated.
-          const client = "client" in this ? this.client : this;
+          const client = (this as any).client ? (this as any).client : this;
           return client
             .fetchServerCapabilities()
-            .then(available => {
+            .then((available: string[]) => {
               const missing = capabilities.filter(c => !(c in available));
               if (missing.length > 0) {
                 const missingStr = missing.join(", ");
@@ -209,7 +173,7 @@ export function capable(capabilities) {
                 );
               }
             })
-            .then(() => fn.apply(this, args));
+            .then(() => fn!.apply(this, args));
         };
         Object.defineProperty(this, key, {
           value: wrappedMethod,
@@ -229,18 +193,22 @@ export function capable(capabilities) {
  * @param  {String} message The error message to throw.
  * @return {Function}
  */
-export function nobatch(message) {
-  return function(target, key, descriptor) {
+export function nobatch(message: string) {
+  return function(
+    target: any,
+    key: string,
+    descriptor: TypedPropertyDescriptor<Function>
+  ) {
     const fn = descriptor.value;
     return {
       configurable: true,
       get() {
-        const wrappedMethod = (...args) => {
+        const wrappedMethod = (...args: any): any => {
           // "this" is the current instance which its method is decorated.
-          if (this._isBatch) {
+          if ((this as any)._isBatch) {
             throw new Error(message);
           }
-          return fn.apply(this, args);
+          return fn!.apply(this, args);
         };
         Object.defineProperty(this, key, {
           value: wrappedMethod,
@@ -258,8 +226,14 @@ export function nobatch(message) {
  * @param  {Object} thing The value to inspect.
  * @return {bool}
  */
-export function isObject(thing) {
+export function isObject(thing: unknown): boolean {
   return typeof thing === "object" && thing !== null && !Array.isArray(thing);
+}
+
+interface TypedDataURL {
+  type: string;
+  base64: string;
+  [key: string]: string;
 }
 
 /**
@@ -267,7 +241,7 @@ export function isObject(thing) {
  * @param  {String} dataURL The data url.
  * @return {Object}
  */
-export function parseDataURL(dataURL) {
+export function parseDataURL(dataURL: string): TypedDataURL {
   const regex = /^data:(.*);base64,(.*)/;
   const match = dataURL.match(regex);
   if (!match) {
@@ -276,7 +250,7 @@ export function parseDataURL(dataURL) {
   const props = match[1];
   const base64 = match[2];
   const [type, ...rawParams] = props.split(";");
-  const params = rawParams.reduce((acc, param) => {
+  const params = rawParams.reduce<{ [key: string]: string }>((acc, param) => {
     const [key, value] = param.split("=");
     return { ...acc, [key]: value };
   }, {});
@@ -288,7 +262,7 @@ export function parseDataURL(dataURL) {
  * @param  {String} dataURL The data url.
  * @return {Object}
  */
-export function extractFileInfo(dataURL) {
+export function extractFileInfo(dataURL: string) {
   const { name, type, base64 } = parseDataURL(dataURL);
   const binary = atob(base64);
   const array = [];
@@ -301,7 +275,7 @@ export function extractFileInfo(dataURL) {
     blob = new Blob([new Uint8Array(array)], { type });
   } else {
     // In NodeJS. Blob is not available.
-    blob = Buffer.from(array);
+    blob = (Buffer.from(array) as unknown) as Blob;
   }
   return { blob, name };
 }
@@ -315,7 +289,11 @@ export function extractFileInfo(dataURL) {
  * @param  {Object} [options.filename] Force attachment file name.
  * @return {FormData}
  */
-export function createFormData(dataURL, body, options = {}) {
+export function createFormData(
+  dataURL: string,
+  body: { [key: string]: string },
+  options: { filename?: string } = {}
+) {
   const { filename = "untitled" } = options;
   const { blob, name } = extractFileInfo(dataURL);
   const formData = new FormData();
@@ -332,8 +310,8 @@ export function createFormData(dataURL, body, options = {}) {
  * Clones an object with all its undefined keys removed.
  * @private
  */
-export function cleanUndefinedProperties(obj) {
-  const result = {};
+export function cleanUndefinedProperties(obj: { [key: string]: any }) {
+  const result: { [key: string]: any } = {};
   for (const key in obj) {
     if (typeof obj[key] !== "undefined") {
       result[key] = obj[key];
@@ -350,8 +328,11 @@ export function cleanUndefinedProperties(obj) {
  *   request to.
  * @param  {Object}  [options.query={}]  Additional query arguments.
  */
-export function addEndpointOptions(path, options = {}) {
-  const query = { ...options.query };
+export function addEndpointOptions(
+  path: string,
+  options: { fields?: string[]; query?: { [key: string]: string } } = {}
+) {
+  const query: { [key: string]: any } = { ...options.query };
   if (options.fields) {
     query._fields = options.fields;
   }
@@ -360,4 +341,21 @@ export function addEndpointOptions(path, options = {}) {
     return path + "?" + queryString;
   }
   return path;
+}
+
+/**
+ * Replace authorization header with an obscured version
+ */
+export function obscureAuthorizationHeader(headers: HeadersInit) {
+  const h = new Headers(headers);
+  if (h.has("authorization")) {
+    h.set("authorization", "**** (suppressed)");
+  }
+
+  const obscuredHeaders: { [key: string]: string } = {};
+  for (let [header, value] of h.entries()) {
+    obscuredHeaders[header] = value;
+  }
+
+  return obscuredHeaders;
 }

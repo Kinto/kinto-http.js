@@ -47,54 +47,6 @@ describe("Utils", () => {
     });
   });
 
-  /** @test {pMap} */
-  describe("#pMap", () => {
-    it("should map list to aggregated results", () => {
-      return pMap([1, 2], x => Promise.resolve(x * 2)).should.become([2, 4]);
-    });
-
-    it("should convert sync reducing function to async", () => {
-      return pMap([1, 2], x => x * 2).should.become([2, 4]);
-    });
-
-    it("should preserve order of entries", () => {
-      return pMap([100, 50], x => {
-        return new Promise(resolve => {
-          setTimeout(() => {
-            resolve(x);
-          }, x);
-        });
-      }).should.become([100, 50]);
-    });
-
-    it("should ensure order of execution", () => {
-      const logged = [];
-      return pMap([100, 50], x => {
-        return new Promise(resolve => {
-          setTimeout(() => {
-            logged.push(x);
-            resolve(x);
-          }, x);
-        });
-      }).then(_ => expect(logged).eql([100, 50]));
-    });
-  });
-
-  /** @test {omit} */
-  describe("#omit", () => {
-    it("should omit provided a single key", () => {
-      expect(omit({ a: 1, b: 2 }, "a")).eql({ b: 2 });
-    });
-
-    it("should omit multiple keys", () => {
-      expect(omit({ a: 1, b: 2, c: 3 }, "a", "c")).eql({ b: 2 });
-    });
-
-    it("should return source if no key is specified", () => {
-      expect(omit({ a: 1, b: 2 })).eql({ a: 1, b: 2 });
-    });
-  });
-
   /** @test {qsify} */
   describe("#qsify", () => {
     it("should generate a query string from an object", () => {
