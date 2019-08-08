@@ -6,26 +6,16 @@ const ENDPOINTS = {
   root: () => "/",
   batch: () => "/batch",
   permissions: () => "/permissions",
-  bucket: bucket => "/buckets" + (bucket ? `/${bucket}` : ""),
-  history: bucket => `${ENDPOINTS.bucket(bucket)}/history`,
-  collection: (bucket, coll) =>
+  bucket: (bucket?: string) => "/buckets" + (bucket ? `/${bucket}` : ""),
+  history: (bucket: string) => `${ENDPOINTS.bucket(bucket)}/history`,
+  collection: (bucket: string, coll: string) =>
     `${ENDPOINTS.bucket(bucket)}/collections` + (coll ? `/${coll}` : ""),
-  group: (bucket, group) =>
+  group: (bucket: string, group?: string) =>
     `${ENDPOINTS.bucket(bucket)}/groups` + (group ? `/${group}` : ""),
-  record: (bucket, coll, id) =>
+  record: (bucket: string, coll: string, id?: string) =>
     `${ENDPOINTS.collection(bucket, coll)}/records` + (id ? `/${id}` : ""),
-  attachment: (bucket, coll, id) =>
+  attachment: (bucket: string, coll: string, id: string) =>
     `${ENDPOINTS.record(bucket, coll, id)}/attachment`,
 };
 
-/**
- * Retrieves a server enpoint by its name.
- *
- * @private
- * @param  {String}    name The endpoint name.
- * @param  {...string} args The endpoint parameters.
- * @return {String}
- */
-export default function endpoint(name, ...args) {
-  return ENDPOINTS[name](...args);
-}
+export default ENDPOINTS;

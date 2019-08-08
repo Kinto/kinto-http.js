@@ -1,6 +1,5 @@
 /**
  * Kinto server error code descriptors.
- * @type {Object}
  */
 const ERROR_CODES = {
   104: "Missing Authorization Token",
@@ -27,7 +26,10 @@ const ERROR_CODES = {
 export default ERROR_CODES;
 
 class NetworkTimeoutError extends Error {
-  constructor(url, options) {
+  public url: string;
+  public options: Object;
+
+  constructor(url: string, options: Object) {
     super(
       `Timeout while trying to access ${url} with ${JSON.stringify(options)}`
     );
@@ -42,7 +44,12 @@ class NetworkTimeoutError extends Error {
 }
 
 class UnparseableResponseError extends Error {
-  constructor(response, body, error) {
+  public status: number;
+  public response: Response;
+  public stack?: string;
+  public error: Error;
+
+  constructor(response: Response, body: string, error: Error) {
     const { status } = response;
 
     super(
@@ -61,6 +68,15 @@ class UnparseableResponseError extends Error {
   }
 }
 
+interface ServerResponseObject {
+  code: number;
+  errno: keyof typeof ERROR_CODES;
+  error: string;
+  message: string;
+  info: string;
+  details: unknown;
+}
+
 /**
  * "Error" subclass representing a >=400 response from the server.
  *
@@ -73,7 +89,10 @@ class UnparseableResponseError extends Error {
  * responses (which become UnparseableResponseErrors, above).
  */
 class ServerResponse extends Error {
-  constructor(response, json) {
+  public response: Response;
+  public data?: ServerResponseObject;
+
+  constructor(response: Response, json?: ServerResponseObject) {
     const { status } = response;
     let { statusText } = response;
     let errnoMsg;
