@@ -46,10 +46,10 @@ export function updateRequest(path, { data, permissions }, options = {}) {
   const { headers, safe, patch } = { ...requestDefaults, ...options };
   const { last_modified } = { ...data, ...options };
 
-  if (
+  const hasNoData =
     Object.keys(data).filter(k => k !== "id" && k !== "last_modified")
-      .length === 0
-  ) {
+      .length === 0;
+  if (hasNoData) {
     data = undefined;
   }
 
