@@ -1,6 +1,6 @@
 "use strict";
 
-import { delay, replaceKey } from "./utils";
+import { delay, obscureAuthorizationHeader } from "./utils";
 import {
   NetworkTimeoutError,
   ServerResponse,
@@ -80,11 +80,7 @@ export default class HTTP {
           if (options && options.headers) {
             options = {
               ...options,
-              headers: replaceKey(
-                options.headers,
-                "authorization",
-                "**** (suppressed)"
-              ),
+              headers: obscureAuthorizationHeader(options.headers),
             };
           }
           reject(new NetworkTimeoutError(url, options));

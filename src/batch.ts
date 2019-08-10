@@ -1,3 +1,38 @@
+interface ConflictRecord {
+  last_modified: number;
+  id: string;
+}
+
+interface ConflictResponse {
+  existing: ConflictRecord;
+}
+
+interface ResponseBody {
+  data: unknown;
+  details?: ConflictResponse;
+}
+
+interface AggregateResponse {
+  errors: any[];
+  published: ResponseBody[];
+  conflicts: any[];
+  skipped: any[];
+}
+
+interface KintoRequest {
+  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+  path: string;
+  headers: HeadersInit;
+  body: any;
+}
+
+interface KintoResponse {
+  status: number;
+  path: string;
+  body: ResponseBody;
+  headers: { [key: string]: string };
+}
+
 /**
  * Exports batch responses as a result object.
  *
@@ -6,11 +41,14 @@
  * @param  {Array} requests  The initial issued requests.
  * @return {Object}
  */
-export function aggregate(responses = [], requests = []) {
+export function aggregate(
+  responses: KintoResponse[] = [],
+  requests: KintoRequest[] = []
+) {
   if (responses.length !== requests.length) {
     throw new Error("Responses length should match requests one.");
   }
-  const results = {
+  const results: AggregateResponse = {
     errors: [],
     published: [],
     conflicts: [],
@@ -25,7 +63,7 @@ export function aggregate(responses = [], requests = []) {
       // Extract the id manually from request path while waiting for Kinto/kinto#818
       const regex = /(buckets|groups|collections|records)\/([^/]+)$/;
       const extracts = request.path.match(regex);
-      const id = extracts.length === 3 ? extracts[2] : undefined;
+      const id = extracts && extracts.length === 3 ? extracts[2] : undefined;
       acc.skipped.push({
         id,
         path: request.path,

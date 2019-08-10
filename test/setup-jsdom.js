@@ -1,4 +1,5 @@
 const jsdom = require("jsdom");
+const fetch = require("node-fetch");
 
 // Setup the jsdom environment
 // @see https://github.com/facebook/react/issues/5046
@@ -11,7 +12,8 @@ global.navigator = global.window.navigator;
 global.HTMLElement = window.HTMLElement;
 
 // Expose a global fetch polyfill
-global.fetch = global.window.fetch = require("isomorphic-fetch");
+global.fetch = global.window.fetch = fetch;
+global.Headers = global.window.Headers = fetch.Headers;
 
 // jsdom FormData implementation is inconsistent, exposing a better one
 global.FormData = require("form-data");

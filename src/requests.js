@@ -1,4 +1,4 @@
-import { omit, createFormData } from "./utils";
+import { createFormData } from "./utils";
 
 const requestDefaults = {
   safe: false,
@@ -46,7 +46,10 @@ export function updateRequest(path, { data, permissions }, options = {}) {
   const { headers, safe, patch } = { ...requestDefaults, ...options };
   const { last_modified } = { ...data, ...options };
 
-  if (Object.keys(omit(data, "id", "last_modified")).length === 0) {
+  const hasNoData =
+    Object.keys(data).filter(k => k !== "id" && k !== "last_modified")
+      .length === 0;
+  if (hasNoData) {
     data = undefined;
   }
 

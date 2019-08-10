@@ -101,7 +101,7 @@ export default class Collection {
    * @return {Promise<Number, Error>}
    */
   async getTotalRecords(options = {}) {
-    const path = endpoint("record", this.bucket.name, this.name);
+    const path = endpoint.record(this.bucket.name, this.name);
     const request = {
       headers: this._getHeaders(options),
       path,
@@ -124,7 +124,7 @@ export default class Collection {
    * @return {Promise<String, Error>}
    */
   async getRecordsTimestamp(options = {}) {
-    const path = endpoint("record", this.bucket.name, this.name);
+    const path = endpoint.record(this.bucket.name, this.name);
     const request = {
       headers: this._getHeaders(options),
       path,
@@ -152,7 +152,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   async getData(options = {}) {
-    let path = endpoint("collection", this.bucket.name, this.name);
+    let path = endpoint.collection(this.bucket.name, this.name);
     path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
     const { data } = await this.client.execute(request, {
@@ -180,7 +180,7 @@ export default class Collection {
     const { patch, permissions } = options;
     const { last_modified } = { ...data, ...options };
 
-    const path = endpoint("collection", this.bucket.name, this.name);
+    const path = endpoint.collection(this.bucket.name, this.name);
     const request = requests.updateRequest(
       path,
       { data, permissions },
@@ -204,7 +204,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   async getPermissions(options = {}) {
-    const path = endpoint("collection", this.bucket.name, this.name);
+    const path = endpoint.collection(this.bucket.name, this.name);
     const request = { headers: this._getHeaders(options), path };
     const { permissions } = await this.client.execute(request, {
       retry: this._getRetry(options),
@@ -228,7 +228,7 @@ export default class Collection {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
-    const path = endpoint("collection", this.bucket.name, this.name);
+    const path = endpoint.collection(this.bucket.name, this.name);
     const data = { last_modified: options.last_modified };
     const request = requests.updateRequest(
       path,
@@ -257,7 +257,7 @@ export default class Collection {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
-    const path = endpoint("collection", this.bucket.name, this.name);
+    const path = endpoint.collection(this.bucket.name, this.name);
     const { last_modified } = options;
     const request = requests.jsonPatchPermissionsRequest(
       path,
@@ -288,7 +288,7 @@ export default class Collection {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
-    const path = endpoint("collection", this.bucket.name, this.name);
+    const path = endpoint.collection(this.bucket.name, this.name);
     const { last_modified } = options;
     const request = requests.jsonPatchPermissionsRequest(
       path,
@@ -317,7 +317,7 @@ export default class Collection {
    */
   async createRecord(record, options = {}) {
     const { permissions } = options;
-    const path = endpoint("record", this.bucket.name, this.name, record.id);
+    const path = endpoint.record(this.bucket.name, this.name, record.id);
     const request = requests.createRequest(
       path,
       { data: record, permissions },
@@ -349,7 +349,7 @@ export default class Collection {
   async addAttachment(dataURI, record = {}, options = {}) {
     const { permissions } = options;
     const id = record.id || uuid();
-    const path = endpoint("attachment", this.bucket.name, this.name, id);
+    const path = endpoint.attachment(this.bucket.name, this.name, id);
     const { last_modified } = { ...record, ...options };
     const addAttachmentRequest = requests.addAttachmentRequest(
       path,
@@ -384,7 +384,7 @@ export default class Collection {
   @capable(["attachments"])
   async removeAttachment(recordId, options = {}) {
     const { last_modified } = options;
-    const path = endpoint("attachment", this.bucket.name, this.name, recordId);
+    const path = endpoint.attachment(this.bucket.name, this.name, recordId);
     const request = requests.deleteRequest(path, {
       last_modified,
       headers: this._getHeaders(options),
@@ -415,7 +415,7 @@ export default class Collection {
     }
     const { permissions } = options;
     const { last_modified } = { ...record, ...options };
-    const path = endpoint("record", this.bucket.name, this.name, record.id);
+    const path = endpoint.record(this.bucket.name, this.name, record.id);
     const request = requests.updateRequest(
       path,
       { data: record, permissions },
@@ -448,7 +448,7 @@ export default class Collection {
     }
     const { id } = recordObj;
     const { last_modified } = { ...recordObj, ...options };
-    const path = endpoint("record", this.bucket.name, this.name, id);
+    const path = endpoint.record(this.bucket.name, this.name, id);
     const request = requests.deleteRequest(path, {
       last_modified,
       headers: this._getHeaders(options),
@@ -473,7 +473,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   async getRecord(id, options = {}) {
-    let path = endpoint("record", this.bucket.name, this.name, id);
+    let path = endpoint.record(this.bucket.name, this.name, id);
     path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
     return this.client.execute(request, { retry: this._getRetry(options) });
@@ -516,7 +516,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   async listRecords(options = {}) {
-    const path = endpoint("record", this.bucket.name, this.name);
+    const path = endpoint.record(this.bucket.name, this.name);
     if (Object.prototype.hasOwnProperty.call(options, "at")) {
       return this.getSnapshot(options.at);
     } else {
