@@ -14,10 +14,9 @@ type AddAttachmentRequestOptions = RequestOptions & {
 };
 
 type RequestBody = { data?: any; permissions?: Record<string, string[]> };
-type RecordRequestBody = {
+interface RecordRequestBody extends RequestBody {
   data?: KintoRecord;
-  permissions?: Record<string, string[]>;
-};
+}
 
 const requestDefaults = {
   safe: false,
