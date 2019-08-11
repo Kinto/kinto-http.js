@@ -92,9 +92,9 @@ export default class HTTP {
     let hasTimedout = false;
     return new Promise((resolve, reject) => {
       // Detect if a request has timed out.
-      let _timeoutId: number;
+      let _timeoutId: ReturnType<typeof setTimeout>;
       if (this.timeout) {
-        _timeoutId = window.setTimeout(() => {
+        _timeoutId = setTimeout(() => {
           hasTimedout = true;
           if (options && options.headers) {
             options = {
