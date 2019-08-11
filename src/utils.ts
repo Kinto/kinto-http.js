@@ -291,7 +291,7 @@ export function extractFileInfo(dataURL: string) {
  */
 export function createFormData(
   dataURL: string,
-  body: { [key: string]: string },
+  body: { [key: string]: any },
   options: { filename?: string } = {}
 ) {
   const { filename = "untitled" } = options;
