@@ -12,3 +12,11 @@ export interface KintoRecord {
   last_modified: number;
   [key: string]: any;
 }
+
+export type Permission =
+  | "bucket:create"
+  | "read"
+  | "write"
+  | "collection:create"
+  | "group:create"
+  | "record:create";

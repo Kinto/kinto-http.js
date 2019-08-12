@@ -1,4 +1,4 @@
-import { KintoRequest, HttpMethod, KintoRecord } from "./types";
+import { KintoRequest, HttpMethod, KintoRecord, Permission } from "./types";
 import { createFormData } from "./utils";
 
 interface RequestOptions {
@@ -13,7 +13,10 @@ type AddAttachmentRequestOptions = RequestOptions & {
   filename?: string;
 };
 
-type RequestBody = { data?: any; permissions?: Record<string, string[]> };
+type RequestBody = {
+  data?: any;
+  permissions?: Partial<Record<Permission, string[]>>;
+};
 interface RecordRequestBody extends RequestBody {
   data?: KintoRecord;
 }
