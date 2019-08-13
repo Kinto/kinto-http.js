@@ -18,7 +18,7 @@ chai.config.includeStack = true;
 
 /** @test {HTTP} */
 describe("HTTP class", () => {
-  let sandbox, events, http;
+  let sandbox: sinon.SinonSandbox, events: EventEmitter, http: HTTP;
 
   beforeEach(() => {
     sandbox = sinon.createSandbox();
@@ -46,6 +46,7 @@ describe("HTTP class", () => {
 
     it("should complain if an events handler is not provided", () => {
       expect(() => {
+        // @ts-ignore
         new HTTP();
       }).to.Throw(Error, /No events handler provided/);
     });
@@ -54,14 +55,17 @@ describe("HTTP class", () => {
   /** @test {HTTP#request} */
   describe("#request()", () => {
     describe("Request headers", () => {
+      let fetchStub: sinon.SinonStub;
       beforeEach(() => {
-        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, {}));
+        fetchStub = sandbox
+          .stub(global as any, "fetch")
+          .returns(fakeServerResponse(200, {}, {}));
       });
 
       it("should set default headers", () => {
         http.request("/");
 
-        expect(fetch.firstCall.args[1].headers).eql(
+        expect(fetchStub.firstCall.args[1].headers).eql(
           HTTP.DEFAULT_REQUEST_HEADERS
         );
       });
@@ -69,7 +73,7 @@ describe("HTTP class", () => {
       it("should merge custom headers with default ones", () => {
         http.request("/", { headers: { Foo: "Bar" } });
 
-        expect(fetch.firstCall.args[1].headers.Foo).eql("Bar");
+        expect(fetchStub.firstCall.args[1].headers.Foo).eql("Bar");
       });
 
       it("should drop custom content-type header for multipart body", () => {
@@ -78,32 +82,36 @@ describe("HTTP class", () => {
           body: new FormData(),
         });
 
-        expect(fetch.firstCall.args[1].headers["Content-Type"]).to.be.undefined;
+        expect(fetchStub.firstCall.args[1].headers["Content-Type"]).to.be
+          .undefined;
       });
     });
 
     describe("Request CORS mode", () => {
+      let fetchStub: sinon.SinonStub;
       beforeEach(() => {
-        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, {}));
+        fetchStub = sandbox
+          .stub(global as any, "fetch")
+          .returns(fakeServerResponse(200, {}, {}));
       });
 
       it("should use default CORS mode", () => {
         new HTTP(events).request("/");
 
-        expect(fetch.firstCall.args[1].mode).eql("cors");
+        expect(fetchStub.firstCall.args[1].mode).eql("cors");
       });
 
       it("should use configured custom CORS mode", () => {
         new HTTP(events, { requestMode: "no-cors" }).request("/");
 
-        expect(fetch.firstCall.args[1].mode).eql("no-cors");
+        expect(fetchStub.firstCall.args[1].mode).eql("no-cors");
       });
     });
 
     describe("Succesful request", () => {
       beforeEach(() => {
         sandbox
-          .stub(global, "fetch")
+          .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, { a: 1 }, { b: 2 }));
       });
 
@@ -131,7 +139,7 @@ describe("HTTP class", () => {
 
     describe("Request timeout", () => {
       beforeEach(() => {
-        sandbox.stub(global, "fetch").returns(
+        sandbox.stub(global as any, "fetch").returns(
           new Promise(resolve => {
             setTimeout(resolve, 20000);
           })
@@ -160,7 +168,7 @@ describe("HTTP class", () => {
     describe("No content response", () => {
       it("should resolve with null JSON if Content-Length header is missing", () => {
         sandbox
-          .stub(global, "fetch")
+          .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, null, {}));
 
         return http
@@ -172,11 +180,11 @@ describe("HTTP class", () => {
 
     describe("Malformed JSON response", () => {
       it("should reject with an appropriate message", () => {
-        sandbox.stub(global, "fetch").returns(
+        sandbox.stub(global as any, "fetch").returns(
           Promise.resolve({
             status: 200,
             headers: {
-              get(name) {
+              get(name: string) {
                 if (name !== "Alert") {
                   return "fake";
                 }
@@ -199,7 +207,7 @@ describe("HTTP class", () => {
 
     describe("Business error responses", () => {
       it("should reject on status code > 400", () => {
-        sandbox.stub(global, "fetch").returns(
+        sandbox.stub(global as any, "fetch").returns(
           fakeServerResponse(400, {
             code: 400,
             details: [
@@ -238,7 +246,7 @@ describe("HTTP class", () => {
           message: "data is missing",
         };
         sandbox
-          .stub(global, "fetch")
+          .stub(global as any, "fetch")
           .returns(fakeServerResponse(400, errorBody));
 
         return http
@@ -248,11 +256,11 @@ describe("HTTP class", () => {
       });
 
       it("should reject on status code > 400 even with empty body", () => {
-        sandbox.stub(global, "fetch").resolves({
+        sandbox.stub(global as any, "fetch").resolves({
           status: 400,
           statusText: "Cake Is A Lie",
           headers: {
-            get(name) {
+            get(name: string) {
               if (name === "Content-Length") {
                 return 0;
               }
@@ -276,22 +284,25 @@ describe("HTTP class", () => {
         message: "This service will soon be decommissioned",
       };
 
+      let consoleWarnStub: sinon.SinonStub;
+      let eventsEmitStub: sinon.SinonStub;
+
       beforeEach(() => {
-        sandbox.stub(console, "warn");
-        sandbox.stub(events, "emit");
+        consoleWarnStub = sandbox.stub(console, "warn");
+        eventsEmitStub = sandbox.stub(events, "emit");
       });
 
       it("should handle deprecation header", () => {
         sandbox
-          .stub(global, "fetch")
+          .stub(global as any, "fetch")
           .returns(
             fakeServerResponse(200, {}, { Alert: JSON.stringify(eolObject) })
           );
 
         return http.request("/").then(_ => {
-          sinon.assert.calledOnce(console.warn);
+          sinon.assert.calledOnce(consoleWarnStub);
           sinon.assert.calledWithExactly(
-            console.warn,
+            consoleWarnStub,
             eolObject.message,
             eolObject.url
           );
@@ -300,13 +311,13 @@ describe("HTTP class", () => {
 
       it("should handle deprecation header parse error", () => {
         sandbox
-          .stub(global, "fetch")
+          .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, {}, { Alert: "dafuq" }));
 
         return http.request("/").then(_ => {
-          sinon.assert.calledOnce(console.warn);
+          sinon.assert.calledOnce(consoleWarnStub);
           sinon.assert.calledWithExactly(
-            console.warn,
+            consoleWarnStub,
             "Unable to parse Alert header message",
             "dafuq"
           );
@@ -315,88 +326,92 @@ describe("HTTP class", () => {
 
       it("should emit a deprecated event on Alert header", () => {
         sandbox
-          .stub(global, "fetch")
+          .stub(global as any, "fetch")
           .returns(
             fakeServerResponse(200, {}, { Alert: JSON.stringify(eolObject) })
           );
 
         return http.request("/").then(_ => {
-          expect(events.emit.firstCall.args[0]).eql("deprecated");
-          expect(events.emit.firstCall.args[1]).eql(eolObject);
+          expect(eventsEmitStub.firstCall.args[0]).eql("deprecated");
+          expect(eventsEmitStub.firstCall.args[1]).eql(eolObject);
         });
       });
     });
 
     describe("Backoff header handling", () => {
+      let eventsEmitStub: sinon.SinonStub;
       beforeEach(() => {
         // Make Date#getTime always returning 1000000, for predictability
         sandbox.stub(Date.prototype, "getTime").returns(1000 * 1000);
-        sandbox.stub(events, "emit");
+        eventsEmitStub = sandbox.stub(events, "emit");
       });
 
       it("should emit a backoff event on set Backoff header", () => {
         sandbox
-          .stub(global, "fetch")
+          .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, {}, { Backoff: "1000" }));
 
         return http.request("/").then(_ => {
-          expect(events.emit.firstCall.args[0]).eql("backoff");
-          expect(events.emit.firstCall.args[1]).eql(2000000);
+          expect(eventsEmitStub.firstCall.args[0]).eql("backoff");
+          expect(eventsEmitStub.firstCall.args[1]).eql(2000000);
         });
       });
 
       it("should emit a backoff event even on error responses", () => {
         sandbox
-          .stub(global, "fetch")
+          .stub(global as any, "fetch")
           .returns(fakeServerResponse(503, {}, { Backoff: "1000" }));
 
         return http.request("/").should.be.rejected.then(() => {
-          expect(events.emit.firstCall.args[0]).eql("backoff");
-          expect(events.emit.firstCall.args[1]).eql(2000000);
+          expect(eventsEmitStub.firstCall.args[0]).eql("backoff");
+          expect(eventsEmitStub.firstCall.args[1]).eql(2000000);
         });
       });
 
       it("should emit a backoff event on missing Backoff header", () => {
-        sandbox.stub(global, "fetch").returns(fakeServerResponse(200, {}, {}));
+        sandbox
+          .stub(global as any, "fetch")
+          .returns(fakeServerResponse(200, {}, {}));
 
         return http.request("/").then(_ => {
-          expect(events.emit.firstCall.args[0]).eql("backoff");
-          expect(events.emit.firstCall.args[1]).eql(0);
+          expect(eventsEmitStub.firstCall.args[0]).eql("backoff");
+          expect(eventsEmitStub.firstCall.args[1]).eql(0);
         });
       });
     });
 
     describe("Retry-After header handling", () => {
+      let eventsEmitStub: sinon.SinonStub;
       describe("Event", () => {
         beforeEach(() => {
           // Make Date#getTime always returning 1000000, for predictability
           sandbox.stub(Date.prototype, "getTime").returns(1000 * 1000);
-          sandbox.stub(events, "emit");
+          eventsEmitStub = sandbox.stub(events, "emit");
         });
 
         it("should emit a retry-after event when Retry-After is set", () => {
           sandbox
-            .stub(global, "fetch")
+            .stub(global as any, "fetch")
             .returns(fakeServerResponse(200, {}, { "Retry-After": "1000" }));
 
           return http.request("/", {}, { retry: 0 }).then(_ => {
-            expect(events.emit.lastCall.args[0]).eql("retry-after");
-            expect(events.emit.lastCall.args[1]).eql(2000000);
+            expect(eventsEmitStub.lastCall.args[0]).eql("retry-after");
+            expect(eventsEmitStub.lastCall.args[1]).eql(2000000);
           });
         });
       });
 
       describe("Retry loop", () => {
-        let fetch;
+        let fetch: sinon.SinonStub;
 
         beforeEach(() => {
-          fetch = sandbox.stub(global, "fetch");
+          fetch = sandbox.stub(global as any, "fetch");
           // Avoid actually waiting real time for retries in test suites.
           // We can't use Sinon fakeTimers since we can't tick the fake
           // clock at the right moment (just after request failure).
           sandbox
             .stub(global, "setTimeout")
-            .callsFake((fn, time) => setImmediate(fn));
+            .callsFake((fn, time) => setImmediate(fn) as any);
         });
 
         it("should not retry the request by default", () => {
