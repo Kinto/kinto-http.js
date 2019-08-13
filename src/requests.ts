@@ -1,4 +1,25 @@
+import { KintoRequest, HttpMethod, KintoRecord, Permission } from "./types";
 import { createFormData } from "./utils";
+
+interface RequestOptions {
+  safe?: boolean;
+  headers?: Headers;
+  method?: HttpMethod;
+  gzipped?: boolean | null;
+  last_modified?: number;
+}
+type AddAttachmentRequestOptions = RequestOptions & {
+  last_modified?: number;
+  filename?: string;
+};
+
+type RequestBody = {
+  data?: any;
+  permissions?: Partial<Record<Permission, string[]>>;
+};
+interface RecordRequestBody extends RequestBody {
+  data?: KintoRecord;
+}
 
 const requestDefaults = {
   safe: false,
@@ -12,7 +33,10 @@ const requestDefaults = {
 /**
  * @private
  */
-function safeHeader(safe, last_modified) {
+function safeHeader(
+  safe: boolean,
+  last_modified?: number
+): Record<string, string> {
   if (!safe) {
     return {};
   }
@@ -25,7 +49,11 @@ function safeHeader(safe, last_modified) {
 /**
  * @private
  */
-export function createRequest(path, { data, permissions }, options = {}) {
+export function createRequest(
+  path: string,
+  { data, permissions }: RequestBody,
+  options: RequestOptions = {}
+): KintoRequest {
   const { headers, safe } = {
     ...requestDefaults,
     ...options,
@@ -42,11 +70,16 @@ export function createRequest(path, { data, permissions }, options = {}) {
 /**
  * @private
  */
-export function updateRequest(path, { data, permissions }, options = {}) {
+export function updateRequest(
+  path: string,
+  { data, permissions }: RecordRequestBody,
+  options: RequestOptions = {}
+): KintoRequest {
   const { headers, safe, patch } = { ...requestDefaults, ...options };
   const { last_modified } = { ...data, ...options };
 
   const hasNoData =
+    data &&
     Object.keys(data).filter(k => k !== "id" && k !== "last_modified")
       .length === 0;
   if (hasNoData) {
@@ -65,11 +98,11 @@ export function updateRequest(path, { data, permissions }, options = {}) {
  * @private
  */
 export function jsonPatchPermissionsRequest(
-  path,
-  permissions,
-  opType,
-  options = {}
-) {
+  path: string,
+  permissions: Record<string, string[]>,
+  opType: string,
+  options: RequestOptions = {}
+): KintoRequest {
   const { headers, safe, last_modified } = { ...requestDefaults, ...options };
 
   const ops = [];
@@ -98,7 +131,10 @@ export function jsonPatchPermissionsRequest(
 /**
  * @private
  */
-export function deleteRequest(path, options = {}) {
+export function deleteRequest(
+  path: string,
+  options: RequestOptions = {}
+): KintoRequest {
   const { headers, safe, last_modified } = {
     ...requestDefaults,
     ...options,
@@ -117,11 +153,11 @@ export function deleteRequest(path, options = {}) {
  * @private
  */
 export function addAttachmentRequest(
-  path,
-  dataURI,
-  { data, permissions } = {},
-  options = {}
-) {
+  path: string,
+  dataURI: string,
+  { data, permissions }: RecordRequestBody = {},
+  options: AddAttachmentRequestOptions = {}
+): KintoRequest {
   const { headers, safe, gzipped } = { ...requestDefaults, ...options };
   const { last_modified } = { ...data, ...options };
 
@@ -129,7 +165,7 @@ export function addAttachmentRequest(
   const formData = createFormData(dataURI, body, options);
 
   const customPath = `${path}${
-    gzipped != null ? "?gzipped=" + (gzipped ? "true" : "false") : ""
+    gzipped !== null ? "?gzipped=" + (gzipped ? "true" : "false") : ""
   }`;
 
   return {

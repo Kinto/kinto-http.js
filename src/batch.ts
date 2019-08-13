@@ -1,3 +1,5 @@
+import { KintoRequest } from "./types";
+
 interface ConflictRecord {
   last_modified: number;
   id: string;
@@ -17,13 +19,6 @@ interface AggregateResponse {
   published: ResponseBody[];
   conflicts: any[];
   skipped: any[];
-}
-
-interface KintoRequest {
-  method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-  path: string;
-  headers: HeadersInit;
-  body: any;
 }
 
 interface KintoResponse {
