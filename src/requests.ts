@@ -3,10 +3,11 @@ import { createFormData } from "./utils";
 
 interface RequestOptions {
   safe?: boolean;
-  headers?: Headers;
+  headers?: Headers | Record<string, string> | string[][];
   method?: HttpMethod;
   gzipped?: boolean | null;
   last_modified?: number;
+  patch?: boolean;
 }
 type AddAttachmentRequestOptions = RequestOptions & {
   last_modified?: number;

@@ -9,7 +9,7 @@ export interface KintoRequest {
 
 export interface KintoRecord {
   id: string;
-  last_modified: number;
+  last_modified?: number;
   [key: string]: any;
 }
 
