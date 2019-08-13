@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { EventEmitter } from "events";
-import { fakeServerResponse } from "./test_utils.js";
+import { fakeServerResponse } from "./test_utils";
 import KintoClient from "../src";
 import { SUPPORTED_PROTOCOL_VERSION as SPV } from "../src/base";
 import * as requests from "../src/requests";

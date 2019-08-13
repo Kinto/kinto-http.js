@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { EventEmitter } from "events";
-import { fakeServerResponse } from "./test_utils.js";
+import { fakeServerResponse } from "./test_utils";
 import HTTP from "../src/http";
 import {
   NetworkTimeoutError,
