@@ -117,7 +117,7 @@ export function support(min: string, max: string) {
   return function(
     target: any,
     key: string,
-    descriptor: TypedPropertyDescriptor<Function>
+    descriptor: TypedPropertyDescriptor<(...args: any[]) => any>
   ) {
     const fn = descriptor.value;
     return {
@@ -153,7 +153,7 @@ export function capable(capabilities: string[]) {
   return function(
     target: any,
     key: string,
-    descriptor: TypedPropertyDescriptor<Function>
+    descriptor: TypedPropertyDescriptor<(...args: any[]) => any>
   ) {
     const fn = descriptor.value;
     return {
@@ -197,7 +197,7 @@ export function nobatch(message: string) {
   return function(
     target: any,
     key: string,
-    descriptor: TypedPropertyDescriptor<Function>
+    descriptor: TypedPropertyDescriptor<(...args: any[]) => any>
   ) {
     const fn = descriptor.value;
     return {
