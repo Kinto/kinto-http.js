@@ -10,18 +10,29 @@ interface ConflictResponse {
 }
 
 interface ResponseBody {
-  data: unknown;
+  data?: unknown;
   details?: ConflictResponse;
+  code?: number;
+  errno?: number;
+  error?: string;
+  message?: string;
+  info?: string;
 }
 
-interface AggregateResponse {
-  errors: any[];
+interface ErrorResponse {
+  path: string;
+  sent: KintoRequest;
+  error: ResponseBody;
+}
+
+export interface AggregateResponse {
+  errors: ErrorResponse[];
   published: ResponseBody[];
   conflicts: any[];
   skipped: any[];
 }
 
-interface KintoResponse {
+export interface KintoResponse {
   status: number;
   path: string;
   body: ResponseBody;

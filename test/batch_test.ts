@@ -1,7 +1,8 @@
 import chai, { expect } from "chai";
 
 import * as requests from "../src/requests";
-import { aggregate } from "../src/batch";
+import { aggregate, AggregateResponse, KintoResponse } from "../src/batch";
+import { KintoRequest } from "../src/types";
 
 chai.should();
 chai.config.includeStack = true;
@@ -9,7 +10,16 @@ chai.config.includeStack = true;
 describe("batch module", () => {
   describe("aggregate()", () => {
     it("should throw if responses length doesn't match requests one", () => {
-      expect(() => aggregate([1], [1, 2])).to.Throw(Error, /match/);
+      const resp = {
+        status: 200,
+        path: "/sample",
+        body: { data: {} },
+        headers: {},
+      };
+      const req = requests.createRequest("foo1", {
+        data: { id: 1 },
+      });
+      expect(() => aggregate([resp], [req, req])).to.Throw(Error, /match/);
     });
 
     it("should return an object", () => {
@@ -33,20 +43,20 @@ describe("batch module", () => {
         requests.createRequest("foo2", { data: { id: 2 } }),
       ];
       const responses = [
-        { status: 500, body: { err: 1 } },
-        { status: 503, body: { err: 2 } },
+        { status: 500, body: { data: { err: 1 } }, path: "/foo1", headers: {} },
+        { status: 503, body: { data: { err: 2 } }, path: "/foo2", headers: {} },
       ];
 
       expect(aggregate(responses, _requests))
         .to.have.property("errors")
         .eql([
           {
-            error: { err: 1 },
+            error: { data: { err: 1 } },
             path: "foo1",
             sent: _requests[0],
           },
           {
-            error: { err: 2 },
+            error: { data: { err: 2 } },
             path: "foo2",
             sent: _requests[1],
           },
@@ -61,8 +71,8 @@ describe("batch module", () => {
         requests.createRequest("foo", { data: { id: 2 } }),
       ];
       const responses = [
-        { status: 200, body: { data: { id: 1 } } },
-        { status: 201, body: { data: { id: 2 } } },
+        { status: 200, body: { data: { id: 1 } }, path: "/foo", headers: {} },
+        { status: 201, body: { data: { id: 2 } }, path: "/foo", headers: {} },
       ];
 
       expect(aggregate(responses, _requests))
@@ -78,8 +88,18 @@ describe("batch module", () => {
         requests.createRequest("records/123", { data: { id: 2 } }),
       ];
       const responses = [
-        { status: 404, body: { errno: 110, code: 404, error: "Not found" } },
-        { status: 404, body: { errno: 110, code: 404, error: "Not found" } },
+        {
+          status: 404,
+          body: { errno: 110, code: 404, error: "Not found" },
+          path: "records/123",
+          headers: {},
+        },
+        {
+          status: 404,
+          body: { errno: 110, code: 404, error: "Not found" },
+          path: "records/123",
+          headers: {},
+        },
       ];
 
       expect(aggregate(responses, _requests))
@@ -101,8 +121,13 @@ describe("batch module", () => {
         requests.createRequest("records/123", { data: { id: 2 } }),
       ];
       const responses = [
-        { status: 412, body: { details: { existing: { remote: true } } } },
-        { status: 412, body: {} },
+        {
+          status: 412,
+          body: { details: { existing: { last_modified: 0, id: "1" } } },
+          path: "records/123",
+          headers: {},
+        },
+        { status: 412, body: {}, path: "records/123", headers: {} },
       ];
 
       expect(aggregate(responses, _requests))
@@ -111,7 +136,7 @@ describe("batch module", () => {
           {
             type: "outgoing",
             local: _requests[0].body,
-            remote: { remote: true },
+            remote: { last_modified: 0, id: "1" },
           },
           {
             type: "outgoing",
@@ -122,7 +147,9 @@ describe("batch module", () => {
     });
 
     describe("Heterogeneous combinations", () => {
-      let _requests, responses, results;
+      let _requests: KintoRequest[],
+        responses: KintoResponse[],
+        results: AggregateResponse;
 
       beforeEach(() => {
         _requests = [
@@ -140,10 +167,25 @@ describe("batch module", () => {
           }),
         ];
         responses = [
-          { status: 500, path: "path1", body: { err: 1 } },
-          { status: 200, body: { data: { foo: "bar" } } },
-          { status: 404, body: { errno: 110, code: 404, error: "Not found" } },
-          { status: 412, body: { details: { existing: { remote: true } } } },
+          { status: 500, path: "path1", body: { errno: 1 }, headers: {} },
+          {
+            status: 200,
+            body: { data: { foo: "bar" } },
+            path: "/",
+            headers: {},
+          },
+          {
+            status: 404,
+            body: { errno: 110, code: 404, error: "Not found" },
+            path: "/",
+            headers: {},
+          },
+          {
+            status: 412,
+            body: { details: { existing: { last_modified: 1, id: "1" } } },
+            path: "/",
+            headers: {},
+          },
         ];
 
         results = aggregate(responses, _requests);
@@ -152,7 +194,7 @@ describe("batch module", () => {
       it("should list errors", () => {
         expect(results.errors).eql([
           {
-            error: { err: 1 },
+            error: { errno: 1 },
             path: "collections/abc/records/123",
             sent: _requests[0],
           },
@@ -171,7 +213,7 @@ describe("batch module", () => {
               data: { id: 4, a: 1 },
               permissions: undefined,
             },
-            remote: { remote: true },
+            remote: { last_modified: 1, id: "1" },
           },
         ]);
       });
