@@ -32,7 +32,7 @@ describe("endpoint()", () => {
   });
 
   it("should provide a record endpoint", () => {
-    expect(endpoint.record("foo", "bar", 42)).eql(
+    expect(endpoint.record("foo", "bar", "42")).eql(
       "/buckets/foo/collections/bar/records/42"
     );
   });

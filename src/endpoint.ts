@@ -12,7 +12,7 @@ const ENDPOINTS = {
     `${ENDPOINTS.bucket(bucket)}/collections` + (coll ? `/${coll}` : ""),
   group: (bucket: string, group?: string) =>
     `${ENDPOINTS.bucket(bucket)}/groups` + (group ? `/${group}` : ""),
-  record: (bucket: string, coll: string, id?: string | number) =>
+  record: (bucket: string, coll: string, id?: string) =>
     `${ENDPOINTS.collection(bucket, coll)}/records` + (id ? `/${id}` : ""),
   attachment: (bucket: string, coll: string, id: string) =>
     `${ENDPOINTS.record(bucket, coll, id)}/attachment`,
