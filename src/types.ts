@@ -7,10 +7,13 @@ export interface KintoRequest {
   body?: any;
 }
 
-export interface KintoRecord {
+export interface KintoIdRecord {
   id: string;
-  last_modified: number;
   [key: string]: any;
+}
+
+export interface KintoRecord extends KintoIdRecord {
+  last_modified: number;
 }
 
 export type Permission =

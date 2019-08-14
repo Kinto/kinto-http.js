@@ -1,12 +1,13 @@
-import { KintoRequest, HttpMethod, KintoRecord, Permission } from "./types";
+import { KintoRequest, HttpMethod, KintoIdRecord, Permission } from "./types";
 import { createFormData } from "./utils";
 
 interface RequestOptions {
   safe?: boolean;
-  headers?: Headers;
+  headers?: Headers | Record<string, string> | string[][];
   method?: HttpMethod;
   gzipped?: boolean | null;
   last_modified?: number;
+  patch?: boolean;
 }
 type AddAttachmentRequestOptions = RequestOptions & {
   last_modified?: number;
@@ -18,7 +19,7 @@ type RequestBody = {
   permissions?: Partial<Record<Permission, string[]>>;
 };
 interface RecordRequestBody extends RequestBody {
-  data?: KintoRecord;
+  data?: KintoIdRecord;
 }
 
 const requestDefaults = {

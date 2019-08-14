@@ -108,7 +108,7 @@ describe("Utils", () => {
 
   describe("@support", () => {
     it("should return a function", () => {
-      expect(support()).to.be.a("function");
+      expect(support("", "")).to.be.a("function");
     });
 
     it("should make decorated method resolve on version match", () => {
@@ -143,6 +143,7 @@ describe("Utils", () => {
 
     it("should check for an attached client instance", () => {
       class FakeClient {
+        private client: { fetchHTTPApiVersion: () => Promise<void> };
         constructor() {
           this.client = {
             fetchHTTPApiVersion() {
@@ -151,7 +152,7 @@ describe("Utils", () => {
           };
         }
 
-        @support()
+        @support("", "")
         test() {
           return Promise.resolve();
         }
@@ -163,7 +164,7 @@ describe("Utils", () => {
 
   describe("@capable", () => {
     it("should return a function", () => {
-      expect(capable()).to.be.a("function");
+      expect(capable([])).to.be.a("function");
     });
 
     it("should make decorated method checking the capabilities", () => {
@@ -220,11 +221,12 @@ describe("Utils", () => {
 
   describe("@nobatch", () => {
     it("should return a function", () => {
-      expect(nobatch()).to.be.a("function");
+      expect(nobatch("")).to.be.a("function");
     });
 
     it("should make decorated method pass when not in batch", () => {
       class FakeClient {
+        private _isBatch: boolean;
         constructor() {
           this._isBatch = false;
         }
@@ -240,6 +242,7 @@ describe("Utils", () => {
 
     it("should make decorated method to throw if in batch", () => {
       class FakeClient {
+        private _isBatch: boolean;
         constructor() {
           this._isBatch = true;
         }
@@ -288,29 +291,35 @@ describe("Utils", () => {
       const { blob, name } = extractFileInfo(dataURL);
 
       expect(blob instanceof Buffer);
-      expect(blob.length).eql(4);
+      expect(((blob as unknown) as Buffer).length).eql(4);
       expect(name).eql("t.txt");
     });
 
     it("should use Blob if present", () => {
       class MyBlob {
-        constructor(sequences, options) {
+        public sequences: Uint8Array[];
+        public options: { type: string };
+        constructor(sequences: Uint8Array[], options: { type: string }) {
           this.sequences = sequences;
           this.options = options;
         }
       }
-      global.Blob = MyBlob;
+      (global as any).Blob = MyBlob;
       const dataURL = "data:text/plain;name=t.txt;base64," + btoa("test");
 
       const { blob } = extractFileInfo(dataURL);
 
       const testAsChars = Array.from("test").map(c => c.charCodeAt(0));
       expect(blob instanceof MyBlob);
-      expect(blob.sequences.length).eql(1);
-      expect(blob.sequences[0] instanceof Uint8Array);
-      expect(blob.sequences[0].length).eql(4);
-      expect(blob.sequences[0]).eql(new Uint8Array(testAsChars));
-      expect(blob.options).deep.equal({ type: "text/plain" });
+      expect(((blob as unknown) as MyBlob).sequences.length).eql(1);
+      expect(((blob as unknown) as MyBlob).sequences[0] instanceof Uint8Array);
+      expect(((blob as unknown) as MyBlob).sequences[0].length).eql(4);
+      expect(((blob as unknown) as MyBlob).sequences[0]).eql(
+        new Uint8Array(testAsChars)
+      );
+      expect(((blob as unknown) as MyBlob).options).deep.equal({
+        type: "text/plain",
+      });
     });
   });
 

@@ -7,7 +7,7 @@ import KintoClient from "../src";
 import Bucket from "../src/bucket";
 import Collection from "../src/collection";
 import * as requests from "../src/requests";
-import { fakeServerResponse } from "./test_utils.js";
+import { fakeServerResponse } from "./test_utils";
 
 chai.use(chaiAsPromised);
 chai.should();
