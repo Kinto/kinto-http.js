@@ -213,7 +213,14 @@ export default class KintoClientBase {
    * @param  {Object}  [options.headers] The extended headers object option.
    * @return {Bucket}
    */
-  bucket(name: string, options = {}) {
+  bucket(
+    name: string,
+    options: {
+      safe?: boolean;
+      retry?: number;
+      headers?: Record<string, string>;
+    } = {}
+  ) {
     return new Bucket(this, name, {
       batch: this._isBatch,
       headers: this._getHeaders(options),
@@ -288,7 +295,12 @@ export default class KintoClientBase {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async _getHello(options = {}): Promise<HelloResponse> {
+  async _getHello(
+    options: {
+      retry?: number;
+      headers?: Record<string, string>;
+    } = {}
+  ): Promise<HelloResponse> {
     const path = this.remote + endpoint.root();
     const { json } = await this.http.request(
       path,
@@ -338,7 +350,11 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  async fetchServerCapabilities(options = {}) {
+  async fetchServerCapabilities(
+    options: {
+      retry?: number;
+    } = {}
+  ) {
     const { capabilities } = await this.fetchServerInfo(options);
     return capabilities;
   }
@@ -354,7 +370,12 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  async fetchUser(options = {}) {
+  async fetchUser(
+    options: {
+      retry?: number;
+      headers?: Record<string, string>;
+    } = {}
+  ) {
     const { user } = await this._getHello(options);
     return user;
   }
@@ -368,7 +389,11 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  async fetchHTTPApiVersion(options = {}) {
+  async fetchHTTPApiVersion(
+    options: {
+      retry?: number;
+    } = {}
+  ) {
     const { http_api_version } = await this.fetchServerInfo(options);
     return http_api_version;
   }
@@ -383,7 +408,10 @@ export default class KintoClientBase {
    */
   async _batchRequests(
     requests: KintoRequest[],
-    options = {}
+    options: {
+      retry?: number;
+      headers?: Record<string, string>;
+    } = {}
   ): Promise<OperationResponse[]> {
     const headers = this._getHeaders(options);
     if (!requests.length) {
@@ -668,7 +696,12 @@ export default class KintoClientBase {
    * @return {Promise<Object[], Error>}
    */
   @capable(["permissions_endpoint"])
-  async listPermissions(options = {}) {
+  async listPermissions(
+    options: {
+      retry?: number;
+      headers?: Record<string, string>;
+    } = {}
+  ) {
     const path = endpoint.permissions();
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
@@ -692,7 +725,14 @@ export default class KintoClientBase {
    *     just some fields.
    * @return {Promise<Object[], Error>}
    */
-  async listBuckets(options = {}) {
+  async listBuckets(
+    options: {
+      retry?: number;
+      headers?: Record<string, string>;
+      filters?: Record<string, string>;
+      fields?: string[];
+    } = {}
+  ) {
     const path = endpoint.bucket();
     return this.paginatedList(path, options, {
       headers: this._getHeaders(options),
