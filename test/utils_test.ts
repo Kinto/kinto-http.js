@@ -29,9 +29,9 @@ describe("Utils", () => {
       expect(partition([1, 2], 2)).eql([[1, 2]]);
     });
 
-    it("should not chunk array with n<=0", () => {
-      expect(partition([1, 2, 3], 0)).eql([1, 2, 3]);
-      expect(partition([1, 2, 3], -1)).eql([1, 2, 3]);
+    it("should still chunk array with n<=0", () => {
+      expect(partition([1, 2, 3], 0)).eql([[1, 2, 3]]);
+      expect(partition([1, 2, 3], -1)).eql([[1, 2, 3]]);
     });
   });
 

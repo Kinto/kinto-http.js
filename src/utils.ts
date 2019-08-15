@@ -8,7 +8,7 @@
  */
 export function partition<T>(array: T[], n: number) {
   if (n <= 0) {
-    return array;
+    return [array];
   }
   return array.reduce<T[][]>((acc, x, i) => {
     if (i === 0 || i % n === 0) {

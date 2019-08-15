@@ -5,6 +5,7 @@ import {
   NetworkTimeoutError,
   ServerResponse,
   UnparseableResponseError,
+  ServerResponseObject,
 } from "./errors";
 
 interface HttpOptions {
@@ -16,9 +17,9 @@ interface RequestOptions {
   retry: number;
 }
 
-interface HttpResponse {
+export interface HttpResponse<T> {
   status: number;
-  json: unknown;
+  json: T;
   headers: Headers;
 }
 
@@ -124,11 +125,11 @@ export default class HTTP {
   /**
    * @private
    */
-  async processResponse(response: Response): Promise<HttpResponse> {
+  async processResponse<T>(response: Response): Promise<HttpResponse<T>> {
     const { status, headers } = response;
     const text = await response.text();
     // Check if we have a body; if so parse it as JSON.
-    let json;
+    let json: unknown;
     if (text.length !== 0) {
       try {
         json = JSON.parse(text);
@@ -137,22 +138,25 @@ export default class HTTP {
       }
     }
     if (status >= 400) {
-      throw new ServerResponse(response, json);
+      throw new ServerResponse(response, json as ServerResponseObject);
     }
-    return { status, json, headers };
+    return { status, json: json as T, headers };
   }
 
   /**
    * @private
    */
-  async retry(
+  async retry<T>(
     url: string,
     retryAfter: number,
     request: RequestInit,
     options: RequestOptions
   ) {
     await delay(retryAfter);
-    return this.request(url, request, { ...options, retry: options.retry - 1 });
+    return this.request<T>(url, request, {
+      ...options,
+      retry: options.retry - 1,
+    });
   }
 
   /**
@@ -172,11 +176,11 @@ export default class HTTP {
    * @param  {Number} [options.retry]   Number of retries (default: 0)
    * @return {Promise}
    */
-  async request(
+  async request<T>(
     url: string,
     request: RequestInit = { headers: {} },
     options: RequestOptions = { retry: 0 }
-  ): Promise<HttpResponse> {
+  ): Promise<HttpResponse<T>> {
     // Ensure default request headers are always set
     request.headers = { ...HTTP.DEFAULT_REQUEST_HEADERS, ...request.headers };
     // If a multipart body is provided, remove any custom Content-Type header as
@@ -200,9 +204,9 @@ export default class HTTP {
     const retryAfter = this._checkForRetryAfterHeader(headers);
     // If number of allowed of retries is not exhausted, retry the same request.
     if (retryAfter && options.retry > 0) {
-      return this.retry(url, retryAfter, request, options);
+      return this.retry<T>(url, retryAfter, request, options);
     } else {
-      return this.processResponse(response);
+      return this.processResponse<T>(response);
     }
   }
 

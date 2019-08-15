@@ -17,6 +17,7 @@ export default class Bucket {
    * @param  {Object}      [options.headers] The headers object option.
    * @param  {Boolean}     [options.safe]    The safe option.
    * @param  {Number}      [options.retry]   The retry option.
+   * @param  {boolean}     [options.batch]   The batch option.
    */
   constructor(client, name, options = {}) {
     /**

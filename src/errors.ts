@@ -68,7 +68,7 @@ class UnparseableResponseError extends Error {
   }
 }
 
-interface ServerResponseObject {
+export interface ServerResponseObject {
   code: number;
   errno: keyof typeof ERROR_CODES;
   error: string;
