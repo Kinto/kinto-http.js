@@ -7,12 +7,12 @@ export interface KintoRequest {
   body?: any;
 }
 
-export interface KintoIdRecord {
+export interface KintoIdObject {
   id: string;
   [key: string]: any;
 }
 
-export interface KintoRecord extends KintoIdRecord {
+export interface KintoRecord extends KintoIdObject {
   last_modified: number;
 }
 

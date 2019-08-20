@@ -1,4 +1,4 @@
-import { KintoRequest, HttpMethod, KintoIdRecord, Permission } from "./types";
+import { KintoRequest, HttpMethod, KintoIdObject, Permission } from "./types";
 import { createFormData } from "./utils";
 
 interface RequestOptions {
@@ -19,7 +19,7 @@ type RequestBody = {
   permissions?: Partial<Record<Permission, string[]>>;
 };
 interface RecordRequestBody extends RequestBody {
-  data?: KintoIdRecord;
+  data?: KintoIdObject;
 }
 
 const requestDefaults = {

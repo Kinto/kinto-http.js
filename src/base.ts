@@ -22,7 +22,7 @@ import {
   OperationResponse,
   DataResponse,
   Permission,
-  KintoIdRecord,
+  KintoIdObject,
   MappableObject,
 } from "./types";
 import Collection from "./collection";
@@ -785,7 +785,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   async deleteBucket(
-    bucket: string | KintoIdRecord,
+    bucket: string | KintoIdObject,
     options: {
       safe?: boolean;
       headers?: Record<string, string>;
