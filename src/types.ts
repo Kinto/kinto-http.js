@@ -66,3 +66,5 @@ export interface BatchResponse {
 export interface DataResponse<T> {
   data: T;
 }
+
+export type MappableObject = { [key in string | number]: unknown };

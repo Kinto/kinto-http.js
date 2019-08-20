@@ -23,6 +23,7 @@ import {
   DataResponse,
   Permission,
   KintoIdRecord,
+  MappableObject,
 } from "./types";
 import Collection from "./collection";
 
@@ -745,7 +746,7 @@ export default class KintoClientBase {
   async createBucket(
     id: string | null,
     options: {
-      data?: any;
+      data?: MappableObject & { id?: string };
       permissions?: Partial<Record<Permission, string[]>>;
       safe?: boolean;
       headers?: Record<string, string>;
