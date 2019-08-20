@@ -71,8 +71,8 @@ export default class KintoClientBase {
   private serverInfo: HelloResponse | null;
   private events: EventEmitter;
   private http: HTTP;
-  private _remote: string;
-  private _version: string;
+  private _remote!: string;
+  private _version!: string;
 
   /**
    * Constructor.
@@ -107,17 +107,7 @@ export default class KintoClientBase {
      * The remote server base URL.
      * @type {String}
      */
-    let version;
-    try {
-      version = remote.match(/\/(v\d+)\/?$/)![1];
-    } catch (err) {
-      throw new Error("The remote URL must contain the version: " + remote);
-    }
-    if (version !== SUPPORTED_PROTOCOL_VERSION) {
-      throw new Error(`Unsupported protocol version: ${version}`);
-    }
-    this._remote = remote;
-    this._version = version;
+    this.remote = remote;
     /**
      * Current server information.
      * @ignore
