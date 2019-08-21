@@ -33,6 +33,7 @@ interface User {
 interface ServerCapability {
   description: string;
   url: string;
+  version?: string;
   [key: string]: unknown;
 }
 
