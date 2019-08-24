@@ -205,7 +205,6 @@ export default class Bucket {
   ) {
     let path = endpoint.bucket(this.name);
     path = addEndpointOptions(path, options);
-    console.log({ path });
     const request = {
       headers: this._getHeaders(options),
       path,
