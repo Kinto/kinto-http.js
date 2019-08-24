@@ -69,3 +69,8 @@ export interface DataResponse<T> {
 }
 
 export type MappableObject = { [key in string | number]: unknown };
+
+export interface BucketResponse {
+  data: KintoRecord;
+  permissions: Record<Permission, string[]>;
+}

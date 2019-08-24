@@ -2,12 +2,32 @@ import { toDataBody, isObject, capable, addEndpointOptions } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
+import KintoClientBase, { PaginatedListParams } from "./base";
+import {
+  KintoRequest,
+  KintoIdObject,
+  Permission,
+  BucketResponse,
+} from "./types";
 
+interface BucketOptions {
+  safe?: boolean;
+  headers?: Record<string, string>;
+  retry?: number;
+  batch?: boolean;
+}
 /**
  * Abstract representation of a selected bucket.
  *
  */
 export default class Bucket {
+  private client: KintoClientBase;
+  private name: string;
+  private _isBatch: boolean;
+  private _retry: number;
+  private _safe: boolean;
+  private _headers: Record<string, string>;
+
   /**
    * Constructor.
    *
@@ -19,7 +39,11 @@ export default class Bucket {
    * @param  {Number}      [options.retry]   The retry option.
    * @param  {boolean}     [options.batch]   The batch option.
    */
-  constructor(client, name, options = {}) {
+  constructor(
+    client: KintoClientBase,
+    name: string,
+    options: BucketOptions = {}
+  ) {
     /**
      * @ignore
      */
@@ -47,7 +71,7 @@ export default class Bucket {
    *
    * @private
    */
-  _getHeaders(options) {
+  _getHeaders(options: { headers?: Record<string, string> }) {
     return {
       ...this._headers,
       ...options.headers,
@@ -63,7 +87,7 @@ export default class Bucket {
    * @param {Object} options The options for a request.
    * @returns {Boolean}
    */
-  _getSafe(options) {
+  _getSafe(options: { safe?: boolean }) {
     return { safe: this._safe, ...options }.safe;
   }
 
@@ -72,7 +96,7 @@ export default class Bucket {
    *
    * @private
    */
-  _getRetry(options) {
+  _getRetry(options: { retry?: number }) {
     return { retry: this._retry, ...options }.retry;
   }
 
@@ -85,7 +109,14 @@ export default class Bucket {
    * @param  {Boolean} [options.safe]    The safe option.
    * @return {Collection}
    */
-  collection(name, options = {}) {
+  collection(
+    name: string,
+    options: {
+      headers?: Record<string, string>;
+      safe?: boolean;
+      retry?: number;
+    } = {}
+  ) {
     return new Collection(this.client, this, name, {
       batch: this._isBatch,
       headers: this._getHeaders(options),
@@ -103,9 +134,14 @@ export default class Bucket {
    *     when faced with transient errors.
    * @return {Promise<String, Error>}
    */
-  async getCollectionsTimestamp(options = {}) {
+  async getCollectionsTimestamp(
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+    } = {}
+  ) {
     const path = endpoint.collection(this.name);
-    const request = {
+    const request: KintoRequest = {
       headers: this._getHeaders(options),
       path,
       method: "HEAD",
@@ -126,9 +162,14 @@ export default class Bucket {
    *     when faced with transient errors.
    * @return {Promise<String, Error>}
    */
-  async getGroupsTimestamp(options = {}) {
+  async getGroupsTimestamp(
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+    } = {}
+  ) {
     const path = endpoint.group(this.name);
-    const request = {
+    const request: KintoRequest = {
       headers: this._getHeaders(options),
       path,
       method: "HEAD",
@@ -154,16 +195,23 @@ export default class Bucket {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async getData(options = {}) {
+  async getData<T>(
+    options: {
+      headers?: Record<string, string>;
+      query?: { [key: string]: string };
+      fields?: string[];
+      retry?: number;
+    } = {}
+  ) {
     let path = endpoint.bucket(this.name);
     path = addEndpointOptions(path, options);
     const request = {
       headers: this._getHeaders(options),
       path,
     };
-    const { data } = await this.client.execute(request, {
+    const { data } = (await this.client.execute(request, {
       retry: this._getRetry(options),
-    });
+    })) as { data: T };
     return data;
   }
 
@@ -179,7 +227,17 @@ export default class Bucket {
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async setData(data, options = {}) {
+  async setData(
+    data: { last_modified?: number; [key: string]: any },
+    options: {
+      headers?: Record<string, string>;
+      safe?: boolean;
+      retry?: number;
+      patch?: boolean;
+      last_modified?: number;
+      permissions?: Record<Permission, string[]>;
+    } = {}
+  ) {
     if (!isObject(data)) {
       throw new Error("A bucket object is required.");
     }
@@ -219,7 +277,12 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   @capable(["history"])
-  async listHistory(options = {}) {
+  async listHistory(
+    options: PaginatedListParams & {
+      headers?: Record<string, string>;
+      retry?: number;
+    } = {}
+  ) {
     const path = endpoint.history(this.name);
     return this.client.paginatedList(path, options, {
       headers: this._getHeaders(options),
@@ -239,7 +302,14 @@ export default class Bucket {
    *     just some fields.
    * @return {Promise<Array<Object>, Error>}
    */
-  async listCollections(options = {}) {
+  async listCollections(
+    options: {
+      filters?: Record<string, string>;
+      headers?: Record<string, string>;
+      retry?: number;
+      fields?: string[];
+    } = {}
+  ) {
     const path = endpoint.collection(this.name);
     return this.client.paginatedList(path, options, {
       headers: this._getHeaders(options),
@@ -260,7 +330,16 @@ export default class Bucket {
    * @param  {Object}  [options.data]        The data object.
    * @return {Promise<Object, Error>}
    */
-  async createCollection(id, options = {}) {
+  async createCollection(
+    id?: string,
+    options: {
+      safe?: boolean;
+      headers?: Record<string, string>;
+      retry?: number;
+      permissions?: Record<Permission, string[]>;
+      data?: any;
+    } = {}
+  ) {
     const { permissions, data = {} } = options;
     data.id = id;
     const path = endpoint.collection(this.name, id);
@@ -287,7 +366,15 @@ export default class Bucket {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async deleteCollection(collection, options = {}) {
+  async deleteCollection(
+    collection: string | KintoIdObject,
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+      safe?: boolean;
+      last_modified?: number;
+    } = {}
+  ) {
     const collectionObj = toDataBody(collection);
     if (!collectionObj.id) {
       throw new Error("A collection id is required.");
@@ -315,7 +402,14 @@ export default class Bucket {
    *     just some fields.
    * @return {Promise<Array<Object>, Error>}
    */
-  async listGroups(options = {}) {
+  async listGroups(
+    options: {
+      filters?: Record<string, string>;
+      headers?: Record<string, string>;
+      retry?: number;
+      fields?: string[];
+    } = {}
+  ) {
     const path = endpoint.group(this.name);
     return this.client.paginatedList(path, options, {
       headers: this._getHeaders(options),
@@ -338,7 +432,15 @@ export default class Bucket {
    *     just some fields.
    * @return {Promise<Object, Error>}
    */
-  async getGroup(id, options = {}) {
+  async getGroup(
+    id: string,
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+      query?: { [key: string]: string };
+      fields?: string[];
+    } = {}
+  ) {
     let path = endpoint.group(this.name, id);
     path = addEndpointOptions(path, options);
     const request = {
@@ -362,7 +464,17 @@ export default class Bucket {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async createGroup(id, members = [], options = {}) {
+  async createGroup(
+    id?: string,
+    members: string[] = [],
+    options: {
+      data?: any;
+      permissions?: Record<Permission, string[]>;
+      safe?: boolean;
+      headers?: Record<string, string>;
+      retry?: number;
+    } = {}
+  ) {
     const data = {
       ...options.data,
       id,
@@ -395,7 +507,18 @@ export default class Bucket {
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async updateGroup(group, options = {}) {
+  async updateGroup(
+    group: KintoIdObject,
+    options: {
+      data?: { last_modified?: number; [key: string]: any };
+      permissions?: Record<Permission, string[]>;
+      safe?: boolean;
+      headers?: Record<string, string>;
+      retry?: number;
+      last_modified?: number;
+      patch?: boolean;
+    } = {}
+  ) {
     if (!isObject(group)) {
       throw new Error("A group object is required.");
     }
@@ -434,7 +557,15 @@ export default class Bucket {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async deleteGroup(group, options = {}) {
+  async deleteGroup(
+    group: string | KintoIdObject,
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+      safe?: boolean;
+      last_modified?: number;
+    } = {}
+  ) {
     const groupObj = toDataBody(group);
     const { id } = groupObj;
     const { last_modified } = { ...groupObj, ...options };
@@ -456,14 +587,22 @@ export default class Bucket {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async getPermissions(options = {}) {
+  async getPermissions(
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+    } = {}
+  ) {
     const request = {
       headers: this._getHeaders(options),
       path: endpoint.bucket(this.name),
     };
-    const { permissions } = await this.client.execute(request, {
-      retry: this._getRetry(options),
-    });
+    const { permissions } = (await this.client.execute<BucketResponse>(
+      request,
+      {
+        retry: this._getRetry(options),
+      }
+    )) as BucketResponse;
     return permissions;
   }
 
@@ -479,7 +618,15 @@ export default class Bucket {
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async setPermissions(permissions, options = {}) {
+  async setPermissions(
+    permissions: Record<Permission, string[]>,
+    options: {
+      safe?: boolean;
+      headers?: Record<string, string>;
+      retry?: number;
+      last_modified?: number;
+    } = {}
+  ) {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -509,7 +656,15 @@ export default class Bucket {
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async addPermissions(permissions, options = {}) {
+  async addPermissions(
+    permissions: Record<Permission, string[]>,
+    options: {
+      safe?: boolean;
+      headers?: Record<string, string>;
+      retry?: number;
+      last_modified?: number;
+    } = {}
+  ) {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -540,7 +695,15 @@ export default class Bucket {
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async removePermissions(permissions, options = {}) {
+  async removePermissions(
+    permissions: Record<Permission, string[]>,
+    options: {
+      safe?: boolean;
+      headers?: Record<string, string>;
+      retry?: number;
+      last_modified?: number;
+    } = {}
+  ) {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -570,7 +733,15 @@ export default class Bucket {
    * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
-  async batch(fn, options = {}) {
+  async batch(
+    fn: (client: Bucket | KintoClientBase | Collection) => void,
+    options: {
+      headers?: Record<string, string>;
+      safe?: boolean;
+      retry?: number;
+      aggregate?: boolean;
+    } = {}
+  ) {
     return this.client.batch(fn, {
       bucket: this.name,
       headers: this._getHeaders(options),
