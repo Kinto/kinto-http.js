@@ -19,7 +19,7 @@ type RequestBody = {
   permissions?: Partial<Record<Permission, string[]>>;
 };
 interface RecordRequestBody extends RequestBody {
-  data?: KintoIdObject;
+  data?: { id?: string; last_modified?: number; [key: string]: any };
 }
 
 const requestDefaults = {
