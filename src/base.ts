@@ -44,6 +44,15 @@ interface KintoClientOptions {
   batch?: boolean;
 }
 
+export interface PaginatedListParams {
+  sort?: string;
+  filters?: Record<string, string>;
+  limit?: number;
+  pages?: number;
+  since?: string;
+  fields?: string[];
+}
+
 interface PaginationResult<T> {
   last_modified: string | null;
   data: T[];
@@ -575,14 +584,7 @@ export default class KintoClientBase {
    */
   async paginatedList<T>(
     path: string,
-    params: {
-      sort?: string;
-      filters?: Record<string, string>;
-      limit?: number;
-      pages?: number;
-      since?: string;
-      fields?: string[];
-    },
+    params: PaginatedListParams,
     options: { headers?: Record<string, string>; retry?: number } = {}
   ) {
     // FIXME: this is called even in batch requests, which doesn't
