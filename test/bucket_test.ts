@@ -4,9 +4,10 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import KintoClient from "../src";
-import Bucket from "../src/bucket";
+import Bucket, { BucketOptions } from "../src/bucket";
 import Collection from "../src/collection";
 import * as requests from "../src/requests";
+import KintoClientBase from "../src/base";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -16,9 +17,9 @@ const FAKE_SERVER_URL = "http://fake-server/v1";
 
 /** @test {Bucket} */
 describe("Bucket", () => {
-  let sandbox, client;
+  let sandbox: sinon.SinonSandbox, client: KintoClient;
 
-  function getBlogBucket(options) {
+  function getBlogBucket(options?: BucketOptions) {
     return new Bucket(client, "blog", options);
   }
 
@@ -43,11 +44,16 @@ describe("Bucket", () => {
   /** @test {Bucket#getData} */
   describe("#getData()", () => {
     it("should execute expected request", () => {
-      sandbox.stub(client, "execute").returns(Promise.resolve());
+      const executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve());
 
       getBlogBucket().getData();
 
-      sinon.assert.calledWithMatch(client.execute, { path: "/buckets/blog" });
+      sinon.assert.calledWithMatch(executeStub, {
+        path: "/buckets/blog",
+        headers: {},
+      });
     });
 
     it("should resolve with response data", () => {
@@ -61,19 +67,24 @@ describe("Bucket", () => {
 
     it("should support query and fields", () => {
       const response = { data: { foo: "bar" }, permissions: {} };
-      sandbox.stub(client, "execute").returns(Promise.resolve(response));
+      const executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve(response));
 
       getBlogBucket().getData({ query: { a: "b" }, fields: ["c", "d"] });
 
-      sinon.assert.calledWithMatch(client.execute, {
+      sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog?a=b&_fields=c,d",
+        headers: {},
       });
     });
   });
 
   describe("#setData()", () => {
+    let updateRequestStub: sinon.SinonStub;
+
     beforeEach(() => {
-      sandbox.stub(requests, "updateRequest");
+      updateRequestStub = sandbox.stub(requests, "updateRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: 1 }));
     });
 
@@ -81,7 +92,7 @@ describe("Bucket", () => {
       getBlogBucket().setData({ a: 1 });
 
       sinon.assert.calledWithMatch(
-        requests.updateRequest,
+        updateRequestStub,
         "/buckets/blog",
         { data: { id: "blog", a: 1 }, permissions: undefined },
         { headers: {} }
@@ -92,7 +103,7 @@ describe("Bucket", () => {
       getBlogBucket().setData({ a: 1 }, { patch: true });
 
       sinon.assert.calledWithMatch(
-        requests.updateRequest,
+        updateRequestStub,
         "/buckets/blog",
         { data: { id: "blog", a: 1 }, permissions: undefined },
         { patch: true }
@@ -103,7 +114,7 @@ describe("Bucket", () => {
       getBlogBucket().setData({ a: 1 }, { safe: true, last_modified: 42 });
 
       sinon.assert.calledWithMatch(
-        requests.updateRequest,
+        updateRequestStub,
         "/buckets/blog",
         { data: { id: "blog", a: 1 }, permissions: undefined },
         { headers: {}, safe: true, last_modified: 42 }
@@ -144,13 +155,15 @@ describe("Bucket", () => {
   /** @test {Bucket#getCollectionsTimestamp} */
   describe("#getCollectionsTimestamp()", () => {
     it("should execute expected request", () => {
-      sandbox.stub(client, "execute").returns(Promise.resolve());
+      const executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve());
 
       getBlogBucket().getCollectionsTimestamp();
 
       sinon.assert.calledWithMatch(
-        client.execute,
-        { method: "HEAD", path: "/buckets/blog/collections" },
+        executeStub,
+        { method: "HEAD", path: "/buckets/blog/collections", headers: {} },
         { raw: true }
       );
     });
@@ -160,7 +173,7 @@ describe("Bucket", () => {
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
           headers: {
-            get(value) {
+            get(value: string) {
               return value == "ETag" ? etag : null;
             },
           },
@@ -175,19 +188,27 @@ describe("Bucket", () => {
 
   /** @test {Bucket#listCollections} */
   describe("#listCollections()", () => {
-    const data = [{ id: "a" }, { id: "b" }];
+    const data = {
+      last_modified: "",
+      data: [{ id: "a" }, { id: "b" }],
+      next: () => {},
+      hasNextPage: false,
+    };
+    let paginatedListStub: sinon.SinonStub;
 
     beforeEach(() => {
-      sandbox.stub(client, "paginatedList").returns(Promise.resolve(data));
+      paginatedListStub = sandbox
+        .stub(client, "paginatedList")
+        .returns(Promise.resolve(data));
     });
 
     it("should list bucket collections", () => {
-      getBlogBucket().listCollections({ _since: "42" });
+      getBlogBucket().listCollections({ since: "42" });
 
       sinon.assert.calledWithMatch(
-        client.paginatedList,
+        paginatedListStub,
         "/buckets/blog/collections",
-        { _since: "42" },
+        { since: "42" },
         { headers: {} }
       );
     });
@@ -198,7 +219,7 @@ describe("Bucket", () => {
       }).listCollections({ headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        client.paginatedList,
+        paginatedListStub,
         "/buckets/blog/collections",
         {},
         { headers: { Foo: "Bar", Baz: "Qux" } }
@@ -212,7 +233,7 @@ describe("Bucket", () => {
       });
 
       sinon.assert.calledWithMatch(
-        client.paginatedList,
+        paginatedListStub,
         "/buckets/blog/collections",
         { filters: { a: "b" }, fields: ["c", "d"] }
       );
@@ -227,8 +248,9 @@ describe("Bucket", () => {
 
   /** @test {Bucket#createCollection} */
   describe("#createCollection()", () => {
+    let createRequestStub: sinon.SinonStub;
     beforeEach(() => {
-      sandbox.stub(requests, "createRequest");
+      createRequestStub = sandbox.stub(requests, "createRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
     });
 
@@ -236,7 +258,7 @@ describe("Bucket", () => {
       getBlogBucket().createCollection("foo", { safe: true });
 
       sinon.assert.calledWithMatch(
-        requests.createRequest,
+        createRequestStub,
         "/buckets/blog/collections/foo",
         { data: { id: "foo" }, permissions: undefined },
         { safe: true }
@@ -249,7 +271,7 @@ describe("Bucket", () => {
       }).createCollection("foo", { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        requests.createRequest,
+        createRequestStub,
         "/buckets/blog/collections/foo",
         { data: { id: "foo" }, permissions: undefined },
         { headers: { Foo: "Bar", Baz: "Qux" } }
@@ -261,7 +283,7 @@ describe("Bucket", () => {
         getBlogBucket().createCollection("foo");
 
         sinon.assert.calledWithMatch(
-          requests.createRequest,
+          createRequestStub,
           "/buckets/blog/collections/foo",
           { data: { id: "foo" }, permissions: undefined },
           { headers: {} }
@@ -275,7 +297,7 @@ describe("Bucket", () => {
         }).createCollection("foo", { headers: { Baz: "Qux" } });
 
         sinon.assert.calledWithMatch(
-          requests.createRequest,
+          createRequestStub,
           "/buckets/blog/collections/foo",
           { data: { id: "foo" }, permissions: undefined },
           { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
@@ -288,7 +310,7 @@ describe("Bucket", () => {
         getBlogBucket().createCollection();
 
         sinon.assert.calledWithMatch(
-          requests.createRequest,
+          createRequestStub,
           "/buckets/blog/collections",
           { data: { id: undefined }, permissions: undefined },
           { headers: {} }
@@ -299,10 +321,10 @@ describe("Bucket", () => {
         getBlogBucket({
           headers: { Foo: "Bar" },
           safe: true,
-        }).createCollection({}, { headers: { Baz: "Qux" } });
+        }).createCollection("", { headers: { Baz: "Qux" } });
 
         sinon.assert.calledWithMatch(
-          requests.createRequest,
+          createRequestStub,
           "/buckets/blog/collections",
           { data: {}, permissions: undefined },
           { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
@@ -313,8 +335,9 @@ describe("Bucket", () => {
 
   /** @test {Bucket#deleteCollection} */
   describe("#deleteCollection", () => {
+    let deleteRequestStub: sinon.SinonStub;
     beforeEach(() => {
-      sandbox.stub(requests, "deleteRequest");
+      deleteRequestStub = sandbox.stub(requests, "deleteRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
     });
 
@@ -322,7 +345,7 @@ describe("Bucket", () => {
       getBlogBucket().deleteCollection("todelete");
 
       sinon.assert.calledWithMatch(
-        requests.deleteRequest,
+        deleteRequestStub,
         "/buckets/blog/collections/todelete",
         { headers: {} }
       );
@@ -335,7 +358,7 @@ describe("Bucket", () => {
       }).deleteCollection("todelete", { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        requests.deleteRequest,
+        deleteRequestStub,
         "/buckets/blog/collections/todelete",
         {
           headers: { Foo: "Bar", Baz: "Qux" },
@@ -348,7 +371,7 @@ describe("Bucket", () => {
       getBlogBucket().deleteCollection("todelete", { safe: true });
 
       sinon.assert.calledWithMatch(
-        requests.deleteRequest,
+        deleteRequestStub,
         "/buckets/blog/collections/todelete",
         { safe: true }
       );
@@ -361,7 +384,7 @@ describe("Bucket", () => {
       );
 
       sinon.assert.calledWithMatch(
-        requests.deleteRequest,
+        deleteRequestStub,
         "/buckets/blog/collections/todelete",
         {
           last_modified: 42,
@@ -376,7 +399,7 @@ describe("Bucket", () => {
       }).deleteCollection("todelete", { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        requests.deleteRequest,
+        deleteRequestStub,
         "/buckets/blog/collections/todelete",
         {
           headers: { Foo: "Bar", Baz: "Qux" },
@@ -388,13 +411,15 @@ describe("Bucket", () => {
   /** @test {Bucket#getGroupsTimestamp} */
   describe("#getGroupsTimestamp()", () => {
     it("should execute expected request", () => {
-      sandbox.stub(client, "execute").returns(Promise.resolve());
+      const executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve());
 
       getBlogBucket().getGroupsTimestamp();
 
       sinon.assert.calledWithMatch(
-        client.execute,
-        { method: "HEAD", path: "/buckets/blog/groups" },
+        executeStub,
+        { method: "HEAD", path: "/buckets/blog/groups", headers: {} },
         { raw: true }
       );
     });
@@ -404,7 +429,7 @@ describe("Bucket", () => {
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
           headers: {
-            get(value) {
+            get(value: string) {
               return value == "ETag" ? etag : null;
             },
           },
@@ -419,19 +444,27 @@ describe("Bucket", () => {
 
   /** @test {Bucket#listGroups} */
   describe("#listGroups()", () => {
-    const data = [{ id: "a" }, { id: "b" }];
+    const data = {
+      last_modified: "",
+      data: [{ id: "a" }, { id: "b" }],
+      next: () => {},
+      hasNextPage: false,
+    };
+    let paginatedListStub: sinon.SinonStub;
 
     beforeEach(() => {
-      sandbox.stub(client, "paginatedList").returns(Promise.resolve(data));
+      paginatedListStub = sandbox
+        .stub(client, "paginatedList")
+        .returns(Promise.resolve(data));
     });
 
     it("should list bucket groups", () => {
-      getBlogBucket().listGroups({ _since: "42" });
+      getBlogBucket().listGroups({ since: "42" });
 
       sinon.assert.calledWithMatch(
-        client.paginatedList,
+        paginatedListStub,
         "/buckets/blog/groups",
-        { _since: "42" },
+        { since: "42" },
         { headers: {} }
       );
     });
@@ -442,7 +475,7 @@ describe("Bucket", () => {
       }).listGroups({ headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        client.paginatedList,
+        paginatedListStub,
         "/buckets/blog/groups",
         {},
         { headers: { Foo: "Bar", Baz: "Qux" } }
@@ -452,11 +485,10 @@ describe("Bucket", () => {
     it("should support filters and fields", () => {
       getBlogBucket().listGroups({ filters: { a: "b" }, fields: ["c", "d"] });
 
-      sinon.assert.calledWithMatch(
-        client.paginatedList,
-        "/buckets/blog/groups",
-        { filters: { a: "b" }, fields: ["c", "d"] }
-      );
+      sinon.assert.calledWithMatch(paginatedListStub, "/buckets/blog/groups", {
+        filters: { a: "b" },
+        fields: ["c", "d"],
+      });
     });
 
     it("should return the list of groups", () => {
@@ -469,8 +501,12 @@ describe("Bucket", () => {
   /** @test {Bucket#getGroup} */
   describe("#getGroup", () => {
     const fakeGroup = { data: {}, permissions: {} };
+    let executeStub: sinon.SinonStub;
+
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve(fakeGroup));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve(fakeGroup));
     });
 
     it("should extend request headers with optional ones", () => {
@@ -478,7 +514,7 @@ describe("Bucket", () => {
         headers: { Foo: "Bar" },
       }).getGroup("foo", { headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(client.execute, {
+      sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog/groups/foo",
         headers: { Foo: "Bar", Baz: "Qux" },
       });
@@ -496,7 +532,7 @@ describe("Bucket", () => {
         fields: ["c", "d"],
       });
 
-      sinon.assert.calledWithMatch(client.execute, {
+      sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog/groups/foo?a=b&_fields=c,d",
       });
     });
@@ -504,8 +540,10 @@ describe("Bucket", () => {
 
   /** @test {Bucket#createGroup} */
   describe("#createGroup", () => {
+    let createRequestStub: sinon.SinonStub;
+
     beforeEach(() => {
-      sandbox.stub(requests, "createRequest");
+      createRequestStub = sandbox.stub(requests, "createRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
     });
 
@@ -513,7 +551,7 @@ describe("Bucket", () => {
       getBlogBucket().createGroup("foo", [], { safe: true });
 
       sinon.assert.calledWithMatch(
-        requests.createRequest,
+        createRequestStub,
         "/buckets/blog/groups/foo",
         { data: { id: "foo", members: [] }, permissions: undefined },
         { safe: true }
@@ -526,7 +564,7 @@ describe("Bucket", () => {
       }).createGroup("foo", [], { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        requests.createRequest,
+        createRequestStub,
         "/buckets/blog/groups/foo",
         { data: { id: "foo", members: [] }, permissions: undefined },
         { headers: { Foo: "Bar", Baz: "Qux" } }
@@ -537,7 +575,7 @@ describe("Bucket", () => {
       getBlogBucket().createGroup("foo");
 
       sinon.assert.calledWithMatch(
-        requests.createRequest,
+        createRequestStub,
         "/buckets/blog/groups/foo",
         { data: { id: "foo", members: [] }, permissions: undefined },
         { headers: {} }
@@ -552,7 +590,7 @@ describe("Bucket", () => {
       getBlogBucket().createGroup("foo", [], group);
 
       sinon.assert.calledWithMatch(
-        requests.createRequest,
+        createRequestStub,
         "/buckets/blog/groups/foo",
         {
           data: { id: "foo", members: [], age: 21 },
@@ -565,28 +603,34 @@ describe("Bucket", () => {
 
   /** @test {Bucket#updateGroup} */
   describe("#updateGroup", () => {
+    let updateRequestStub: sinon.SinonStub;
+
     beforeEach(() => {
-      sandbox.stub(requests, "updateRequest");
+      updateRequestStub = sandbox.stub(requests, "updateRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
     });
 
     it("should throw if record is not an object", () => {
+      // @ts-ignore
       return getBlogBucket()
         .updateGroup()
         .should.be.rejectedWith(Error, /group object is required/);
     });
 
     it("should throw if id is missing", () => {
-      return getBlogBucket()
-        .updateGroup({})
-        .should.be.rejectedWith(Error, /group id is required/);
+      return (
+        getBlogBucket()
+          // @ts-ignore
+          .updateGroup({})
+          .should.be.rejectedWith(Error, /group id is required/)
+      );
     });
 
     it("should accept a patch option", () => {
       getBlogBucket().updateGroup({ id: "foo", members: [] }, { patch: true });
 
       sinon.assert.calledWithMatch(
-        requests.updateRequest,
+        updateRequestStub,
         "/buckets/blog/groups/foo",
         { data: { id: "foo", members: [] }, permissions: undefined },
         { patch: true }
@@ -599,7 +643,7 @@ describe("Bucket", () => {
       }).updateGroup({ id: "foo", members: [] }, { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        requests.updateRequest,
+        updateRequestStub,
         "/buckets/blog/groups/foo",
         { data: { id: "foo", members: [] }, permissions: undefined },
         { headers: { Foo: "Bar", Baz: "Qux" } }
@@ -610,7 +654,7 @@ describe("Bucket", () => {
       getBlogBucket().updateGroup({ id: "foo", members: [] });
 
       sinon.assert.calledWithMatch(
-        requests.updateRequest,
+        updateRequestStub,
         "/buckets/blog/groups/foo",
         {
           data: { id: "foo", members: [] },
@@ -626,7 +670,7 @@ describe("Bucket", () => {
       getBlogBucket().updateGroup({ id: "foo", members: [] }, group);
 
       sinon.assert.calledWithMatch(
-        requests.updateRequest,
+        updateRequestStub,
         "/buckets/blog/groups/foo",
         {
           data: { id: "foo", members: [], age: 21 },
@@ -639,8 +683,10 @@ describe("Bucket", () => {
 
   /** @test {Bucket#updateGroup} */
   describe("#deleteGroup", () => {
+    let deleteRequestStub: sinon.SinonStub;
+
     beforeEach(() => {
-      sandbox.stub(requests, "deleteRequest");
+      deleteRequestStub = sandbox.stub(requests, "deleteRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
     });
 
@@ -648,7 +694,7 @@ describe("Bucket", () => {
       getBlogBucket().deleteGroup("todelete");
 
       sinon.assert.calledWithMatch(
-        requests.deleteRequest,
+        deleteRequestStub,
         "/buckets/blog/groups/todelete",
         { headers: {} }
       );
@@ -661,7 +707,7 @@ describe("Bucket", () => {
       }).deleteGroup("todelete", { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        requests.deleteRequest,
+        deleteRequestStub,
         "/buckets/blog/groups/todelete",
         {
           headers: { Foo: "Bar", Baz: "Qux" },
@@ -674,7 +720,7 @@ describe("Bucket", () => {
       getBlogBucket().deleteGroup("todelete", { safe: true });
 
       sinon.assert.calledWithMatch(
-        requests.deleteRequest,
+        deleteRequestStub,
         "/buckets/blog/groups/todelete",
         { safe: true }
       );
@@ -687,7 +733,7 @@ describe("Bucket", () => {
       );
 
       sinon.assert.calledWithMatch(
-        requests.deleteRequest,
+        deleteRequestStub,
         "/buckets/blog/groups/todelete",
         {
           last_modified: 42,
@@ -702,7 +748,7 @@ describe("Bucket", () => {
       }).deleteGroup("todelete", { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        requests.deleteRequest,
+        deleteRequestStub,
         "/buckets/blog/groups/todelete",
         {
           headers: { Foo: "Bar", Baz: "Qux" },
@@ -713,8 +759,10 @@ describe("Bucket", () => {
 
   /** @test {Bucket#getPermissions} */
   describe("#getPermissions()", () => {
+    let executeStub: sinon.SinonStub;
+
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(
+      executeStub = sandbox.stub(client, "execute").returns(
         Promise.resolve({
           data: {},
           permissions: { write: ["fakeperms"] },
@@ -731,7 +779,7 @@ describe("Bucket", () => {
       const bucket = getBlogBucket({ headers: { Foo: "Bar" }, safe: true });
 
       return bucket.getPermissions({ headers: { Baz: "Qux" } }).then(_ => {
-        sinon.assert.calledWithMatch(client.execute, {
+        sinon.assert.calledWithMatch(executeStub, {
           path: "/buckets/blog",
           headers: { Baz: "Qux", Foo: "Bar" },
         });
@@ -742,9 +790,10 @@ describe("Bucket", () => {
   /** @test {Bucket#setPermissions} */
   describe("#setPermissions()", () => {
     const fakePermissions = { read: [], write: [] };
+    let updateRequestStub: sinon.SinonStub;
 
     beforeEach(() => {
-      sandbox.stub(requests, "updateRequest");
+      updateRequestStub = sandbox.stub(requests, "updateRequest");
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
           data: {},
@@ -756,7 +805,7 @@ describe("Bucket", () => {
     it("should set permissions", () => {
       getBlogBucket().setPermissions(fakePermissions);
 
-      sinon.assert.calledWithMatch(requests.updateRequest, "/buckets/blog", {
+      sinon.assert.calledWithMatch(updateRequestStub, "/buckets/blog", {
         permissions: fakePermissions,
       });
     });
@@ -767,7 +816,7 @@ describe("Bucket", () => {
       bucket.setPermissions(fakePermissions, { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        requests.updateRequest,
+        updateRequestStub,
         "/buckets/blog",
         { permissions: fakePermissions, data: { last_modified: undefined } },
         { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
@@ -780,7 +829,7 @@ describe("Bucket", () => {
       bucket.setPermissions(fakePermissions, { last_modified: 42 });
 
       sinon.assert.calledWithMatch(
-        requests.updateRequest,
+        updateRequestStub,
         "/buckets/blog",
         { data: { last_modified: 42 }, permissions: fakePermissions },
         { safe: true }
@@ -798,9 +847,13 @@ describe("Bucket", () => {
   /** @test {Bucket#addPermissions} */
   describe("#addPermissions()", () => {
     const fakePermissions = { read: [], write: [] };
+    let jsonPatchPermissionsRequestStub: sinon.SinonStub;
 
     beforeEach(() => {
-      sandbox.stub(requests, "jsonPatchPermissionsRequest");
+      jsonPatchPermissionsRequestStub = sandbox.stub(
+        requests,
+        "jsonPatchPermissionsRequest"
+      );
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
           data: {},
@@ -813,7 +866,7 @@ describe("Bucket", () => {
       getBlogBucket().addPermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(
-        requests.jsonPatchPermissionsRequest,
+        jsonPatchPermissionsRequestStub,
         "/buckets/blog",
         fakePermissions,
         "add"
@@ -826,7 +879,7 @@ describe("Bucket", () => {
       bucket.addPermissions(fakePermissions, { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        requests.jsonPatchPermissionsRequest,
+        jsonPatchPermissionsRequestStub,
         "/buckets/blog",
         fakePermissions,
         "add",
@@ -838,9 +891,13 @@ describe("Bucket", () => {
   /** @test {Bucket#removePermissions} */
   describe("#removePermissions()", () => {
     const fakePermissions = { read: [], write: [] };
+    let jsonPatchPermissionsRequestStub: sinon.SinonStub;
 
     beforeEach(() => {
-      sandbox.stub(requests, "jsonPatchPermissionsRequest");
+      jsonPatchPermissionsRequestStub = sandbox.stub(
+        requests,
+        "jsonPatchPermissionsRequest"
+      );
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
           data: {},
@@ -853,7 +910,7 @@ describe("Bucket", () => {
       getBlogBucket().removePermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(
-        requests.jsonPatchPermissionsRequest,
+        jsonPatchPermissionsRequestStub,
         "/buckets/blog",
         fakePermissions,
         "remove"
@@ -866,7 +923,7 @@ describe("Bucket", () => {
       bucket.removePermissions(fakePermissions, { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        requests.jsonPatchPermissionsRequest,
+        jsonPatchPermissionsRequestStub,
         "/buckets/blog",
         fakePermissions,
         "remove",
@@ -877,17 +934,19 @@ describe("Bucket", () => {
 
   /** @test {Bucket#batch} */
   describe("#batch()", () => {
+    let batchStub: sinon.SinonStub;
+
     beforeEach(() => {
-      const batchStub = sandbox.stub();
+      batchStub = sandbox.stub();
       sandbox.stub(client, "batch").get(() => batchStub);
     });
 
     it("should batch operations for this bucket", () => {
-      const fn = batch => {};
+      const fn = (batch: any) => {};
 
       getBlogBucket().batch(fn);
 
-      sinon.assert.calledWith(client.batch, fn, {
+      sinon.assert.calledWith(batchStub, fn, {
         bucket: "blog",
         headers: {},
         retry: 0,
@@ -897,14 +956,14 @@ describe("Bucket", () => {
     });
 
     it("should merge default options", () => {
-      const fn = batch => {};
+      const fn = (batch: any) => {};
 
       getBlogBucket({
         headers: { Foo: "Bar" },
         safe: true,
       }).batch(fn, { headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWith(client.batch, fn, {
+      sinon.assert.calledWith(batchStub, fn, {
         bucket: "blog",
         headers: { Foo: "Bar", Baz: "Qux" },
         retry: 0,
