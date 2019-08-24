@@ -10,7 +10,7 @@ import {
   BucketResponse,
 } from "./types";
 
-interface BucketOptions {
+export interface BucketOptions {
   safe?: boolean;
   headers?: Record<string, string>;
   retry?: number;
@@ -205,6 +205,7 @@ export default class Bucket {
   ) {
     let path = endpoint.bucket(this.name);
     path = addEndpointOptions(path, options);
+    console.log({ path });
     const request = {
       headers: this._getHeaders(options),
       path,
@@ -235,7 +236,7 @@ export default class Bucket {
       retry?: number;
       patch?: boolean;
       last_modified?: number;
-      permissions?: Record<Permission, string[]>;
+      permissions?: { [key in Permission]?: string[] };
     } = {}
   ) {
     if (!isObject(data)) {
@@ -303,7 +304,7 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   async listCollections(
-    options: {
+    options: PaginatedListParams & {
       filters?: Record<string, string>;
       headers?: Record<string, string>;
       retry?: number;
@@ -336,7 +337,7 @@ export default class Bucket {
       safe?: boolean;
       headers?: Record<string, string>;
       retry?: number;
-      permissions?: Record<Permission, string[]>;
+      permissions?: { [key in Permission]?: string[] };
       data?: any;
     } = {}
   ) {
@@ -403,7 +404,7 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   async listGroups(
-    options: {
+    options: PaginatedListParams & {
       filters?: Record<string, string>;
       headers?: Record<string, string>;
       retry?: number;
@@ -469,7 +470,7 @@ export default class Bucket {
     members: string[] = [],
     options: {
       data?: any;
-      permissions?: Record<Permission, string[]>;
+      permissions?: { [key in Permission]?: string[] };
       safe?: boolean;
       headers?: Record<string, string>;
       retry?: number;
@@ -511,7 +512,7 @@ export default class Bucket {
     group: KintoIdObject,
     options: {
       data?: { last_modified?: number; [key: string]: any };
-      permissions?: Record<Permission, string[]>;
+      permissions?: { [key in Permission]?: string[] };
       safe?: boolean;
       headers?: Record<string, string>;
       retry?: number;
@@ -619,7 +620,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async setPermissions(
-    permissions: Record<Permission, string[]>,
+    permissions: { [key in Permission]?: string[] },
     options: {
       safe?: boolean;
       headers?: Record<string, string>;
@@ -657,7 +658,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async addPermissions(
-    permissions: Record<Permission, string[]>,
+    permissions: { [key in Permission]?: string[] },
     options: {
       safe?: boolean;
       headers?: Record<string, string>;
@@ -696,7 +697,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async removePermissions(
-    permissions: Record<Permission, string[]>,
+    permissions: { [key in Permission]?: string[] },
     options: {
       safe?: boolean;
       headers?: Record<string, string>;

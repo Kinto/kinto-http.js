@@ -100,7 +100,7 @@ export function updateRequest(
  */
 export function jsonPatchPermissionsRequest(
   path: string,
-  permissions: Record<string, string[]>,
+  permissions: { [key in Permission]?: string[] },
   opType: string,
   options: RequestOptions = {}
 ): KintoRequest {
@@ -109,11 +109,13 @@ export function jsonPatchPermissionsRequest(
   const ops = [];
 
   for (const [type, principals] of Object.entries(permissions)) {
-    for (const principal of principals) {
-      ops.push({
-        op: opType,
-        path: `/permissions/${type}/${principal}`,
-      });
+    if (principals) {
+      for (const principal of principals) {
+        ops.push({
+          op: opType,
+          path: `/permissions/${type}/${principal}`,
+        });
+      }
     }
   }
 
