@@ -1,4 +1,4 @@
-export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
+export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD";
 
 export interface KintoRequest {
   method?: HttpMethod;
@@ -69,3 +69,8 @@ export interface DataResponse<T> {
 }
 
 export type MappableObject = { [key in string | number]: unknown };
+
+export interface BucketResponse {
+  data: KintoRecord;
+  permissions: Record<Permission, string[]>;
+}

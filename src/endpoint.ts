@@ -8,7 +8,7 @@ const ENDPOINTS = {
   permissions: () => "/permissions",
   bucket: (bucket?: string) => "/buckets" + (bucket ? `/${bucket}` : ""),
   history: (bucket: string) => `${ENDPOINTS.bucket(bucket)}/history`,
-  collection: (bucket: string, coll: string) =>
+  collection: (bucket: string, coll?: string) =>
     `${ENDPOINTS.bucket(bucket)}/collections` + (coll ? `/${coll}` : ""),
   group: (bucket: string, group?: string) =>
     `${ENDPOINTS.bucket(bucket)}/groups` + (group ? `/${group}` : ""),
