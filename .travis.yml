@@ -3,6 +3,7 @@ python:
  - "3.6"
 env:
 - ACTION="run lint"
+- ACTION="run build"
 - ACTION="run dist" # ensures building dist files doesn't break
 - ACTION="run cs-check"
 - SERVER=8.1.2 ACTION=test
