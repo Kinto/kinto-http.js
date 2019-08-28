@@ -33,7 +33,7 @@ import Collection from "./collection";
  */
 export const SUPPORTED_PROTOCOL_VERSION = "v1";
 
-interface KintoClientOptions {
+export interface KintoClientOptions {
   safe?: boolean;
   events: EventEmitter;
   headers?: Record<string, string>;
