@@ -5,7 +5,7 @@ import commonjs from "rollup-plugin-commonjs";
 import { terser } from "rollup-plugin-terser";
 
 const geckoBuild = {
-  input: "./src/index.fx.js",
+  input: "./src/index.fx.ts",
   output: [
     {
       file: "dist/temp.js",
@@ -24,7 +24,7 @@ const geckoBuild = {
 };
 
 const browserBuild = {
-  input: "./src/index.js",
+  input: "./src/index.ts",
   output: [
     {
       file: "dist/kinto-http.min.js",

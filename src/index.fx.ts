@@ -15,19 +15,21 @@
 
 "use strict";
 
-import KintoClientBase from "./base";
+import KintoClientBase, { KintoClientOptions } from "./base";
 import * as errors from "./errors";
+import { EventEmitter as ee } from "events";
 
+declare var ChromeUtils: any;
 const { EventEmitter } = ChromeUtils.import(
   "resource://gre/modules/EventEmitter.jsm"
-);
+) as { EventEmitter: any };
 
 export default class KintoHttpClient extends KintoClientBase {
-  constructor(remote, options = {}) {
+  constructor(remote: string, options: Partial<KintoClientOptions> = {}) {
     const events = {};
     EventEmitter.decorate(events);
-    super(remote, { events, ...options });
+    super(remote, { events: events as ee, ...options });
   }
 }
 
-KintoHttpClient.errors = errors;
+(KintoHttpClient as any).errors = errors;
