@@ -70,7 +70,21 @@ export interface DataResponse<T> {
 
 export type MappableObject = { [key in string | number]: unknown };
 
-export interface BucketResponse {
+export interface KintoEntity {
   data: KintoRecord;
   permissions: Record<Permission, string[]>;
+}
+
+export interface HistoryEntry {
+  action: string;
+  collection_id: string;
+  date: string;
+  id: string;
+  last_modified: number;
+  record_id: string;
+  resource_name: string;
+  target: KintoEntity;
+  timestamp: number;
+  uri: string;
+  user_id: string;
 }

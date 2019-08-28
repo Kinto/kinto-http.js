@@ -4,12 +4,36 @@ import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 import { addEndpointOptions } from "./utils";
+import KintoClientBase, { PaginatedListParams } from "./base";
+import Bucket from "./bucket";
+import {
+  KintoRequest,
+  Permission,
+  KintoEntity,
+  KintoIdObject,
+  KintoRecord,
+} from "./types";
+
+export interface CollectionOptions {
+  headers?: Record<string, string>;
+  safe?: boolean;
+  retry?: number;
+  batch?: boolean;
+}
 
 /**
  * Abstract representation of a selected collection.
  *
  */
 export default class Collection {
+  public client: KintoClientBase;
+  private bucket: Bucket;
+  public name: string;
+  public _isBatch: boolean;
+  public _retry: number;
+  public _safe: boolean;
+  public _headers: Record<string, string>;
+
   /**
    * Constructor.
    *
@@ -23,7 +47,12 @@ export default class Collection {
    * @param  {Boolean}      [options.batch]   (Private) Whether this
    *     Collection is operating as part of a batch.
    */
-  constructor(client, bucket, name, options = {}) {
+  constructor(
+    client: KintoClientBase,
+    bucket: Bucket,
+    name: string,
+    options: CollectionOptions = {}
+  ) {
     /**
      * @ignore
      */
@@ -62,7 +91,7 @@ export default class Collection {
    *
    * @private
    */
-  _getHeaders(options) {
+  _getHeaders(options: { headers?: Record<string, string> }) {
     return {
       ...this._headers,
       ...options.headers,
@@ -78,7 +107,7 @@ export default class Collection {
    * @param {Object} options The options for a request.
    * @returns {Boolean}
    */
-  _getSafe(options) {
+  _getSafe(options: { safe?: boolean }) {
     return { safe: this._safe, ...options }.safe;
   }
 
@@ -87,7 +116,7 @@ export default class Collection {
    *
    * @private
    */
-  _getRetry(options) {
+  _getRetry(options: { retry?: number }) {
     return { retry: this._retry, ...options }.retry;
   }
 
@@ -100,9 +129,11 @@ export default class Collection {
    *     when faced with transient errors.
    * @return {Promise<Number, Error>}
    */
-  async getTotalRecords(options = {}) {
+  async getTotalRecords(
+    options: { headers?: Record<string, string>; retry?: number } = {}
+  ) {
     const path = endpoint.record(this.bucket.name, this.name);
-    const request = {
+    const request: KintoRequest = {
       headers: this._getHeaders(options),
       path,
       method: "HEAD",
@@ -123,9 +154,11 @@ export default class Collection {
    *     when faced with transient errors.
    * @return {Promise<String, Error>}
    */
-  async getRecordsTimestamp(options = {}) {
+  async getRecordsTimestamp(
+    options: { headers?: Record<string, string>; retry?: number } = {}
+  ) {
     const path = endpoint.record(this.bucket.name, this.name);
-    const request = {
+    const request: KintoRequest = {
       headers: this._getHeaders(options),
       path,
       method: "HEAD",
@@ -151,13 +184,20 @@ export default class Collection {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async getData(options = {}) {
+  async getData<T>(
+    options: {
+      headers?: Record<string, string>;
+      query?: { [key: string]: string };
+      fields?: string[];
+      retry?: number;
+    } = {}
+  ) {
     let path = endpoint.collection(this.bucket.name, this.name);
     path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
-    const { data } = await this.client.execute(request, {
+    const { data } = (await this.client.execute(request, {
       retry: this._getRetry(options),
-    });
+    })) as { data: T };
     return data;
   }
 
@@ -173,7 +213,17 @@ export default class Collection {
    * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async setData(data, options = {}) {
+  async setData(
+    data: { last_modified?: number; [key: string]: any },
+    options: {
+      headers?: Record<string, string>;
+      safe?: boolean;
+      retry?: number;
+      patch?: boolean;
+      last_modified?: number;
+      permissions?: { [key in Permission]?: string[] };
+    } = {}
+  ) {
     if (!isObject(data)) {
       throw new Error("A collection object is required.");
     }
@@ -203,12 +253,17 @@ export default class Collection {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async getPermissions(options = {}) {
+  async getPermissions(
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+    } = {}
+  ) {
     const path = endpoint.collection(this.bucket.name, this.name);
     const request = { headers: this._getHeaders(options), path };
-    const { permissions } = await this.client.execute(request, {
+    const { permissions } = (await this.client.execute<KintoEntity>(request, {
       retry: this._getRetry(options),
-    });
+    })) as KintoEntity;
     return permissions;
   }
 
@@ -224,7 +279,15 @@ export default class Collection {
    * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async setPermissions(permissions, options = {}) {
+  async setPermissions(
+    permissions: { [key in Permission]?: string[] },
+    options: {
+      safe?: boolean;
+      headers?: Record<string, string>;
+      retry?: number;
+      last_modified?: number;
+    } = {}
+  ) {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -253,7 +316,15 @@ export default class Collection {
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async addPermissions(permissions, options = {}) {
+  async addPermissions(
+    permissions: { [key in Permission]?: string[] },
+    options: {
+      safe?: boolean;
+      headers?: Record<string, string>;
+      retry?: number;
+      last_modified?: number;
+    } = {}
+  ) {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -284,7 +355,15 @@ export default class Collection {
    * @param  {Object}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async removePermissions(permissions, options = {}) {
+  async removePermissions(
+    permissions: { [key in Permission]?: string[] },
+    options: {
+      safe?: boolean;
+      headers?: Record<string, string>;
+      retry?: number;
+      last_modified?: number;
+    } = {}
+  ) {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -315,7 +394,15 @@ export default class Collection {
    * @param  {Object}  [options.permissions] The permissions option.
    * @return {Promise<Object, Error>}
    */
-  async createRecord(record, options = {}) {
+  async createRecord(
+    record: { id?: string; [key: string]: any },
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+      safe?: boolean;
+      permissions?: { [key in Permission]?: string[] };
+    } = {}
+  ) {
     const { permissions } = options;
     const path = endpoint.record(this.bucket.name, this.name, record.id);
     const request = requests.createRequest(
@@ -346,7 +433,19 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   @capable(["attachments"])
-  async addAttachment(dataURI, record = {}, options = {}) {
+  async addAttachment(
+    dataURI: string,
+    record: { id?: string } = {},
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+      safe?: boolean;
+      last_modified?: number;
+      permissions?: { [key in Permission]?: string[] };
+      filename?: string;
+      gzipped?: boolean;
+    } = {}
+  ) {
     const { permissions } = options;
     const id = record.id || uuid();
     const path = endpoint.attachment(this.bucket.name, this.name, id);
@@ -382,7 +481,15 @@ export default class Collection {
    * @param  {Number}  [options.last_modified] The last_modified option.
    */
   @capable(["attachments"])
-  async removeAttachment(recordId, options = {}) {
+  async removeAttachment(
+    recordId: string,
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+      safe?: boolean;
+      last_modified?: number;
+    } = {}
+  ) {
     const { last_modified } = options;
     const path = endpoint.attachment(this.bucket.name, this.name, recordId);
     const request = requests.deleteRequest(path, {
@@ -406,7 +513,17 @@ export default class Collection {
    * @param  {Object}  [options.permissions]   The permissions option.
    * @return {Promise<Object, Error>}
    */
-  async updateRecord(record, options = {}) {
+  async updateRecord(
+    record: KintoIdObject,
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+      safe?: boolean;
+      last_modified?: number;
+      permissions?: { [key in Permission]?: string[] };
+      patch?: boolean;
+    } = {}
+  ) {
     if (!isObject(record)) {
       throw new Error("A record object is required.");
     }
@@ -441,7 +558,15 @@ export default class Collection {
    * @param  {Number}        [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async deleteRecord(record, options = {}) {
+  async deleteRecord(
+    record: string | KintoIdObject,
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+      safe?: boolean;
+      last_modified?: number;
+    } = {}
+  ) {
     const recordObj = toDataBody(record);
     if (!recordObj.id) {
       throw new Error("A record id is required.");
@@ -472,7 +597,15 @@ export default class Collection {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async getRecord(id, options = {}) {
+  async getRecord(
+    id: string,
+    options: {
+      headers?: Record<string, string>;
+      query?: { [key: string]: string };
+      fields?: string[];
+      retry?: number;
+    } = {}
+  ) {
     let path = endpoint.record(this.bucket.name, this.name, id);
     path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
@@ -515,7 +648,13 @@ export default class Collection {
    * @param  {Array}    [options.fields]                Limit response to just some fields.
    * @return {Promise<Object, Error>}
    */
-  async listRecords(options = {}) {
+  async listRecords(
+    options: PaginatedListParams & {
+      headers?: Record<string, string>;
+      retry?: number;
+      at?: number;
+    } = {}
+  ) {
     const path = endpoint.record(this.bucket.name, this.name);
     if (Object.prototype.hasOwnProperty.call(options, "at")) {
       return this.getSnapshot(options.at);
@@ -549,7 +688,7 @@ export default class Collection {
   /**
    * @private
    */
-  async listChangesBackTo(at) {
+  async listChangesBackTo(at: number) {
     // Ensure we have enough history data to retrieve the complete list of
     // changes.
     if (!(await this.isHistoryComplete())) {
@@ -575,15 +714,15 @@ export default class Collection {
    * @private
    */
   @capable(["history"])
-  async getSnapshot(at) {
-    if (!Number.isInteger(at) || at <= 0) {
+  async getSnapshot(at?: number) {
+    if (!at || !Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
     // Retrieve history and check it covers the required time range.
     const changes = await this.listChangesBackTo(at);
     // Replay changes to compute the requested snapshot.
     const seenIds = new Set();
-    let snapshot = [];
+    let snapshot: KintoRecord[] = [];
     for (const {
       action,
       target: { data: record },
@@ -618,7 +757,15 @@ export default class Collection {
    * @param  {Boolean}  [options.aggregate]  Produces a grouped result object.
    * @return {Promise<Object, Error>}
    */
-  async batch(fn, options = {}) {
+  async batch(
+    fn: (client: Bucket | KintoClientBase | Collection) => void,
+    options: {
+      headers?: Record<string, string>;
+      safe?: boolean;
+      retry?: number;
+      aggregate?: boolean;
+    } = {}
+  ) {
     return this.client.batch(fn, {
       bucket: this.bucket.name,
       collection: this.name,
