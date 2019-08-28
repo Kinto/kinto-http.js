@@ -115,6 +115,7 @@ export function checkVersion(
  */
 export function support(min: string, max: string) {
   return function(
+    // @ts-ignore
     target: any,
     key: string,
     descriptor: TypedPropertyDescriptor<(...args: any[]) => any>
@@ -151,6 +152,7 @@ export function support(min: string, max: string) {
  */
 export function capable(capabilities: string[]) {
   return function(
+    // @ts-ignore
     target: any,
     key: string,
     descriptor: TypedPropertyDescriptor<(...args: any[]) => any>
@@ -195,6 +197,7 @@ export function capable(capabilities: string[]) {
  */
 export function nobatch(message: string) {
   return function(
+    // @ts-ignore
     target: any,
     key: string,
     descriptor: TypedPropertyDescriptor<(...args: any[]) => any>
