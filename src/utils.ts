@@ -353,7 +353,7 @@ export function obscureAuthorizationHeader(headers: HeadersInit) {
   }
 
   const obscuredHeaders: { [key: string]: string } = {};
-  for (let [header, value] of h.entries()) {
+  for (const [header, value] of h.entries()) {
     obscuredHeaders[header] = value;
   }
 
