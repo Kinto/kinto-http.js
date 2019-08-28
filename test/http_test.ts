@@ -411,7 +411,7 @@ describe("HTTP class", () => {
           // clock at the right moment (just after request failure).
           sandbox
             .stub(global, "setTimeout")
-            .callsFake((fn, time) => setImmediate(fn) as any);
+            .callsFake(fn => setImmediate(fn) as any);
         });
 
         it("should not retry the request by default", () => {

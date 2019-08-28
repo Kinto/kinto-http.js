@@ -1,4 +1,4 @@
-import { KintoRequest, HttpMethod, KintoIdObject, Permission } from "./types";
+import { KintoRequest, HttpMethod, Permission } from "./types";
 import { createFormData } from "./utils";
 
 interface RequestOptions {

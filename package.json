@@ -25,7 +25,7 @@
     "test-cover": "nyc --reporter=lcov --reporter=text-summary --report-dir=coverage npm run test-nocover",
     "test-cover-html": "nyc --reporter=html --report-dir=coverage npm run test-nocover && open coverage/index.html",
     "test-nocover": "TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\",\"sourceMap\":true}' mocha -r ts-node/register --require source-map-support/register --full-trace --bail --require ./test/setup-jsdom.js 'test/**/*_test.{js,ts}'",
-    "lint": "eslint src test"
+    "lint": "eslint 'src/**/*.{js,ts}' 'test/**/*.{js,ts}'"
   },
   "repository": {
     "type": "git",
@@ -51,6 +51,7 @@
     "@types/chai-as-promised": "^7.1.2",
     "@types/mocha": "^5.2.7",
     "@types/sinon": "^7.0.13",
+    "@types/uuid": "^3.4.5",
     "@typescript-eslint/eslint-plugin": "^1.11.0",
     "@typescript-eslint/parser": "^1.11.0",
     "atob": "^2.1.2",

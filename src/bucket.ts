@@ -7,7 +7,8 @@ import {
   KintoRequest,
   KintoIdObject,
   Permission,
-  BucketResponse,
+  KintoEntity,
+  HistoryEntry,
 } from "./types";
 
 export interface BucketOptions {
@@ -22,11 +23,11 @@ export interface BucketOptions {
  */
 export default class Bucket {
   private client: KintoClientBase;
-  private name: string;
+  public name: string;
   private _isBatch: boolean;
   private _retry: number;
   private _safe: boolean;
-  private _headers: Record<string, string>;
+  public _headers: Record<string, string>;
 
   /**
    * Constructor.
@@ -284,7 +285,7 @@ export default class Bucket {
     } = {}
   ) {
     const path = endpoint.history(this.name);
-    return this.client.paginatedList(path, options, {
+    return this.client.paginatedList<HistoryEntry>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -597,12 +598,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path: endpoint.bucket(this.name),
     };
-    const { permissions } = (await this.client.execute<BucketResponse>(
-      request,
-      {
-        retry: this._getRetry(options),
-      }
-    )) as BucketResponse;
+    const { permissions } = (await this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    })) as KintoEntity;
     return permissions;
   }
 
