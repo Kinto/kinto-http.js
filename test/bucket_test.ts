@@ -7,7 +7,6 @@ import KintoClient from "../src";
 import Bucket, { BucketOptions } from "../src/bucket";
 import Collection from "../src/collection";
 import * as requests from "../src/requests";
-import KintoClientBase from "../src/base";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -942,6 +941,7 @@ describe("Bucket", () => {
     });
 
     it("should batch operations for this bucket", () => {
+      // @ts-ignore
       const fn = (batch: any) => {};
 
       getBlogBucket().batch(fn);
@@ -956,6 +956,7 @@ describe("Bucket", () => {
     });
 
     it("should merge default options", () => {
+      // @ts-ignore
       const fn = (batch: any) => {};
 
       getBlogBucket({
