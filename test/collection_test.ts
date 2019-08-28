@@ -654,6 +654,7 @@ describe("Collection", () => {
     it("should batch operations", () => {
       const batchStub = sandbox.stub();
       sandbox.stub(client, "batch").get(() => batchStub);
+      // @ts-ignore
       const fn = (batch: any) => {};
 
       coll.batch(fn);

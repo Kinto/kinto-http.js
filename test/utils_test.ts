@@ -143,6 +143,7 @@ describe("Utils", () => {
 
     it("should check for an attached client instance", () => {
       class FakeClient {
+        // @ts-ignore
         private client: { fetchHTTPApiVersion: () => Promise<void> };
         constructor() {
           this.client = {
@@ -226,6 +227,7 @@ describe("Utils", () => {
 
     it("should make decorated method pass when not in batch", () => {
       class FakeClient {
+        // @ts-ignore
         private _isBatch: boolean;
         constructor() {
           this._isBatch = false;
@@ -242,6 +244,7 @@ describe("Utils", () => {
 
     it("should make decorated method to throw if in batch", () => {
       class FakeClient {
+        // @ts-ignore
         private _isBatch: boolean;
         constructor() {
           this._isBatch = true;
