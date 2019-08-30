@@ -1,7 +1,7 @@
 kinto-http.js
 =============
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/Kinto/kinto-http.js.svg)](https://greenkeeper.io/)
+[![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=Kinto/kinto-http.js)](https://dependabot.com)
 
 [![Build Status](https://travis-ci.org/Kinto/kinto-http.js.svg?branch=master)](https://travis-ci.org/Kinto/kinto-http.js)
 
