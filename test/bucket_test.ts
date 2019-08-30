@@ -610,19 +610,16 @@ describe("Bucket", () => {
     });
 
     it("should throw if record is not an object", () => {
-      // @ts-ignore
-      return getBlogBucket()
-        .updateGroup()
-        .should.be.rejectedWith(Error, /group object is required/);
+      return (getBlogBucket().updateGroup as any)().should.be.rejectedWith(
+        Error,
+        /group object is required/
+      );
     });
 
     it("should throw if id is missing", () => {
-      return (
-        getBlogBucket()
-          // @ts-ignore
-          .updateGroup({})
-          .should.be.rejectedWith(Error, /group id is required/)
-      );
+      return getBlogBucket()
+        .updateGroup({} as any)
+        .should.be.rejectedWith(Error, /group id is required/);
     });
 
     it("should accept a patch option", () => {
