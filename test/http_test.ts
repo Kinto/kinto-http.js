@@ -46,8 +46,7 @@ describe("HTTP class", () => {
 
     it("should complain if an events handler is not provided", () => {
       expect(() => {
-        // @ts-ignore
-        new HTTP();
+        new (HTTP as any)();
       }).to.Throw(Error, /No events handler provided/);
     });
   });

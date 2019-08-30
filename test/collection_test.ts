@@ -375,21 +375,15 @@ describe("Collection", () => {
     });
 
     it("should throw if record is not an object", () => {
-      return (
-        coll
-          // @ts-ignore
-          .updateRecord(2)
-          .should.be.rejectedWith(Error, /record object is required/)
-      );
+      return coll
+        .updateRecord(2 as any)
+        .should.be.rejectedWith(Error, /record object is required/);
     });
 
     it("should throw if id is missing", () => {
-      return (
-        coll
-          // @ts-ignore
-          .updateRecord({})
-          .should.be.rejectedWith(Error, /record id is required/)
-      );
+      return coll
+        .updateRecord({} as any)
+        .should.be.rejectedWith(Error, /record id is required/);
     });
 
     it("should create the expected request", () => {
@@ -451,12 +445,9 @@ describe("Collection", () => {
     });
 
     it("should throw if id is missing", () => {
-      return (
-        coll
-          // @ts-ignore
-          .deleteRecord({})
-          .should.be.rejectedWith(Error, /record id is required/)
-      );
+      return coll
+        .deleteRecord({} as any)
+        .should.be.rejectedWith(Error, /record id is required/);
     });
 
     it("should delete a record", () => {
