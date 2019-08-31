@@ -46,7 +46,7 @@ export interface KintoClientOptions {
 
 export interface PaginatedListParams {
   sort?: string;
-  filters?: Record<string, string>;
+  filters?: Record<string, string | number>;
   limit?: number;
   pages?: number;
   since?: string;
@@ -74,13 +74,13 @@ interface PaginationResult<T> {
 export default class KintoClientBase {
   private _backoffReleaseTime: number | null;
   private _requests: KintoRequest[];
-  private _isBatch: boolean;
+  public _isBatch: boolean;
   private _retry: number;
-  private _safe: boolean;
-  private _headers: Record<string, string>;
-  private serverInfo: HelloResponse | null;
-  private events: EventEmitter;
-  private http: HTTP;
+  public _safe: boolean;
+  public _headers: Record<string, string>;
+  public serverInfo: HelloResponse | null;
+  public events: EventEmitter;
+  public http: HTTP;
   private _remote!: string;
   private _version!: string;
 
@@ -336,7 +336,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  async fetchServerSettings(options: { retry?: number }) {
+  async fetchServerSettings(options: { retry?: number } = {}) {
     const { settings } = await this.fetchServerInfo(options);
     return settings;
   }
@@ -584,7 +584,7 @@ export default class KintoClientBase {
    */
   async paginatedList<T>(
     path: string,
-    params: PaginatedListParams,
+    params: PaginatedListParams = {},
     options: { headers?: Record<string, string>; retry?: number } = {}
   ) {
     // FIXME: this is called even in batch requests, which doesn't
@@ -724,6 +724,7 @@ export default class KintoClientBase {
       headers?: Record<string, string>;
       filters?: Record<string, string>;
       fields?: string[];
+      since?: string;
     } = {}
   ) {
     const path = endpoint.bucket();
