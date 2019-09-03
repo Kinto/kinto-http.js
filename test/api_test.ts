@@ -8,9 +8,9 @@ import { fakeServerResponse } from "./test_utils";
 import KintoClient from "../src";
 import KintoClientBase, {
   SUPPORTED_PROTOCOL_VERSION as SPV,
+  PaginationResult,
 } from "../src/base";
 import * as requests from "../src/requests";
-import Collection from "../src/collection";
 import Bucket from "../src/bucket";
 import { HelloResponse, OperationResponse } from "../src/types";
 import { KintoResponse } from "../src/batch";
@@ -321,7 +321,7 @@ describe("KintoClient", () => {
         .collection("blog")
         .batch(batch => {
           for (const article of fixtures) {
-            (batch as Collection).createRecord(article);
+            batch.createRecord(article);
           }
         }, options);
     }
@@ -345,7 +345,7 @@ describe("KintoClient", () => {
 
       it("should ensure server settings are fetched", () => {
         return api
-          .batch(batch => (batch as KintoClientBase).createBucket("blog"))
+          .batch((batch: KintoClientBase) => batch.createBucket("blog"))
           .then(_ => sinon.assert.called(api.fetchServerSettings as any));
       });
 
@@ -373,7 +373,7 @@ describe("KintoClient", () => {
             .batch(
               batch => {
                 for (const article of fixtures) {
-                  (batch as Collection).createRecord(article);
+                  batch.createRecord(article);
                 }
               },
               { headers: { Foo: "Bar" } }
@@ -415,7 +415,7 @@ describe("KintoClient", () => {
             .batch(
               batch => {
                 for (const article of fixtures) {
-                  (batch as Collection).createRecord(article);
+                  batch.createRecord(article);
                 }
               },
               { safe: true }
@@ -455,7 +455,7 @@ describe("KintoClient", () => {
           return api
             .bucket("default")
             .collection("blog")
-            .batch(batch => (batch as Collection).createRecord({}), {
+            .batch(batch => batch.createRecord({}), {
               retry: 1,
             })
             .then(r => expect((r as OperationResponse[])[0]).eql(response));
@@ -962,11 +962,16 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#listPermissions} */
   describe("#listPermissions()", () => {
-    const data = {
+    const data: PaginationResult<{ id: string }> = {
       last_modified: "",
       data: [{ id: "a" }, { id: "b" }],
-      next: () => {},
+      next: () => {
+        return Promise.resolve(({} as unknown) as PaginationResult<{
+          id: string;
+        }>);
+      },
       hasNextPage: false,
+      totalRecords: 2,
     };
     let executeSpy: sinon.SinonSpy;
 
@@ -1038,11 +1043,16 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#listBuckets} */
   describe("#listBuckets()", () => {
-    const data = {
+    const data: PaginationResult<{ id: string }> = {
       last_modified: "",
       data: [{ id: "a" }, { id: "b" }],
-      next: () => {},
+      next: () => {
+        return Promise.resolve(({} as unknown) as PaginationResult<{
+          id: string;
+        }>);
+      },
       hasNextPage: false,
+      totalRecords: 2,
     };
     let paginatedListStub: sinon.SinonStub;
 

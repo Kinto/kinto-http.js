@@ -4,7 +4,7 @@ import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
 import { addEndpointOptions } from "./utils";
-import KintoClientBase, { PaginatedListParams } from "./base";
+import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
 import Bucket from "./bucket";
 import {
   KintoRequest,
@@ -12,6 +12,7 @@ import {
   KintoEntity,
   KintoIdObject,
   KintoRecord,
+  Attachment,
 } from "./types";
 
 export interface CollectionOptions {
@@ -241,7 +242,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -301,7 +304,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -413,7 +418,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -435,7 +442,7 @@ export default class Collection {
   @capable(["attachments"])
   async addAttachment(
     dataURI: string,
-    record: { id?: string } = {},
+    record: { [key: string]: string } = {},
     options: {
       headers?: Record<string, string>;
       retry?: number;
@@ -466,7 +473,7 @@ export default class Collection {
       stringify: false,
       retry: this._getRetry(options),
     });
-    return this.getRecord(id);
+    return this.getRecord<{ attachment: Attachment }>(id);
   }
 
   /**
@@ -543,7 +550,9 @@ export default class Collection {
         patch: !!options.patch,
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -579,7 +588,9 @@ export default class Collection {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -597,7 +608,7 @@ export default class Collection {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async getRecord(
+  async getRecord<T>(
     id: string,
     options: {
       headers?: Record<string, string>;
@@ -609,7 +620,9 @@ export default class Collection {
     let path = endpoint.record(this.bucket.name, this.name, id);
     path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity<T>>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -648,7 +661,7 @@ export default class Collection {
    * @param  {Array}    [options.fields]                Limit response to just some fields.
    * @return {Promise<Object, Error>}
    */
-  async listRecords(
+  async listRecords<T extends KintoRecord>(
     options: PaginatedListParams & {
       headers?: Record<string, string>;
       retry?: number;
@@ -656,10 +669,10 @@ export default class Collection {
     } = {}
   ) {
     const path = endpoint.record(this.bucket.name, this.name);
-    if (Object.prototype.hasOwnProperty.call(options, "at")) {
-      return this.getSnapshot(options.at);
+    if (options.at) {
+      return this.getSnapshot<T>(options.at);
     } else {
-      return this.client.paginatedList(path, options, {
+      return this.client.paginatedList<T>(path, options, {
         headers: this._getHeaders(options),
         retry: this._getRetry(options),
       });
@@ -688,7 +701,7 @@ export default class Collection {
   /**
    * @private
    */
-  async listChangesBackTo(at: number) {
+  async listChangesBackTo<T>(at: number) {
     // Ensure we have enough history data to retrieve the complete list of
     // changes.
     if (!(await this.isHistoryComplete())) {
@@ -698,7 +711,7 @@ export default class Collection {
           "been enabled after the creation of the collection."
       );
     }
-    const { data: changes } = await this.bucket.listHistory({
+    const { data: changes } = await this.bucket.listHistory<T>({
       pages: Infinity, // all pages up to target timestamp are required
       sort: "-target.data.last_modified",
       filters: {
@@ -714,15 +727,15 @@ export default class Collection {
    * @private
    */
   @capable(["history"])
-  async getSnapshot(at?: number) {
+  async getSnapshot<T extends KintoRecord>(at: number) {
     if (!at || !Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
     // Retrieve history and check it covers the required time range.
-    const changes = await this.listChangesBackTo(at);
+    const changes = await this.listChangesBackTo<T>(at);
     // Replay changes to compute the requested snapshot.
     const seenIds = new Set();
-    let snapshot: KintoRecord[] = [];
+    let snapshot: T[] = [];
     for (const {
       action,
       target: { data: record },
@@ -743,7 +756,7 @@ export default class Collection {
       },
       hasNextPage: false,
       totalRecords: snapshot.length,
-    };
+    } as PaginationResult<T>;
   }
 
   /**
@@ -758,7 +771,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   async batch(
-    fn: (client: Bucket | KintoClientBase | Collection) => void,
+    fn: (client: Collection) => void,
     options: {
       headers?: Record<string, string>;
       safe?: boolean;

@@ -8,6 +8,7 @@ import Bucket from "../src/bucket";
 import Collection, { CollectionOptions } from "../src/collection";
 import * as requests from "../src/requests";
 import { fakeServerResponse } from "./test_utils";
+import { PaginationResult } from "../src/base";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -564,11 +565,16 @@ describe("Collection", () => {
 
   /** @test {Collection#listRecords} */
   describe("#listRecords()", () => {
-    const data = {
+    const data: PaginationResult<{ id: string }> = {
       last_modified: "",
       data: [{ id: "a" }, { id: "b" }],
-      next: () => {},
+      next: () => {
+        return Promise.resolve(({} as unknown) as PaginationResult<{
+          id: string;
+        }>);
+      },
       hasNextPage: false,
+      totalRecords: 2,
     };
     let paginatedListStub: sinon.SinonStub;
 

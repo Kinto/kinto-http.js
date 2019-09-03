@@ -9,6 +9,8 @@ import {
   Permission,
   KintoEntity,
   HistoryEntry,
+  KintoRecord,
+  Group,
 } from "./types";
 
 export interface BucketOptions {
@@ -265,7 +267,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -278,14 +282,14 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   @capable(["history"])
-  async listHistory(
+  async listHistory<T>(
     options: PaginatedListParams & {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
   ) {
     const path = endpoint.history(this.name);
-    return this.client.paginatedList<HistoryEntry>(path, options, {
+    return this.client.paginatedList<HistoryEntry<T>>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -305,14 +309,14 @@ export default class Bucket {
    */
   async listCollections(
     options: PaginatedListParams & {
-      filters?: Record<string, string>;
+      filters?: Record<string, string | number>;
       headers?: Record<string, string>;
       retry?: number;
       fields?: string[];
     } = {}
   ) {
     const path = endpoint.collection(this.name);
-    return this.client.paginatedList(path, options, {
+    return this.client.paginatedList<KintoRecord>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -352,7 +356,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -405,14 +411,14 @@ export default class Bucket {
    */
   async listGroups(
     options: PaginatedListParams & {
-      filters?: Record<string, string>;
+      filters?: Record<string, string | number>;
       headers?: Record<string, string>;
       retry?: number;
       fields?: string[];
     } = {}
   ) {
     const path = endpoint.group(this.name);
-    return this.client.paginatedList(path, options, {
+    return this.client.paginatedList<Group>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -448,7 +454,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path,
     };
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity<Group>>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -491,7 +499,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity<Group>>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -639,7 +649,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -678,7 +690,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -717,7 +731,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoEntity>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -732,7 +748,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async batch(
-    fn: (client: Bucket | KintoClientBase | Collection) => void,
+    fn: (client: Bucket) => void,
     options: {
       headers?: Record<string, string>;
       safe?: boolean;

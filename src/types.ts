@@ -9,7 +9,7 @@ export interface KintoRequest {
 
 export interface KintoIdObject {
   id: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface KintoRecord extends KintoIdObject {
@@ -53,10 +53,10 @@ export interface HelloResponse {
   capabilities: { [key: string]: ServerCapability };
 }
 
-export interface OperationResponse {
+export interface OperationResponse<T = KintoRecord> {
   status: number;
   path: string;
-  body: { data: KintoRecord };
+  body: { data: T };
   headers: Record<string, string>;
 }
 
@@ -70,12 +70,12 @@ export interface DataResponse<T> {
 
 export type MappableObject = { [key in string | number]: unknown };
 
-export interface KintoEntity {
-  data: KintoRecord;
-  permissions: Record<Permission, string[]>;
+export interface KintoEntity<T = unknown> {
+  data: KintoRecord & T;
+  permissions: { [key in Permission]?: string[] };
 }
 
-export interface HistoryEntry {
+export interface HistoryEntry<T> {
   action: string;
   collection_id: string;
   date: string;
@@ -83,8 +83,29 @@ export interface HistoryEntry {
   last_modified: number;
   record_id: string;
   resource_name: string;
-  target: KintoEntity;
+  target: KintoEntity<T>;
   timestamp: number;
   uri: string;
   user_id: string;
+}
+
+export interface PermissionData {
+  bucket_id: string;
+  collection_id?: string;
+  id: string;
+  permissions: Permission[];
+  resource_name: string;
+  uri: string;
+}
+
+export interface Attachment {
+  filename: string;
+  hash: string;
+  location: string;
+  mimetype: string;
+  size: number;
+}
+
+export interface Group extends KintoRecord {
+  members: string[];
 }

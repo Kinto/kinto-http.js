@@ -24,6 +24,9 @@ import {
   Permission,
   KintoIdObject,
   MappableObject,
+  KintoRecord,
+  PermissionData,
+  KintoEntity,
 } from "./types";
 import Collection from "./collection";
 
@@ -53,12 +56,17 @@ export interface PaginatedListParams {
   fields?: string[];
 }
 
-interface PaginationResult<T> {
+export interface PaginationResult<T> {
   last_modified: string | null;
   data: T[];
-  next: (nextPage: string | null) => void;
+  next: (nextPage?: string | null) => Promise<PaginationResult<T>>;
   hasNextPage: boolean;
+  totalRecords: number;
 }
+
+type BaseBatch = (client: KintoClientBase) => void;
+type BucketBatch = (client: Bucket) => void;
+type CollectionBatch = (client: Collection) => void;
 
 /**
  * High level HTTP client for the Kinto API.
@@ -465,7 +473,7 @@ export default class KintoClientBase {
    */
   @nobatch("Can't use batch within a batch!")
   async batch(
-    fn: (client: KintoClientBase | Bucket | Collection) => void,
+    fn: BaseBatch | BucketBatch | CollectionBatch,
     options: {
       safe?: boolean;
       retry?: number;
@@ -481,15 +489,15 @@ export default class KintoClientBase {
       safe: this._getSafe(options),
       retry: this._getRetry(options),
     });
-    let bucketBatch, collBatch;
-    if (options.bucket) {
-      bucketBatch = rootBatch.bucket(options.bucket);
-      if (options.collection) {
-        collBatch = bucketBatch.collection(options.collection);
-      }
+    if (options.bucket && options.collection) {
+      (fn as CollectionBatch)(
+        rootBatch.bucket(options.bucket).collection(options.collection)
+      );
+    } else if (options.bucket) {
+      (fn as BucketBatch)(rootBatch.bucket(options.bucket));
+    } else {
+      (fn as BaseBatch)(rootBatch);
     }
-    const batchClient = collBatch || bucketBatch || rootBatch;
-    fn(batchClient);
     const responses = await this._batchRequests(rootBatch._requests, options);
     if (options.aggregate) {
       return aggregate(responses, rootBatch._requests);
@@ -639,6 +647,7 @@ export default class KintoClientBase {
         data: results,
         next: next.bind(null, nextPage),
         hasNextPage: !!nextPage,
+        totalRecords: -1,
       };
     };
 
@@ -690,7 +699,7 @@ export default class KintoClientBase {
    */
   @capable(["permissions_endpoint"])
   async listPermissions(
-    options: {
+    options: PaginatedListParams & {
       retry?: number;
       headers?: Record<string, string>;
     } = {}
@@ -699,7 +708,7 @@ export default class KintoClientBase {
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
     const paginationOptions = { sort: "id", ...options };
-    return this.paginatedList(path, paginationOptions, {
+    return this.paginatedList<PermissionData>(path, paginationOptions, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -719,16 +728,16 @@ export default class KintoClientBase {
    * @return {Promise<Object[], Error>}
    */
   async listBuckets(
-    options: {
+    options: PaginatedListParams & {
       retry?: number;
       headers?: Record<string, string>;
-      filters?: Record<string, string>;
+      filters?: Record<string, string | number>;
       fields?: string[];
       since?: string;
     } = {}
   ) {
     const path = endpoint.bucket();
-    return this.paginatedList(path, options, {
+    return this.paginatedList<KintoRecord>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -761,7 +770,7 @@ export default class KintoClientBase {
       data.id = id;
     }
     const path = data.id ? endpoint.bucket(data.id) : endpoint.bucket();
-    return this.execute(
+    return this.execute<KintoEntity>(
       requests.createRequest(
         path,
         { data, permissions },
