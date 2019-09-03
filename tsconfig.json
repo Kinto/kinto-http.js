@@ -16,7 +16,8 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "experimentalDecorators": true,
-    "downlevelIteration": true
+    "downlevelIteration": true,
+    "typeRoots": ["./node_modules/@types", "./@types"]
   },
   "include": ["./src/"]
 }
