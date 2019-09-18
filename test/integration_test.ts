@@ -109,12 +109,6 @@ describe("Integration tests", function() {
 
     beforeEach(() => server.flush());
 
-    describe("demo", () => {
-      it("should work", () => {
-        [].should.have.lengthOf(0);
-      });
-    });
-
     // XXX move this to batch tests
     describe("new batch", () => {
       it("should support root batch", () => {
