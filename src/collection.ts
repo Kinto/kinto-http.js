@@ -33,7 +33,7 @@ export default class Collection {
   public _isBatch: boolean;
   public _retry: number;
   public _safe: boolean;
-  public _headers: Record<string, string>;
+  private _headers: Record<string, string>;
 
   /**
    * Constructor.
@@ -81,9 +81,13 @@ export default class Collection {
     // FIXME: This is kind of ugly; shouldn't the bucket be responsible
     // for doing the merge?
     this._headers = {
-      ...this.bucket._headers,
+      ...this.bucket.headers,
       ...options.headers,
     };
+  }
+
+  get headers(): Record<string, string> {
+    return this._headers;
   }
 
   /**

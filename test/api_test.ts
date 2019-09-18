@@ -77,7 +77,7 @@ describe("KintoClient", () => {
       expect(
         new KintoClient(sampleRemote, {
           headers: { Foo: "Bar" },
-        })._headers
+        }).headers
       ).eql({ Foo: "Bar" });
     });
 
@@ -141,7 +141,7 @@ describe("KintoClient", () => {
       client.setHeaders({
         Authorization: "Baz",
       });
-      expect(client._headers).eql({ Foo: "Bar", Authorization: "Baz" });
+      expect(client.headers).eql({ Foo: "Bar", Authorization: "Baz" });
     });
   });
 
@@ -366,7 +366,7 @@ describe("KintoClient", () => {
         ];
 
         beforeEach(() => {
-          api._headers = { Authorization: "Basic plop" };
+          api.headers = { Authorization: "Basic plop" };
           return api
             .bucket("default")
             .collection("blog")
@@ -1005,7 +1005,7 @@ describe("KintoClient", () => {
       });
 
       it("should support passing custom headers", () => {
-        api._headers = { Foo: "Bar" };
+        api.headers = { Foo: "Bar" };
         api.listPermissions({ headers: { Baz: "Qux" } }).then(() => {
           sinon.assert.calledWithMatch(executeSpy, {
             path: "/permissions",
@@ -1074,7 +1074,7 @@ describe("KintoClient", () => {
     });
 
     it("should support passing custom headers", () => {
-      api._headers = { Foo: "Bar" };
+      api.headers = { Foo: "Bar" };
       api.listBuckets({ headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
@@ -1145,7 +1145,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api._headers = { Foo: "Bar" };
+      api.headers = { Foo: "Bar" };
 
       api.createBucket("foo", { headers: { Baz: "Qux" } });
 
@@ -1194,7 +1194,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api._headers = { Foo: "Bar" };
+      api.headers = { Foo: "Bar" };
 
       api.deleteBucket("plop", { headers: { Baz: "Qux" } });
 
@@ -1240,7 +1240,7 @@ describe("KintoClient", () => {
     });
 
     it("should extend request headers with optional ones", () => {
-      api._headers = { Foo: "Bar" };
+      api.headers = { Foo: "Bar" };
 
       return api.deleteBuckets({ headers: { Baz: "Qux" } }).then(_ => {
         sinon.assert.calledWithMatch(deleteRequestStub, "/buckets", {

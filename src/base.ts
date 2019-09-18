@@ -85,7 +85,7 @@ export default class KintoClientBase {
   private _isBatch: boolean;
   private _retry: number;
   private _safe: boolean;
-  public _headers: Record<string, string>;
+  private _headers: Record<string, string>;
   public serverInfo: HelloResponse | null;
   public events: EventEmitter;
   public http: HTTP;
@@ -206,6 +206,10 @@ export default class KintoClientBase {
     return this._isBatch;
   }
 
+  get headers(): Record<string, string> {
+    return this._headers;
+  }
+
   /**
    * Registers HTTP events.
    * @private
@@ -243,6 +247,10 @@ export default class KintoClientBase {
       safe: this._getSafe(options),
       retry: this._getRetry(options),
     });
+  }
+
+  set headers(headers: Record<string, string>) {
+    this._headers = headers;
   }
 
   /**

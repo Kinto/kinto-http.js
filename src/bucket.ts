@@ -29,7 +29,7 @@ export default class Bucket {
   private _isBatch: boolean;
   private _retry: number;
   private _safe: boolean;
-  public _headers: Record<string, string>;
+  private _headers: Record<string, string>;
 
   /**
    * Constructor.
@@ -66,6 +66,10 @@ export default class Bucket {
     this._headers = options.headers || {};
     this._retry = options.retry || 0;
     this._safe = !!options.safe;
+  }
+
+  get headers(): Record<string, string> {
+    return this._headers;
   }
 
   /**
