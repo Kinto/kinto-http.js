@@ -30,9 +30,9 @@ export default class Collection {
   public client: KintoClientBase;
   private bucket: Bucket;
   public name: string;
-  public _isBatch: boolean;
-  public _retry: number;
-  public _safe: boolean;
+  private _isBatch: boolean;
+  private _retry: number;
+  private _safe: boolean;
   private _headers: Record<string, string>;
 
   /**
@@ -88,6 +88,18 @@ export default class Collection {
 
   get headers(): Record<string, string> {
     return this._headers;
+  }
+
+  get isBatch(): boolean {
+    return this._isBatch;
+  }
+
+  get retry(): number {
+    return this._retry;
+  }
+
+  get safe(): boolean {
+    return this._safe;
   }
 
   /**
