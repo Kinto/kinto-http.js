@@ -7,6 +7,7 @@ import KintoClient from "../src";
 import Bucket, { BucketOptions } from "../src/bucket";
 import Collection from "../src/collection";
 import * as requests from "../src/requests";
+import { PaginationResult } from "../src/base";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -144,10 +145,10 @@ describe("Bucket", () => {
         headers: { Foo: "Bar" },
         safe: true,
       }).collection("posts", { headers: { Baz: "Qux" }, safe: false });
-      expect(collection._headers).eql({ Foo: "Bar", Baz: "Qux" });
-      expect(collection._retry).eql(0);
-      expect(collection._safe).eql(false);
-      expect(collection._isBatch).eql(false);
+      expect(collection.headers).eql({ Foo: "Bar", Baz: "Qux" });
+      expect(collection.retry).eql(0);
+      expect(collection.safe).eql(false);
+      expect(collection.isBatch).eql(false);
     });
   });
 
@@ -187,11 +188,16 @@ describe("Bucket", () => {
 
   /** @test {Bucket#listCollections} */
   describe("#listCollections()", () => {
-    const data = {
+    const data: PaginationResult<{ id: string }> = {
       last_modified: "",
       data: [{ id: "a" }, { id: "b" }],
-      next: () => {},
+      next: () => {
+        return Promise.resolve(({} as unknown) as PaginationResult<{
+          id: string;
+        }>);
+      },
       hasNextPage: false,
+      totalRecords: 2,
     };
     let paginatedListStub: sinon.SinonStub;
 
@@ -443,11 +449,16 @@ describe("Bucket", () => {
 
   /** @test {Bucket#listGroups} */
   describe("#listGroups()", () => {
-    const data = {
+    const data: PaginationResult<{ id: string }> = {
       last_modified: "",
       data: [{ id: "a" }, { id: "b" }],
-      next: () => {},
+      next: () => {
+        return Promise.resolve(({} as unknown) as PaginationResult<{
+          id: string;
+        }>);
+      },
       hasNextPage: false,
+      totalRecords: 2,
     };
     let paginatedListStub: sinon.SinonStub;
 

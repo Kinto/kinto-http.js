@@ -24,6 +24,9 @@ import {
   Permission,
   KintoIdObject,
   MappableObject,
+  KintoObject,
+  PermissionData,
+  KintoResponse,
 } from "./types";
 import Collection from "./collection";
 
@@ -46,19 +49,24 @@ export interface KintoClientOptions {
 
 export interface PaginatedListParams {
   sort?: string;
-  filters?: Record<string, string>;
+  filters?: Record<string, string | number>;
   limit?: number;
   pages?: number;
   since?: string;
   fields?: string[];
 }
 
-interface PaginationResult<T> {
+export interface PaginationResult<T> {
   last_modified: string | null;
   data: T[];
-  next: (nextPage: string | null) => void;
+  next: (nextPage?: string | null) => Promise<PaginationResult<T>>;
   hasNextPage: boolean;
+  totalRecords: number;
 }
+
+type BaseBatch = (client: KintoClientBase) => void;
+type BucketBatch = (client: Bucket) => void;
+type CollectionBatch = (client: Collection) => void;
 
 /**
  * High level HTTP client for the Kinto API.
@@ -78,9 +86,9 @@ export default class KintoClientBase {
   private _retry: number;
   private _safe: boolean;
   private _headers: Record<string, string>;
-  private serverInfo: HelloResponse | null;
-  private events: EventEmitter;
-  private http: HTTP;
+  public serverInfo: HelloResponse | null;
+  public events: EventEmitter;
+  public http: HTTP;
   private _remote!: string;
   private _version!: string;
 
@@ -190,11 +198,23 @@ export default class KintoClientBase {
     return 0;
   }
 
+  get safe(): boolean {
+    return this._safe;
+  }
+
+  get isBatch(): boolean {
+    return this._isBatch;
+  }
+
+  get headers(): Record<string, string> {
+    return this._headers;
+  }
+
   /**
    * Registers HTTP events.
    * @private
    */
-  _registerHTTPEvents() {
+  private _registerHTTPEvents() {
     // Prevent registering event from a batch client instance
     if (!this._isBatch) {
       this.events.on("backoff", backoffMs => {
@@ -229,6 +249,10 @@ export default class KintoClientBase {
     });
   }
 
+  set headers(headers: Record<string, string>) {
+    this._headers = headers;
+  }
+
   /**
    * Set client "headers" for every request, updating previous headers (if any).
    *
@@ -253,7 +277,7 @@ export default class KintoClientBase {
    * @param {Object} options The options for a request.
    * @returns {Object}
    */
-  _getHeaders(options: { headers?: Record<string, string> }) {
+  private _getHeaders(options: { headers?: Record<string, string> }) {
     return {
       ...this._headers,
       ...options.headers,
@@ -269,7 +293,7 @@ export default class KintoClientBase {
    * @param {Object} options The options for a request.
    * @returns {Boolean}
    */
-  _getSafe(options: { safe?: boolean }) {
+  private _getSafe(options: { safe?: boolean }) {
     return { safe: this._safe, ...options }.safe;
   }
 
@@ -278,7 +302,7 @@ export default class KintoClientBase {
    *
    * @private
    */
-  _getRetry(options: { retry?: number }) {
+  private _getRetry(options: { retry?: number }) {
     return { retry: this._retry, ...options }.retry;
   }
 
@@ -295,7 +319,7 @@ export default class KintoClientBase {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async _getHello(
+  private async _getHello(
     options: {
       retry?: number;
       headers?: Record<string, string>;
@@ -336,7 +360,7 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  async fetchServerSettings(options: { retry?: number }) {
+  async fetchServerSettings(options: { retry?: number } = {}) {
     const { settings } = await this.fetchServerInfo(options);
     return settings;
   }
@@ -406,7 +430,7 @@ export default class KintoClientBase {
    * @param  {Object} [options={}] The options object.
    * @return {Promise<Object, Error>}
    */
-  async _batchRequests(
+  private async _batchRequests(
     requests: KintoRequest[],
     options: {
       retry?: number;
@@ -465,7 +489,7 @@ export default class KintoClientBase {
    */
   @nobatch("Can't use batch within a batch!")
   async batch(
-    fn: (client: KintoClientBase | Bucket | Collection) => void,
+    fn: BaseBatch | BucketBatch | CollectionBatch,
     options: {
       safe?: boolean;
       retry?: number;
@@ -481,15 +505,15 @@ export default class KintoClientBase {
       safe: this._getSafe(options),
       retry: this._getRetry(options),
     });
-    let bucketBatch, collBatch;
-    if (options.bucket) {
-      bucketBatch = rootBatch.bucket(options.bucket);
-      if (options.collection) {
-        collBatch = bucketBatch.collection(options.collection);
-      }
+    if (options.bucket && options.collection) {
+      (fn as CollectionBatch)(
+        rootBatch.bucket(options.bucket).collection(options.collection)
+      );
+    } else if (options.bucket) {
+      (fn as BucketBatch)(rootBatch.bucket(options.bucket));
+    } else {
+      (fn as BaseBatch)(rootBatch);
     }
-    const batchClient = collBatch || bucketBatch || rootBatch;
-    fn(batchClient);
     const responses = await this._batchRequests(rootBatch._requests, options);
     if (options.aggregate) {
       return aggregate(responses, rootBatch._requests);
@@ -584,7 +608,7 @@ export default class KintoClientBase {
    */
   async paginatedList<T>(
     path: string,
-    params: PaginatedListParams,
+    params: PaginatedListParams = {},
     options: { headers?: Record<string, string>; retry?: number } = {}
   ) {
     // FIXME: this is called even in batch requests, which doesn't
@@ -639,6 +663,7 @@ export default class KintoClientBase {
         data: results,
         next: next.bind(null, nextPage),
         hasNextPage: !!nextPage,
+        totalRecords: -1,
       };
     };
 
@@ -690,7 +715,7 @@ export default class KintoClientBase {
    */
   @capable(["permissions_endpoint"])
   async listPermissions(
-    options: {
+    options: PaginatedListParams & {
       retry?: number;
       headers?: Record<string, string>;
     } = {}
@@ -699,7 +724,7 @@ export default class KintoClientBase {
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
     const paginationOptions = { sort: "id", ...options };
-    return this.paginatedList(path, paginationOptions, {
+    return this.paginatedList<PermissionData>(path, paginationOptions, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -719,15 +744,16 @@ export default class KintoClientBase {
    * @return {Promise<Object[], Error>}
    */
   async listBuckets(
-    options: {
+    options: PaginatedListParams & {
       retry?: number;
       headers?: Record<string, string>;
-      filters?: Record<string, string>;
+      filters?: Record<string, string | number>;
       fields?: string[];
+      since?: string;
     } = {}
   ) {
     const path = endpoint.bucket();
-    return this.paginatedList(path, options, {
+    return this.paginatedList<KintoObject>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -760,7 +786,7 @@ export default class KintoClientBase {
       data.id = id;
     }
     const path = data.id ? endpoint.bucket(data.id) : endpoint.bucket();
-    return this.execute(
+    return this.execute<KintoResponse>(
       requests.createRequest(
         path,
         { data, permissions },

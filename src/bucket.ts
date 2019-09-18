@@ -7,8 +7,10 @@ import {
   KintoRequest,
   KintoIdObject,
   Permission,
-  KintoEntity,
+  KintoResponse,
   HistoryEntry,
+  KintoObject,
+  Group,
 } from "./types";
 
 export interface BucketOptions {
@@ -27,7 +29,7 @@ export default class Bucket {
   private _isBatch: boolean;
   private _retry: number;
   private _safe: boolean;
-  public _headers: Record<string, string>;
+  private _headers: Record<string, string>;
 
   /**
    * Constructor.
@@ -66,13 +68,17 @@ export default class Bucket {
     this._safe = !!options.safe;
   }
 
+  get headers(): Record<string, string> {
+    return this._headers;
+  }
+
   /**
    * Get the value of "headers" for a given request, merging the
    * per-request headers with our own "default" headers.
    *
    * @private
    */
-  _getHeaders(options: { headers?: Record<string, string> }) {
+  private _getHeaders(options: { headers?: Record<string, string> }) {
     return {
       ...this._headers,
       ...options.headers,
@@ -88,7 +94,7 @@ export default class Bucket {
    * @param {Object} options The options for a request.
    * @returns {Boolean}
    */
-  _getSafe(options: { safe?: boolean }) {
+  private _getSafe(options: { safe?: boolean }) {
     return { safe: this._safe, ...options }.safe;
   }
 
@@ -97,7 +103,7 @@ export default class Bucket {
    *
    * @private
    */
-  _getRetry(options: { retry?: number }) {
+  private _getRetry(options: { retry?: number }) {
     return { retry: this._retry, ...options }.retry;
   }
 
@@ -265,7 +271,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -278,14 +286,14 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   @capable(["history"])
-  async listHistory(
+  async listHistory<T>(
     options: PaginatedListParams & {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
   ) {
     const path = endpoint.history(this.name);
-    return this.client.paginatedList<HistoryEntry>(path, options, {
+    return this.client.paginatedList<HistoryEntry<T>>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -305,14 +313,14 @@ export default class Bucket {
    */
   async listCollections(
     options: PaginatedListParams & {
-      filters?: Record<string, string>;
+      filters?: Record<string, string | number>;
       headers?: Record<string, string>;
       retry?: number;
       fields?: string[];
     } = {}
   ) {
     const path = endpoint.collection(this.name);
-    return this.client.paginatedList(path, options, {
+    return this.client.paginatedList<KintoObject>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -352,7 +360,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -405,14 +415,14 @@ export default class Bucket {
    */
   async listGroups(
     options: PaginatedListParams & {
-      filters?: Record<string, string>;
+      filters?: Record<string, string | number>;
       headers?: Record<string, string>;
       retry?: number;
       fields?: string[];
     } = {}
   ) {
     const path = endpoint.group(this.name);
-    return this.client.paginatedList(path, options, {
+    return this.client.paginatedList<Group>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -448,7 +458,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path,
     };
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<Group>>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -491,7 +503,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<Group>>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -598,9 +612,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path: endpoint.bucket(this.name),
     };
-    const { permissions } = (await this.client.execute<KintoEntity>(request, {
+    const { permissions } = (await this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    })) as KintoEntity;
+    })) as KintoResponse;
     return permissions;
   }
 
@@ -639,7 +653,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -678,7 +694,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -717,7 +735,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse>(request, {
+      retry: this._getRetry(options),
+    });
   }
 
   /**
@@ -732,7 +752,7 @@ export default class Bucket {
    * @return {Promise<Object, Error>}
    */
   async batch(
-    fn: (client: Bucket | KintoClientBase | Collection) => void,
+    fn: (client: Bucket) => void,
     options: {
       headers?: Record<string, string>;
       safe?: boolean;
