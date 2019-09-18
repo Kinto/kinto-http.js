@@ -12,7 +12,7 @@ export interface KintoIdObject {
   [key: string]: unknown;
 }
 
-export interface KintoRecord extends KintoIdObject {
+export interface KintoObject extends KintoIdObject {
   last_modified: number;
 }
 
@@ -53,7 +53,7 @@ export interface HelloResponse {
   capabilities: { [key: string]: ServerCapability };
 }
 
-export interface OperationResponse<T = KintoRecord> {
+export interface OperationResponse<T = KintoObject> {
   status: number;
   path: string;
   body: { data: T };
@@ -70,8 +70,8 @@ export interface DataResponse<T> {
 
 export type MappableObject = { [key in string | number]: unknown };
 
-export interface KintoEntity<T = unknown> {
-  data: KintoRecord & T;
+export interface KintoResponse<T = unknown> {
+  data: KintoObject & T;
   permissions: { [key in Permission]?: string[] };
 }
 
@@ -83,7 +83,7 @@ export interface HistoryEntry<T> {
   last_modified: number;
   record_id: string;
   resource_name: string;
-  target: KintoEntity<T>;
+  target: KintoResponse<T>;
   timestamp: number;
   uri: string;
   user_id: string;
@@ -106,6 +106,6 @@ export interface Attachment {
   size: number;
 }
 
-export interface Group extends KintoRecord {
+export interface Group extends KintoObject {
   members: string[];
 }

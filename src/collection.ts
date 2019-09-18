@@ -9,9 +9,9 @@ import Bucket from "./bucket";
 import {
   KintoRequest,
   Permission,
-  KintoEntity,
+  KintoResponse,
   KintoIdObject,
-  KintoRecord,
+  KintoObject,
   Attachment,
 } from "./types";
 
@@ -242,7 +242,7 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoEntity>(request, {
+    return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -264,9 +264,9 @@ export default class Collection {
   ) {
     const path = endpoint.collection(this.bucket.name, this.name);
     const request = { headers: this._getHeaders(options), path };
-    const { permissions } = (await this.client.execute<KintoEntity>(request, {
+    const { permissions } = (await this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    })) as KintoEntity;
+    })) as KintoResponse;
     return permissions;
   }
 
@@ -304,7 +304,7 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoEntity>(request, {
+    return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -418,7 +418,7 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoEntity>(request, {
+    return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -550,7 +550,7 @@ export default class Collection {
         patch: !!options.patch,
       }
     );
-    return this.client.execute<KintoEntity>(request, {
+    return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -588,7 +588,7 @@ export default class Collection {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute<KintoEntity>(request, {
+    return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -620,7 +620,7 @@ export default class Collection {
     let path = endpoint.record(this.bucket.name, this.name, id);
     path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
-    return this.client.execute<KintoEntity<T>>(request, {
+    return this.client.execute<KintoResponse<T>>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -661,7 +661,7 @@ export default class Collection {
    * @param  {Array}    [options.fields]                Limit response to just some fields.
    * @return {Promise<Object, Error>}
    */
-  async listRecords<T extends KintoRecord>(
+  async listRecords<T extends KintoObject>(
     options: PaginatedListParams & {
       headers?: Record<string, string>;
       retry?: number;
@@ -727,7 +727,7 @@ export default class Collection {
    * @private
    */
   @capable(["history"])
-  async getSnapshot<T extends KintoRecord>(at: number) {
+  async getSnapshot<T extends KintoObject>(at: number) {
     if (!at || !Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }

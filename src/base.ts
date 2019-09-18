@@ -24,9 +24,9 @@ import {
   Permission,
   KintoIdObject,
   MappableObject,
-  KintoRecord,
+  KintoObject,
   PermissionData,
-  KintoEntity,
+  KintoResponse,
 } from "./types";
 import Collection from "./collection";
 
@@ -737,7 +737,7 @@ export default class KintoClientBase {
     } = {}
   ) {
     const path = endpoint.bucket();
-    return this.paginatedList<KintoRecord>(path, options, {
+    return this.paginatedList<KintoObject>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -770,7 +770,7 @@ export default class KintoClientBase {
       data.id = id;
     }
     const path = data.id ? endpoint.bucket(data.id) : endpoint.bucket();
-    return this.execute<KintoEntity>(
+    return this.execute<KintoResponse>(
       requests.createRequest(
         path,
         { data, permissions },

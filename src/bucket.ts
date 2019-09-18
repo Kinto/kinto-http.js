@@ -7,9 +7,9 @@ import {
   KintoRequest,
   KintoIdObject,
   Permission,
-  KintoEntity,
+  KintoResponse,
   HistoryEntry,
-  KintoRecord,
+  KintoObject,
   Group,
 } from "./types";
 
@@ -267,7 +267,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoEntity>(request, {
+    return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -316,7 +316,7 @@ export default class Bucket {
     } = {}
   ) {
     const path = endpoint.collection(this.name);
-    return this.client.paginatedList<KintoRecord>(path, options, {
+    return this.client.paginatedList<KintoObject>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
     });
@@ -356,7 +356,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoEntity>(request, {
+    return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -454,7 +454,7 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path,
     };
-    return this.client.execute<KintoEntity<Group>>(request, {
+    return this.client.execute<KintoResponse<Group>>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -499,7 +499,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoEntity<Group>>(request, {
+    return this.client.execute<KintoResponse<Group>>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -608,9 +608,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path: endpoint.bucket(this.name),
     };
-    const { permissions } = (await this.client.execute<KintoEntity>(request, {
+    const { permissions } = (await this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    })) as KintoEntity;
+    })) as KintoResponse;
     return permissions;
   }
 
@@ -649,7 +649,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoEntity>(request, {
+    return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -690,7 +690,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoEntity>(request, {
+    return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
     });
   }
@@ -731,7 +731,7 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoEntity>(request, {
+    return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
     });
   }
