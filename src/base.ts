@@ -242,7 +242,6 @@ export default class KintoClientBase {
     } = {}
   ) {
     return new Bucket(this, name, {
-      batch: this._isBatch,
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
       retry: this._getRetry(options),

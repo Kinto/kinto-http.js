@@ -186,7 +186,6 @@ describe("KintoClient", () => {
       expect(bucket)
         .property("_headers")
         .eql(options.headers);
-      expect(bucket).property("_isBatch", options.batch);
     });
   });
 

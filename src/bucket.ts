@@ -17,7 +17,6 @@ export interface BucketOptions {
   safe?: boolean;
   headers?: Record<string, string>;
   retry?: number;
-  batch?: boolean;
 }
 /**
  * Abstract representation of a selected bucket.
@@ -26,7 +25,6 @@ export interface BucketOptions {
 export default class Bucket {
   private client: KintoClientBase;
   public name: string;
-  private _isBatch: boolean;
   private _retry: number;
   private _safe: boolean;
   private _headers: Record<string, string>;
@@ -40,7 +38,6 @@ export default class Bucket {
    * @param  {Object}      [options.headers] The headers object option.
    * @param  {Boolean}     [options.safe]    The safe option.
    * @param  {Number}      [options.retry]   The retry option.
-   * @param  {boolean}     [options.batch]   The batch option.
    */
   constructor(
     client: KintoClientBase,
@@ -56,10 +53,6 @@ export default class Bucket {
      * @type {String}
      */
     this.name = name;
-    /**
-     * @ignore
-     */
-    this._isBatch = !!options.batch;
     /**
      * @ignore
      */
@@ -125,7 +118,6 @@ export default class Bucket {
     } = {}
   ) {
     return new Collection(this.client, this, name, {
-      batch: this._isBatch,
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
       safe: this._getSafe(options),
