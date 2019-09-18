@@ -82,9 +82,9 @@ type CollectionBatch = (client: Collection) => void;
 export default class KintoClientBase {
   private _backoffReleaseTime: number | null;
   private _requests: KintoRequest[];
-  public _isBatch: boolean;
+  private _isBatch: boolean;
   private _retry: number;
-  public _safe: boolean;
+  private _safe: boolean;
   public _headers: Record<string, string>;
   public serverInfo: HelloResponse | null;
   public events: EventEmitter;
@@ -196,6 +196,14 @@ export default class KintoClientBase {
       return this._backoffReleaseTime - currentTime;
     }
     return 0;
+  }
+
+  get safe(): boolean {
+    return this._safe;
+  }
+
+  get isBatch(): boolean {
+    return this._isBatch;
   }
 
   /**

@@ -123,7 +123,7 @@ describe("KintoClient", () => {
 
     it("should accept a safe option", () => {
       const api = new KintoClient(sampleRemote, { safe: true });
-      expect(api._safe).eql(true);
+      expect(api.safe).eql(true);
     });
   });
 
@@ -953,7 +953,7 @@ describe("KintoClient", () => {
     describe("Batch mode", () => {
       it("should not attempt at consumming response headers ", () => {
         // Emulate an ongoing batch operation
-        api._isBatch = true;
+        (api as any)._isBatch = true;
 
         return api.paginatedList(path).should.not.be.rejected;
       });
