@@ -214,7 +214,7 @@ export default class KintoClientBase {
    * Registers HTTP events.
    * @private
    */
-  _registerHTTPEvents() {
+  private _registerHTTPEvents() {
     // Prevent registering event from a batch client instance
     if (!this._isBatch) {
       this.events.on("backoff", backoffMs => {
@@ -277,7 +277,7 @@ export default class KintoClientBase {
    * @param {Object} options The options for a request.
    * @returns {Object}
    */
-  _getHeaders(options: { headers?: Record<string, string> }) {
+  private _getHeaders(options: { headers?: Record<string, string> }) {
     return {
       ...this._headers,
       ...options.headers,
@@ -293,7 +293,7 @@ export default class KintoClientBase {
    * @param {Object} options The options for a request.
    * @returns {Boolean}
    */
-  _getSafe(options: { safe?: boolean }) {
+  private _getSafe(options: { safe?: boolean }) {
     return { safe: this._safe, ...options }.safe;
   }
 
@@ -302,7 +302,7 @@ export default class KintoClientBase {
    *
    * @private
    */
-  _getRetry(options: { retry?: number }) {
+  private _getRetry(options: { retry?: number }) {
     return { retry: this._retry, ...options }.retry;
   }
 
@@ -319,7 +319,7 @@ export default class KintoClientBase {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async _getHello(
+  private async _getHello(
     options: {
       retry?: number;
       headers?: Record<string, string>;
@@ -430,7 +430,7 @@ export default class KintoClientBase {
    * @param  {Object} [options={}] The options object.
    * @return {Promise<Object, Error>}
    */
-  async _batchRequests(
+  private async _batchRequests(
     requests: KintoRequest[],
     options: {
       retry?: number;

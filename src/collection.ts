@@ -108,7 +108,7 @@ export default class Collection {
    *
    * @private
    */
-  _getHeaders(options: { headers?: Record<string, string> }) {
+  private _getHeaders(options: { headers?: Record<string, string> }) {
     return {
       ...this._headers,
       ...options.headers,
@@ -124,7 +124,7 @@ export default class Collection {
    * @param {Object} options The options for a request.
    * @returns {Boolean}
    */
-  _getSafe(options: { safe?: boolean }) {
+  private _getSafe(options: { safe?: boolean }) {
     return { safe: this._safe, ...options }.safe;
   }
 
@@ -133,7 +133,7 @@ export default class Collection {
    *
    * @private
    */
-  _getRetry(options: { retry?: number }) {
+  private _getRetry(options: { retry?: number }) {
     return { retry: this._retry, ...options }.retry;
   }
 
