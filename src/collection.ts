@@ -19,7 +19,6 @@ export interface CollectionOptions {
   headers?: Record<string, string>;
   safe?: boolean;
   retry?: number;
-  batch?: boolean;
 }
 
 /**
@@ -30,7 +29,6 @@ export default class Collection {
   public client: KintoClientBase;
   private bucket: Bucket;
   public name: string;
-  private _isBatch: boolean;
   private _retry: number;
   private _safe: boolean;
   private _headers: Record<string, string>;
@@ -71,11 +69,6 @@ export default class Collection {
     /**
      * @ignore
      */
-    this._isBatch = !!options.batch;
-
-    /**
-     * @ignore
-     */
     this._retry = options.retry || 0;
     this._safe = !!options.safe;
     // FIXME: This is kind of ugly; shouldn't the bucket be responsible
@@ -84,22 +77,6 @@ export default class Collection {
       ...this.bucket.headers,
       ...options.headers,
     };
-  }
-
-  get headers(): Record<string, string> {
-    return this._headers;
-  }
-
-  get isBatch(): boolean {
-    return this._isBatch;
-  }
-
-  get retry(): number {
-    return this._retry;
-  }
-
-  get safe(): boolean {
-    return this._safe;
   }
 
   /**

@@ -198,18 +198,6 @@ export default class KintoClientBase {
     return 0;
   }
 
-  get safe(): boolean {
-    return this._safe;
-  }
-
-  get isBatch(): boolean {
-    return this._isBatch;
-  }
-
-  get headers(): Record<string, string> {
-    return this._headers;
-  }
-
   /**
    * Registers HTTP events.
    * @private
@@ -242,15 +230,10 @@ export default class KintoClientBase {
     } = {}
   ) {
     return new Bucket(this, name, {
-      batch: this._isBatch,
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
       retry: this._getRetry(options),
     });
-  }
-
-  set headers(headers: Record<string, string>) {
-    this._headers = headers;
   }
 
   /**
