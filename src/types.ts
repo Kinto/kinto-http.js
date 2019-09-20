@@ -24,20 +24,20 @@ export type Permission =
   | "group:create"
   | "record:create";
 
-interface User {
+export interface User {
   id: string;
   principals: string[];
   bucket: string;
 }
 
-interface ServerCapability {
+export interface ServerCapability {
   description: string;
   url: string;
   version?: string;
   [key: string]: unknown;
 }
 
-interface ServerSettings {
+export interface ServerSettings {
   readonly: boolean;
   batch_max_requests: number;
 }

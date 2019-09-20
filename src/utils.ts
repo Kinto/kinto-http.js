@@ -6,7 +6,7 @@
  * @param  {Number} n
  * @return {Array}
  */
-export function partition<T>(array: T[], n: number) {
+export function partition<T>(array: T[], n: number): T[][] {
   if (n <= 0) {
     return [array];
   }
@@ -25,7 +25,7 @@ export function partition<T>(array: T[], n: number) {
  *
  * @return Promise<void>
  */
-export function delay(ms: number) {
+export function delay(ms: number): Promise<unknown> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
@@ -85,8 +85,9 @@ export function checkVersion(
   version: string,
   minVersion: string,
   maxVersion: string
-) {
-  const extract = (str: string) => str.split(".").map(x => parseInt(x, 10));
+): void {
+  const extract = (str: string): number[] =>
+    str.split(".").map(x => parseInt(x, 10));
   const [verMajor, verMinor] = extract(version);
   const [minMajor, minMinor] = extract(minVersion);
   const [maxMajor, maxMinor] = extract(maxVersion);
@@ -103,6 +104,15 @@ export function checkVersion(
   }
 }
 
+type DecoratorReturn = (
+  target: any,
+  key: string,
+  descriptor: TypedPropertyDescriptor<(...args: any[]) => any>
+) => {
+  configurable: boolean;
+  get(): (...args: any) => Promise<any>;
+};
+
 /**
  * Generates a decorator function ensuring a version check is performed against
  * the provided requirements before executing it.
@@ -111,7 +121,7 @@ export function checkVersion(
  * @param  {String} max The required max version (inclusive).
  * @return {Function}
  */
-export function support(min: string, max: string) {
+export function support(min: string, max: string): DecoratorReturn {
   return function(
     // @ts-ignore
     target: any,
@@ -148,7 +158,7 @@ export function support(min: string, max: string) {
  * @param  {Array<String>} capabilities The required capabilities.
  * @return {Function}
  */
-export function capable(capabilities: string[]) {
+export function capable(capabilities: string[]): DecoratorReturn {
   return function(
     // @ts-ignore
     target: any,
@@ -193,7 +203,7 @@ export function capable(capabilities: string[]) {
  * @param  {String} message The error message to throw.
  * @return {Function}
  */
-export function nobatch(message: string) {
+export function nobatch(message: string): DecoratorReturn {
   return function(
     // @ts-ignore
     target: any,
@@ -263,7 +273,12 @@ export function parseDataURL(dataURL: string): TypedDataURL {
  * @param  {String} dataURL The data url.
  * @return {Object}
  */
-export function extractFileInfo(dataURL: string) {
+export function extractFileInfo(
+  dataURL: string
+): {
+  blob: Blob;
+  name: string;
+} {
   const { name, type, base64 } = parseDataURL(dataURL);
   const binary = atob(base64);
   const array = [];
@@ -294,7 +309,7 @@ export function createFormData(
   dataURL: string,
   body: { [key: string]: any },
   options: { filename?: string } = {}
-) {
+): FormData {
   const { filename = "untitled" } = options;
   const { blob, name } = extractFileInfo(dataURL);
   const formData = new FormData();
@@ -311,7 +326,11 @@ export function createFormData(
  * Clones an object with all its undefined keys removed.
  * @private
  */
-export function cleanUndefinedProperties(obj: { [key: string]: any }) {
+export function cleanUndefinedProperties(obj: {
+  [key: string]: any;
+}): {
+  [key: string]: any;
+} {
   const result: { [key: string]: any } = {};
   for (const key in obj) {
     if (typeof obj[key] !== "undefined") {
@@ -332,7 +351,7 @@ export function cleanUndefinedProperties(obj: { [key: string]: any }) {
 export function addEndpointOptions(
   path: string,
   options: { fields?: string[]; query?: { [key: string]: string } } = {}
-) {
+): string {
   const query: { [key: string]: any } = { ...options.query };
   if (options.fields) {
     query._fields = options.fields;
@@ -347,7 +366,11 @@ export function addEndpointOptions(
 /**
  * Replace authorization header with an obscured version
  */
-export function obscureAuthorizationHeader(headers: HeadersInit) {
+export function obscureAuthorizationHeader(
+  headers: HeadersInit
+): {
+  [key: string]: string;
+} {
   const h = new Headers(headers);
   if (h.has("authorization")) {
     h.set("authorization", "**** (suppressed)");

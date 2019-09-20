@@ -33,7 +33,7 @@ export default class HTTP {
    *
    * @type {Object}
    */
-  static get DEFAULT_REQUEST_HEADERS() {
+  static get DEFAULT_REQUEST_HEADERS(): Record<string, string> {
     return {
       Accept: "application/json",
       "Content-Type": "application/json",
@@ -106,7 +106,7 @@ export default class HTTP {
           reject(new NetworkTimeoutError(url, options));
         }, this.timeout);
       }
-      function proceedWithHandler(fn: (arg: any) => void) {
+      function proceedWithHandler(fn: (arg: any) => void): (arg: any) => void {
         return (arg: any) => {
           if (!hasTimedout) {
             if (_timeoutId) {
@@ -151,7 +151,7 @@ export default class HTTP {
     retryAfter: number,
     request: RequestInit,
     options: RequestOptions
-  ) {
+  ): Promise<HttpResponse<T>> {
     await delay(retryAfter);
     return this.request<T>(url, request, {
       ...options,
@@ -210,7 +210,7 @@ export default class HTTP {
     }
   }
 
-  _checkForDeprecationHeader(headers: Headers) {
+  _checkForDeprecationHeader(headers: Headers): void {
     const alertHeader = headers.get("Alert");
     if (!alertHeader) {
       return;
@@ -226,7 +226,7 @@ export default class HTTP {
     this.events.emit("deprecated", alert);
   }
 
-  _checkForBackoffHeader(headers: Headers) {
+  _checkForBackoffHeader(headers: Headers): void {
     let backoffMs;
     const backoffHeader = headers.get("Backoff");
     const backoffSeconds = backoffHeader ? parseInt(backoffHeader, 10) : 0;
@@ -238,7 +238,7 @@ export default class HTTP {
     this.events.emit("backoff", backoffMs);
   }
 
-  _checkForRetryAfterHeader(headers: Headers) {
+  _checkForRetryAfterHeader(headers: Headers): number | undefined {
     const retryAfter = headers.get("Retry-After");
     if (!retryAfter) {
       return;

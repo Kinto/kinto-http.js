@@ -1,5 +1,8 @@
 {
-    "env": {
-        "mocha": true
-    }
+  "env": {
+    "mocha": true
+  },
+  "rules": {
+    "@typescript-eslint/explicit-function-return-type": 0
+  }
 }
