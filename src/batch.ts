@@ -50,7 +50,7 @@ export interface KintoResponse {
 export function aggregate(
   responses: KintoResponse[] = [],
   requests: KintoRequest[] = []
-) {
+): AggregateResponse {
   if (responses.length !== requests.length) {
     throw new Error("Responses length should match requests one.");
   }

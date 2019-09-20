@@ -13,7 +13,11 @@ import {
   KintoIdObject,
   KintoObject,
   Attachment,
+  HistoryEntry,
+  OperationResponse,
 } from "./types";
+import { HttpResponse } from "./http";
+import { AggregateResponse } from "./batch";
 
 export interface CollectionOptions {
   headers?: Record<string, string>;
@@ -85,7 +89,9 @@ export default class Collection {
    *
    * @private
    */
-  private _getHeaders(options: { headers?: Record<string, string> }) {
+  private _getHeaders(options: {
+    headers?: Record<string, string>;
+  }): Record<string, string> {
     return {
       ...this._headers,
       ...options.headers,
@@ -101,7 +107,7 @@ export default class Collection {
    * @param {Object} options The options for a request.
    * @returns {Boolean}
    */
-  private _getSafe(options: { safe?: boolean }) {
+  private _getSafe(options: { safe?: boolean }): boolean {
     return { safe: this._safe, ...options }.safe;
   }
 
@@ -110,7 +116,7 @@ export default class Collection {
    *
    * @private
    */
-  private _getRetry(options: { retry?: number }) {
+  private _getRetry(options: { retry?: number }): number {
     return { retry: this._retry, ...options }.retry;
   }
 
@@ -125,7 +131,7 @@ export default class Collection {
    */
   async getTotalRecords(
     options: { headers?: Record<string, string>; retry?: number } = {}
-  ) {
+  ): Promise<number> {
     const path = endpoint.record(this.bucket.name, this.name);
     const request: KintoRequest = {
       headers: this._getHeaders(options),
@@ -150,17 +156,17 @@ export default class Collection {
    */
   async getRecordsTimestamp(
     options: { headers?: Record<string, string>; retry?: number } = {}
-  ) {
+  ): Promise<string | null> {
     const path = endpoint.record(this.bucket.name, this.name);
     const request: KintoRequest = {
       headers: this._getHeaders(options),
       path,
       method: "HEAD",
     };
-    const { headers } = await this.client.execute(request, {
+    const { headers } = (await this.client.execute(request, {
       raw: true,
       retry: this._getRetry(options),
-    });
+    })) as HttpResponse<unknown>;
     return headers.get("ETag");
   }
 
@@ -185,7 +191,7 @@ export default class Collection {
       fields?: string[];
       retry?: number;
     } = {}
-  ) {
+  ): Promise<T> {
     let path = endpoint.collection(this.bucket.name, this.name);
     path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
@@ -217,7 +223,7 @@ export default class Collection {
       last_modified?: number;
       permissions?: { [key in Permission]?: string[] };
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown>> {
     if (!isObject(data)) {
       throw new Error("A collection object is required.");
     }
@@ -237,7 +243,7 @@ export default class Collection {
     );
     return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<unknown>>;
   }
 
   /**
@@ -254,7 +260,7 @@ export default class Collection {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
-  ) {
+  ): Promise<{ [key in Permission]?: string[] }> {
     const path = endpoint.collection(this.bucket.name, this.name);
     const request = { headers: this._getHeaders(options), path };
     const { permissions } = (await this.client.execute<KintoResponse>(request, {
@@ -283,7 +289,7 @@ export default class Collection {
       retry?: number;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -299,7 +305,7 @@ export default class Collection {
     );
     return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<unknown>>;
   }
 
   /**
@@ -322,7 +328,7 @@ export default class Collection {
       retry?: number;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<unknown> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -361,7 +367,7 @@ export default class Collection {
       retry?: number;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<unknown> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -400,7 +406,7 @@ export default class Collection {
       safe?: boolean;
       permissions?: { [key in Permission]?: string[] };
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown>> {
     const { permissions } = options;
     const path = endpoint.record(this.bucket.name, this.name, record.id);
     const request = requests.createRequest(
@@ -413,7 +419,7 @@ export default class Collection {
     );
     return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<unknown>>;
   }
 
   /**
@@ -445,7 +451,11 @@ export default class Collection {
       filename?: string;
       gzipped?: boolean;
     } = {}
-  ) {
+  ): Promise<
+    KintoResponse<{
+      attachment: Attachment;
+    }>
+  > {
     const { permissions } = options;
     const id = record.id || uuid();
     const path = endpoint.attachment(this.bucket.name, this.name, id);
@@ -489,7 +499,7 @@ export default class Collection {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<unknown> {
     const { last_modified } = options;
     const path = endpoint.attachment(this.bucket.name, this.name, recordId);
     const request = requests.deleteRequest(path, {
@@ -523,7 +533,7 @@ export default class Collection {
       permissions?: { [key in Permission]?: string[] };
       patch?: boolean;
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown>> {
     if (!isObject(record)) {
       throw new Error("A record object is required.");
     }
@@ -545,7 +555,7 @@ export default class Collection {
     );
     return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<unknown>>;
   }
 
   /**
@@ -568,7 +578,7 @@ export default class Collection {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown>> {
     const recordObj = toDataBody(record);
     if (!recordObj.id) {
       throw new Error("A record id is required.");
@@ -583,7 +593,7 @@ export default class Collection {
     });
     return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<unknown>>;
   }
 
   /**
@@ -609,13 +619,13 @@ export default class Collection {
       fields?: string[];
       retry?: number;
     } = {}
-  ) {
+  ): Promise<KintoResponse<T>> {
     let path = endpoint.record(this.bucket.name, this.name, id);
     path = addEndpointOptions(path, options);
     const request = { headers: this._getHeaders(options), path };
     return this.client.execute<KintoResponse<T>>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -660,7 +670,7 @@ export default class Collection {
       retry?: number;
       at?: number;
     } = {}
-  ) {
+  ): Promise<PaginationResult<T>> {
     const path = endpoint.record(this.bucket.name, this.name);
     if (options.at) {
       return this.getSnapshot<T>(options.at);
@@ -675,7 +685,7 @@ export default class Collection {
   /**
    * @private
    */
-  async isHistoryComplete() {
+  async isHistoryComplete(): Promise<boolean> {
     // We consider that if we have the collection creation event part of the
     // history, then all records change events have been tracked.
     const {
@@ -694,7 +704,7 @@ export default class Collection {
   /**
    * @private
    */
-  async listChangesBackTo<T>(at: number) {
+  async listChangesBackTo<T>(at: number): Promise<HistoryEntry<T>[]> {
     // Ensure we have enough history data to retrieve the complete list of
     // changes.
     if (!(await this.isHistoryComplete())) {
@@ -720,7 +730,9 @@ export default class Collection {
    * @private
    */
   @capable(["history"])
-  async getSnapshot<T extends KintoObject>(at: number) {
+  async getSnapshot<T extends KintoObject>(
+    at: number
+  ): Promise<PaginationResult<T>> {
     if (!at || !Number.isInteger(at) || at <= 0) {
       throw new Error("Invalid argument, expected a positive integer.");
     }
@@ -771,7 +783,7 @@ export default class Collection {
       retry?: number;
       aggregate?: boolean;
     } = {}
-  ) {
+  ): Promise<OperationResponse<KintoObject>[] | AggregateResponse> {
     return this.client.batch(fn, {
       bucket: this.bucket.name,
       collection: this.name,

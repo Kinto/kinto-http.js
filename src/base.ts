@@ -11,7 +11,7 @@ import {
 import HTTP, { HttpResponse } from "./http";
 import endpoint from "./endpoint";
 import * as requests from "./requests";
-import { aggregate } from "./batch";
+import { aggregate, AggregateResponse } from "./batch";
 import Bucket from "./bucket";
 import { capable } from "./utils";
 import { EventEmitter } from "events";
@@ -27,6 +27,9 @@ import {
   KintoObject,
   PermissionData,
   KintoResponse,
+  ServerSettings,
+  ServerCapability,
+  User,
 } from "./types";
 import Collection from "./collection";
 
@@ -180,7 +183,7 @@ export default class KintoClientBase {
    * The current server protocol version, eg. `v1`.
    * @type {String}
    */
-  get version() {
+  get version(): string {
     return this._version;
   }
 
@@ -190,7 +193,7 @@ export default class KintoClientBase {
    *
    * @type {Number}
    */
-  get backoff() {
+  get backoff(): number {
     const currentTime = new Date().getTime();
     if (this._backoffReleaseTime && currentTime < this._backoffReleaseTime) {
       return this._backoffReleaseTime - currentTime;
@@ -202,7 +205,7 @@ export default class KintoClientBase {
    * Registers HTTP events.
    * @private
    */
-  private _registerHTTPEvents() {
+  private _registerHTTPEvents(): void {
     // Prevent registering event from a batch client instance
     if (!this._isBatch) {
       this.events.on("backoff", backoffMs => {
@@ -228,7 +231,7 @@ export default class KintoClientBase {
       retry?: number;
       headers?: Record<string, string>;
     } = {}
-  ) {
+  ): Bucket {
     return new Bucket(this, name, {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
@@ -241,7 +244,7 @@ export default class KintoClientBase {
    *
    * @param {Object} headers The headers to merge with existing ones.
    */
-  setHeaders(headers: Record<string, string>) {
+  setHeaders(headers: Record<string, string>): void {
     this._headers = {
       ...this._headers,
       ...headers,
@@ -260,7 +263,9 @@ export default class KintoClientBase {
    * @param {Object} options The options for a request.
    * @returns {Object}
    */
-  private _getHeaders(options: { headers?: Record<string, string> }) {
+  private _getHeaders(options: {
+    headers?: Record<string, string>;
+  }): Record<string, string> {
     return {
       ...this._headers,
       ...options.headers,
@@ -276,7 +281,7 @@ export default class KintoClientBase {
    * @param {Object} options The options for a request.
    * @returns {Boolean}
    */
-  private _getSafe(options: { safe?: boolean }) {
+  private _getSafe(options: { safe?: boolean }): boolean {
     return { safe: this._safe, ...options }.safe;
   }
 
@@ -285,7 +290,7 @@ export default class KintoClientBase {
    *
    * @private
    */
-  private _getRetry(options: { retry?: number }) {
+  private _getRetry(options: { retry?: number }): number {
     return { retry: this._retry, ...options }.retry;
   }
 
@@ -326,7 +331,9 @@ export default class KintoClientBase {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async fetchServerInfo(options: { retry?: number } = {}) {
+  async fetchServerInfo(
+    options: { retry?: number } = {}
+  ): Promise<HelloResponse> {
     if (this.serverInfo) {
       return this.serverInfo;
     }
@@ -343,7 +350,9 @@ export default class KintoClientBase {
    * @return {Promise<Object, Error>}
    */
   @nobatch("This operation is not supported within a batch operation.")
-  async fetchServerSettings(options: { retry?: number } = {}) {
+  async fetchServerSettings(
+    options: { retry?: number } = {}
+  ): Promise<ServerSettings> {
     const { settings } = await this.fetchServerInfo(options);
     return settings;
   }
@@ -361,7 +370,7 @@ export default class KintoClientBase {
     options: {
       retry?: number;
     } = {}
-  ) {
+  ): Promise<{ [key: string]: ServerCapability }> {
     const { capabilities } = await this.fetchServerInfo(options);
     return capabilities;
   }
@@ -382,7 +391,7 @@ export default class KintoClientBase {
       retry?: number;
       headers?: Record<string, string>;
     } = {}
-  ) {
+  ): Promise<User | undefined> {
     const { user } = await this._getHello(options);
     return user;
   }
@@ -400,7 +409,7 @@ export default class KintoClientBase {
     options: {
       retry?: number;
     } = {}
-  ) {
+  ): Promise<string> {
     const { http_api_version } = await this.fetchServerInfo(options);
     return http_api_version;
   }
@@ -481,7 +490,7 @@ export default class KintoClientBase {
       headers?: Record<string, string>;
       aggregate?: boolean;
     } = {}
-  ) {
+  ): Promise<OperationResponse<KintoObject>[] | AggregateResponse> {
     const rootBatch = new KintoClientBase(this.remote, {
       events: this.events,
       batch: true,
@@ -527,7 +536,7 @@ export default class KintoClientBase {
   async execute<T>(
     request: KintoRequest,
     options: { raw?: boolean; stringify?: boolean; retry?: number } = {}
-  ) {
+  ): Promise<T | HttpResponse<T>> {
     const { raw = false, stringify = true } = options;
     // If we're within a batch, add the request to the stack to send at once.
     if (this._isBatch) {
@@ -593,7 +602,7 @@ export default class KintoClientBase {
     path: string,
     params: PaginatedListParams = {},
     options: { headers?: Record<string, string>; retry?: number } = {}
-  ) {
+  ): Promise<PaginationResult<T>> {
     // FIXME: this is called even in batch requests, which doesn't
     // make any sense (since all batch requests get a "dummy"
     // response; see execute() above).
@@ -621,7 +630,9 @@ export default class KintoClientBase {
     let results: T[] = [],
       current = 0;
 
-    const next = async function(nextPage: string | null) {
+    const next = async function(
+      nextPage: string | null
+    ): Promise<PaginationResult<T>> {
       if (!nextPage) {
         throw new Error("Pagination exhausted.");
       }
@@ -629,7 +640,9 @@ export default class KintoClientBase {
       return processNextPage(nextPage);
     };
 
-    const processNextPage = async (nextPage: string) => {
+    const processNextPage = async (
+      nextPage: string
+    ): Promise<PaginationResult<T>> => {
       const { headers } = options;
       return handleResponse(await this.http.request(nextPage, { headers }));
     };
@@ -702,7 +715,7 @@ export default class KintoClientBase {
       retry?: number;
       headers?: Record<string, string>;
     } = {}
-  ) {
+  ): Promise<PaginationResult<PermissionData>> {
     const path = endpoint.permissions();
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
@@ -734,7 +747,7 @@ export default class KintoClientBase {
       fields?: string[];
       since?: string;
     } = {}
-  ) {
+  ): Promise<PaginationResult<KintoObject>> {
     const path = endpoint.bucket();
     return this.paginatedList<KintoObject>(path, options, {
       headers: this._getHeaders(options),
@@ -763,7 +776,7 @@ export default class KintoClientBase {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown> | HttpResponse<KintoResponse<unknown>>> {
     const { data = {}, permissions } = options;
     if (id != null) {
       data.id = id;
@@ -803,7 +816,7 @@ export default class KintoClientBase {
       retry?: number;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<unknown> {
     const bucketObj = toDataBody(bucket);
     if (!bucketObj.id) {
       throw new Error("A bucket id is required.");
@@ -838,7 +851,7 @@ export default class KintoClientBase {
       retry?: number;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<unknown> {
     const path = endpoint.bucket();
     return this.execute(
       requests.deleteRequest(path, {
@@ -851,7 +864,7 @@ export default class KintoClientBase {
   }
 
   @capable(["accounts"])
-  async createAccount(username: string, password: string) {
+  async createAccount(username: string, password: string): Promise<unknown> {
     return this.execute(
       requests.createRequest(
         `/accounts/${username}`,

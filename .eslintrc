@@ -11,7 +11,13 @@
     "no-console": 0,
     "no-var": 2,
     "prefer-const": 1,
-    "semi": [2, "always"]
+    "semi": [2, "always"],
+    "@typescript-eslint/explicit-function-return-type": [
+      2,
+      {
+        "allowExpressions": true
+      }
+    ]
   },
   "env": {
     "es6": true,
@@ -19,5 +25,6 @@
     "node": true
   },
   "extends": ["prettier/@typescript-eslint"],
-  "root": true
+  "root": true,
+  "plugins": ["@typescript-eslint/eslint-plugin"]
 }

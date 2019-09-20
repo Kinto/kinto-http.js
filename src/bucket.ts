@@ -2,7 +2,7 @@ import { toDataBody, isObject, capable, addEndpointOptions } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
 import endpoint from "./endpoint";
-import KintoClientBase, { PaginatedListParams } from "./base";
+import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
 import {
   KintoRequest,
   KintoIdObject,
@@ -11,7 +11,10 @@ import {
   HistoryEntry,
   KintoObject,
   Group,
+  OperationResponse,
 } from "./types";
+import { HttpResponse } from "./http";
+import { AggregateResponse } from "./batch";
 
 export interface BucketOptions {
   safe?: boolean;
@@ -71,7 +74,9 @@ export default class Bucket {
    *
    * @private
    */
-  private _getHeaders(options: { headers?: Record<string, string> }) {
+  private _getHeaders(options: {
+    headers?: Record<string, string>;
+  }): Record<string, string> {
     return {
       ...this._headers,
       ...options.headers,
@@ -87,7 +92,7 @@ export default class Bucket {
    * @param {Object} options The options for a request.
    * @returns {Boolean}
    */
-  private _getSafe(options: { safe?: boolean }) {
+  private _getSafe(options: { safe?: boolean }): boolean {
     return { safe: this._safe, ...options }.safe;
   }
 
@@ -96,7 +101,7 @@ export default class Bucket {
    *
    * @private
    */
-  private _getRetry(options: { retry?: number }) {
+  private _getRetry(options: { retry?: number }): number {
     return { retry: this._retry, ...options }.retry;
   }
 
@@ -116,7 +121,7 @@ export default class Bucket {
       safe?: boolean;
       retry?: number;
     } = {}
-  ) {
+  ): Collection {
     return new Collection(this.client, this, name, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -138,17 +143,17 @@ export default class Bucket {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
-  ) {
+  ): Promise<string | null> {
     const path = endpoint.collection(this.name);
     const request: KintoRequest = {
       headers: this._getHeaders(options),
       path,
       method: "HEAD",
     };
-    const { headers } = await this.client.execute(request, {
+    const { headers } = (await this.client.execute(request, {
       raw: true,
       retry: this._getRetry(options),
-    });
+    })) as HttpResponse<unknown>;
     return headers.get("ETag");
   }
 
@@ -166,17 +171,17 @@ export default class Bucket {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
-  ) {
+  ): Promise<string | null> {
     const path = endpoint.group(this.name);
     const request: KintoRequest = {
       headers: this._getHeaders(options),
       path,
       method: "HEAD",
     };
-    const { headers } = await this.client.execute(request, {
+    const { headers } = (await this.client.execute(request, {
       raw: true,
       retry: this._getRetry(options),
-    });
+    })) as HttpResponse<unknown>;
     return headers.get("ETag");
   }
 
@@ -201,7 +206,7 @@ export default class Bucket {
       fields?: string[];
       retry?: number;
     } = {}
-  ) {
+  ): Promise<T> {
     let path = endpoint.bucket(this.name);
     path = addEndpointOptions(path, options);
     const request = {
@@ -236,7 +241,7 @@ export default class Bucket {
       last_modified?: number;
       permissions?: { [key in Permission]?: string[] };
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown>> {
     if (!isObject(data)) {
       throw new Error("A bucket object is required.");
     }
@@ -265,7 +270,7 @@ export default class Bucket {
     );
     return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<unknown>>;
   }
 
   /**
@@ -283,7 +288,7 @@ export default class Bucket {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
-  ) {
+  ): Promise<PaginationResult<HistoryEntry<T>>> {
     const path = endpoint.history(this.name);
     return this.client.paginatedList<HistoryEntry<T>>(path, options, {
       headers: this._getHeaders(options),
@@ -310,7 +315,7 @@ export default class Bucket {
       retry?: number;
       fields?: string[];
     } = {}
-  ) {
+  ): Promise<PaginationResult<KintoObject>> {
     const path = endpoint.collection(this.name);
     return this.client.paginatedList<KintoObject>(path, options, {
       headers: this._getHeaders(options),
@@ -340,7 +345,7 @@ export default class Bucket {
       permissions?: { [key in Permission]?: string[] };
       data?: any;
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown>> {
     const { permissions, data = {} } = options;
     data.id = id;
     const path = endpoint.collection(this.name, id);
@@ -354,7 +359,7 @@ export default class Bucket {
     );
     return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<unknown>>;
   }
 
   /**
@@ -377,7 +382,7 @@ export default class Bucket {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<unknown> {
     const collectionObj = toDataBody(collection);
     if (!collectionObj.id) {
       throw new Error("A collection id is required.");
@@ -412,7 +417,7 @@ export default class Bucket {
       retry?: number;
       fields?: string[];
     } = {}
-  ) {
+  ): Promise<PaginationResult<Group>> {
     const path = endpoint.group(this.name);
     return this.client.paginatedList<Group>(path, options, {
       headers: this._getHeaders(options),
@@ -443,7 +448,7 @@ export default class Bucket {
       query?: { [key: string]: string };
       fields?: string[];
     } = {}
-  ) {
+  ): Promise<KintoResponse<Group>> {
     let path = endpoint.group(this.name, id);
     path = addEndpointOptions(path, options);
     const request = {
@@ -452,7 +457,7 @@ export default class Bucket {
     };
     return this.client.execute<KintoResponse<Group>>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<Group>>;
   }
 
   /**
@@ -479,7 +484,7 @@ export default class Bucket {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
-  ) {
+  ): Promise<KintoResponse<Group>> {
     const data = {
       ...options.data,
       id,
@@ -497,7 +502,7 @@ export default class Bucket {
     );
     return this.client.execute<KintoResponse<Group>>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<Group>>;
   }
 
   /**
@@ -525,7 +530,7 @@ export default class Bucket {
       last_modified?: number;
       patch?: boolean;
     } = {}
-  ) {
+  ): Promise<unknown> {
     if (!isObject(group)) {
       throw new Error("A group object is required.");
     }
@@ -572,7 +577,7 @@ export default class Bucket {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<unknown> {
     const groupObj = toDataBody(group);
     const { id } = groupObj;
     const { last_modified } = { ...groupObj, ...options };
@@ -599,7 +604,7 @@ export default class Bucket {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
-  ) {
+  ): Promise<{ [key in Permission]?: string[] }> {
     const request = {
       headers: this._getHeaders(options),
       path: endpoint.bucket(this.name),
@@ -630,7 +635,7 @@ export default class Bucket {
       retry?: number;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -647,7 +652,7 @@ export default class Bucket {
     );
     return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<unknown>>;
   }
 
   /**
@@ -670,7 +675,7 @@ export default class Bucket {
       retry?: number;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -688,7 +693,7 @@ export default class Bucket {
     );
     return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<unknown>>;
   }
 
   /**
@@ -711,7 +716,7 @@ export default class Bucket {
       retry?: number;
       last_modified?: number;
     } = {}
-  ) {
+  ): Promise<KintoResponse<unknown>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -729,7 +734,7 @@ export default class Bucket {
     );
     return this.client.execute<KintoResponse>(request, {
       retry: this._getRetry(options),
-    });
+    }) as Promise<KintoResponse<unknown>>;
   }
 
   /**
@@ -751,7 +756,7 @@ export default class Bucket {
       retry?: number;
       aggregate?: boolean;
     } = {}
-  ) {
+  ): Promise<OperationResponse<KintoObject>[] | AggregateResponse> {
     return this.client.batch(fn, {
       bucket: this.name,
       headers: this._getHeaders(options),
