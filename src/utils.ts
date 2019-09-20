@@ -58,11 +58,9 @@ export function toDataBody<T extends Entity>(resource: T | string): Entity {
  * @return {String}
  */
 export function qsify(obj: { [key: string]: any }): string {
-  const encode = (v: any) =>
+  const encode = (v: any): string =>
     encodeURIComponent(typeof v === "boolean" ? String(v) : v);
-  const stripUndefined = (o: { [key: string]: any }) =>
-    JSON.parse(JSON.stringify(o));
-  const stripped = stripUndefined(obj);
+  const stripped = cleanUndefinedProperties(obj);
   return Object.keys(stripped)
     .map(k => {
       const ks = encode(k) + "=";
