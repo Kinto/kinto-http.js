@@ -806,7 +806,9 @@ describe("Integration tests", function() {
         it("should set bucket permissions", () => {
           return bucket.setPermissions({ read: ["github:n1k0"] }).then(res => {
             expect((res as KintoResponse).data.a).eql(1);
-            expect((res as KintoResponse).permissions.read).eql(["github:n1k0"]);
+            expect((res as KintoResponse).permissions.read).eql([
+              "github:n1k0",
+            ]);
           });
         });
 
@@ -879,7 +881,7 @@ describe("Integration tests", function() {
 
         it("should order entries by field", () => {
           return bucket
-            .listHistory({ sort: "date" })
+            .listHistory({ sort: "last_modified" })
             .then(({ data }) => data.map(entry => entry.target.data.id))
             .should.eventually.become([
               "custom",
@@ -1123,7 +1125,8 @@ describe("Integration tests", function() {
               .then(res =>
                 bucket.deleteCollection("posts", {
                   safe: true,
-                  last_modified: (res as KintoResponse).data.last_modified - 1000,
+                  last_modified:
+                    (res as KintoResponse).data.last_modified - 1000,
                 })
               )
               .should.be.rejectedWith(Error, /412 Precondition Failed/);
@@ -1519,7 +1522,9 @@ describe("Integration tests", function() {
                 .removePermissions({ read: ["github:n1k0"] })
                 .then(res => {
                   expect((res as KintoResponse).data.a).eql(1);
-                  expect((res as KintoResponse).permissions.read).eql(undefined);
+                  expect((res as KintoResponse).permissions.read).eql(
+                    undefined
+                  );
                 });
             });
           });
@@ -1729,7 +1734,9 @@ describe("Integration tests", function() {
                   )
                   .then(
                     res =>
-                      (result = res as KintoResponse<{ attachment: Attachment }>)
+                      (result = res as KintoResponse<{
+                        attachment: Attachment;
+                      }>)
                   );
               });
 
