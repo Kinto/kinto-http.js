@@ -25,8 +25,7 @@
     "test-cover": "nyc --reporter=lcov --reporter=text-summary --report-dir=coverage npm run test-nocover",
     "test-cover-html": "nyc --reporter=html --report-dir=coverage npm run test-nocover && open coverage/index.html",
     "test-nocover": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"module\\\":\\\"commonjs\\\",\\\"sourceMap\\\":true}\" mocha -r ts-node/register --require source-map-support/register --full-trace --bail --require ./test/setup-jsdom.js \"test/**/*_test.{js,ts}\"",
-    "lint": "eslint \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\"",
-    "ts": "ts-node --skip-project bin/dist-fx.ts"
+    "lint": "eslint \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\""
   },
   "repository": {
     "type": "git",
