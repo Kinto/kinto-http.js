@@ -677,8 +677,8 @@ export default class KintoClientBase {
     };
 
     const handleResponse = async function ({
-      headers,
-      json,
+      headers = new Headers(),
+      json = {} as DataResponse<T[]>,
     }: HttpResponse<DataResponse<T[]>>): Promise<PaginationResult<T>> {
       const nextPage = headers.get("Next-Page");
       const etag = headers.get("ETag");
@@ -705,13 +705,14 @@ export default class KintoClientBase {
         {
           headers: options.headers ? options.headers : {},
           path: path + "?" + querystring,
-        method: options.method,
-      },
-      // N.B. This doesn't use _getRetry, because all calls to
-      // `paginatedList` are assumed to come from calls that already
-      // used `_getRetry` at e.g. the bucket or collection level.
-      { raw: true, retry: options.retry || 0 }
-    )) as HttpResponse<DataResponse<T[]>>);
+          method: options.method,
+        },
+        // N.B. This doesn't use _getRetry, because all calls to
+        // `paginatedList` are assumed to come from calls that already
+        // used `_getRetry` at e.g. the bucket or collection level.
+        { raw: true, retry: options.retry || 0 }
+      )) as HttpResponse<DataResponse<T[]>>
+    );
   }
 
   /**
@@ -786,14 +787,26 @@ export default class KintoClientBase {
    *     Number of times to retry each request if the server responds
    *     with Retry-After.
    */
-  async paginatedDelete<T>(
+  paginatedDelete<T>(
     path: string,
     params: PaginatedParams = {},
-    options: { headers?: Record<string, string>; retry?: number } = {}
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+      safe?: boolean;
+      last_modified?: number;
+    } = {}
   ): Promise<PaginationResult<T>> {
+    const { headers, safe, last_modified } = options;
+    const deleteRequest = requests.deleteRequest(path, {
+      headers,
+      safe: safe ? safe : false,
+      last_modified,
+    });
     return this.paginatedOperation(path, params, {
       ...options,
-      method: 'DELETE',
+      headers: deleteRequest.headers as Record<string, string>,
+      method: "DELETE",
     });
   }
 
@@ -930,33 +943,39 @@ export default class KintoClientBase {
   }
 
   /**
-   * Deletes all buckets on the server.
+   * Deletes buckets.
    *
-   * @ignore
-   * @param  {Object}  [options={}]            The options object.
+   * @param  {Object} [options={}]             The options object.
    * @param  {Boolean} [options.safe]          The safe option.
-   * @param  {Object}  [options.headers]       The headers object option.
+   * @param  {Object} [options.headers={}]     Headers to use when making
+   *     this request.
+   * @param  {Number} [options.retry=0]        Number of retries to make
+   *     when faced with transient errors.
+   * @param  {Object} [options.filters={}]     The filters object.
+   * @param  {Array}  [options.fields]         Limit response to
+   *     just some fields.
    * @param  {Number}  [options.last_modified] The last_modified option.
-   * @return {Promise<Object, Error>}
+   * @return {Promise<Object[], Error>}
    */
   @support("1.4", "2.0")
   async deleteBuckets(
-    options: {
+    options: PaginatedParams & {
       safe?: boolean;
-      headers?: Record<string, string>;
       retry?: number;
+      headers?: Record<string, string>;
+      filters?: Record<string, string | number>;
+      fields?: string[];
+      since?: string;
       last_modified?: number;
     } = {}
-  ): Promise<KintoResponse<{ deleted: boolean }>> {
+  ): Promise<PaginationResult<KintoObject>> {
     const path = endpoints.bucket();
-    return this.execute<KintoResponse<{ deleted: boolean }>>(
-      requests.deleteRequest(path, {
-        last_modified: options.last_modified,
-        headers: this._getHeaders(options),
-        safe: this._getSafe(options),
-      }),
-      { retry: this._getRetry(options) }
-    ) as Promise<KintoResponse<{ deleted: boolean }>>;
+    return this.paginatedDelete<KintoObject>(path, options, {
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+      safe: options.safe,
+      last_modified: options.last_modified,
+    });
   }
 
   @capable(["accounts"])
