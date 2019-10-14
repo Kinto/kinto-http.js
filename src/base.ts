@@ -28,6 +28,7 @@ import {
   ServerCapability,
   User,
   Emitter,
+  HttpMethod,
 } from "./types";
 import Collection from "./collection";
 
@@ -48,7 +49,7 @@ export interface KintoClientOptions {
   batch?: boolean;
 }
 
-export interface PaginatedListParams {
+export interface PaginatedParams {
   sort?: string;
   filters?: Record<string, string | number>;
   limit?: number;
@@ -574,10 +575,11 @@ export default class KintoClientBase {
   }
 
   /**
-   * Fetch some pages from a paginated list, following the `next-page`
-   * header automatically until we have fetched the requested number
-   * of pages. Return a response with a `.next()` method that can be
-   * called to fetch more results.
+   * Perform an operation with a given HTTP method on some pages from
+   * a paginated list, following the `next-page` header automatically
+   * until we have processed the requested number of pages. Return a
+   * response with a `.next()` method that can be called to perform
+   * the requested HTTP method on more results.
    *
    * @private
    * @param  {String}  path
@@ -585,16 +587,16 @@ export default class KintoClientBase {
    * @param  {Object}  params
    *     The parameters to use when making the request.
    * @param  {String}  [params.sort="-last_modified"]
-   *     The sorting order to use when fetching.
+   *     The sorting order to use when doing operation on pages.
    * @param  {Object}  [params.filters={}]
    *     The filters to send in the request.
    * @param  {Number}  [params.limit=undefined]
    *     The limit to send in the request. Undefined means no limit.
    * @param  {Number}  [params.pages=undefined]
-   *     The number of pages to fetch. Undefined means one page. Pass
-   *     Infinity to fetch everything.
+   *     The number of pages to operate on. Undefined means one page. Pass
+   *     Infinity to operate on everything.
    * @param  {String}  [params.since=undefined]
-   *     The ETag from which to start fetching.
+   *     The ETag from which to start doing operation on pages.
    * @param  {Array}   [params.fields]
    *     Limit response to just some fields.
    * @param  {Object}  [options={}]
@@ -605,10 +607,14 @@ export default class KintoClientBase {
    *     Number of times to retry each request if the server responds
    *     with Retry-After.
    */
-  async paginatedList<T>(
+  async paginatedOperation<T>(
     path: string,
-    params: PaginatedListParams = {},
-    options: { headers?: Record<string, string>; retry?: number } = {}
+    params: PaginatedParams = {},
+    options: {
+      headers?: Record<string, string>;
+      retry?: number;
+      method?: HttpMethod;
+    } = {}
   ): Promise<PaginationResult<T>> {
     // FIXME: this is called even in batch requests, which doesn't
     // make any sense (since all batch requests get a "dummy"
@@ -699,13 +705,96 @@ export default class KintoClientBase {
         {
           headers: options.headers ? options.headers : {},
           path: path + "?" + querystring,
-        },
-        // N.B. This doesn't use _getRetry, because all calls to
-        // `paginatedList` are assumed to come from calls that already
-        // used `_getRetry` at e.g. the bucket or collection level.
-        { raw: true, retry: options.retry || 0 }
-      )) as HttpResponse<DataResponse<T[]>>
-    );
+        method: options.method,
+      },
+      // N.B. This doesn't use _getRetry, because all calls to
+      // `paginatedList` are assumed to come from calls that already
+      // used `_getRetry` at e.g. the bucket or collection level.
+      { raw: true, retry: options.retry || 0 }
+    )) as HttpResponse<DataResponse<T[]>>);
+  }
+
+  /**
+   * Fetch some pages from a paginated list, following the `next-page`
+   * header automatically until we have fetched the requested number
+   * of pages. Return a response with a `.next()` method that can be
+   * called to fetch more results.
+   *
+   * @private
+   * @param  {String}  path
+   *     The path to make the request to.
+   * @param  {Object}  params
+   *     The parameters to use when making the request.
+   * @param  {String}  [params.sort="-last_modified"]
+   *     The sorting order to use when fetching.
+   * @param  {Object}  [params.filters={}]
+   *     The filters to send in the request.
+   * @param  {Number}  [params.limit=undefined]
+   *     The limit to send in the request. Undefined means no limit.
+   * @param  {Number}  [params.pages=undefined]
+   *     The number of pages to fetch. Undefined means one page. Pass
+   *     Infinity to fetch everything.
+   * @param  {String}  [params.since=undefined]
+   *     The ETag from which to start fetching.
+   * @param  {Array}   [params.fields]
+   *     Limit response to just some fields.
+   * @param  {Object}  [options={}]
+   *     Additional request-level parameters to use in all requests.
+   * @param  {Object}  [options.headers={}]
+   *     Headers to use during all requests.
+   * @param  {Number}  [options.retry=0]
+   *     Number of times to retry each request if the server responds
+   *     with Retry-After.
+   */
+  async paginatedList<T>(
+    path: string,
+    params: PaginatedParams = {},
+    options: { headers?: Record<string, string>; retry?: number } = {}
+  ): Promise<PaginationResult<T>> {
+    return this.paginatedOperation(path, params, options);
+  }
+
+  /**
+   * Delete some pages from a paginated list, following the `next-page`
+   * header automatically until we have deleted the requested number
+   * of pages. Return a response with a `.next()` method that can be
+   * called to delete more results.
+   *
+   * @private
+   * @param  {String}  path
+   *     The path to make the request to.
+   * @param  {Object}  params
+   *     The parameters to use when making the request.
+   * @param  {String}  [params.sort="-last_modified"]
+   *     The sorting order to use when deleting.
+   * @param  {Object}  [params.filters={}]
+   *     The filters to send in the request.
+   * @param  {Number}  [params.limit=undefined]
+   *     The limit to send in the request. Undefined means no limit.
+   * @param  {Number}  [params.pages=undefined]
+   *     The number of pages to delete. Undefined means one page. Pass
+   *     Infinity to delete everything.
+   * @param  {String}  [params.since=undefined]
+   *     The ETag from which to start deleting.
+   * @param  {Array}   [params.fields]
+   *     Limit response to just some fields.
+   * @param  {Object}  [options={}]
+   *     Additional request-level parameters to use in all requests.
+   * @param  {Object}  [options.headers={}]
+   *     Headers to use during all requests.
+   * @param  {Number}  [options.retry=0]
+   *     Number of times to retry each request if the server responds
+   *     with Retry-After.
+   */
+  async paginatedDelete<T>(
+    path: string,
+    params: PaginatedParams = {},
+    options: { headers?: Record<string, string>; retry?: number } = {}
+  ): Promise<PaginationResult<T>> {
+    return this.paginatedOperation(path, params, {
+      ...options,
+      method: 'DELETE',
+    });
   }
 
   /**
@@ -720,7 +809,7 @@ export default class KintoClientBase {
    */
   @capable(["permissions_endpoint"])
   async listPermissions(
-    options: PaginatedListParams & {
+    options: PaginatedParams & {
       retry?: number;
       headers?: Record<string, string>;
     } = {}
@@ -749,7 +838,7 @@ export default class KintoClientBase {
    * @return {Promise<Object[], Error>}
    */
   async listBuckets(
-    options: PaginatedListParams & {
+    options: PaginatedParams & {
       retry?: number;
       headers?: Record<string, string>;
       filters?: Record<string, string | number>;

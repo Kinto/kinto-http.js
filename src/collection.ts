@@ -2,7 +2,7 @@ import { v4 as uuid } from "uuid";
 
 import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
-import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
+import KintoClientBase, { PaginatedParams, PaginationResult } from "./base";
 import Bucket from "./bucket";
 import {
   KintoRequest,
@@ -614,6 +614,55 @@ export default class Collection {
   }
 
   /**
+   * Deletes records from the current collection.
+   *
+   * Sorting is done by passing a `sort` string option:
+   *
+   * - The field to order the results by, prefixed with `-` for descending.
+   * Default: `-last_modified`.
+   *
+   * @see http://kinto.readthedocs.io/en/stable/api/1.x/sorting.html
+   *
+   * Filtering is done by passing a `filters` option object:
+   *
+   * - `{fieldname: "value"}`
+   * - `{min_fieldname: 4000}`
+   * - `{in_fieldname: "1,2,3"}`
+   * - `{not_fieldname: 0}`
+   * - `{exclude_fieldname: "0,1"}`
+   *
+   * @see http://kinto.readthedocs.io/en/stable/api/1.x/filtering.html
+   *
+   * Paginating is done by passing a `limit` option, then calling the `next()`
+   * method from the resolved result object to delete the next page, if any.
+   *
+   * @param  {Object}   [options={}]                    The options object.
+   * @param  {Object}   [options.headers]               The headers object option.
+   * @param  {Number}   [options.retry=0]               Number of retries to make
+   *     when faced with transient errors.
+   * @param  {Object}   [options.filters={}]            The filters object.
+   * @param  {String}   [options.sort="-last_modified"] The sort field.
+   * @param  {String}   [options.at]                    The timestamp to get a snapshot at.
+   * @param  {String}   [options.limit=null]            The limit field.
+   * @param  {String}   [options.pages=1]               The number of result pages to aggregate.
+   * @param  {Number}   [options.since=null]            Only retrieve records modified since the provided timestamp.
+   * @param  {Array}    [options.fields]                Limit response to just some fields.
+   * @return {Promise<Object, Error>}
+   */
+  async deleteRecords<T extends KintoObject>(
+    options: PaginatedParams & {
+      headers?: Record<string, string>;
+      retry?: number;
+    } = {}
+  ): Promise<PaginationResult<T>> {
+    const path = this._endpoints.record(this.bucket.name, this.name);
+    return this.client.paginatedDelete<T>(path, options, {
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+    });
+  }
+
+  /**
    * Retrieves a record from the current collection.
    *
    * @param  {String} id                The record id to retrieve.
@@ -683,7 +732,7 @@ export default class Collection {
    * @return {Promise<Object, Error>}
    */
   async listRecords<T extends KintoObject>(
-    options: PaginatedListParams & {
+    options: PaginatedParams & {
       headers?: Record<string, string>;
       retry?: number;
       at?: number;

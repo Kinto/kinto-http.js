@@ -1,7 +1,7 @@
 import { toDataBody, isObject, capable } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
-import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
+import KintoClientBase, { PaginatedParams, PaginationResult } from "./base";
 import {
   KintoRequest,
   KintoIdObject,
@@ -293,7 +293,7 @@ export default class Bucket {
    */
   @capable(["history"])
   async listHistory<T>(
-    options: PaginatedListParams & {
+    options: PaginatedParams & {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
@@ -318,7 +318,7 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   async listCollections(
-    options: PaginatedListParams & {
+    options: PaginatedParams & {
       filters?: Record<string, string | number>;
       headers?: Record<string, string>;
       retry?: number;
@@ -422,7 +422,7 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   async listGroups(
-    options: PaginatedListParams & {
+    options: PaginatedParams & {
       filters?: Record<string, string | number>;
       headers?: Record<string, string>;
       retry?: number;
