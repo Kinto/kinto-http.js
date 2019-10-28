@@ -637,6 +637,33 @@ export default class Bucket {
   }
 
   /**
+   * Deletes groups from the current bucket.
+   *
+   * @param  {Object} [options={}]          The options object.
+   * @param  {Object} [options.filters={}]  The filters object.
+   * @param  {Object} [options.headers]     The headers object option.
+   * @param  {Number} [options.retry=0]     Number of retries to make
+   *     when faced with transient errors.
+   * @param  {Array}  [options.fields]      Limit response to
+   *     just some fields.
+   * @return {Promise<Array<Object>, Error>}
+   */
+  async deleteGroups(
+    options: PaginatedParams & {
+      filters?: Record<string, string | number>;
+      headers?: Record<string, string>;
+      retry?: number;
+      fields?: string[];
+    } = {}
+  ): Promise<PaginationResult<KintoObject>> {
+    const path = this._endpoints.group(this.name);
+    return this.client.paginatedDelete<KintoObject>(path, options, {
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+    });
+  }
+
+  /**
    * Retrieves the list of permissions for this bucket.
    *
    * @param  {Object} [options={}]      The options object.
