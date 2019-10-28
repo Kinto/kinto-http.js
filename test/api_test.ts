@@ -1276,7 +1276,7 @@ describe("KintoClient", () => {
         executeStub,
         {
           method: "DELETE",
-          path: "/buckets",
+          path: "/buckets?_sort=-last_modified",
           headers: {},
         },
         { retry: 0 }
@@ -1297,7 +1297,7 @@ describe("KintoClient", () => {
         executeStub,
         {
           method: "DELETE",
-          path: "/buckets",
+          path: "/buckets?_sort=-last_modified",
           headers: {
             "If-Match": `"42"`,
           },
@@ -1314,11 +1314,40 @@ describe("KintoClient", () => {
         executeStub,
         {
           method: "DELETE",
-          path: "/buckets",
+          path: "/buckets?_sort=-last_modified",
           headers: {
             Foo: "Bar",
             Baz: "Qux",
           },
+        },
+        { retry: 0 }
+      );
+    });
+
+    it("should accept a timestamp option", async () => {
+      await api.deleteBuckets({ filters: { since: 42 } });
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets?since=42&_sort=-last_modified",
+          headers: {},
+        },
+        { retry: 0 }
+      );
+    });
+
+    it("should support filters and fields", async () => {
+      await api.deleteBuckets({
+        filters: { a: "b" },
+        fields: ["c", "d"],
+      });
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets?a=b&_sort=-last_modified&_fields=c,d",
+          headers: {},
         },
         { retry: 0 }
       );

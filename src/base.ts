@@ -963,9 +963,6 @@ export default class KintoClientBase {
       safe?: boolean;
       retry?: number;
       headers?: Record<string, string>;
-      filters?: Record<string, string | number>;
-      fields?: string[];
-      since?: string;
       last_modified?: number;
     } = {}
   ): Promise<PaginationResult<KintoObject>> {

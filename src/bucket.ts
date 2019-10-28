@@ -423,10 +423,8 @@ export default class Bucket {
    */
   async deleteCollections(
     options: PaginatedParams & {
-      filters?: Record<string, string | number>;
       headers?: Record<string, string>;
       retry?: number;
-      fields?: string[];
     } = {}
   ): Promise<PaginationResult<KintoObject>> {
     const path = this._endpoints.collection(this.name);
@@ -450,10 +448,8 @@ export default class Bucket {
    */
   async listGroups(
     options: PaginatedParams & {
-      filters?: Record<string, string | number>;
       headers?: Record<string, string>;
       retry?: number;
-      fields?: string[];
     } = {}
   ): Promise<PaginationResult<Group>> {
     const path = this._endpoints.group(this.name);
@@ -650,10 +646,8 @@ export default class Bucket {
    */
   async deleteGroups(
     options: PaginatedParams & {
-      filters?: Record<string, string | number>;
       headers?: Record<string, string>;
       retry?: number;
-      fields?: string[];
     } = {}
   ): Promise<PaginationResult<KintoObject>> {
     const path = this._endpoints.group(this.name);
