@@ -1,7 +1,7 @@
 import { toDataBody, isObject, capable, addEndpointOptions } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
-import endpoint from "./endpoint";
+import endpoint, { get as getEndpoint, BUCKET_ENDPOINTS } from "./endpoint";
 import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
 import {
   KintoRequest,
@@ -764,5 +764,19 @@ export default class Bucket {
       safe: this._getSafe(options),
       aggregate: !!options.aggregate,
     });
+  }
+
+  /**
+   * Retrieves a bucket server endpoint by its name.
+   * @param  {String}   name The endpoint name.
+   * @param  {Object} params The endpoint parameters.
+   *
+   * @return {String}
+   */
+  endpoint(
+    name: keyof typeof BUCKET_ENDPOINTS = "bucket",
+    ...args: string[]
+  ): String {
+    return getEndpoint(name)(this.name, ...args);
   }
 }

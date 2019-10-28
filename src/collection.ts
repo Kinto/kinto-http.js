@@ -2,7 +2,7 @@ import uuid from "uuid/v4";
 
 import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
-import endpoint from "./endpoint";
+import endpoint, { get as getEndpoint, COLLECTION_ENDPOINTS } from "./endpoint";
 import { addEndpointOptions } from "./utils";
 import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
 import Bucket from "./bucket";
@@ -792,5 +792,19 @@ export default class Collection {
       safe: this._getSafe(options),
       aggregate: !!options.aggregate,
     });
+  }
+
+  /**
+   * Retrieves a collection server endpoint by its name.
+   * @param  {String}   name The endpoint name.
+   * @param  {Object} params The endpoint parameters.
+   *
+   * @return {String}
+   */
+  endpoint(
+    name: keyof typeof COLLECTION_ENDPOINTS = "collection",
+    ...args: string[]
+  ): String {
+    return getEndpoint(name)(this.bucket.name, this.name, ...args);
   }
 }

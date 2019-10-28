@@ -1,3 +1,4 @@
+import { get as getEndpoint } from "./endpoint";
 import { KintoRequest } from "./types";
 
 interface ConflictRecord {
@@ -92,4 +93,13 @@ export function aggregate(
     }
     return acc;
   }, results);
+}
+
+/**
+ * Retrieves the server endpoint for batch.
+ *
+ * @return {String}
+ */
+export function endpoint(): String {
+  return getEndpoint("batch")();
 }
