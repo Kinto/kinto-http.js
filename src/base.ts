@@ -9,7 +9,7 @@ import {
   cleanUndefinedProperties,
 } from "./utils";
 import HTTP, { HttpResponse } from "./http";
-import endpoint, { get as getEndpoint } from "./endpoint";
+import endpoint from "./endpoint";
 import * as requests from "./requests";
 import { aggregate, AggregateResponse } from "./batch";
 import Bucket from "./bucket";
@@ -875,13 +875,11 @@ export default class KintoClientBase {
   }
 
   /**
-   * Retrieves a server endpoint by its name.
-   * @param  {String}   name The endpoint name.
-   * @param  {Object} params The endpoint parameters.
+   * Retrieves server endpoints.
    *
-   * @return {String}
+   * @return {Object}
    */
-  endpoint(name: keyof typeof endpoint = "root", ...args: string[]): String {
-    return getEndpoint(name)(...args);
+  get endpoint(): Record<string, Function> {
+    return endpoint;
   }
 }

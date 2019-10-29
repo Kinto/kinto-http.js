@@ -1,7 +1,7 @@
 import { toDataBody, isObject, capable, addEndpointOptions } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
-import endpoint, { get as getEndpoint, BUCKET_ENDPOINTS } from "./endpoint";
+import endpoint from "./endpoint";
 import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
 import {
   KintoRequest,
@@ -767,16 +767,21 @@ export default class Bucket {
   }
 
   /**
-   * Retrieves a bucket server endpoint by its name.
-   * @param  {String}   name The endpoint name.
-   * @param  {Object} params The endpoint parameters.
+   * Retrieves bucket server endpoints.
    *
-   * @return {String}
+   * @return {Object}
    */
-  endpoint(
-    name: keyof typeof BUCKET_ENDPOINTS = "bucket",
-    ...args: string[]
-  ): String {
-    return getEndpoint(name)(this.name, ...args);
+  get endpoint(): Record<string, Function> {
+    return {
+      toString: () => endpoint.bucket(this.name),
+      bucket: () => endpoint.bucket(this.name),
+      history: () => endpoint.history(this.name),
+      group: (group?: string) => endpoint.group(this.name, group),
+      collection: (coll?: string) => endpoint.collection(this.name, coll),
+      record: (coll: string, id?: string) =>
+        endpoint.record(this.name, coll, id),
+      attachment: (coll: string, id: string) =>
+        endpoint.attachment(this.name, coll, id),
+    };
   }
 }
