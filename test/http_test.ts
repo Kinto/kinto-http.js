@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { EventEmitter } from "events";
-import { fakeServerResponse } from "./test_utils";
+import { fakeServerResponse, Stub } from "./test_utils";
 import HTTP from "../src/http";
 import {
   NetworkTimeoutError,
@@ -283,8 +283,8 @@ describe("HTTP class", () => {
         message: "This service will soon be decommissioned",
       };
 
-      let consoleWarnStub: sinon.SinonStub;
-      let eventsEmitStub: sinon.SinonStub;
+      let consoleWarnStub: Stub<typeof console.warn>;
+      let eventsEmitStub: Stub<typeof events.emit>;
 
       beforeEach(() => {
         consoleWarnStub = sandbox.stub(console, "warn");
@@ -338,7 +338,7 @@ describe("HTTP class", () => {
     });
 
     describe("Backoff header handling", () => {
-      let eventsEmitStub: sinon.SinonStub;
+      let eventsEmitStub: Stub<typeof events.emit>;
       beforeEach(() => {
         // Make Date#getTime always returning 1000000, for predictability
         sandbox.stub(Date.prototype, "getTime").returns(1000 * 1000);
@@ -380,7 +380,7 @@ describe("HTTP class", () => {
     });
 
     describe("Retry-After header handling", () => {
-      let eventsEmitStub: sinon.SinonStub;
+      let eventsEmitStub: Stub<typeof events.emit>;
       describe("Event", () => {
         beforeEach(() => {
           // Make Date#getTime always returning 1000000, for predictability

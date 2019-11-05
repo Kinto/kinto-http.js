@@ -4,7 +4,7 @@ import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { EventEmitter } from "events";
-import { fakeServerResponse } from "./test_utils";
+import { fakeServerResponse, Spy, Stub } from "./test_utils";
 import KintoClient from "../src";
 import KintoClientBase, {
   SUPPORTED_PROTOCOL_VERSION as SPV,
@@ -728,7 +728,7 @@ describe("KintoClient", () => {
   describe("#paginatedList()", () => {
     const ETag = '"42"';
     const path = "/some/path";
-    let executeStub: sinon.SinonStub;
+    let executeStub: Stub<typeof api.execute>;
 
     describe("No pagination", () => {
       beforeEach(() => {
@@ -752,7 +752,7 @@ describe("KintoClient", () => {
 
         sinon.assert.calledWithMatch(
           executeStub,
-          { path: `${path}?_sort=-last_modified` },
+          { path: `${path}?_sort=-last_modified`, headers: {} },
           { raw: true }
         );
       });
@@ -762,7 +762,7 @@ describe("KintoClient", () => {
 
         sinon.assert.calledWithMatch(
           executeStub,
-          { path: `${path}?_sort=title` },
+          { path: `${path}?_sort=title`, headers: {} },
           { raw: true }
         );
       });
@@ -785,7 +785,10 @@ describe("KintoClient", () => {
         api.paginatedList(path, { since: ETag });
 
         const qs = "_sort=-last_modified&_since=%2242%22";
-        sinon.assert.calledWithMatch(executeStub, { path: `${path}?${qs}` });
+        sinon.assert.calledWithMatch(executeStub, {
+          path: `${path}?${qs}`,
+          headers: {},
+        });
       });
 
       it("should throw if the since option is invalid", () => {
@@ -816,12 +819,13 @@ describe("KintoClient", () => {
 
         sinon.assert.calledWithMatch(executeStub, {
           path: `${path}?_sort=-last_modified&_fields=c,d`,
+          headers: {},
         });
       });
     });
 
     describe("Filtering", () => {
-      let executeStub: sinon.SinonStub;
+      let executeStub: Stub<typeof api.execute>;
 
       beforeEach(() => {
         executeStub = sandbox.stub(api, "execute").returns(
@@ -838,7 +842,7 @@ describe("KintoClient", () => {
         const expectedQS = "min_y=2&not_z=3&_sort=x";
         sinon.assert.calledWithMatch(
           executeStub,
-          { path: `${path}?${expectedQS}` },
+          { path: `${path}?${expectedQS}`, headers: {} },
           { raw: true }
         );
       });
@@ -849,7 +853,7 @@ describe("KintoClient", () => {
         const expectedQS = "min_y=2&not_z=3&_sort=-last_modified";
         sinon.assert.calledWithMatch(
           executeStub,
-          { path: `${path}?${expectedQS}` },
+          { path: `${path}?${expectedQS}`, headers: {} },
           { raw: true }
         );
       });
@@ -857,7 +861,7 @@ describe("KintoClient", () => {
 
     describe("Pagination", () => {
       let headersgetSpy: sinon.SinonStub;
-      let executeStub: sinon.SinonStub;
+      let executeStub: Stub<typeof api.execute>;
 
       it("should issue a request with the specified limit applied", () => {
         executeStub = sandbox.stub(api, "execute").returns(
@@ -872,7 +876,7 @@ describe("KintoClient", () => {
         const expectedQS = "_sort=-last_modified&_limit=2";
         sinon.assert.calledWithMatch(
           executeStub,
-          { path: `${path}?${expectedQS}` },
+          { path: `${path}?${expectedQS}`, headers: {} },
           { raw: true }
         );
       });
@@ -972,7 +976,7 @@ describe("KintoClient", () => {
       hasNextPage: false,
       totalRecords: 2,
     };
-    let executeSpy: sinon.SinonSpy;
+    let executeSpy: Spy<typeof api.execute>;
 
     describe("Capability available", () => {
       beforeEach(() => {
@@ -1053,7 +1057,7 @@ describe("KintoClient", () => {
       hasNextPage: false,
       totalRecords: 2,
     };
-    let paginatedListStub: sinon.SinonStub;
+    let paginatedListStub: Stub<typeof api.paginatedList>;
 
     beforeEach(() => {
       paginatedListStub = sandbox
@@ -1103,7 +1107,7 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#createBucket} */
   describe("#createBucket", () => {
-    let createRequestStub: sinon.SinonStub;
+    let createRequestStub: Stub<typeof requests.createRequest>;
 
     beforeEach(() => {
       createRequestStub = sandbox.stub(requests, "createRequest");
@@ -1159,7 +1163,7 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#deleteBucket} */
   describe("#deleteBucket()", () => {
-    let deleteRequestStub: sinon.SinonStub;
+    let deleteRequestStub: Stub<typeof requests.deleteRequest>;
 
     beforeEach(() => {
       deleteRequestStub = sandbox.stub(requests, "deleteRequest");
@@ -1205,7 +1209,7 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#deleteBuckets} */
   describe("#deleteBuckets()", () => {
-    let deleteRequestStub: sinon.SinonStub;
+    let deleteRequestStub: Stub<typeof requests.deleteRequest>;
 
     beforeEach(() => {
       api.serverInfo = {

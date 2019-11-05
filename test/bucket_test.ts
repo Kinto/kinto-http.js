@@ -8,6 +8,7 @@ import Bucket, { BucketOptions } from "../src/bucket";
 import Collection from "../src/collection";
 import * as requests from "../src/requests";
 import { PaginationResult } from "../src/base";
+import { Stub } from "./test_utils";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -81,7 +82,7 @@ describe("Bucket", () => {
   });
 
   describe("#setData()", () => {
-    let updateRequestStub: sinon.SinonStub;
+    let updateRequestStub: Stub<typeof requests.updateRequest>;
 
     beforeEach(() => {
       updateRequestStub = sandbox.stub(requests, "updateRequest");
@@ -198,7 +199,7 @@ describe("Bucket", () => {
       hasNextPage: false,
       totalRecords: 2,
     };
-    let paginatedListStub: sinon.SinonStub;
+    let paginatedListStub: Stub<typeof client.paginatedList>;
 
     beforeEach(() => {
       paginatedListStub = sandbox
@@ -252,7 +253,7 @@ describe("Bucket", () => {
 
   /** @test {Bucket#createCollection} */
   describe("#createCollection()", () => {
-    let createRequestStub: sinon.SinonStub;
+    let createRequestStub: Stub<typeof requests.createRequest>;
     beforeEach(() => {
       createRequestStub = sandbox.stub(requests, "createRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
@@ -339,7 +340,7 @@ describe("Bucket", () => {
 
   /** @test {Bucket#deleteCollection} */
   describe("#deleteCollection", () => {
-    let deleteRequestStub: sinon.SinonStub;
+    let deleteRequestStub: Stub<typeof requests.deleteRequest>;
     beforeEach(() => {
       deleteRequestStub = sandbox.stub(requests, "deleteRequest");
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
@@ -459,7 +460,7 @@ describe("Bucket", () => {
       hasNextPage: false,
       totalRecords: 2,
     };
-    let paginatedListStub: sinon.SinonStub;
+    let paginatedListStub: Stub<typeof client.paginatedList>;
 
     beforeEach(() => {
       paginatedListStub = sandbox
@@ -510,7 +511,7 @@ describe("Bucket", () => {
   /** @test {Bucket#getGroup} */
   describe("#getGroup", () => {
     const fakeGroup = { data: {}, permissions: {} };
-    let executeStub: sinon.SinonStub;
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
       executeStub = sandbox
@@ -543,13 +544,14 @@ describe("Bucket", () => {
 
       sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog/groups/foo?a=b&_fields=c,d",
+        headers: {},
       });
     });
   });
 
   /** @test {Bucket#createGroup} */
   describe("#createGroup", () => {
-    let createRequestStub: sinon.SinonStub;
+    let createRequestStub: Stub<typeof requests.createRequest>;
 
     beforeEach(() => {
       createRequestStub = sandbox.stub(requests, "createRequest");
@@ -612,7 +614,7 @@ describe("Bucket", () => {
 
   /** @test {Bucket#updateGroup} */
   describe("#updateGroup", () => {
-    let updateRequestStub: sinon.SinonStub;
+    let updateRequestStub: Stub<typeof requests.updateRequest>;
 
     beforeEach(() => {
       updateRequestStub = sandbox.stub(requests, "updateRequest");
@@ -689,7 +691,7 @@ describe("Bucket", () => {
 
   /** @test {Bucket#updateGroup} */
   describe("#deleteGroup", () => {
-    let deleteRequestStub: sinon.SinonStub;
+    let deleteRequestStub: Stub<typeof requests.deleteRequest>;
 
     beforeEach(() => {
       deleteRequestStub = sandbox.stub(requests, "deleteRequest");
@@ -765,7 +767,7 @@ describe("Bucket", () => {
 
   /** @test {Bucket#getPermissions} */
   describe("#getPermissions()", () => {
-    let executeStub: sinon.SinonStub;
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
       executeStub = sandbox.stub(client, "execute").returns(
@@ -796,7 +798,7 @@ describe("Bucket", () => {
   /** @test {Bucket#setPermissions} */
   describe("#setPermissions()", () => {
     const fakePermissions = { read: [], write: [] };
-    let updateRequestStub: sinon.SinonStub;
+    let updateRequestStub: Stub<typeof requests.updateRequest>;
 
     beforeEach(() => {
       updateRequestStub = sandbox.stub(requests, "updateRequest");
@@ -853,7 +855,9 @@ describe("Bucket", () => {
   /** @test {Bucket#addPermissions} */
   describe("#addPermissions()", () => {
     const fakePermissions = { read: [], write: [] };
-    let jsonPatchPermissionsRequestStub: sinon.SinonStub;
+    let jsonPatchPermissionsRequestStub: Stub<
+      typeof requests.jsonPatchPermissionsRequest
+    >;
 
     beforeEach(() => {
       jsonPatchPermissionsRequestStub = sandbox.stub(
@@ -897,7 +901,9 @@ describe("Bucket", () => {
   /** @test {Bucket#removePermissions} */
   describe("#removePermissions()", () => {
     const fakePermissions = { read: [], write: [] };
-    let jsonPatchPermissionsRequestStub: sinon.SinonStub;
+    let jsonPatchPermissionsRequestStub: Stub<
+      typeof requests.jsonPatchPermissionsRequest
+    >;
 
     beforeEach(() => {
       jsonPatchPermissionsRequestStub = sandbox.stub(

@@ -9,7 +9,7 @@ import Api from "../src";
 import KintoClientBase, { KintoClientOptions } from "../src/base";
 import { EventEmitter } from "events";
 import KintoServer from "kinto-node-test-server";
-import { delayedPromise } from "./test_utils";
+import { delayedPromise, Stub } from "./test_utils";
 import Bucket from "../src/bucket";
 import Collection from "../src/collection";
 import {
@@ -615,7 +615,7 @@ describe("Integration tests", function() {
     beforeEach(() => server.flush());
 
     describe("Soft EOL", () => {
-      let consoleWarnStub: sinon.SinonStub;
+      let consoleWarnStub: Stub<typeof console.warn>;
 
       before(() => {
         const tomorrow = new Date(new Date().getTime() + 86400000)

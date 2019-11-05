@@ -7,7 +7,7 @@ import KintoClient from "../src";
 import Bucket from "../src/bucket";
 import Collection, { CollectionOptions } from "../src/collection";
 import * as requests from "../src/requests";
-import { fakeServerResponse } from "./test_utils";
+import { fakeServerResponse, Stub } from "./test_utils";
 import { PaginationResult } from "../src/base";
 
 chai.use(chaiAsPromised);
@@ -142,7 +142,7 @@ describe("Collection", () => {
   /** @test {Collection#setPermissions} */
   describe("#setPermissions()", () => {
     const fakePermissions = { read: [], write: [] };
-    let updateRequestStub: sinon.SinonStub;
+    let updateRequestStub: Stub<typeof requests.updateRequest>;
 
     beforeEach(() => {
       updateRequestStub = sandbox.stub(requests, "updateRequest");
@@ -179,7 +179,9 @@ describe("Collection", () => {
   /** @test {Collection#addPermissions} */
   describe("#addPermissions()", () => {
     const fakePermissions = { read: [], write: [] };
-    let jsonPatchPermissionsRequestStub: sinon.SinonStub;
+    let jsonPatchPermissionsRequestStub: Stub<
+      typeof requests.jsonPatchPermissionsRequest
+    >;
 
     beforeEach(() => {
       jsonPatchPermissionsRequestStub = sandbox.stub(
@@ -221,7 +223,7 @@ describe("Collection", () => {
   /** @test {Collection#removePermissions} */
   describe("#removePermissions()", () => {
     const fakePermissions = { read: [], write: [] };
-    let updateRequestStub: sinon.SinonStub;
+    let updateRequestStub: Stub<typeof requests.updateRequest>;
 
     beforeEach(() => {
       updateRequestStub = sandbox.stub(requests, "updateRequest");
@@ -270,7 +272,7 @@ describe("Collection", () => {
 
   /** @test {Collection#setData} */
   describe("#setData()", () => {
-    let updateRequestStub: sinon.SinonStub;
+    let updateRequestStub: Stub<typeof requests.updateRequest>;
 
     beforeEach(() => {
       updateRequestStub = sandbox.stub(requests, "updateRequest");
@@ -320,7 +322,7 @@ describe("Collection", () => {
   /** @test {Collection#createRecord} */
   describe("#createRecord()", () => {
     const record = { title: "foo" };
-    let executeStub: sinon.SinonStub;
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
       executeStub = sandbox
@@ -358,6 +360,7 @@ describe("Collection", () => {
       return coll.createRecord(record).then(() => {
         sinon.assert.calledWithMatch(executeStub, {
           path: "/buckets/blog/collections/posts/records",
+          headers: {},
         });
       });
     });
@@ -438,7 +441,7 @@ describe("Collection", () => {
 
   /** @test {Collection#deleteRecord} */
   describe("#deleteRecord()", () => {
-    let deleteRequestStub: sinon.SinonStub;
+    let deleteRequestStub: Stub<typeof requests.deleteRequest>;
 
     beforeEach(() => {
       deleteRequestStub = sandbox.stub(requests, "deleteRequest");
@@ -494,7 +497,7 @@ describe("Collection", () => {
 
   /** @test {Collection#getRecord} */
   describe("#getRecord()", () => {
-    let executeStub: sinon.SinonStub;
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
       executeStub = sandbox
@@ -576,7 +579,7 @@ describe("Collection", () => {
       hasNextPage: false,
       totalRecords: 2,
     };
-    let paginatedListStub: sinon.SinonStub;
+    let paginatedListStub: Stub<typeof coll.client.paginatedList>;
 
     beforeEach(() => {
       paginatedListStub = sandbox
