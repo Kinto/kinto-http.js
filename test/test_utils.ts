@@ -1,4 +1,4 @@
-"use strict";
+import sinon from "sinon";
 
 export function fakeServerResponse(
   status: number,
@@ -26,3 +26,13 @@ export function delayedPromise(ms: number) {
     setTimeout(() => resolve(), ms);
   });
 }
+
+export type Stub<T extends (...args: any[]) => any> = sinon.SinonStub<
+  Parameters<T>,
+  ReturnType<T>
+>;
+
+export type Spy<T extends (...args: any[]) => any> = sinon.SinonSpy<
+  Parameters<T>,
+  ReturnType<T>
+>;
