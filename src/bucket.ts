@@ -522,10 +522,10 @@ export default class Bucket {
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async updateGroup(
+  async updateGroup<T extends MappableObject>(
     group: KintoIdObject,
     options: {
-      data?: { last_modified?: number; [key: string]: any };
+      data?: T & { members?: string[] };
       permissions?: { [key in Permission]?: string[] };
       safe?: boolean;
       headers?: Record<string, string>;
@@ -533,7 +533,7 @@ export default class Bucket {
       last_modified?: number;
       patch?: boolean;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<T & { members: string[] }>> {
     if (!isObject(group)) {
       throw new Error("A group object is required.");
     }
@@ -557,7 +557,12 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<T & { members: string[] }>>(
+      request,
+      {
+        retry: this._getRetry(options),
+      }
+    ) as Promise<KintoResponse<T & { members: string[] }>>;
   }
 
   /**
