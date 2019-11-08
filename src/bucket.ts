@@ -346,7 +346,7 @@ export default class Bucket {
       permissions?: { [key in Permission]?: string[] };
       data?: any;
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<{}>> {
     const { permissions, data = {} } = options;
     data.id = id;
     const path = endpoint.collection(this.name, id);
@@ -358,9 +358,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<{}>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
