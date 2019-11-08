@@ -852,16 +852,16 @@ export default class KintoClientBase {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{ deleted: boolean }>> {
     const path = endpoint.bucket();
-    return this.execute(
+    return this.execute<KintoResponse<{ deleted: boolean }>>(
       requests.deleteRequest(path, {
         last_modified: options.last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }),
       { retry: this._getRetry(options) }
-    );
+    ) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   @capable(["accounts"])
