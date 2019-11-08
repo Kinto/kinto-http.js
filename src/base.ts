@@ -817,21 +817,21 @@ export default class KintoClientBase {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{ deleted: boolean }>> {
     const bucketObj = toDataBody(bucket);
     if (!bucketObj.id) {
       throw new Error("A bucket id is required.");
     }
     const path = endpoint.bucket(bucketObj.id);
     const { last_modified } = { ...bucketObj, ...options };
-    return this.execute(
+    return this.execute<KintoResponse<{ deleted: boolean }>>(
       requests.deleteRequest(path, {
         last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }),
       { retry: this._getRetry(options) }
-    );
+    ) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   /**
