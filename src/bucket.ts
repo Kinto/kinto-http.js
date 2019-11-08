@@ -585,7 +585,7 @@ export default class Bucket {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{ deleted: boolean }>> {
     const groupObj = toDataBody(group);
     const { id } = groupObj;
     const { last_modified } = { ...groupObj, ...options };
@@ -595,7 +595,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   /**
