@@ -865,13 +865,16 @@ export default class KintoClientBase {
   }
 
   @capable(["accounts"])
-  async createAccount(username: string, password: string): Promise<unknown> {
-    return this.execute(
+  async createAccount(
+    username: string,
+    password: string
+  ): Promise<KintoResponse<{ password: string }>> {
+    return this.execute<KintoResponse<{ password: string }>>(
       requests.createRequest(
         `/accounts/${username}`,
         { data: { password } },
         { method: "PUT" }
       )
-    );
+    ) as Promise<KintoResponse<{ password: string }>>;
   }
 }
