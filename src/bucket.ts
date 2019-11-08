@@ -181,7 +181,7 @@ export default class Bucket {
     const { headers } = (await this.client.execute(request, {
       raw: true,
       retry: this._getRetry(options),
-    })) as HttpResponse<unknown>;
+    })) as HttpResponse<{}>;
     return headers.get("ETag");
   }
 
