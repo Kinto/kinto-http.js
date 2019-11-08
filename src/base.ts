@@ -767,25 +767,26 @@ export default class KintoClientBase {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async createBucket(
+  async createBucket<T extends MappableObject>(
     id: string | null,
     options: {
-      data?: MappableObject & { id?: string };
+      data?: T & { id?: string };
       permissions?: Partial<Record<Permission, string[]>>;
       safe?: boolean;
       headers?: Record<string, string>;
       retry?: number;
     } = {}
-  ): Promise<KintoResponse<unknown> | HttpResponse<KintoResponse<unknown>>> {
-    const { data = {}, permissions } = options;
-    if (id != null) {
-      data.id = id;
-    }
-    const path = data.id ? endpoint.bucket(data.id) : endpoint.bucket();
-    return this.execute<KintoResponse>(
+  ): Promise<
+    | KintoResponse<T & { id: string }>
+    | HttpResponse<KintoResponse<T & { id: string }>>
+  > {
+    const { data, permissions } = options;
+    const _data = { ...data, id: id ? id : undefined };
+    const path = _data.id ? endpoint.bucket(_data.id) : endpoint.bucket();
+    return this.execute<KintoResponse<T & { id: string }>>(
       requests.createRequest(
         path,
-        { data, permissions },
+        { data: _data, permissions },
         {
           headers: this._getHeaders(options),
           safe: this._getSafe(options),
