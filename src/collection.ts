@@ -530,8 +530,8 @@ export default class Collection {
    * @param  {Object}  [options.permissions]   The permissions option.
    * @return {Promise<Object, Error>}
    */
-  async updateRecord(
-    record: KintoIdObject,
+  async updateRecord<T>(
+    record: T & { id: string },
     options: {
       headers?: Record<string, string>;
       retry?: number;
@@ -540,7 +540,7 @@ export default class Collection {
       permissions?: { [key in Permission]?: string[] };
       patch?: boolean;
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<T>> {
     if (!isObject(record)) {
       throw new Error("A record object is required.");
     }
@@ -560,9 +560,9 @@ export default class Collection {
         patch: !!options.patch,
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<T>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
