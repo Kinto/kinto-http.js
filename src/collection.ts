@@ -585,7 +585,7 @@ export default class Collection {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<{ deleted: boolean }>> {
     const recordObj = toDataBody(record);
     if (!recordObj.id) {
       throw new Error("A record id is required.");
@@ -598,9 +598,9 @@ export default class Collection {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   /**
