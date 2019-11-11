@@ -329,7 +329,7 @@ export default class Collection {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{}>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -345,7 +345,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -368,7 +370,7 @@ export default class Collection {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{}>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -384,7 +386,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
