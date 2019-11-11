@@ -463,7 +463,10 @@ describe("KintoClient", () => {
     });
 
     describe("server response", () => {
-      const fixtures = [{ id: "1", title: "art1" }, { id: "2", title: "art2" }];
+      const fixtures = [
+        { id: "1", title: "art1" },
+        { id: "2", title: "art2" },
+      ];
 
       it("should reject on HTTP 400", () => {
         sandbox.stub(global as any, "fetch").returns(
@@ -969,9 +972,11 @@ describe("KintoClient", () => {
       last_modified: "",
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
-        return Promise.resolve(({} as unknown) as PaginationResult<{
-          id: string;
-        }>);
+        return Promise.resolve(
+          ({} as unknown) as PaginationResult<{
+            id: string;
+          }>
+        );
       },
       hasNextPage: false,
       totalRecords: 2,
@@ -1050,9 +1055,11 @@ describe("KintoClient", () => {
       last_modified: "",
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
-        return Promise.resolve(({} as unknown) as PaginationResult<{
-          id: string;
-        }>);
+        return Promise.resolve(
+          ({} as unknown) as PaginationResult<{
+            id: string;
+          }>
+        );
       },
       hasNextPage: false,
       totalRecords: 2,

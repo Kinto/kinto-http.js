@@ -25,7 +25,10 @@ describe("Utils", () => {
     it("should chunk array", () => {
       expect(partition([1, 2, 3], 2)).eql([[1, 2], [3]]);
       expect(partition([1, 2, 3], 1)).eql([[1], [2], [3]]);
-      expect(partition([1, 2, 3, 4, 5], 3)).eql([[1, 2, 3], [4, 5]]);
+      expect(partition([1, 2, 3, 4, 5], 3)).eql([
+        [1, 2, 3],
+        [4, 5],
+      ]);
       expect(partition([1, 2], 2)).eql([[1, 2]]);
     });
 
