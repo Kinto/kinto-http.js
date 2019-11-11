@@ -403,15 +403,15 @@ export default class Collection {
    * @param  {Object}  [options.permissions] The permissions option.
    * @return {Promise<Object, Error>}
    */
-  async createRecord(
-    record: { id?: string; [key: string]: any },
+  async createRecord<T extends MappableObject>(
+    record: T & { id?: string },
     options: {
       headers?: Record<string, string>;
       retry?: number;
       safe?: boolean;
       permissions?: { [key in Permission]?: string[] };
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<T>> {
     const { permissions } = options;
     const path = endpoint.record(this.bucket.name, this.name, record.id);
     const request = requests.createRequest(
@@ -422,9 +422,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<T>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
