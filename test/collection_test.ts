@@ -179,9 +179,7 @@ describe("Collection", () => {
   /** @test {Collection#addPermissions} */
   describe("#addPermissions()", () => {
     const fakePermissions = { read: [], write: [] };
-    let jsonPatchPermissionsRequestStub: Stub<
-      typeof requests.jsonPatchPermissionsRequest
-    >;
+    let jsonPatchPermissionsRequestStub: Stub<typeof requests.jsonPatchPermissionsRequest>;
 
     beforeEach(() => {
       jsonPatchPermissionsRequestStub = sandbox.stub(
@@ -572,9 +570,11 @@ describe("Collection", () => {
       last_modified: "",
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
-        return Promise.resolve(({} as unknown) as PaginationResult<{
-          id: string;
-        }>);
+        return Promise.resolve(
+          ({} as unknown) as PaginationResult<{
+            id: string;
+          }>
+        );
       },
       hasNextPage: false,
       totalRecords: 2,

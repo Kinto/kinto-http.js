@@ -684,19 +684,21 @@ export default class KintoClientBase {
       return processNextPage(nextPage);
     };
 
-    return handleResponse((await this.execute(
-      // N.B.: This doesn't use _getHeaders, because all calls to
-      // `paginatedList` are assumed to come from calls that already
-      // have headers merged at e.g. the bucket or collection level.
-      {
-        headers: options.headers ? options.headers : {},
-        path: path + "?" + querystring,
-      },
-      // N.B. This doesn't use _getRetry, because all calls to
-      // `paginatedList` are assumed to come from calls that already
-      // used `_getRetry` at e.g. the bucket or collection level.
-      { raw: true, retry: options.retry || 0 }
-    )) as HttpResponse<DataResponse<T[]>>);
+    return handleResponse(
+      (await this.execute(
+        // N.B.: This doesn't use _getHeaders, because all calls to
+        // `paginatedList` are assumed to come from calls that already
+        // have headers merged at e.g. the bucket or collection level.
+        {
+          headers: options.headers ? options.headers : {},
+          path: path + "?" + querystring,
+        },
+        // N.B. This doesn't use _getRetry, because all calls to
+        // `paginatedList` are assumed to come from calls that already
+        // used `_getRetry` at e.g. the bucket or collection level.
+        { raw: true, retry: options.retry || 0 }
+      )) as HttpResponse<DataResponse<T[]>>
+    );
   }
 
   /**

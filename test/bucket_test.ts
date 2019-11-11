@@ -192,9 +192,11 @@ describe("Bucket", () => {
       last_modified: "",
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
-        return Promise.resolve(({} as unknown) as PaginationResult<{
-          id: string;
-        }>);
+        return Promise.resolve(
+          ({} as unknown) as PaginationResult<{
+            id: string;
+          }>
+        );
       },
       hasNextPage: false,
       totalRecords: 2,
@@ -453,9 +455,11 @@ describe("Bucket", () => {
       last_modified: "",
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
-        return Promise.resolve(({} as unknown) as PaginationResult<{
-          id: string;
-        }>);
+        return Promise.resolve(
+          ({} as unknown) as PaginationResult<{
+            id: string;
+          }>
+        );
       },
       hasNextPage: false,
       totalRecords: 2,
@@ -855,9 +859,7 @@ describe("Bucket", () => {
   /** @test {Bucket#addPermissions} */
   describe("#addPermissions()", () => {
     const fakePermissions = { read: [], write: [] };
-    let jsonPatchPermissionsRequestStub: Stub<
-      typeof requests.jsonPatchPermissionsRequest
-    >;
+    let jsonPatchPermissionsRequestStub: Stub<typeof requests.jsonPatchPermissionsRequest>;
 
     beforeEach(() => {
       jsonPatchPermissionsRequestStub = sandbox.stub(
@@ -901,9 +903,7 @@ describe("Bucket", () => {
   /** @test {Bucket#removePermissions} */
   describe("#removePermissions()", () => {
     const fakePermissions = { read: [], write: [] };
-    let jsonPatchPermissionsRequestStub: Stub<
-      typeof requests.jsonPatchPermissionsRequest
-    >;
+    let jsonPatchPermissionsRequestStub: Stub<typeof requests.jsonPatchPermissionsRequest>;
 
     beforeEach(() => {
       jsonPatchPermissionsRequestStub = sandbox.stub(
