@@ -15,6 +15,7 @@ import {
   Attachment,
   HistoryEntry,
   OperationResponse,
+  MappableObject,
 } from "./types";
 import { HttpResponse } from "./http";
 import { AggregateResponse } from "./batch";
@@ -213,8 +214,8 @@ export default class Collection {
    * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async setData(
-    data: { last_modified?: number; [key: string]: any },
+  async setData<T extends MappableObject>(
+    data: T & { last_modified?: number },
     options: {
       headers?: Record<string, string>;
       safe?: boolean;
@@ -223,7 +224,7 @@ export default class Collection {
       last_modified?: number;
       permissions?: { [key in Permission]?: string[] };
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<T>> {
     if (!isObject(data)) {
       throw new Error("A collection object is required.");
     }
@@ -241,9 +242,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<T>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
