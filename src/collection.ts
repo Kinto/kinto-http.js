@@ -504,7 +504,7 @@ export default class Collection {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<{}> {
     const { last_modified } = options;
     const path = endpoint.attachment(this.bucket.name, this.name, recordId);
     const request = requests.deleteRequest(path, {
@@ -512,7 +512,9 @@ export default class Collection {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<{}>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<{}>;
   }
 
   /**
