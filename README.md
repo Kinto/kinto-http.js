@@ -1,5 +1,6 @@
-kinto-http.js
-=============
+# kinto-http.js
+
+testing
 
 [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=Kinto/kinto-http.js)](https://dependabot.com)
 
@@ -11,75 +12,75 @@ Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.j
 
 ## Table of Contents
 
-  - [Requirements](#requirements)
-  - [Installation](#installation)
-  - [Changelog](#changelog)
-  - [Usage](#usage)
-  - [Authentication](#authentication)
-     - [Using Basic Auth](#using-basic-auth)
-     - [Using an OAuth Bearer Token](#using-an-oauth-bearer-token)
-     - [Change headers](#change-headers)
-  - [Server information](#server-information)
-  - [Buckets](#buckets)
-     - [Listing buckets](#listing-buckets)
-     - [Creating a new bucket](#creating-a-new-bucket)
-     - [Selecting a bucket](#selecting-a-bucket)
-     - [Getting bucket data](#getting-bucket-data)
-     - [Setting bucket data](#setting-bucket-data)
-     - [Getting bucket permissions](#getting-bucket-permissions)
-     - [Setting bucket permissions](#setting-bucket-permissions)
-     - [Deleting a bucket](#deleting-a-bucket)
-     - [Creating a collection](#creating-a-collection)
-     - [Listing bucket collections](#listing-bucket-collections)
-     - [Collections list timestamp](#collections-list-timestamp)
-     - [Deleting a collection](#deleting-a-collection)
-     - [Creating a user group](#creating-a-user-group)
-     - [Listing bucket groups](#listing-bucket-groups)
-     - [Groups list timestamp](#groups-list-timestamp)
-     - [Getting a bucket group](#getting-a-bucket-group)
-     - [Updating an existing group](#updating-an-existing-group)
-     - [Deleting a group](#deleting-a-group)
-     - [Listing bucket history](#listing-bucket-history)
-  - [Collections](#collections)
-     - [Selecting a collection](#selecting-a-collection)
-     - [Getting collection data](#getting-collection-data)
-     - [Setting collection data](#setting-collection-data)
-     - [Getting collection permissions](#getting-collection-permissions)
-     - [Setting collection permissions](#setting-collection-permissions)
-     - [Creating a new record](#creating-a-new-record)
-     - [Retrieving an existing record](#retrieving-an-existing-record)
-     - [Updating an existing record](#updating-an-existing-record)
-     - [Deleting record](#deleting-record)
-     - [Listing records](#listing-records)
-     - [Total number of records](#total-number-of-records)
-     - [Records list timestamp](#records-list-timestamp)
-     - [Batching operations](#batching-operations)
-  - [Listing all resource permissions](#listing-all-resource-permissions)
-  - [Attachments](#attachments)
-     - [Adding an attachment to a record](#adding-an-attachment-to-a-record)
-     - [Updating an attachment](#updating-an-attachment)
-     - [Deleting an attachment](#deleting-an-attachment)
-  - [Generic bucket and collection options](#generic-bucket-and-collection-options)
-  - [The safe option explained](#the-safe-option-explained)
-     - [Safe creations](#safe-creations)
-     - [Safe updates](#safe-updates)
-     - [Safe deletions](#safe-deletions)
-  - [Generic options for list operations](#generic-options-for-list-operations)
-     - [Sorting](#sorting)
-     - [Polling for changes](#polling-for-changes)
-     - [Paginating results](#paginating-results)
-  - [Generic options for singular operations](#generic-options-for-singular-operations)
-  - [Events](#events)
-     - [The backoff event](#the-backoff-event)
-     - [The deprecated event](#the-deprecated-event)
-     - [The retry-after event](#the-retry-after-event)
-  - [Browser Compatibility](#browser-compatibility)
-  - [Upgrading](#upgrading)
-     - [From 1.x to 2.x](#from-1-x-to-2-x)
-  - [Contributing](#contributing)
-     - [Coding style](#coding-style)
-     - [Integration tests](#integration-tests)
-     - [Releasing](#releasing)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Changelog](#changelog)
+- [Usage](#usage)
+- [Authentication](#authentication)
+  - [Using Basic Auth](#using-basic-auth)
+  - [Using an OAuth Bearer Token](#using-an-oauth-bearer-token)
+  - [Change headers](#change-headers)
+- [Server information](#server-information)
+- [Buckets](#buckets)
+  - [Listing buckets](#listing-buckets)
+  - [Creating a new bucket](#creating-a-new-bucket)
+  - [Selecting a bucket](#selecting-a-bucket)
+  - [Getting bucket data](#getting-bucket-data)
+  - [Setting bucket data](#setting-bucket-data)
+  - [Getting bucket permissions](#getting-bucket-permissions)
+  - [Setting bucket permissions](#setting-bucket-permissions)
+  - [Deleting a bucket](#deleting-a-bucket)
+  - [Creating a collection](#creating-a-collection)
+  - [Listing bucket collections](#listing-bucket-collections)
+  - [Collections list timestamp](#collections-list-timestamp)
+  - [Deleting a collection](#deleting-a-collection)
+  - [Creating a user group](#creating-a-user-group)
+  - [Listing bucket groups](#listing-bucket-groups)
+  - [Groups list timestamp](#groups-list-timestamp)
+  - [Getting a bucket group](#getting-a-bucket-group)
+  - [Updating an existing group](#updating-an-existing-group)
+  - [Deleting a group](#deleting-a-group)
+  - [Listing bucket history](#listing-bucket-history)
+- [Collections](#collections)
+  - [Selecting a collection](#selecting-a-collection)
+  - [Getting collection data](#getting-collection-data)
+  - [Setting collection data](#setting-collection-data)
+  - [Getting collection permissions](#getting-collection-permissions)
+  - [Setting collection permissions](#setting-collection-permissions)
+  - [Creating a new record](#creating-a-new-record)
+  - [Retrieving an existing record](#retrieving-an-existing-record)
+  - [Updating an existing record](#updating-an-existing-record)
+  - [Deleting record](#deleting-record)
+  - [Listing records](#listing-records)
+  - [Total number of records](#total-number-of-records)
+  - [Records list timestamp](#records-list-timestamp)
+  - [Batching operations](#batching-operations)
+- [Listing all resource permissions](#listing-all-resource-permissions)
+- [Attachments](#attachments)
+  - [Adding an attachment to a record](#adding-an-attachment-to-a-record)
+  - [Updating an attachment](#updating-an-attachment)
+  - [Deleting an attachment](#deleting-an-attachment)
+- [Generic bucket and collection options](#generic-bucket-and-collection-options)
+- [The safe option explained](#the-safe-option-explained)
+  - [Safe creations](#safe-creations)
+  - [Safe updates](#safe-updates)
+  - [Safe deletions](#safe-deletions)
+- [Generic options for list operations](#generic-options-for-list-operations)
+  - [Sorting](#sorting)
+  - [Polling for changes](#polling-for-changes)
+  - [Paginating results](#paginating-results)
+- [Generic options for singular operations](#generic-options-for-singular-operations)
+- [Events](#events)
+  - [The backoff event](#the-backoff-event)
+  - [The deprecated event](#the-deprecated-event)
+  - [The retry-after event](#the-retry-after-event)
+- [Browser Compatibility](#browser-compatibility)
+- [Upgrading](#upgrading)
+  - [From 1.x to 2.x](#from-1-x-to-2-x)
+- [Contributing](#contributing)
+  - [Coding style](#coding-style)
+  - [Integration tests](#integration-tests)
+  - [Releasing](#releasing)
 
 ---
 
@@ -125,7 +126,6 @@ const client = new KintoClient("http://");
 
 See [upgrading docs](#upgrading) and the full [detailed changelog on Github](https://github.com/Kinto/kinto-http.js/releases).
 
-
 ## Usage
 
 A client instance is created using the `KintoClient` constructor, passing it the remote Kinto server root URL, including the version:
@@ -144,7 +144,6 @@ const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
 - `requestMode`: The HTTP [CORS](https://fetch.spec.whatwg.org/#concept-request-mode) mode. (default: `"cors"`)
 - `timeout`: The requests timeout in milliseconds. (default: `null`, which means "no timeout")
 
-
 ## Authentication
 
 Authenticating against a Kinto server can be achieved by adding an `Authorization` header to the request.
@@ -159,8 +158,8 @@ Simply provide an `Authorization` header option to the `Kinto` constructor:
 const secretString = `${username}:${password}`;
 const kinto = new KintoClient("https://my.server.tld/v1", {
   headers: {
-    Authorization: "Basic " + btoa(secretString)
-  }
+    Authorization: "Basic " + btoa(secretString),
+  },
 });
 ```
 
@@ -191,9 +190,8 @@ const kinto = new KintoClient("https://my.server.tld/v1");
 // [...]
 
 kinto.setHeaders({
-    Authorization: `Bearer ` + accessToken,
+  Authorization: `Bearer ` + accessToken,
 });
-
 ```
 
 ## Server information
@@ -242,13 +240,12 @@ Sample result:
 - `fetchUser()`: authenticated user information
 - `fetchHTTPApiVersion([options])`: HTTP API version
 
-
 ## Buckets
 
 ### Listing buckets
 
 ```js
-const {data} = await client.listBuckets([options]);
+const { data } = await client.listBuckets([options]);
 ```
 
 Sample result:
@@ -264,7 +261,7 @@ Sample result:
       id: "blog",
       last_modified: 1456181213214,
     },
-  ]
+  ];
 }
 ```
 
@@ -274,7 +271,6 @@ Sample result:
 - `retry`: Number of retries when request fails (default: 0)
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
-
 
 ### Creating a new bucket
 
@@ -309,7 +305,7 @@ Note: if you plan on providing options along id autogeneration, you have to spec
 `null` as the first argument:
 
 ```js
-const result = await client.createBucket(null, {data: {foo: 42}, retry: 3});
+const result = await client.createBucket(null, { data: { foo: 42 }, retry: 3 });
 ```
 
 #### Options
@@ -351,7 +347,7 @@ This method accepts the [generic parameters for singular operations](#generic-op
 ### Setting bucket data
 
 ```js
-const result = await client.bucket("blog").setData({foo: "bar"});
+const result = await client.bucket("blog").setData({ foo: "bar" });
 ```
 
 Sample result:
@@ -526,7 +522,7 @@ Note that `OUh5VEDa` is the collection ID automatically generated by the server.
 ### Listing bucket collections
 
 ```js
-const {data} = await client.bucket("blog").listCollections();
+const { data } = await client.bucket("blog").listCollections();
 ```
 
 Sample result:
@@ -535,14 +531,14 @@ Sample result:
 {
   data: [
     {
-      "last_modified": 1456183153840,
-      "id": "posts"
+      last_modified: 1456183153840,
+      id: "posts",
     },
     {
-      "last_modified": 1456183159386,
-      "id": "comments"
-    }
-  ]
+      last_modified: 1456183159386,
+      id: "comments",
+    },
+  ];
 }
 ```
 
@@ -558,21 +554,19 @@ This method accepts the [generic parameters for sorting, filtering and paginatin
 The timestamp of the collections list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
 ```js
-const result = await client.bucket("blog")
-  .getCollectionsTimestamp();
+const result = await client.bucket("blog").getCollectionsTimestamp();
 ```
 
 Sample result:
 
 ```js
-"1548699177099"
+"1548699177099";
 ```
 
 #### Options
 
 - `headers`: custom headers object to send along the HTTP request
 - `retry`: number of retries when request fails (default: 0)
-
 
 ### Deleting a collection
 
@@ -645,7 +639,9 @@ Sample result:
 #### With a list of members and attributes
 
 ```js
-const result = await client.bucket("blog").createGroup("admins", ["system.Authenticated"], {data: {pi: 3.14}});
+const result = await client
+  .bucket("blog")
+  .createGroup("admins", ["system.Authenticated"], { data: { pi: 3.14 } });
 ```
 
 Sample result:
@@ -701,11 +697,10 @@ Note that `7YHFF565` is the group ID automatically generated by the server.
 
 > Note: For generated names, options can be specified only if the first parameters are provided: `createGroup(undefined, [], {safe: true})`
 
-
 ### Listing bucket groups
 
 ```js
-const {data} = await client.bucket("blog").listGroups();
+const { data } = await client.bucket("blog").listGroups();
 ```
 
 Sample result:
@@ -740,14 +735,13 @@ This method accepts the [generic parameters for sorting, filtering and paginatin
 The timestamp of the groups list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
 ```js
-const result = await client.bucket("blog")
-  .getGroupsTimestamp();
+const result = await client.bucket("blog").getGroupsTimestamp();
 ```
 
 Sample result:
 
 ```js
-"1548699177099"
+"1548699177099";
 ```
 
 #### Options
@@ -758,7 +752,7 @@ Sample result:
 ### Getting a bucket group
 
 ```js
-const {data} = await client.bucket("blog").getGroup("admins");
+const { data } = await client.bucket("blog").getGroup("admins");
 ```
 
 Sample result:
@@ -787,10 +781,12 @@ This method accepts the [generic parameters for singular operations](#generic-op
 const updated = {
   id: "cb0f7b2b-e78f-41a8-afad-92a56f8c88db",
   members: ["system.Everyone", "github:lili"],
-  pi: 3.141592
+  pi: 3.141592,
 };
 
-const result = await client.bucket("blog").updateGroup(updated, {permissions: {write: ["fxa:35478"]}});
+const result = await client
+  .bucket("blog")
+  .updateGroup(updated, { permissions: { write: ["fxa:35478"] } });
 ```
 
 Sample result:
@@ -845,11 +841,10 @@ Sample result:
 - `safe`: Ensures the resource hasn't been modified in the meanwhile if `last_modified` is provided (default: `false`)
 - `last_modified`: The last timestamp we know the resource has been updated on the server
 
-
 ### Listing bucket history
 
 ```js
-const {data} = await client.bucket("blog").listHistory();
+const { data } = await client.bucket("blog").listHistory();
 ```
 
 Sample result:
@@ -893,7 +888,6 @@ Sample result:
 
 This method accepts the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
-
 ## Collections
 
 ### Selecting a collection
@@ -905,7 +899,10 @@ const posts = client.bucket("blog").collection("posts");
 ### Getting collection data
 
 ```js
-const result = await client.bucket("blog").collection("posts").getData();
+const result = await client
+  .bucket("blog")
+  .collection("posts")
+  .getData();
 ```
 
 Sample result:
@@ -928,8 +925,10 @@ This method accepts the [generic parameters for singular operations](#generic-op
 ### Setting collection data
 
 ```js
-const result = await client.bucket("blog").collection("posts")
-  .setData({preferedAuthor: "@chucknorris"});
+const result = await client
+  .bucket("blog")
+  .collection("posts")
+  .setData({ preferedAuthor: "@chucknorris" });
 ```
 
 Sample result:
@@ -962,7 +961,10 @@ Sample result:
 ### Getting collection permissions
 
 ```js
-const result = await client.bucket("blog").collection("posts").getPermissions();
+const result = await client
+  .bucket("blog")
+  .collection("posts")
+  .getPermissions();
 ```
 
 Sample result:
@@ -983,10 +985,12 @@ Sample result:
 ### Setting collection permissions
 
 ```js
-const result = await client.bucket("blog").collection("posts")
+const result = await client
+  .bucket("blog")
+  .collection("posts")
   .setPermissions({
     read: ["github:bob"],
-    write: ["github:john", "github:bob"]
+    write: ["github:john", "github:bob"],
   });
 ```
 
@@ -1021,12 +1025,13 @@ Sample result:
 - This operation replaces any previously set permissions;
 - Owners will always keep their `write` permission bit, as per the Kinto protocol.
 
-
 ### Creating a new record
 
 ```js
-const result = await client.bucket("blog").collection("posts")
-  .createRecord({title: "My first post", content: "Hello World!"});
+const result = await client
+  .bucket("blog")
+  .collection("posts")
+  .createRecord({ title: "My first post", content: "Hello World!" });
 ```
 
 Sample result:
@@ -1056,7 +1061,9 @@ Sample result:
 ### Retrieving an existing record
 
 ```js
-const result = await client.bucket("blog").collection("posts")
+const result = await client
+  .bucket("blog")
+  .collection("posts")
   .getRecord("cb0f7b2b-e78f-41a8-afad-92a56f8c88db");
 ```
 
@@ -1091,10 +1098,12 @@ This method accepts the [generic parameters for singular operations](#generic-op
 const updated = {
   id: "cb0f7b2b-e78f-41a8-afad-92a56f8c88db",
   title: "My first post, edited",
-  content: "Hello World, again!"
+  content: "Hello World, again!",
 };
 
-const result = await client.bucket("blog").collection("posts")
+const result = await client
+  .bucket("blog")
+  .collection("posts")
   .updateRecord(updated);
 ```
 
@@ -1126,7 +1135,9 @@ Sample result:
 ### Deleting record
 
 ```js
-const result = await client.bucket("blog").collection("posts")
+const result = await client
+  .bucket("blog")
+  .collection("posts")
   .deleteRecord("cb0f7b2b-e78f-41a8-afad-92a56f8c88db");
 ```
 
@@ -1152,7 +1163,9 @@ Sample result:
 ### Listing records
 
 ```js
-const result = await client.bucket("blog").collection("posts")
+const result = await client
+  .bucket("blog")
+  .collection("posts")
   .listRecords();
 ```
 
@@ -1198,14 +1211,16 @@ This method accepts the [generic parameters for sorting, filtering and paginatin
 ### Total number of records
 
 ```js
-const result = await client.bucket("blog").collection("posts")
+const result = await client
+  .bucket("blog")
+  .collection("posts")
   .getTotalRecords();
 ```
 
 Sample result:
 
 ```js
-42
+42;
 ```
 
 #### Options
@@ -1218,7 +1233,8 @@ Sample result:
 The timestamp of the records list is used for the `since` option in the [generic parameters for sorting, filtering and paginating results](#generic-options-for-list-operations).
 
 ```js
-const result = await client.bucket("blog")
+const result = await client
+  .bucket("blog")
   .collection("posts")
   .getRecordsTimestamp();
 ```
@@ -1226,7 +1242,7 @@ const result = await client.bucket("blog")
 Sample result:
 
 ```js
-"1548699177099"
+"1548699177099";
 ```
 
 #### Options
@@ -1234,17 +1250,18 @@ Sample result:
 - `headers`: custom headers object to send along the HTTP request
 - `retry`: number of retries when request fails (default: 0)
 
-
 ### Batching operations
 
 This allows performing multiple operations in a single HTTP request.
 
 ```js
-const result = await client.bucket("blog").collection("posts")
+const result = await client
+  .bucket("blog")
+  .collection("posts")
   .batch(batch => {
     batch.deleteRecord("cb0f7b2b-e78f-41a8-afad-92a56f8c88db");
-    batch.createRecord({title: "new post", content: "yo"});
-    batch.createRecord({title: "another", content: "yo again"});
+    batch.createRecord({ title: "new post", content: "yo" });
+    batch.createRecord({ title: "another", content: "yo again" });
   });
 ```
 
@@ -1253,66 +1270,70 @@ Sample result:
 ```js
 [
   {
-    "status": 200,
-    "path": "/v1/buckets/blog/collections/posts/records/a89dd4b2-d597-4192-bc2b-834116244d29",
-    "body": {
-      "data": {
-        "deleted": true,
-        "last_modified": 1456184078090,
-        "id": "a89dd4b2-d597-4192-bc2b-834116244d29"
-      }
+    status: 200,
+    path:
+      "/v1/buckets/blog/collections/posts/records/a89dd4b2-d597-4192-bc2b-834116244d29",
+    body: {
+      data: {
+        deleted: true,
+        last_modified: 1456184078090,
+        id: "a89dd4b2-d597-4192-bc2b-834116244d29",
+      },
     },
-    "headers": {
+    headers: {
       "Content-Length": "99",
       "Content-Type": "application/json; charset=UTF-8",
-      "Access-Control-Expose-Headers": "Retry-After, Content-Length, Alert, Backoff"
-    }
+      "Access-Control-Expose-Headers":
+        "Retry-After, Content-Length, Alert, Backoff",
+    },
   },
   {
-    "status": 201,
-    "path": "/v1/buckets/blog/collections/posts/records",
-    "body": {
-      "data": {
-        "content": "yo",
-        "last_modified": 1456184078096,
-        "id": "afd650b3-1625-42f6-8994-860e52d39201",
-        "title": "new post"
+    status: 201,
+    path: "/v1/buckets/blog/collections/posts/records",
+    body: {
+      data: {
+        content: "yo",
+        last_modified: 1456184078096,
+        id: "afd650b3-1625-42f6-8994-860e52d39201",
+        title: "new post",
       },
-      "permissions": {
-        "write": [
-          "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"
-        ]
-      }
+      permissions: {
+        write: [
+          "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8",
+        ],
+      },
     },
-    "headers": {
+    headers: {
       "Content-Length": "221",
       "Content-Type": "application/json; charset=UTF-8",
-      "Access-Control-Expose-Headers": "Retry-After, Content-Length, Alert, Backoff"
-    }
+      "Access-Control-Expose-Headers":
+        "Retry-After, Content-Length, Alert, Backoff",
+    },
   },
   {
-    "status": 201,
-    "path": "/v1/buckets/blog/collections/posts/records",
-    "body": {
-      "data": {
-        "content": "yo again",
-        "last_modified": 1456184078102,
-        "id": "22c1319e-7b09-46db-bec4-c240bdf4e3e9",
-        "title": "another"
+    status: 201,
+    path: "/v1/buckets/blog/collections/posts/records",
+    body: {
+      data: {
+        content: "yo again",
+        last_modified: 1456184078102,
+        id: "22c1319e-7b09-46db-bec4-c240bdf4e3e9",
+        title: "another",
       },
-      "permissions": {
-        "write": [
-          "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"
-        ]
-      }
+      permissions: {
+        write: [
+          "basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8",
+        ],
+      },
     },
-    "headers": {
+    headers: {
       "Content-Length": "226",
       "Content-Type": "application/json; charset=UTF-8",
-      "Access-Control-Expose-Headers": "Retry-After, Content-Length, Alert, Backoff"
-    }
-  }
-]
+      "Access-Control-Expose-Headers":
+        "Retry-After, Content-Length, Alert, Backoff",
+    },
+  },
+];
 ```
 
 #### Options
@@ -1381,8 +1402,10 @@ If the [attachment](https://github.com/Kinto/kinto-attachment) capability is ava
 ### Adding an attachment to a record
 
 ```js
-client.bucket("blog").collection("posts")
-  .addAttachment(dataURL, {title: "First post"});
+client
+  .bucket("blog")
+  .collection("posts")
+  .addAttachment(dataURL, { title: "First post" });
 ```
 
 #### Options
@@ -1394,18 +1417,21 @@ client.bucket("blog").collection("posts")
 - `permissions`: Permissions to be set on the record
 - `filename`: Allows to specify the attachment filename, in case the data URI does not contain any, or if the file has to be renamed on upload
 
-
 ### Updating an attachment
 
 ```js
-client.bucket("blog").collection("posts")
-  .addAttachment(dataURL, {id: "22c1319e-7b09-46db-bec4-c240bdf4e3e9"});
+client
+  .bucket("blog")
+  .collection("posts")
+  .addAttachment(dataURL, { id: "22c1319e-7b09-46db-bec4-c240bdf4e3e9" });
 ```
 
 ### Deleting an attachment
 
 ```js
-client.bucket("blog").collection("posts")
+client
+  .bucket("blog")
+  .collection("posts")
   .removeAttachment("22c1319e-7b09-46db-bec4-c240bdf4e3e9");
 ```
 
@@ -1421,7 +1447,7 @@ Sample usage:
 
 ```js
 client.bucket("blog", {
-  headers: {"X-Hello": "Hello!"},
+  headers: { "X-Hello": "Hello!" },
   safe: true,
   retry: 2,
 });
@@ -1432,12 +1458,11 @@ Here the `X-Hello` header and the `safe` option will be used for building every 
 This works at the collection level as well:
 
 ```js
-client.bucket("blog")
-  .collection("posts", {
-    headers: {"X-Hello": "Hello!"},
-    safe: true,
-    retry: 2,
-  });
+client.bucket("blog").collection("posts", {
+  headers: { "X-Hello": "Hello!" },
+  safe: true,
+  retry: 2,
+});
 ```
 
 Every request sent for this collection will have the options applied.
@@ -1445,10 +1470,11 @@ Every request sent for this collection will have the options applied.
 Last, you can of course pass these options at the atomic operation level:
 
 ```js
-client.bucket("blog")
+client
+  .bucket("blog")
   .collection("posts")
   .updateRecord(updatedRecord, {
-    headers: {"X-Hello": "Hello!"},
+    headers: { "X-Hello": "Hello!" },
     safe: true,
     retry: 2,
   });
@@ -1457,9 +1483,10 @@ client.bucket("blog")
 The cool thing being you can always override the default defined options at the atomic operation level:
 
 ```js
-client.bucket("blog", {safe: true})
+client
+  .bucket("blog", { safe: true })
   .collection("posts")
-  .updateRecord(updatedRecord, {safe: false});
+  .updateRecord(updatedRecord, { safe: false });
 ```
 
 ## The `safe` option explained
@@ -1482,12 +1509,13 @@ const updatedRecord = {
   id: "fbd2a565-8c10-497a-95b8-ce4ea6f474e1",
   title: "new post, modified",
   content: "yoyo",
-  last_modified: 1456184189160
+  last_modified: 1456184189160,
 };
 
-client.bucket("blog")
+client
+  .bucket("blog")
   .collection("posts")
-  .updateRecord(updatedRecord, {safe: true});
+  .updateRecord(updatedRecord, { safe: true });
 ```
 
 If this record has been modified on the server already, meaning its `last_modified` is greater than the one we provide , we'll get a `412` error response.
@@ -1499,11 +1527,12 @@ If no `last_modified` value is provided at all, a safe update will simply guaran
 The same applies for deletions, where you can pass both a `safe` and `last_modified` options:
 
 ```js
-client.bucket("blog")
+client
+  .bucket("blog")
   .collection("posts")
   .deleteRecord("fbd2a565-8c10-497a-95b8-ce4ea6f474e1", {
     safe: true,
-    last_modified: 1456184189160
+    last_modified: 1456184189160,
   });
 ```
 
@@ -1523,8 +1552,10 @@ Every list operations like [listBuckets()](#listing-buckets), [listCollections](
 By default, results are listed by `last_modified` descending order. You can set the `sort` option to order by another field:
 
 ```js
-const {data, next} = await client.bucket("blog").collection("posts")
-  .listRecords({sort: "title"});
+const { data, next } = await client
+  .bucket("blog")
+  .collection("posts")
+  .listRecords({ sort: "title" });
 ```
 
 ### Polling for changes
@@ -1532,8 +1563,10 @@ const {data, next} = await client.bucket("blog").collection("posts")
 To retrieve the results modified since a given timestamp, use the `since` option:
 
 ```js
-const {data, next} = await client.bucket("blog").collection("posts")
-  .listRecords({since: "1456183930780"});
+const { data, next } = await client
+  .bucket("blog")
+  .collection("posts")
+  .listRecords({ since: "1456183930780" });
 ```
 
 ### Paginating results
@@ -1541,33 +1574,38 @@ const {data, next} = await client.bucket("blog").collection("posts")
 By default, all results of the first page are retrieved, and the default configuration of the server defines no limit. To specify a max number of results to retrieve, you can use the `limit` option:
 
 ```js
-const {data, hasNextPage, next} = await client.bucket("blog").collection("posts")
-  .listRecords({limit: 20});
+const { data, hasNextPage, next } = await client
+  .bucket("blog")
+  .collection("posts")
+  .listRecords({ limit: 20 });
 ```
 
 To check if a next page of results is available, you can check for the `hasNextPage` boolean property. To actually fetch the next page of results, call the `next()` function obtained:
 
 ```js
-  let {data, hasNextPage, next} = await client.bucket("blog").collection("posts")
-    .listRecords({limit: 20});
-  while (hasNextPage) {
-    const result = await next();
-    data = data.concat(result.data);
-    hasNextPage = result.hasNextPage;
-  }
+let { data, hasNextPage, next } = await client
+  .bucket("blog")
+  .collection("posts")
+  .listRecords({ limit: 20 });
+while (hasNextPage) {
+  const result = await next();
+  data = data.concat(result.data);
+  hasNextPage = result.hasNextPage;
+}
 ```
 
 Last, if you just want to retrieve and aggregate a given number of result pages, instead of dealing with calling `next()` recursively you can simply specify the `pages` option:
 
 ```js
-const {data, hasNextPage, next} = await client.bucket("blog").collection("posts")
-  .listRecords({limit: 20, pages: 3}); // A maximum of 60 results will be retrieved here
+const { data, hasNextPage, next } = await client
+  .bucket("blog")
+  .collection("posts")
+  .listRecords({ limit: 20, pages: 3 }); // A maximum of 60 results will be retrieved here
 ```
 
 > ##### Notes
 >
 > If you plan on fetching all the available pages, you can set the `pages` option to `Infinity`. Be aware that for large datasets this strategy can possibly issue an excessive number of HTTP requests.
-
 
 ## Generic options for singular operations
 
@@ -1576,11 +1614,9 @@ const {data, hasNextPage, next} = await client.bucket("blog").collection("posts"
 - `fields`: The set of fields to return for each record (see the [selecting fields](https://kinto.readthedocs.io/en/stable/api/1.x/selecting_fields.html) documentation).
 - `query`: Any extra query arguments to pass. This might be handy if you want to use a feature that this library doesn't support yet, or for implementing cache-busting URLs.
 
-
 ## Events
 
 The `KintoClient` exposes an `events` property you can subscribe public events from. That `events` property implements nodejs' [EventEmitter interface](https://nodejs.org/api/events.html#events_class_events_eventemitter).
-
 
 ### The `backoff` event
 
@@ -1629,14 +1665,16 @@ client.events.on("retry-after", function(releaseTime) {
 ```
 
 > #### Note:
+>
 > We also automatically retry all requests that have a Retry-After response.
 
 ## Browser Compatibility
 
 This library uses some features that are not supported on Internet Explorer or Safari.
-* Javascript [`Promise`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise#Browser_compatibility)
-* [`Object.assign()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#Browser_compatibility)
-* [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API#Browser_compatibility)
+
+- Javascript [`Promise`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise#Browser_compatibility)
+- [`Object.assign()`](https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#Browser_compatibility)
+- [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API#Browser_compatibility)
 
 Please [add polyfills](https://polyfill.io/v2/docs/features/) for these to get full functionality.
 
@@ -1644,7 +1682,7 @@ Please [add polyfills](https://polyfill.io/v2/docs/features/) for these to get f
 
 ### From 1.x to 2.x
 
-* `collection.listRecords()` now strips the quotes (`"`) from the `last_modified` attribute in result object (#110).
+- `collection.listRecords()` now strips the quotes (`"`) from the `last_modified` attribute in result object (#110).
 
 ## Contributing
 
