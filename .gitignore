@@ -3,8 +3,8 @@
 /lib
 /npm-debug.log
 /coverage
-/esdoc
 /node_modules
 /.nyc_output
 /demo/kinto-http.min.js
 /demo/kinto-http.min.js.map
+/docs
