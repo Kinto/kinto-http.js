@@ -21,11 +21,11 @@
     "prepublish": "npm run build:readme",
     "publish-to-npm": "npm run build && npm run dist && npm publish",
     "report-coverage": "npm run test-cover && ./node_modules/coveralls/bin/coveralls.js < ./coverage/lcov.info",
-    "tdd": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\"module\":\"commonjs\"}\" mocha -r ts-node/register --require ./test/setup-jsdom.js --watch \"test/**/*_test.{js,ts}\"",
+    "tdd": "mocha -r ts-node/register --require ./test/setup-jsdom.js --watch \"test/**/*_test.{js,ts}\"",
     "test": "npm run test-nocover",
     "test-cover": "nyc --reporter=lcov --reporter=text-summary --report-dir=coverage npm run test-nocover",
     "test-cover-html": "nyc --reporter=html --report-dir=coverage npm run test-nocover && open coverage/index.html",
-    "test-nocover": "cross-env TS_NODE_COMPILER_OPTIONS=\"{\\\"module\\\":\\\"commonjs\\\",\\\"sourceMap\\\":true}\" mocha -r ts-node/register --require source-map-support/register --full-trace --bail --require ./test/setup-jsdom.js \"test/**/*_test.{js,ts}\"",
+    "test-nocover": "mocha -r ts-node/register --require source-map-support/register --full-trace --bail --require ./test/setup-jsdom.js \"test/**/*_test.{js,ts}\"",
     "lint": "eslint \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\""
   },
   "repository": {
