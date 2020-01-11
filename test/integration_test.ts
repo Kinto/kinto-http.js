@@ -36,7 +36,7 @@ const TEST_KINTO_SERVER =
 
 function startServer(
   server: KintoServer,
-  options: { [key: string]: string | number } = {}
+  options: { [key: string]: string } = {}
 ) {
   return !skipLocalServer && server.start(options);
 }
@@ -596,7 +596,7 @@ describe("Integration tests", function() {
     const backoffSeconds = 10;
 
     before(() => {
-      return startServer(server, { KINTO_BACKOFF: backoffSeconds });
+      return startServer(server, { KINTO_BACKOFF: backoffSeconds.toString() });
     });
 
     after(() => stopServer(server));
@@ -671,7 +671,7 @@ describe("Integration tests", function() {
 
   describe("Limited pagination", () => {
     before(() => {
-      return startServer(server, { KINTO_PAGINATE_BY: 1 });
+      return startServer(server, { KINTO_PAGINATE_BY: "1" });
     });
 
     after(() => stopServer(server));
