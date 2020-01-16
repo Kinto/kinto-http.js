@@ -5,7 +5,7 @@
   "main": "lib/cjs-es5/index.js",
   "module": "lib/esm/index.js",
   "unpkg": "dist/kinto-http.min.js",
-  "types": "lib/esm",
+  "types": "lib/esm/index.d.ts",
   "scripts": {
     "build": "npm run build:es && npm run build:cjs-es5",
     "build:es": "tsc -p .",
