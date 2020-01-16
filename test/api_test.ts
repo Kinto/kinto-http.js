@@ -11,7 +11,7 @@ import KintoClientBase, {
 import * as requests from "../src/requests";
 import Bucket from "../src/bucket";
 import { HelloResponse, OperationResponse } from "../src/types";
-import { KintoResponse } from "../src/batch";
+import { KintoBatchResponse } from "../src/batch";
 
 chai.use(chaiAsPromised);
 chai.should();
@@ -692,7 +692,7 @@ describe("KintoClient", () => {
       ];
 
       it("should resolve with an aggregated result object", () => {
-        const responses: KintoResponse[] = [];
+        const responses: KintoBatchResponse[] = [];
         sandbox
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));

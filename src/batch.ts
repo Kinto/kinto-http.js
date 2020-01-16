@@ -32,7 +32,7 @@ export interface AggregateResponse {
   skipped: any[];
 }
 
-export interface KintoResponse {
+export interface KintoBatchResponse {
   status: number;
   path: string;
   body: ResponseBody;
@@ -48,7 +48,7 @@ export interface KintoResponse {
  * @return {Object}
  */
 export function aggregate(
-  responses: KintoResponse[] = [],
+  responses: KintoBatchResponse[] = [],
   requests: KintoRequest[] = []
 ): AggregateResponse {
   if (responses.length !== requests.length) {
