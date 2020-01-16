@@ -1,6 +1,3 @@
-/// <reference types="kinto-node-test-server.d.ts">
-"use strict";
-
 import chai, { expect } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";

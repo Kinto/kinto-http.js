@@ -13,8 +13,6 @@
  * limitations under the License.
  */
 
-"use strict";
-
 import KintoClientBase, { KintoClientOptions } from "./base";
 import * as errors from "./errors";
 import { EventEmitter as ee } from "events";
