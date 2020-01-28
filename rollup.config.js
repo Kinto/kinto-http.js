@@ -1,5 +1,5 @@
 import builtins from "rollup-plugin-node-builtins";
-import typescript from "rollup-plugin-typescript2";
+import typescript from "@rollup/plugin-typescript";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import { terser } from "rollup-plugin-terser";
@@ -20,7 +20,6 @@ const geckoBuild = {
     }),
     typescript({
       include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"],
-      tsconfigOverride: { compilerOptions: { declaration: false } },
     }),
     commonjs({ ignoreGlobal: true }),
   ],
@@ -43,9 +42,7 @@ const browserBuild = {
     }),
     typescript({
       include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"],
-      tsconfigOverride: {
-        compilerOptions: { target: "es5", declaration: false },
-      },
+      target: "es5",
     }),
     builtins(),
     commonjs(),
