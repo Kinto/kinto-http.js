@@ -50,7 +50,7 @@
   "devDependencies": {
     "@types/chai": "^4.2.0",
     "@types/chai-as-promised": "^7.1.2",
-    "@types/mocha": "^5.2.7",
+    "@types/mocha": "^7.0.1",
     "@types/shelljs": "^0.8.5",
     "@types/sinon": "^7.0.13",
     "@types/uuid": "^3.4.5",
