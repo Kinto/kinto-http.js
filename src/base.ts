@@ -1,5 +1,3 @@
-"use strict";
-
 import {
   partition,
   qsify,
@@ -769,32 +767,30 @@ export default class KintoClientBase {
    *     when faced with transient errors.
    * @return {Promise<Object, Error>}
    */
-  async createBucket(
+  async createBucket<T extends MappableObject>(
     id: string | null,
     options: {
-      data?: MappableObject & { id?: string };
+      data?: T & { id?: string };
       permissions?: Partial<Record<Permission, string[]>>;
       safe?: boolean;
       headers?: Record<string, string>;
       retry?: number;
     } = {}
-  ): Promise<KintoResponse<unknown> | HttpResponse<KintoResponse<unknown>>> {
-    const { data = {}, permissions } = options;
-    if (id != null) {
-      data.id = id;
-    }
-    const path = data.id ? endpoint.bucket(data.id) : endpoint.bucket();
-    return this.execute<KintoResponse>(
+  ): Promise<KintoResponse<T>> {
+    const { data, permissions } = options;
+    const _data = { ...data, id: id ? id : undefined };
+    const path = _data.id ? endpoint.bucket(_data.id) : endpoint.bucket();
+    return this.execute<KintoResponse<T>>(
       requests.createRequest(
         path,
-        { data, permissions },
+        { data: _data, permissions },
         {
           headers: this._getHeaders(options),
           safe: this._getSafe(options),
         }
       ),
       { retry: this._getRetry(options) }
-    );
+    ) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -818,21 +814,21 @@ export default class KintoClientBase {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{ deleted: boolean }>> {
     const bucketObj = toDataBody(bucket);
     if (!bucketObj.id) {
       throw new Error("A bucket id is required.");
     }
     const path = endpoint.bucket(bucketObj.id);
     const { last_modified } = { ...bucketObj, ...options };
-    return this.execute(
+    return this.execute<KintoResponse<{ deleted: boolean }>>(
       requests.deleteRequest(path, {
         last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }),
       { retry: this._getRetry(options) }
-    );
+    ) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   /**
@@ -853,26 +849,29 @@ export default class KintoClientBase {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{ deleted: boolean }>> {
     const path = endpoint.bucket();
-    return this.execute(
+    return this.execute<KintoResponse<{ deleted: boolean }>>(
       requests.deleteRequest(path, {
         last_modified: options.last_modified,
         headers: this._getHeaders(options),
         safe: this._getSafe(options),
       }),
       { retry: this._getRetry(options) }
-    );
+    ) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   @capable(["accounts"])
-  async createAccount(username: string, password: string): Promise<unknown> {
-    return this.execute(
+  async createAccount(
+    username: string,
+    password: string
+  ): Promise<KintoResponse<{ password: string }>> {
+    return this.execute<KintoResponse<{ password: string }>>(
       requests.createRequest(
         `/accounts/${username}`,
         { data: { password } },
         { method: "PUT" }
       )
-    );
+    ) as Promise<KintoResponse<{ password: string }>>;
   }
 }

@@ -1,7 +1,7 @@
 import chai, { expect } from "chai";
 
 import * as requests from "../src/requests";
-import { aggregate, AggregateResponse, KintoResponse } from "../src/batch";
+import { aggregate, AggregateResponse, KintoBatchResponse } from "../src/batch";
 import { KintoRequest } from "../src/types";
 
 chai.should();
@@ -148,7 +148,7 @@ describe("batch module", () => {
 
     describe("Heterogeneous combinations", () => {
       let _requests: KintoRequest[],
-        responses: KintoResponse[],
+        responses: KintoBatchResponse[],
         results: AggregateResponse;
 
       beforeEach(() => {

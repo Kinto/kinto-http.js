@@ -15,6 +15,7 @@ import {
   Attachment,
   HistoryEntry,
   OperationResponse,
+  MappableObject,
 } from "./types";
 import { HttpResponse } from "./http";
 import { AggregateResponse } from "./batch";
@@ -166,7 +167,7 @@ export default class Collection {
     const { headers } = (await this.client.execute(request, {
       raw: true,
       retry: this._getRetry(options),
-    })) as HttpResponse<unknown>;
+    })) as HttpResponse<{}>;
     return headers.get("ETag");
   }
 
@@ -213,8 +214,8 @@ export default class Collection {
    * @param  {Number}   [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async setData(
-    data: { last_modified?: number; [key: string]: any },
+  async setData<T extends MappableObject>(
+    data: T & { last_modified?: number },
     options: {
       headers?: Record<string, string>;
       safe?: boolean;
@@ -223,7 +224,7 @@ export default class Collection {
       last_modified?: number;
       permissions?: { [key in Permission]?: string[] };
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<T>> {
     if (!isObject(data)) {
       throw new Error("A collection object is required.");
     }
@@ -241,9 +242,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<T>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -289,7 +290,7 @@ export default class Collection {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<{}>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -303,9 +304,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<{}>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -328,7 +329,7 @@ export default class Collection {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{}>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -344,7 +345,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -367,7 +370,7 @@ export default class Collection {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{}>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -383,7 +386,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -398,15 +403,15 @@ export default class Collection {
    * @param  {Object}  [options.permissions] The permissions option.
    * @return {Promise<Object, Error>}
    */
-  async createRecord(
-    record: { id?: string; [key: string]: any },
+  async createRecord<T extends MappableObject>(
+    record: T & { id?: string },
     options: {
       headers?: Record<string, string>;
       retry?: number;
       safe?: boolean;
       permissions?: { [key in Permission]?: string[] };
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<T>> {
     const { permissions } = options;
     const path = endpoint.record(this.bucket.name, this.name, record.id);
     const request = requests.createRequest(
@@ -417,9 +422,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<T>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -499,7 +504,7 @@ export default class Collection {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<{}> {
     const { last_modified } = options;
     const path = endpoint.attachment(this.bucket.name, this.name, recordId);
     const request = requests.deleteRequest(path, {
@@ -507,7 +512,9 @@ export default class Collection {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<{}>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<{}>;
   }
 
   /**
@@ -523,8 +530,8 @@ export default class Collection {
    * @param  {Object}  [options.permissions]   The permissions option.
    * @return {Promise<Object, Error>}
    */
-  async updateRecord(
-    record: KintoIdObject,
+  async updateRecord<T>(
+    record: T & { id: string },
     options: {
       headers?: Record<string, string>;
       retry?: number;
@@ -533,7 +540,7 @@ export default class Collection {
       permissions?: { [key in Permission]?: string[] };
       patch?: boolean;
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<T>> {
     if (!isObject(record)) {
       throw new Error("A record object is required.");
     }
@@ -553,9 +560,9 @@ export default class Collection {
         patch: !!options.patch,
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<T>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -578,7 +585,7 @@ export default class Collection {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<{ deleted: boolean }>> {
     const recordObj = toDataBody(record);
     if (!recordObj.id) {
       throw new Error("A record id is required.");
@@ -591,9 +598,9 @@ export default class Collection {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   /**

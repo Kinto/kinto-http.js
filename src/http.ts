@@ -1,5 +1,3 @@
-"use strict";
-
 import { delay, obscureAuthorizationHeader } from "./utils";
 import {
   NetworkTimeoutError,

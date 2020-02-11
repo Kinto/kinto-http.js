@@ -1,7 +1,7 @@
 import builtins from "rollup-plugin-node-builtins";
-import typescript from "rollup-plugin-typescript";
-import resolve from "rollup-plugin-node-resolve";
-import commonjs from "rollup-plugin-commonjs";
+import typescript from "@rollup/plugin-typescript";
+import resolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 import { terser } from "rollup-plugin-terser";
 
 const geckoBuild = {
@@ -18,13 +18,15 @@ const geckoBuild = {
       mainFields: ["module", "main", "browser"],
       preferBuiltins: true,
     }),
-    typescript({ include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"] }),
+    typescript({
+      include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"],
+    }),
     commonjs({ ignoreGlobal: true }),
   ],
 };
 
 const browserBuild = {
-  input: "./src/index.ts",
+  input: "./src/index.browser.ts",
   output: [
     {
       file: "dist/kinto-http.min.js",
@@ -39,8 +41,8 @@ const browserBuild = {
       preferBuiltins: true,
     }),
     typescript({
-      target: "es5",
       include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"],
+      target: "es5",
     }),
     builtins(),
     commonjs(),

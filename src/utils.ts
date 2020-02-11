@@ -25,7 +25,7 @@ export function partition<T>(array: T[], n: number): T[][] {
  *
  * @return Promise<void>
  */
-export function delay(ms: number): Promise<unknown> {
+export function delay(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 

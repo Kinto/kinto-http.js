@@ -12,6 +12,7 @@ import {
   KintoObject,
   Group,
   OperationResponse,
+  MappableObject,
 } from "./types";
 import { HttpResponse } from "./http";
 import { AggregateResponse } from "./batch";
@@ -153,7 +154,7 @@ export default class Bucket {
     const { headers } = (await this.client.execute(request, {
       raw: true,
       retry: this._getRetry(options),
-    })) as HttpResponse<unknown>;
+    })) as HttpResponse<{}>;
     return headers.get("ETag");
   }
 
@@ -181,7 +182,7 @@ export default class Bucket {
     const { headers } = (await this.client.execute(request, {
       raw: true,
       retry: this._getRetry(options),
-    })) as HttpResponse<unknown>;
+    })) as HttpResponse<{}>;
     return headers.get("ETag");
   }
 
@@ -231,8 +232,8 @@ export default class Bucket {
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async setData(
-    data: { last_modified?: number; [key: string]: any },
+  async setData<T extends MappableObject>(
+    data: T & { last_modified?: number },
     options: {
       headers?: Record<string, string>;
       safe?: boolean;
@@ -241,7 +242,7 @@ export default class Bucket {
       last_modified?: number;
       permissions?: { [key in Permission]?: string[] };
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<T>> {
     if (!isObject(data)) {
       throw new Error("A bucket object is required.");
     }
@@ -268,9 +269,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<T>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -345,7 +346,7 @@ export default class Bucket {
       permissions?: { [key in Permission]?: string[] };
       data?: any;
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<{}>> {
     const { permissions, data = {} } = options;
     data.id = id;
     const path = endpoint.collection(this.name, id);
@@ -357,9 +358,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<{}>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -382,7 +383,7 @@ export default class Bucket {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{ deleted: boolean }>> {
     const collectionObj = toDataBody(collection);
     if (!collectionObj.id) {
       throw new Error("A collection id is required.");
@@ -395,7 +396,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   /**
@@ -519,10 +522,10 @@ export default class Bucket {
    * @param  {Number}  [options.last_modified] The last_modified option.
    * @return {Promise<Object, Error>}
    */
-  async updateGroup(
+  async updateGroup<T extends MappableObject>(
     group: KintoIdObject,
     options: {
-      data?: { last_modified?: number; [key: string]: any };
+      data?: T & { members?: string[] };
       permissions?: { [key in Permission]?: string[] };
       safe?: boolean;
       headers?: Record<string, string>;
@@ -530,7 +533,7 @@ export default class Bucket {
       last_modified?: number;
       patch?: boolean;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<T & { members: string[] }>> {
     if (!isObject(group)) {
       throw new Error("A group object is required.");
     }
@@ -554,7 +557,12 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<T & { members: string[] }>>(
+      request,
+      {
+        retry: this._getRetry(options),
+      }
+    ) as Promise<KintoResponse<T & { members: string[] }>>;
   }
 
   /**
@@ -577,7 +585,7 @@ export default class Bucket {
       safe?: boolean;
       last_modified?: number;
     } = {}
-  ): Promise<unknown> {
+  ): Promise<KintoResponse<{ deleted: boolean }>> {
     const groupObj = toDataBody(group);
     const { id } = groupObj;
     const { last_modified } = { ...groupObj, ...options };
@@ -587,7 +595,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return this.client.execute(request, { retry: this._getRetry(options) });
+    return this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   /**
@@ -635,7 +645,7 @@ export default class Bucket {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<{}>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -650,9 +660,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<{}>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -675,7 +685,7 @@ export default class Bucket {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<{}>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -691,9 +701,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<{}>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -716,7 +726,7 @@ export default class Bucket {
       retry?: number;
       last_modified?: number;
     } = {}
-  ): Promise<KintoResponse<unknown>> {
+  ): Promise<KintoResponse<{}>> {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
@@ -732,9 +742,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return this.client.execute<KintoResponse>(request, {
+    return this.client.execute<KintoResponse<{}>>(request, {
       retry: this._getRetry(options),
-    }) as Promise<KintoResponse<unknown>>;
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
