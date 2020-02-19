@@ -61,7 +61,6 @@
     "@typescript-eslint/eslint-plugin": "^2.6.0",
     "@typescript-eslint/parser": "^2.6.0",
     "atob": "^2.1.2",
-    "btoa": "^1.1.2",
     "chai": "^4.1.0",
     "chai-as-promised": "^7.0.0",
     "coveralls": "^3.0.0",

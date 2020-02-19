@@ -1,5 +1,6 @@
 import chai, { expect } from "chai";
 
+import { btoa } from "./test_utils";
 import * as requests from "../src/requests";
 
 chai.should();

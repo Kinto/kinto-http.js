@@ -7,6 +7,5 @@ global.Headers = fetch.Headers;
 // jsdom FormData implementation is inconsistent, exposing a better one
 global.FormData = require("form-data");
 
-// atob & btoa polyfill for tests
+// atob polyfill for tests
 global.atob = require("atob");
-global.btoa = require("btoa");

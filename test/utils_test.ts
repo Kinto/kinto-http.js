@@ -1,5 +1,6 @@
 import chai, { expect } from "chai";
 
+import { btoa } from "./test_utils";
 import {
   partition,
   delay,
