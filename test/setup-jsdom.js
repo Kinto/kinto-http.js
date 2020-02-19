@@ -1,19 +1,8 @@
-const jsdom = require("jsdom");
 const fetch = require("node-fetch");
 
-// Setup the jsdom environment
-// @see https://github.com/facebook/react/issues/5046
-const JSDOM = new jsdom.JSDOM("<!doctype html><html><body></body></html>");
-global.window = JSDOM.window;
-global.document = window.document;
-global.navigator = global.window.navigator;
-
-// sinon uses type-detect which checks "instanceof HTMLElement"
-global.HTMLElement = window.HTMLElement;
-
 // Expose a global fetch polyfill
-global.fetch = global.window.fetch = fetch;
-global.Headers = global.window.Headers = fetch.Headers;
+global.fetch = fetch;
+global.Headers = fetch.Headers;
 
 // jsdom FormData implementation is inconsistent, exposing a better one
 global.FormData = require("form-data");
