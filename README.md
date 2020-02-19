@@ -97,10 +97,30 @@ In the browser, you can load prebuilt scripts hosted on unpkg:
 <script src="https://unpkg.com/kinto-http/dist/kinto-http.min.js"></script>
 ```
 
-In nodejs:
+From npm:
 
 ```
 $ npm install kinto-http --save
+```
+
+**Note:** If you're using `kinto-http` in Node, you'll need to provide polyfills for `fetch`, `Headers`, `FormData`, and `atob`. `kinto-http` is tested with the following polyfills, but you're free to use whichever you'd prefer:
+
+- `fetch`: [`node-fetch`](https://www.npmjs.com/package/node-fetch)
+- `Headers`: via `node-fetch`
+- `FormData`: [`form-data`](https://www.npmjs.com/package/form-data)
+- `atob`: [`atob`](https://www.npmjs.com/package/atob)
+
+You can add these to the global scope by adding the following prior to importing `kinto-http`:
+
+```js
+const fetch = require("node-fetch");
+
+global.fetch = fetch;
+global.Headers = fetch.Headers;
+
+global.FormData = require("form-data");
+
+global.atob = require("atob");
 ```
 
 Then (ES6):
