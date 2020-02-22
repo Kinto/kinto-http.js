@@ -312,7 +312,7 @@ export default class KintoClientBase {
     } = {}
   ): Promise<HelloResponse> {
     const path = this.remote + endpoint.root();
-    const { json } = await this.http.request(
+    const { json } = await this.http.request<HelloResponse>(
       path,
       { headers: this._getHeaders(options) },
       { retry: this._getRetry(options) }
