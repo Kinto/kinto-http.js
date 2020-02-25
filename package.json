@@ -46,7 +46,7 @@
   },
   "homepage": "https://github.com/Kinto/kinto-http.js#readme",
   "dependencies": {
-    "uuid": "^3.0.1"
+    "uuid": "^7.0.0"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^11.0.1",
