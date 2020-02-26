@@ -1,5 +1,4 @@
 import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import KintoClient from "../src";
 import Bucket from "../src/bucket";
@@ -8,7 +7,6 @@ import * as requests from "../src/requests";
 import { fakeServerResponse, Stub } from "./test_utils";
 import { PaginationResult } from "../src/base";
 
-chai.use(chaiAsPromised);
 chai.should();
 chai.config.includeStack = true;
 
@@ -53,7 +51,7 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with the Total-Records header value", () => {
+    it("should resolve with the Total-Records header value", async () => {
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
           headers: {
@@ -64,9 +62,7 @@ describe("Collection", () => {
         })
       );
 
-      return getBlogPostsCollection()
-        .getTotalRecords()
-        .should.become(42);
+      (await getBlogPostsCollection().getTotalRecords()).should.equal(42);
     });
   });
 
@@ -85,13 +81,15 @@ describe("Collection", () => {
       });
     });
 
-    it("should resolve with response data", () => {
+    it("should resolve with response data", async () => {
       const response = { data: { foo: "bar" } };
       sandbox.stub(client, "execute").returns(Promise.resolve(response));
 
-      return getBlogPostsCollection()
-        .getData()
-        .should.become({ foo: "bar" });
+      ((await getBlogPostsCollection().getData()) as {
+        foo: string;
+      }).should.deep.equal({
+        foo: "bar",
+      });
     });
 
     it("should pass query through", () => {
@@ -132,8 +130,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should retrieve permissions", () => {
-      return coll.getPermissions().should.become({ write: ["fakeperms"] });
+    it("should retrieve permissions", async () => {
+      (await coll.getPermissions()).should.deep.equal({ write: ["fakeperms"] });
     });
   });
 
@@ -169,8 +167,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with json result", () => {
-      return coll.setPermissions(fakePermissions).should.become({});
+    it("should resolve with json result", async () => {
+      (await coll.setPermissions(fakePermissions)).should.deep.equal({});
     });
   });
 
@@ -211,8 +209,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with json result", () => {
-      return coll.setPermissions(fakePermissions).should.become({});
+    it("should resolve with json result", async () => {
+      (await coll.setPermissions(fakePermissions)).should.deep.equal({});
     });
   });
 
@@ -248,8 +246,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with json result", () => {
-      return coll.setPermissions(fakePermissions).should.become({});
+    it("should resolve with json result", async () => {
+      (await coll.setPermissions(fakePermissions)).should.deep.equal({});
     });
   });
 
@@ -261,8 +259,8 @@ describe("Collection", () => {
         .returns(Promise.resolve({ data: { a: 1 } }));
     });
 
-    it("should retrieve data", () => {
-      return coll.getData().should.become({ a: 1 });
+    it("should retrieve data", async () => {
+      ((await coll.getData()) as { a: number }).should.deep.equal({ a: 1 });
     });
   });
 
@@ -310,8 +308,10 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with json result", () => {
-      return coll.setData({ a: 1 }).should.become({ data: { foo: "bar" } });
+    it("should resolve with json result", async () => {
+      (await coll.setData({ a: 1 })).should.deep.equal({
+        data: { foo: "bar" },
+      });
     });
   });
 
@@ -361,8 +361,8 @@ describe("Collection", () => {
       });
     });
 
-    it("should resolve with response body", () => {
-      return coll.createRecord(record).should.become({ data: 1 });
+    it("should resolve with response body", async () => {
+      (await coll.createRecord(record)).should.deep.equal({ data: 1 });
     });
   });
 
@@ -374,16 +374,32 @@ describe("Collection", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: 1 }));
     });
 
-    it("should throw if record is not an object", () => {
-      return coll
-        .updateRecord(2 as any)
-        .should.be.rejectedWith(Error, /record object is required/);
+    it("should throw if record is not an object", async () => {
+      let error: Error;
+
+      try {
+        await coll.updateRecord(2 as any);
+      } catch (err) {
+        error = err;
+      }
+
+      error!.should.not.be.undefined;
+      error!.should.be.instanceOf(Error);
+      error!.should.have.property("message").match(/record object is required/);
     });
 
-    it("should throw if id is missing", () => {
-      return coll
-        .updateRecord({} as any)
-        .should.be.rejectedWith(Error, /record id is required/);
+    it("should throw if id is missing", async () => {
+      let error: Error;
+
+      try {
+        await coll.updateRecord({} as any);
+      } catch (err) {
+        error = err;
+      }
+
+      error!.should.not.be.undefined;
+      error!.should.be.instanceOf(Error);
+      error!.should.have.property("message").match(/record id is required/);
     });
 
     it("should create the expected request", () => {
@@ -430,8 +446,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with response body", () => {
-      return coll.updateRecord(record).should.become({ data: 1 });
+    it("should resolve with response body", async () => {
+      (await coll.updateRecord(record)).should.deep.equal({ data: 1 });
     });
   });
 
@@ -444,10 +460,18 @@ describe("Collection", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: 1 }));
     });
 
-    it("should throw if id is missing", () => {
-      return coll
-        .deleteRecord({} as any)
-        .should.be.rejectedWith(Error, /record id is required/);
+    it("should throw if id is missing", async () => {
+      let error: Error;
+
+      try {
+        await coll.deleteRecord({} as any);
+      } catch (err) {
+        error = err;
+      }
+
+      error!.should.not.be.undefined;
+      error!.should.be.instanceOf(Error);
+      error!.should.have.property("message").match(/record id is required/);
     });
 
     it("should delete a record", () => {
@@ -510,8 +534,8 @@ describe("Collection", () => {
       });
     });
 
-    it("should retrieve a record", () => {
-      return coll.getRecord("1").should.become({ data: 1 });
+    it("should retrieve a record", async () => {
+      (await coll.getRecord("1")).should.deep.equal({ data: 1 });
     });
 
     it("should support query and fields", () => {
@@ -544,7 +568,7 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with the ETag header value", () => {
+    it("should resolve with the ETag header value", async () => {
       const etag = '"42"';
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
@@ -556,9 +580,9 @@ describe("Collection", () => {
         })
       );
 
-      return getBlogPostsCollection()
-        .getRecordsTimestamp()
-        .should.become(etag);
+      (await getBlogPostsCollection().getRecordsTimestamp())!.should.deep.equal(
+        etag
+      );
     });
   });
 
@@ -607,11 +631,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with a result object", () => {
-      return coll
-        .listRecords()
-        .should.eventually.have.property("data")
-        .eql(data.data);
+    it("should resolve with a result object", async () => {
+      (await coll.listRecords()).should.have.property("data").eql(data.data);
     });
 
     it("should support filters and fields", () => {
@@ -637,12 +658,9 @@ describe("Collection", () => {
         fetchStub.onCall(1).returns(fakeServerResponse(200, response));
       });
 
-      it("should retry the request if option is specified", () => {
-        return coll
-          .listRecords({ retry: 1 })
-          .then(r => r.data[0])
-          .should.eventually.have.property("title")
-          .eql("art");
+      it("should retry the request if option is specified", async () => {
+        const { data } = await coll.listRecords({ retry: 1 });
+        data[0].should.have.property("title").eql("art");
       });
     });
   });
