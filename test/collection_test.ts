@@ -27,18 +27,22 @@ describe("Collection", () => {
     sandbox.restore();
   });
 
+  const fakeHeaders = {
+    get: () => "",
+  };
+
   function getBlogPostsCollection(options?: CollectionOptions) {
     return new Bucket(client, "blog").collection("posts", options);
   }
 
   /** @test {Collection#getTotalRecords} */
   describe("#getTotalRecords()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogPostsCollection().getTotalRecords();
+      await getBlogPostsCollection().getTotalRecords();
 
       sinon.assert.calledWithMatch(
         executeStub,
@@ -68,12 +72,12 @@ describe("Collection", () => {
 
   /** @test {Collection#getData} */
   describe("#getData()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogPostsCollection().getData();
+      await getBlogPostsCollection().getData();
 
       sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog/collections/posts",
@@ -92,12 +96,12 @@ describe("Collection", () => {
       });
     });
 
-    it("should pass query through", () => {
+    it("should pass query through", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogPostsCollection().getData({ query: { _expected: '"123"' } });
+      await getBlogPostsCollection().getData({ query: { _expected: '"123"' } });
 
       sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog/collections/posts?_expected=%22123%22",
@@ -105,12 +109,12 @@ describe("Collection", () => {
       });
     });
 
-    it("supports _fields", () => {
+    it("supports _fields", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogPostsCollection().getData({ fields: ["a", "b"] });
+      await getBlogPostsCollection().getData({ fields: ["a", "b"] });
 
       sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog/collections/posts?_fields=a,b",
@@ -550,12 +554,12 @@ describe("Collection", () => {
 
   /** @test {Collection#getRecordsTimestamp} */
   describe("#getRecordsTimestamp()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogPostsCollection().getRecordsTimestamp();
+      await getBlogPostsCollection().getRecordsTimestamp();
 
       sinon.assert.calledWithMatch(
         executeStub,
