@@ -1,7 +1,7 @@
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import { EventEmitter } from "events";
-import { fakeServerResponse, Stub } from "./test_utils";
+import { fakeServerResponse, Stub, expectAsyncError } from "./test_utils";
 import HTTP from "../src/http";
 import {
   NetworkTimeoutError,
@@ -136,39 +136,25 @@ describe("HTTP class", () => {
       });
 
       it("should timeout the request", async () => {
-        let error: Error;
-
-        try {
-          await http.request("/");
-        } catch (err) {
-          error = err;
-        }
-
-        error!.should.not.be.undefined;
-        error!.should.be.instanceOf(NetworkTimeoutError);
+        await expectAsyncError(
+          () => http.request("/"),
+          undefined,
+          NetworkTimeoutError
+        );
       });
 
       it("should show request properties in error", async () => {
-        let error: Error;
-
-        try {
-          await http.request("/", {
-            mode: "cors",
-            headers: {
-              Authorization: "XXX",
-              "User-agent": "mocha-test",
-            },
-          });
-        } catch (err) {
-          error = err;
-        }
-
-        error!.should.not.be.undefined;
-        error!.should.have
-          .property("message")
-          .equal(
-            'Timeout while trying to access / with {"mode":"cors","headers":{"accept":"application/json","authorization":"**** (suppressed)","content-type":"application/json","user-agent":"mocha-test"}}'
-          );
+        await expectAsyncError(
+          () =>
+            http.request("/", {
+              mode: "cors",
+              headers: {
+                Authorization: "XXX",
+                "User-agent": "mocha-test",
+              },
+            }),
+          'Timeout while trying to access / with {"mode":"cors","headers":{"accept":"application/json","authorization":"**** (suppressed)","content-type":"application/json","user-agent":"mocha-test"}}'
+        );
       });
     });
 
@@ -201,21 +187,11 @@ describe("HTTP class", () => {
           })
         );
 
-        let error: Error;
-
-        try {
-          await http.request("/");
-        } catch (err) {
-          error = err;
-        }
-
-        error!.should.not.be.undefined;
-        error!.should.be.instanceOf(UnparseableResponseError);
-        error!.should.have
-          .property("message")
-          .match(
-            /HTTP 200; SyntaxError: Unexpected token.+an example of invalid JSON/
-          );
+        await expectAsyncError(
+          () => http.request("/"),
+          /HTTP 200; SyntaxError: Unexpected token.+an example of invalid JSON/,
+          UnparseableResponseError
+        );
       });
     });
 
@@ -237,21 +213,11 @@ describe("HTTP class", () => {
           })
         );
 
-        let error: Error;
-
-        try {
-          await http.request("/");
-        } catch (err) {
-          error = err;
-        }
-
-        error!.should.not.be.undefined;
-        error!.should.be.instanceOf(ServerResponse);
-        error!.should.have
-          .property("message")
-          .match(
-            /HTTP 400 Invalid parameters: Invalid request parameter \(data is missing\)/
-          );
+        await expectAsyncError(
+          () => http.request("/"),
+          /HTTP 400 Invalid parameters: Invalid request parameter \(data is missing\)/,
+          ServerResponse
+        );
       });
 
       it("should expose JSON error bodies", async () => {
@@ -272,17 +238,12 @@ describe("HTTP class", () => {
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(400, errorBody));
 
-        let error: Error;
-
-        try {
-          await http.request("/");
-        } catch (err) {
-          error = err;
-        }
-
-        error!.should.not.be.undefined;
-        error!.should.be.instanceOf(ServerResponse);
-        error!.should.have.deep.property("data", errorBody);
+        const error = await expectAsyncError(
+          () => http.request("/"),
+          undefined,
+          ServerResponse
+        );
+        error.should.have.deep.property("data", errorBody);
       });
 
       it("should reject on status code > 400 even with empty body", async () => {
@@ -301,17 +262,11 @@ describe("HTTP class", () => {
           },
         });
 
-        let error: Error;
-
-        try {
-          await http.request("/");
-        } catch (err) {
-          error = err;
-        }
-
-        error!.should.not.be.undefined;
-        error!.should.be.instanceOf(ServerResponse);
-        error!.should.have.property("message").match(/HTTP 400 Cake Is A Lie$/);
+        await expectAsyncError(
+          () => http.request("/"),
+          /HTTP 400 Cake Is A Lie$/,
+          ServerResponse
+        );
       });
     });
 
@@ -450,17 +405,7 @@ describe("HTTP class", () => {
         it("should not retry the request by default", async () => {
           fetch.returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
 
-          let error: Error;
-
-          try {
-            await http.request("/");
-          } catch (err) {
-            error = err;
-          }
-
-          error!.should.not.be.undefined;
-          error!.should.be.instanceOf(Error);
-          error!.should.have.property("message").match(/HTTP 503/);
+          await expectAsyncError(() => http.request("/"), /HTTP 503/);
         });
 
         it("should retry the request if specified", async () => {
@@ -485,17 +430,10 @@ describe("HTTP class", () => {
             .onCall(2)
             .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
 
-          let error: Error;
-
-          try {
-            await http.request("/", {}, { retry: 2 });
-          } catch (err) {
-            error = err;
-          }
-
-          error!.should.not.be.undefined;
-          error!.should.be.instanceOf(Error);
-          error!.should.have.property("message").match(/HTTP 503/);
+          await expectAsyncError(
+            () => http.request("/", {}, { retry: 2 }),
+            /HTTP 503/
+          );
         });
       });
     });

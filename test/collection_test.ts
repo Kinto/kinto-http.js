@@ -4,7 +4,7 @@ import KintoClient from "../src";
 import Bucket from "../src/bucket";
 import Collection, { CollectionOptions } from "../src/collection";
 import * as requests from "../src/requests";
-import { fakeServerResponse, Stub } from "./test_utils";
+import { fakeServerResponse, Stub, expectAsyncError } from "./test_utils";
 import { PaginationResult } from "../src/base";
 
 chai.should();
@@ -379,31 +379,17 @@ describe("Collection", () => {
     });
 
     it("should throw if record is not an object", async () => {
-      let error: Error;
-
-      try {
-        await coll.updateRecord(2 as any);
-      } catch (err) {
-        error = err;
-      }
-
-      error!.should.not.be.undefined;
-      error!.should.be.instanceOf(Error);
-      error!.should.have.property("message").match(/record object is required/);
+      await expectAsyncError(
+        () => coll.updateRecord(2 as any),
+        /record object is required/
+      );
     });
 
     it("should throw if id is missing", async () => {
-      let error: Error;
-
-      try {
-        await coll.updateRecord({} as any);
-      } catch (err) {
-        error = err;
-      }
-
-      error!.should.not.be.undefined;
-      error!.should.be.instanceOf(Error);
-      error!.should.have.property("message").match(/record id is required/);
+      await expectAsyncError(
+        () => coll.updateRecord({} as any),
+        /record id is required/
+      );
     });
 
     it("should create the expected request", () => {
@@ -465,17 +451,10 @@ describe("Collection", () => {
     });
 
     it("should throw if id is missing", async () => {
-      let error: Error;
-
-      try {
-        await coll.deleteRecord({} as any);
-      } catch (err) {
-        error = err;
-      }
-
-      error!.should.not.be.undefined;
-      error!.should.be.instanceOf(Error);
-      error!.should.have.property("message").match(/record id is required/);
+      await expectAsyncError(
+        () => coll.deleteRecord({} as any),
+        /record id is required/
+      );
     });
 
     it("should delete a record", () => {

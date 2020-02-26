@@ -5,7 +5,7 @@ import Bucket, { BucketOptions } from "../src/bucket";
 import Collection from "../src/collection";
 import * as requests from "../src/requests";
 import { PaginationResult } from "../src/base";
-import { Stub } from "./test_utils";
+import { Stub, expectAsyncError } from "./test_utils";
 
 chai.should();
 chai.config.includeStack = true;
@@ -616,31 +616,17 @@ describe("Bucket", () => {
     });
 
     it("should throw if record is not an object", async () => {
-      let error: Error;
-
-      try {
-        await getBlogBucket().updateGroup(undefined as any);
-      } catch (err) {
-        error = err;
-      }
-
-      error!.should.not.be.null;
-      error!.should.be.instanceOf(Error);
-      error!.should.have.property("message").match(/group object is required/);
+      await expectAsyncError(
+        () => getBlogBucket().updateGroup(undefined as any),
+        /group object is required/
+      );
     });
 
     it("should throw if id is missing", async () => {
-      let error: Error;
-
-      try {
-        await getBlogBucket().updateGroup({} as any);
-      } catch (err) {
-        error = err;
-      }
-
-      error!.should.not.be.null;
-      error!.should.be.instanceOf(Error);
-      error!.should.have.property("message").match(/group id is required/);
+      expectAsyncError(
+        () => getBlogBucket().updateGroup({} as any),
+        /group id is required/
+      );
     });
 
     it("should accept a patch option", () => {

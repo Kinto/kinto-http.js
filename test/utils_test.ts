@@ -13,6 +13,7 @@ import {
   cleanUndefinedProperties,
   addEndpointOptions,
 } from "../src/utils";
+import { expectAsyncError } from "./test_utils";
 
 chai.should();
 chai.config.includeStack = true;
@@ -217,7 +218,7 @@ describe("Utils", () => {
       return new FakeClient().test();
     });
 
-    it("should make decorated method rejecting on missing capability", () => {
+    it("should make decorated method rejecting on missing capability", async () => {
       class FakeClient {
         fetchServerCapabilities() {
           return Promise.resolve({ attachments: {} });
@@ -229,14 +230,9 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().then(
-        () => {
-          throw new Error("Should be rejected");
-        },
-        err => {
-          err.should.be.instanceof(Error);
-          err.should.have.property("message").match(/default not present/);
-        }
+      await expectAsyncError(
+        () => new FakeClient().test(),
+        /default not present/
       );
     });
   });

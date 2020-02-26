@@ -1,7 +1,7 @@
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import { EventEmitter } from "events";
-import { fakeServerResponse, Stub } from "./test_utils";
+import { fakeServerResponse, Stub, expectAsyncError } from "./test_utils";
 import KintoClient from "../src";
 import KintoClientBase, {
   SUPPORTED_PROTOCOL_VERSION as SPV,
@@ -464,17 +464,7 @@ describe("KintoClient", () => {
           })
         );
 
-        let error: Error;
-
-        try {
-          await executeBatch(fixtures);
-        } catch (err) {
-          error = err;
-        }
-
-        error!.should.not.be.undefined;
-        error!.should.be.instanceOf(Error);
-        error!.should.have.property("message").match(/HTTP 400/);
+        await expectAsyncError(() => executeBatch(fixtures), /HTTP 400/);
       });
 
       it("should reject on HTTP error status code", async () => {
@@ -485,17 +475,7 @@ describe("KintoClient", () => {
           })
         );
 
-        let error: Error;
-
-        try {
-          await executeBatch(fixtures);
-        } catch (err) {
-          error = err;
-        }
-
-        error!.should.not.be.undefined;
-        error!.should.be.instanceOf(Error);
-        error!.should.have.property("message").match(/HTTP 500/);
+        await expectAsyncError(() => executeBatch(fixtures), /HTTP 500/);
       });
 
       it("should expose succesful subrequest responses", async () => {
@@ -786,19 +766,10 @@ describe("KintoClient", () => {
       });
 
       it("should throw if the since option is invalid", async () => {
-        let error: Error;
-
-        try {
-          await api.paginatedList(path, { since: 123 } as any);
-        } catch (err) {
-          error = err;
-        }
-
-        error!.should.not.be.undefined;
-        error!.should.be.instanceOf(Error);
-        error!.should.have
-          .property("message")
-          .match(/Invalid value for since \(123\), should be ETag value/);
+        await expectAsyncError(
+          () => api.paginatedList(path, { since: 123 } as any),
+          /Invalid value for since \(123\), should be ETag value/
+        );
       });
 
       it("should resolve with the collection last_modified without quotes", async () => {
@@ -1037,17 +1008,10 @@ describe("KintoClient", () => {
           capabilities: {},
         };
 
-        let error: Error;
-
-        try {
-          await api.listPermissions();
-        } catch (err) {
-          error = err;
-        }
-
-        error!.should.not.be.undefined;
-        error!.should.be.instanceOf(Error);
-        error!.should.have.property("message").match(/permissions_endpoint/);
+        await expectAsyncError(
+          () => api.listPermissions(),
+          /permissions_endpoint/
+        );
       });
     });
   });
@@ -1267,17 +1231,7 @@ describe("KintoClient", () => {
         capabilities: {},
       };
 
-      let error: Error;
-
-      try {
-        await api.deleteBuckets();
-      } catch (err) {
-        error = err;
-      }
-
-      error!.should.not.be.undefined;
-      error!.should.be.instanceOf(Error);
-      error!.should.have.property("message").match(/Version/);
+      await expectAsyncError(() => api.deleteBuckets(), /Version/);
     });
   });
 });
