@@ -117,7 +117,7 @@ describe("HTTP class", () => {
 
       it("should resolve with JSON body", async () => {
         const { json } = await http.request("/");
-        json.should.deep.equal({ a: 1 });
+        (json as { a: number }).should.deep.equal({ a: 1 });
       });
 
       it("should resolve with headers", async () => {
@@ -471,7 +471,7 @@ describe("HTTP class", () => {
           fetch.onCall(1).returns(fakeServerResponse(200, success));
 
           const { json } = await http.request("/", {}, { retry: 1 });
-          json.should.deep.equal(success);
+          (json as { success: boolean }).should.deep.equal(success);
         });
 
         it("should error when retries are exhausted", async () => {
