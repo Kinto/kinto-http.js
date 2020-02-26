@@ -1,4 +1,4 @@
-import uuid from "uuid/v4";
+import { v4 as uuid } from "uuid";
 
 import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
