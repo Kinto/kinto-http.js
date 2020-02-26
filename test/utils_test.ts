@@ -124,7 +124,7 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.fulfilled;
+      return new FakeClient().test();
     });
 
     it("should make decorated method rejecting on version mismatch", () => {
@@ -139,7 +139,14 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.rejected;
+      return new FakeClient().test().then(
+        () => {
+          throw new Error("Should be rejected");
+        },
+        err => {
+          err.should.not.be.undefined;
+        }
+      );
     });
 
     it("should check for an attached client instance", () => {
@@ -160,7 +167,14 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.rejected;
+      return new FakeClient().test().then(
+        () => {
+          throw new Error("Should be rejected");
+        },
+        err => {
+          expect(err).to.be.undefined;
+        }
+      );
     });
   });
 
@@ -181,7 +195,7 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.fulfilled;
+      return new FakeClient().test();
     });
 
     it("should make decorated method resolve on capability match", () => {
@@ -200,7 +214,7 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.fulfilled;
+      return new FakeClient().test();
     });
 
     it("should make decorated method rejecting on missing capability", () => {
@@ -215,9 +229,15 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient()
-        .test()
-        .should.be.rejectedWith(Error, /default not present/);
+      return new FakeClient().test().then(
+        () => {
+          throw new Error("Should be rejected");
+        },
+        err => {
+          err.should.be.instanceof(Error);
+          err.should.have.property("message").match(/default not present/);
+        }
+      );
     });
   });
 
@@ -240,7 +260,7 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.fulfilled;
+      return new FakeClient().test();
     });
 
     it("should make decorated method to throw if in batch", () => {
