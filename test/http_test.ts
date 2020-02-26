@@ -1,5 +1,4 @@
 import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { EventEmitter } from "events";
 import { fakeServerResponse, Stub } from "./test_utils";
@@ -10,7 +9,6 @@ import {
   UnparseableResponseError,
 } from "../src/errors";
 
-chai.use(chaiAsPromised);
 chai.should();
 chai.config.includeStack = true;
 
@@ -112,25 +110,19 @@ describe("HTTP class", () => {
           .returns(fakeServerResponse(200, { a: 1 }, { b: 2 }));
       });
 
-      it("should resolve with HTTP status", () => {
-        return http
-          .request("/")
-          .then(res => res.status)
-          .should.eventually.become(200);
+      it("should resolve with HTTP status", async () => {
+        const { status } = await http.request("/");
+        status.should.equal(200);
       });
 
-      it("should resolve with JSON body", () => {
-        return http
-          .request("/")
-          .then(res => res.json)
-          .should.eventually.become({ a: 1 });
+      it("should resolve with JSON body", async () => {
+        const { json } = await http.request("/");
+        json.should.deep.equal({ a: 1 });
       });
 
-      it("should resolve with headers", () => {
-        return http
-          .request("/")
-          .then(res => res.headers.get("b"))
-          .should.eventually.become(2);
+      it("should resolve with headers", async () => {
+        const { headers } = await http.request("/");
+        headers.get("b")!.should.equal(2);
       });
     });
 
@@ -143,40 +135,56 @@ describe("HTTP class", () => {
         );
       });
 
-      it("should timeout the request", () => {
-        return http.request("/").should.be.rejectedWith(NetworkTimeoutError);
+      it("should timeout the request", async () => {
+        let error: Error;
+
+        try {
+          await http.request("/");
+        } catch (err) {
+          error = err;
+        }
+
+        error!.should.not.be.undefined;
+        error!.should.be.instanceOf(NetworkTimeoutError);
       });
 
-      it("should show request properties in error", () => {
-        return http
-          .request("/", {
+      it("should show request properties in error", async () => {
+        let error: Error;
+
+        try {
+          await http.request("/", {
             mode: "cors",
             headers: {
               Authorization: "XXX",
               "User-agent": "mocha-test",
             },
-          })
-          .should.be.rejectedWith(
+          });
+        } catch (err) {
+          error = err;
+        }
+
+        error!.should.not.be.undefined;
+        error!.should.have
+          .property("message")
+          .equal(
             'Timeout while trying to access / with {"mode":"cors","headers":{"accept":"application/json","authorization":"**** (suppressed)","content-type":"application/json","user-agent":"mocha-test"}}'
           );
       });
     });
 
     describe("No content response", () => {
-      it("should resolve with null JSON if Content-Length header is missing", () => {
+      it("should resolve with null JSON if Content-Length header is missing", async () => {
         sandbox
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, null, {}));
 
-        return http
-          .request("/")
-          .then(res => res.json)
-          .should.eventually.become(null);
+        const { json } = await http.request("/");
+        expect(json).to.be.null;
       });
     });
 
     describe("Malformed JSON response", () => {
-      it("should reject with an appropriate message", () => {
+      it("should reject with an appropriate message", async () => {
         sandbox.stub(global as any, "fetch").returns(
           Promise.resolve({
             status: 200,
@@ -193,17 +201,26 @@ describe("HTTP class", () => {
           })
         );
 
-        return http
-          .request("/")
-          .should.be.rejectedWith(
-            UnparseableResponseError,
+        let error: Error;
+
+        try {
+          await http.request("/");
+        } catch (err) {
+          error = err;
+        }
+
+        error!.should.not.be.undefined;
+        error!.should.be.instanceOf(UnparseableResponseError);
+        error!.should.have
+          .property("message")
+          .match(
             /HTTP 200; SyntaxError: Unexpected token.+an example of invalid JSON/
           );
       });
     });
 
     describe("Business error responses", () => {
-      it("should reject on status code > 400", () => {
+      it("should reject on status code > 400", async () => {
         sandbox.stub(global as any, "fetch").returns(
           fakeServerResponse(400, {
             code: 400,
@@ -220,15 +237,24 @@ describe("HTTP class", () => {
           })
         );
 
-        return http
-          .request("/")
-          .should.be.rejectedWith(
-            ServerResponse,
+        let error: Error;
+
+        try {
+          await http.request("/");
+        } catch (err) {
+          error = err;
+        }
+
+        error!.should.not.be.undefined;
+        error!.should.be.instanceOf(ServerResponse);
+        error!.should.have
+          .property("message")
+          .match(
             /HTTP 400 Invalid parameters: Invalid request parameter \(data is missing\)/
           );
       });
 
-      it("should expose JSON error bodies", () => {
+      it("should expose JSON error bodies", async () => {
         const errorBody = {
           code: 400,
           details: [
@@ -246,13 +272,20 @@ describe("HTTP class", () => {
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(400, errorBody));
 
-        return http
-          .request("/")
-          .should.be.rejectedWith(ServerResponse)
-          .and.eventually.deep.property("data", errorBody);
+        let error: Error;
+
+        try {
+          await http.request("/");
+        } catch (err) {
+          error = err;
+        }
+
+        error!.should.not.be.undefined;
+        error!.should.be.instanceOf(ServerResponse);
+        error!.should.have.deep.property("data", errorBody);
       });
 
-      it("should reject on status code > 400 even with empty body", () => {
+      it("should reject on status code > 400 even with empty body", async () => {
         sandbox.stub(global as any, "fetch").resolves({
           status: 400,
           statusText: "Cake Is A Lie",
@@ -268,9 +301,17 @@ describe("HTTP class", () => {
           },
         });
 
-        return http
-          .request("/")
-          .should.be.rejectedWith(ServerResponse, /HTTP 400 Cake Is A Lie$/);
+        let error: Error;
+
+        try {
+          await http.request("/");
+        } catch (err) {
+          error = err;
+        }
+
+        error!.should.not.be.undefined;
+        error!.should.be.instanceOf(ServerResponse);
+        error!.should.have.property("message").match(/HTTP 400 Cake Is A Lie$/);
       });
     });
 
@@ -289,49 +330,46 @@ describe("HTTP class", () => {
         eventsEmitStub = sandbox.stub(events, "emit");
       });
 
-      it("should handle deprecation header", () => {
+      it("should handle deprecation header", async () => {
         sandbox
           .stub(global as any, "fetch")
           .returns(
             fakeServerResponse(200, {}, { Alert: JSON.stringify(eolObject) })
           );
 
-        return http.request("/").then(_ => {
-          sinon.assert.calledOnce(consoleWarnStub);
-          sinon.assert.calledWithExactly(
-            consoleWarnStub,
-            eolObject.message,
-            eolObject.url
-          );
-        });
+        await http.request("/");
+        sinon.assert.calledOnce(consoleWarnStub);
+        sinon.assert.calledWithExactly(
+          consoleWarnStub,
+          eolObject.message,
+          eolObject.url
+        );
       });
 
-      it("should handle deprecation header parse error", () => {
+      it("should handle deprecation header parse error", async () => {
         sandbox
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, {}, { Alert: "dafuq" }));
 
-        return http.request("/").then(_ => {
-          sinon.assert.calledOnce(consoleWarnStub);
-          sinon.assert.calledWithExactly(
-            consoleWarnStub,
-            "Unable to parse Alert header message",
-            "dafuq"
-          );
-        });
+        await http.request("/");
+        sinon.assert.calledOnce(consoleWarnStub);
+        sinon.assert.calledWithExactly(
+          consoleWarnStub,
+          "Unable to parse Alert header message",
+          "dafuq"
+        );
       });
 
-      it("should emit a deprecated event on Alert header", () => {
+      it("should emit a deprecated event on Alert header", async () => {
         sandbox
           .stub(global as any, "fetch")
           .returns(
             fakeServerResponse(200, {}, { Alert: JSON.stringify(eolObject) })
           );
 
-        return http.request("/").then(_ => {
-          expect(eventsEmitStub.firstCall.args[0]).eql("deprecated");
-          expect(eventsEmitStub.firstCall.args[1]).eql(eolObject);
-        });
+        await http.request("/");
+        expect(eventsEmitStub.firstCall.args[0]).eql("deprecated");
+        expect(eventsEmitStub.firstCall.args[1]).eql(eolObject);
       });
     });
 
@@ -343,37 +381,36 @@ describe("HTTP class", () => {
         eventsEmitStub = sandbox.stub(events, "emit");
       });
 
-      it("should emit a backoff event on set Backoff header", () => {
+      it("should emit a backoff event on set Backoff header", async () => {
         sandbox
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, {}, { Backoff: "1000" }));
 
-        return http.request("/").then(_ => {
-          expect(eventsEmitStub.firstCall.args[0]).eql("backoff");
-          expect(eventsEmitStub.firstCall.args[1]).eql(2000000);
-        });
+        await http.request("/");
+        expect(eventsEmitStub.firstCall.args[0]).eql("backoff");
+        expect(eventsEmitStub.firstCall.args[1]).eql(2000000);
       });
 
-      it("should emit a backoff event even on error responses", () => {
+      it("should emit a backoff event even on error responses", async () => {
         sandbox
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(503, {}, { Backoff: "1000" }));
 
-        return http.request("/").should.be.rejected.then(() => {
-          expect(eventsEmitStub.firstCall.args[0]).eql("backoff");
-          expect(eventsEmitStub.firstCall.args[1]).eql(2000000);
-        });
+        try {
+          await http.request("/");
+        } catch (err) {}
+        expect(eventsEmitStub.firstCall.args[0]).eql("backoff");
+        expect(eventsEmitStub.firstCall.args[1]).eql(2000000);
       });
 
-      it("should emit a backoff event on missing Backoff header", () => {
+      it("should emit a backoff event on missing Backoff header", async () => {
         sandbox
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, {}, {}));
 
-        return http.request("/").then(_ => {
-          expect(eventsEmitStub.firstCall.args[0]).eql("backoff");
-          expect(eventsEmitStub.firstCall.args[1]).eql(0);
-        });
+        await http.request("/");
+        expect(eventsEmitStub.firstCall.args[0]).eql("backoff");
+        expect(eventsEmitStub.firstCall.args[1]).eql(0);
       });
     });
 
@@ -386,15 +423,14 @@ describe("HTTP class", () => {
           eventsEmitStub = sandbox.stub(events, "emit");
         });
 
-        it("should emit a retry-after event when Retry-After is set", () => {
+        it("should emit a retry-after event when Retry-After is set", async () => {
           sandbox
             .stub(global as any, "fetch")
             .returns(fakeServerResponse(200, {}, { "Retry-After": "1000" }));
 
-          return http.request("/", {}, { retry: 0 }).then(_ => {
-            expect(eventsEmitStub.lastCall.args[0]).eql("retry-after");
-            expect(eventsEmitStub.lastCall.args[1]).eql(2000000);
-          });
+          await http.request("/", {}, { retry: 0 });
+          expect(eventsEmitStub.lastCall.args[0]).eql("retry-after");
+          expect(eventsEmitStub.lastCall.args[1]).eql(2000000);
         });
       });
 
@@ -411,26 +447,34 @@ describe("HTTP class", () => {
             .callsFake(fn => setImmediate(fn) as any);
         });
 
-        it("should not retry the request by default", () => {
+        it("should not retry the request by default", async () => {
           fetch.returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
-          return http
-            .request("/")
-            .should.eventually.be.rejectedWith(Error, /HTTP 503/);
+
+          let error: Error;
+
+          try {
+            await http.request("/");
+          } catch (err) {
+            error = err;
+          }
+
+          error!.should.not.be.undefined;
+          error!.should.be.instanceOf(Error);
+          error!.should.have.property("message").match(/HTTP 503/);
         });
 
-        it("should retry the request if specified", () => {
+        it("should retry the request if specified", async () => {
           const success = { success: true };
           fetch
             .onCall(0)
             .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
           fetch.onCall(1).returns(fakeServerResponse(200, success));
-          return http
-            .request("/", {}, { retry: 1 })
-            .then(res => res.json)
-            .should.eventually.become(success);
+
+          const { json } = await http.request("/", {}, { retry: 1 });
+          json.should.deep.equal(success);
         });
 
-        it("should error when retries are exhausted", () => {
+        it("should error when retries are exhausted", async () => {
           fetch
             .onCall(0)
             .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
@@ -440,9 +484,18 @@ describe("HTTP class", () => {
           fetch
             .onCall(2)
             .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
-          return http
-            .request("/", {}, { retry: 2 })
-            .should.eventually.be.rejectedWith(Error, /HTTP 503/);
+
+          let error: Error;
+
+          try {
+            await http.request("/", {}, { retry: 2 });
+          } catch (err) {
+            error = err;
+          }
+
+          error!.should.not.be.undefined;
+          error!.should.be.instanceOf(Error);
+          error!.should.have.property("message").match(/HTTP 503/);
         });
       });
     });
