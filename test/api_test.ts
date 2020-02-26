@@ -1,7 +1,7 @@
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import { EventEmitter } from "events";
-import { fakeServerResponse, Spy, Stub } from "./test_utils";
+import { fakeServerResponse, Stub } from "./test_utils";
 import KintoClient from "../src";
 import KintoClientBase, {
   SUPPORTED_PROTOCOL_VERSION as SPV,
@@ -863,6 +863,7 @@ describe("KintoClient", () => {
       let executeStub: Stub<typeof api.execute>;
 
       it("should issue a request with the specified limit applied", () => {
+        headersgetSpy = sandbox.stub().returns("");
         executeStub = sandbox.stub(api, "execute").returns(
           Promise.resolve({
             json: { data: [] },
@@ -974,7 +975,7 @@ describe("KintoClient", () => {
       hasNextPage: false,
       totalRecords: 2,
     };
-    let executeSpy: Spy<typeof api.execute>;
+    let executeStub: Stub<typeof api.execute>;
 
     describe("Capability available", () => {
       beforeEach(() => {
@@ -992,30 +993,32 @@ describe("KintoClient", () => {
             },
           },
         };
-        sandbox.stub(api, "paginatedList").returns(Promise.resolve(data));
-        executeSpy = sinon.spy(api, "execute");
+        executeStub = sandbox
+          .stub(api, "execute")
+          .returns(
+            Promise.resolve({ json: { data: [] }, headers: { get: () => "" } })
+          );
       });
 
-      it("should execute expected request", () => {
-        api.listPermissions().then(() => {
-          sinon.assert.calledWithMatch(executeSpy, {
-            path: "/permissions",
-            headers: {},
-          });
+      it("should execute expected request", async () => {
+        await api.listPermissions();
+        sinon.assert.calledWithMatch(executeStub, {
+          path: "/permissions?_sort=id",
+          headers: {},
         });
       });
 
-      it("should support passing custom headers", () => {
+      it("should support passing custom headers", async () => {
         api["_headers"] = { Foo: "Bar" };
-        api.listPermissions({ headers: { Baz: "Qux" } }).then(() => {
-          sinon.assert.calledWithMatch(executeSpy, {
-            path: "/permissions",
-            headers: { Foo: "Bar", Baz: "Qux" },
-          });
+        await api.listPermissions({ headers: { Baz: "Qux" } });
+        sinon.assert.calledWithMatch(executeStub, {
+          path: "/permissions?_sort=id",
+          headers: { Foo: "Bar", Baz: "Qux" },
         });
       });
 
       it("should resolve with a result object", async () => {
+        sandbox.stub(api, "paginatedList").returns(Promise.resolve(data));
         (await api.listPermissions()).should.have
           .property("data")
           .eql(data.data);
