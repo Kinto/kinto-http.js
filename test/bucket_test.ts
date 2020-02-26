@@ -12,6 +12,10 @@ chai.config.includeStack = true;
 
 const FAKE_SERVER_URL = "http://fake-server/v1";
 
+const fakeHeaders = {
+  get: () => "",
+};
+
 /** @test {Bucket} */
 describe("Bucket", () => {
   let sandbox: sinon.SinonSandbox, client: KintoClient;
@@ -40,12 +44,12 @@ describe("Bucket", () => {
 
   /** @test {Bucket#getData} */
   describe("#getData()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogBucket().getData();
+      await getBlogBucket().getData();
 
       sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog",
@@ -148,12 +152,12 @@ describe("Bucket", () => {
 
   /** @test {Bucket#getCollectionsTimestamp} */
   describe("#getCollectionsTimestamp()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogBucket().getCollectionsTimestamp();
+      await getBlogBucket().getCollectionsTimestamp();
 
       sinon.assert.calledWithMatch(
         executeStub,
@@ -409,12 +413,12 @@ describe("Bucket", () => {
 
   /** @test {Bucket#getGroupsTimestamp} */
   describe("#getGroupsTimestamp()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogBucket().getGroupsTimestamp();
+      await getBlogBucket().getGroupsTimestamp();
 
       sinon.assert.calledWithMatch(
         executeStub,
