@@ -1,5 +1,4 @@
 import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { EventEmitter } from "events";
 import { fakeServerResponse, Spy, Stub } from "./test_utils";
@@ -13,7 +12,6 @@ import Bucket from "../src/bucket";
 import { HelloResponse, OperationResponse } from "../src/types";
 import { KintoBatchResponse } from "../src/batch";
 
-chai.use(chaiAsPromised);
 chai.should();
 chai.config.includeStack = true;
 
@@ -145,22 +143,24 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#backoff} */
   describe("get backoff()", () => {
-    it("should provide the remaining backoff time in ms if any", () => {
+    it("should provide the remaining backoff time in ms if any", async () => {
       // Make Date#getTime always returning 1000000, for predictability
       sandbox.stub(Date.prototype, "getTime").returns(1000 * 1000);
       sandbox
         .stub(global as any, "fetch")
         .returns(fakeServerResponse(200, {}, { Backoff: "1000" }));
 
-      return api.listBuckets().then(_ => expect(api.backoff).eql(1000000));
+      await api.listBuckets();
+      return expect(api.backoff).eql(1000000);
     });
 
-    it("should provide no remaining backoff time when none is set", () => {
+    it("should provide no remaining backoff time when none is set", async () => {
       sandbox
         .stub(global as any, "fetch")
         .returns(fakeServerResponse(200, {}, {}));
 
-      return api.listBuckets().then(_ => expect(api.backoff).eql(0));
+      await api.listBuckets();
+      return expect(api.backoff).eql(0);
     });
   });
 
@@ -199,25 +199,24 @@ describe("KintoClient", () => {
       capabilities: {},
     };
 
-    it("should retrieve server settings on first request made", () => {
+    it("should retrieve server settings on first request made", async () => {
       sandbox
         .stub(global as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
-      return api.fetchServerInfo().should.eventually.become(fakeServerInfo);
+      (await api.fetchServerInfo()).should.deep.equal(fakeServerInfo);
     });
 
-    it("should store server settings into the serverSettings property", () => {
+    it("should store server settings into the serverSettings property", async () => {
       // api.serverSettings = { a: 1 };
       sandbox
         .stub(global as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
-      return api.fetchServerInfo().then(_ => {
-        expect(api)
-          .property("serverInfo")
-          .deep.equal(fakeServerInfo);
-      });
+      await api.fetchServerInfo();
+      expect(api)
+        .property("serverInfo")
+        .deep.equal(fakeServerInfo);
     });
 
     it("should not fetch server settings if they're cached already", () => {
@@ -241,15 +240,12 @@ describe("KintoClient", () => {
   describe("#fetchServerSettings()", () => {
     const fakeServerInfo = { settings: { fake: true } };
 
-    it("should retrieve server settings", () => {
+    it("should retrieve server settings", async () => {
       sandbox
         .stub(global as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
-      return api
-        .fetchServerSettings()
-        .should.eventually.have.property("fake")
-        .eql(true);
+      (await api.fetchServerSettings()).should.have.property("fake").eql(true);
     });
   });
 
@@ -257,14 +253,13 @@ describe("KintoClient", () => {
   describe("#fetchServerCapabilities()", () => {
     const fakeServerInfo = { capabilities: { fake: true } };
 
-    it("should retrieve server capabilities", () => {
+    it("should retrieve server capabilities", async () => {
       sandbox
         .stub(global as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
-      return api
-        .fetchServerCapabilities()
-        .should.eventually.have.property("fake")
+      (await api.fetchServerCapabilities()).should.have
+        .property("fake")
         .eql(true);
     });
   });
@@ -273,15 +268,12 @@ describe("KintoClient", () => {
   describe("#fetchUser()", () => {
     const fakeServerInfo = { user: { fake: true } };
 
-    it("should retrieve user information", () => {
+    it("should retrieve user information", async () => {
       sandbox
         .stub(global as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
-      return api
-        .fetchUser()
-        .should.eventually.have.property("fake")
-        .eql(true);
+      (await api.fetchUser())!.should.have.property("fake").eql(true);
     });
   });
 
@@ -289,15 +281,12 @@ describe("KintoClient", () => {
   describe("#fetchHTTPApiVersion()", () => {
     const fakeServerInfo = { http_api_version: { fake: true } };
 
-    it("should retrieve current API version", () => {
+    it("should retrieve current API version", async () => {
       sandbox
         .stub(global as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
-      return api
-        .fetchHTTPApiVersion()
-        .should.eventually.have.property("fake")
-        .eql(true);
+      (await api.fetchHTTPApiVersion()).should.have.property("fake").eql(true);
     });
   });
 
@@ -324,11 +313,12 @@ describe("KintoClient", () => {
     }
 
     describe("Batch client setup", () => {
-      it("should skip registering HTTP events", () => {
+      it("should skip registering HTTP events", async () => {
         const on = sandbox.spy();
         const api = new KintoClient(FAKE_SERVER_URL, { events: { on } as any });
 
-        return api.batch(() => {}).then(() => sinon.assert.calledOnce(on));
+        await api.batch(() => {});
+        return sinon.assert.calledOnce(on);
       });
     });
 
@@ -340,10 +330,9 @@ describe("KintoClient", () => {
         fetch.returns(fakeServerResponse(200, { responses: [] }));
       });
 
-      it("should ensure server settings are fetched", () => {
-        return api
-          .batch((batch: KintoClientBase) => batch.createBucket("blog"))
-          .then(_ => sinon.assert.called(api.fetchServerSettings as any));
+      it("should ensure server settings are fetched", async () => {
+        await api.batch((batch: KintoClientBase) => batch.createBucket("blog"));
+        return sinon.assert.called(api.fetchServerSettings as any);
       });
 
       describe("empty request list", () => {
@@ -362,9 +351,9 @@ describe("KintoClient", () => {
           { title: "art3" },
         ];
 
-        beforeEach(() => {
+        beforeEach(async () => {
           api["_headers"] = { Authorization: "Basic plop" };
-          return api
+          await api
             .bucket("default")
             .collection("blog")
             .batch(
@@ -374,12 +363,10 @@ describe("KintoClient", () => {
                 }
               },
               { headers: { Foo: "Bar" } }
-            )
-            .then(_ => {
-              const request = fetch.firstCall.args[1];
-              requestHeaders = request.headers;
-              requestBody = JSON.parse(request.body);
-            });
+            );
+          const request = fetch.firstCall.args[1];
+          requestHeaders = request.headers;
+          requestBody = JSON.parse(request.body);
         });
 
         it("should call the batch endpoint", () => {
@@ -405,8 +392,8 @@ describe("KintoClient", () => {
       describe("Safe mode", () => {
         const fixtures = [{ title: "art1" }, { title: "art2" }];
 
-        it("should forward the safe option to resulting requests", () => {
-          return api
+        it("should forward the safe option to resulting requests", async () => {
+          await api
             .bucket("default")
             .collection("blog")
             .batch(
@@ -416,15 +403,17 @@ describe("KintoClient", () => {
                 }
               },
               { safe: true }
+            );
+          const { requests } = JSON.parse(fetch.firstCall.args[1].body);
+          expect(
+            requests.map(
+              (r: {
+                headers: {
+                  [key: string]: string;
+                }[];
+              }) => r.headers
             )
-            .then(_ => {
-              const { requests } = JSON.parse(fetch.firstCall.args[1].body);
-              expect(
-                requests.map(
-                  (r: { headers: { [key: string]: string }[] }) => r.headers
-                )
-              ).eql([{ "If-None-Match": "*" }, { "If-None-Match": "*" }]);
-            });
+          ).eql([{ "If-None-Match": "*" }, { "If-None-Match": "*" }]);
         });
       });
 
@@ -448,14 +437,14 @@ describe("KintoClient", () => {
           );
         });
 
-        it("should retry the request if option is specified", () => {
-          return api
+        it("should retry the request if option is specified", async () => {
+          const r = await api
             .bucket("default")
             .collection("blog")
             .batch(batch => batch.createRecord({}), {
               retry: 1,
-            })
-            .then(r => expect((r as OperationResponse[])[0]).eql(response));
+            });
+          return expect((r as OperationResponse[])[0]).eql(response);
         });
       });
     });
@@ -466,7 +455,7 @@ describe("KintoClient", () => {
         { id: "2", title: "art2" },
       ];
 
-      it("should reject on HTTP 400", () => {
+      it("should reject on HTTP 400", async () => {
         sandbox.stub(global as any, "fetch").returns(
           fakeServerResponse(400, {
             error: true,
@@ -475,13 +464,20 @@ describe("KintoClient", () => {
           })
         );
 
-        return executeBatch(fixtures).should.eventually.be.rejectedWith(
-          Error,
-          /HTTP 400/
-        );
+        let error: Error;
+
+        try {
+          await executeBatch(fixtures);
+        } catch (err) {
+          error = err;
+        }
+
+        error!.should.not.be.undefined;
+        error!.should.be.instanceOf(Error);
+        error!.should.have.property("message").match(/HTTP 400/);
       });
 
-      it("should reject on HTTP error status code", () => {
+      it("should reject on HTTP error status code", async () => {
         sandbox.stub(global as any, "fetch").returns(
           fakeServerResponse(500, {
             error: true,
@@ -489,13 +485,20 @@ describe("KintoClient", () => {
           })
         );
 
-        return executeBatch(fixtures).should.eventually.be.rejectedWith(
-          Error,
-          /HTTP 500/
-        );
+        let error: Error;
+
+        try {
+          await executeBatch(fixtures);
+        } catch (err) {
+          error = err;
+        }
+
+        error!.should.not.be.undefined;
+        error!.should.be.instanceOf(Error);
+        error!.should.have.property("message").match(/HTTP 500/);
       });
 
-      it("should expose succesful subrequest responses", () => {
+      it("should expose succesful subrequest responses", async () => {
         const responses = [
           {
             status: 201,
@@ -512,10 +515,10 @@ describe("KintoClient", () => {
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));
 
-        return executeBatch(fixtures).should.eventually.become(responses);
+        (await executeBatch(fixtures)).should.deep.equal(responses);
       });
 
-      it("should expose failing subrequest responses", () => {
+      it("should expose failing subrequest responses", async () => {
         const missingRemotely = fixtures[0];
         const responses = [
           {
@@ -528,10 +531,10 @@ describe("KintoClient", () => {
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));
 
-        return executeBatch(fixtures).should.eventually.become(responses);
+        (await executeBatch(fixtures)).should.deep.equal(responses);
       });
 
-      it("should resolve with encountered HTTP 500", () => {
+      it("should resolve with encountered HTTP 500", async () => {
         const responses = [
           {
             status: 500,
@@ -543,10 +546,10 @@ describe("KintoClient", () => {
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));
 
-        return executeBatch(fixtures).should.eventually.become(responses);
+        (await executeBatch(fixtures)).should.deep.equal(responses);
       });
 
-      it("should expose encountered HTTP 412", () => {
+      it("should expose encountered HTTP 412", async () => {
         const responses = [
           {
             status: 412,
@@ -558,7 +561,7 @@ describe("KintoClient", () => {
           .stub(global as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));
 
-        return executeBatch(fixtures).should.eventually.become(responses);
+        (await executeBatch(fixtures)).should.deep.equal(responses);
       });
     });
 
@@ -571,7 +574,7 @@ describe("KintoClient", () => {
         { id: "4", title: "qux" },
       ];
 
-      it("should chunk batch requests", () => {
+      it("should chunk batch requests", async () => {
         sandbox
           .stub(global as any, "fetch")
           .onFirstCall()
@@ -590,14 +593,12 @@ describe("KintoClient", () => {
               responses: [{ status: 200, body: { data: 4 } }],
             })
           );
-        return executeBatch(fixtures)
-          .then(res =>
-            (res as OperationResponse[]).map(response => response.body.data)
-          )
-          .should.become([1, 2, 3, 4]);
+        ((await executeBatch(fixtures)) as OperationResponse[])
+          .map(response => response.body.data)
+          .should.deep.equal([1, 2, 3, 4]);
       });
 
-      it("should not chunk batch requests if setting is falsy", () => {
+      it("should not chunk batch requests if setting is falsy", async () => {
         const fetchServerSettings = sandbox.stub().returns(
           Promise.resolve({
             batch_max_requests: 0,
@@ -609,12 +610,11 @@ describe("KintoClient", () => {
             responses: [],
           })
         );
-        return executeBatch(fixtures).then(_ =>
-          sinon.assert.calledOnce(fetchStub)
-        );
+        await executeBatch(fixtures);
+        return sinon.assert.calledOnce(fetchStub);
       });
 
-      it("should map initial records to conflict objects", () => {
+      it("should map initial records to conflict objects", async () => {
         sandbox
           .stub(global as any, "fetch")
           .onFirstCall()
@@ -635,14 +635,13 @@ describe("KintoClient", () => {
               ],
             })
           );
-        return executeBatch(fixtures)
-          .then(res =>
-            (res as OperationResponse[]).map(response => response.status)
-          )
-          .should.become([412, 412, 412, 412]);
+
+        ((await executeBatch(fixtures)) as OperationResponse[])
+          .map(response => response.status)
+          .should.deep.equal([412, 412, 412, 412]);
       });
 
-      it("should chunk batch requests concurrently", () => {
+      it("should chunk batch requests concurrently", async () => {
         sandbox
           .stub(global as any, "fetch")
           .onFirstCall()
@@ -675,11 +674,9 @@ describe("KintoClient", () => {
               setTimeout(onTimeout, 5);
             })
           );
-        return executeBatch(fixtures)
-          .then(res =>
-            (res as OperationResponse[]).map(response => response.body.data)
-          )
-          .should.become([1, 2, 3, 4]);
+        ((await executeBatch(fixtures)) as OperationResponse[])
+          .map(response => response.body.data)
+          .should.deep.equal([1, 2, 3, 4]);
       });
     });
 
@@ -691,7 +688,7 @@ describe("KintoClient", () => {
         { title: "art4" },
       ];
 
-      it("should resolve with an aggregated result object", () => {
+      it("should resolve with an aggregated result object", async () => {
         const responses: KintoBatchResponse[] = [];
         sandbox
           .stub(global as any, "fetch")
@@ -699,29 +696,27 @@ describe("KintoClient", () => {
         const batchModule = require("../src/batch");
         const aggregate = sandbox.stub(batchModule, "aggregate");
 
-        return executeBatch(fixtures, { aggregate: true }).then(_ => {
-          sinon.assert.calledWith(aggregate, responses);
-        });
+        await executeBatch(fixtures, { aggregate: true });
+        sinon.assert.calledWith(aggregate, responses);
       });
     });
   });
 
   /** @test {KintoClient#execute} */
   describe("#execute()", () => {
-    it("should ensure passing defined allowed defined request options", () => {
+    it("should ensure passing defined allowed defined request options", async () => {
       sinon.stub(api, "fetchServerInfo").returns(Promise.resolve({} as any));
       const request = sinon
         .stub(api.http, "request")
         .returns(Promise.resolve({} as any));
 
-      return api.execute({ path: "/foo", garbage: true } as any).then(() => {
-        sinon.assert.calledWith(
-          request,
-          "http://fake-server/v1/foo",
-          {},
-          { retry: 0 }
-        );
-      });
+      await api.execute({ path: "/foo", garbage: true } as any);
+      sinon.assert.calledWith(
+        request,
+        "http://fake-server/v1/foo",
+        {},
+        { retry: 0 }
+      );
     });
   });
 
@@ -768,17 +763,15 @@ describe("KintoClient", () => {
         );
       });
 
-      it("should resolve with records list", () => {
-        return api
-          .paginatedList(path)
-          .should.eventually.have.property("data")
+      it("should resolve with records list", async () => {
+        (await api.paginatedList(path)).should.have
+          .property("data")
           .eql([{ a: 1 }]);
       });
 
-      it("should resolve with a next() function", () => {
-        return api
-          .paginatedList(path)
-          .should.eventually.have.property("next")
+      it("should resolve with a next() function", async () => {
+        (await api.paginatedList(path)).should.have
+          .property("next")
           .to.be.a("function");
       });
 
@@ -792,26 +785,31 @@ describe("KintoClient", () => {
         });
       });
 
-      it("should throw if the since option is invalid", () => {
-        return api
-          .paginatedList(path, { since: 123 } as any)
-          .should.be.rejectedWith(
-            Error,
-            /Invalid value for since \(123\), should be ETag value/
-          );
+      it("should throw if the since option is invalid", async () => {
+        let error: Error;
+
+        try {
+          await api.paginatedList(path, { since: 123 } as any);
+        } catch (err) {
+          error = err;
+        }
+
+        error!.should.not.be.undefined;
+        error!.should.be.instanceOf(Error);
+        error!.should.have
+          .property("message")
+          .match(/Invalid value for since \(123\), should be ETag value/);
       });
 
-      it("should resolve with the collection last_modified without quotes", () => {
-        return api
-          .paginatedList(path)
-          .should.eventually.have.property("last_modified")
+      it("should resolve with the collection last_modified without quotes", async () => {
+        (await api.paginatedList(path)).should.have
+          .property("last_modified")
           .eql("42");
       });
 
-      it("should resolve with the hasNextPage being set to false", () => {
-        return api
-          .paginatedList(path)
-          .should.eventually.have.property("hasNextPage")
+      it("should resolve with the hasNextPage being set to false", async () => {
+        (await api.paginatedList(path)).should.have
+          .property("hasNextPage")
           .eql(false);
       });
 
@@ -882,7 +880,7 @@ describe("KintoClient", () => {
         );
       });
 
-      it("should query for next page", () => {
+      it("should query for next page", async () => {
         const { http } = api;
         headersgetSpy = sandbox.stub().returns("http://next-page/");
         sandbox.stub(api, "execute").returns(
@@ -899,12 +897,11 @@ describe("KintoClient", () => {
           })
         );
 
-        return api.paginatedList(path, { limit: 2, pages: 2 }).then(_ => {
-          sinon.assert.calledWith(requestStub, "http://next-page/");
-        });
+        await api.paginatedList(path, { limit: 2, pages: 2 });
+        sinon.assert.calledWith(requestStub, "http://next-page/");
       });
 
-      it("should aggregate paginated results", () => {
+      it("should aggregate paginated results", async () => {
         const { http } = api;
         sandbox
           .stub(http, "request")
@@ -927,13 +924,12 @@ describe("KintoClient", () => {
             })
           );
 
-        return api
-          .paginatedList(path, { limit: 2, pages: 2 })
-          .should.eventually.have.property("data")
+        (await api.paginatedList(path, { limit: 2, pages: 2 })).should.have
+          .property("data")
           .eql([1, 2, 3]);
       });
 
-      it("should resolve with the hasNextPage being set to true", () => {
+      it("should resolve with the hasNextPage being set to true", async () => {
         const { http } = api;
         sandbox
           .stub(http, "request")
@@ -947,9 +943,8 @@ describe("KintoClient", () => {
             })
           );
 
-        return api
-          .paginatedList(path)
-          .should.eventually.have.property("hasNextPage")
+        (await api.paginatedList(path)).should.have
+          .property("hasNextPage")
           .eql(true);
       });
     });
@@ -959,7 +954,7 @@ describe("KintoClient", () => {
         // Emulate an ongoing batch operation
         (api as any)._isBatch = true;
 
-        return api.paginatedList(path).should.not.be.rejected;
+        return api.paginatedList(path);
       });
     });
   });
@@ -1020,16 +1015,15 @@ describe("KintoClient", () => {
         });
       });
 
-      it("should resolve with a result object", () => {
-        return api
-          .listPermissions()
-          .should.eventually.have.property("data")
+      it("should resolve with a result object", async () => {
+        (await api.listPermissions()).should.have
+          .property("data")
           .eql(data.data);
       });
     });
 
     describe("Capability unavailable", () => {
-      it("should reject with an error when the capability is not available", () => {
+      it("should reject with an error when the capability is not available", async () => {
         api.serverInfo = {
           project_name: "",
           project_version: "",
@@ -1040,9 +1034,17 @@ describe("KintoClient", () => {
           capabilities: {},
         };
 
-        return api
-          .listPermissions()
-          .should.be.rejectedWith(Error, /permissions_endpoint/);
+        let error: Error;
+
+        try {
+          await api.listPermissions();
+        } catch (err) {
+          error = err;
+        }
+
+        error!.should.not.be.undefined;
+        error!.should.be.instanceOf(Error);
+        error!.should.have.property("message").match(/permissions_endpoint/);
       });
     });
   });
@@ -1093,11 +1095,8 @@ describe("KintoClient", () => {
       );
     });
 
-    it("should resolve with a result object", () => {
-      return api
-        .listBuckets()
-        .should.eventually.have.property("data")
-        .eql(data.data);
+    it("should resolve with a result object", async () => {
+      (await api.listBuckets()).should.have.property("data").eql(data.data);
     });
 
     it("should support filters and fields", () => {
@@ -1230,34 +1229,31 @@ describe("KintoClient", () => {
       sandbox.stub(api, "execute").returns(Promise.resolve({}));
     });
 
-    it("should execute expected request", () => {
-      return api.deleteBuckets().then(_ => {
-        sinon.assert.calledWithMatch(deleteRequestStub, "/buckets", {
-          headers: {},
-          safe: false,
-        });
+    it("should execute expected request", async () => {
+      await api.deleteBuckets();
+      sinon.assert.calledWithMatch(deleteRequestStub, "/buckets", {
+        headers: {},
+        safe: false,
       });
     });
 
-    it("should accept a safe option", () => {
-      return api.deleteBuckets({ safe: true }).then(_ => {
-        sinon.assert.calledWithMatch(deleteRequestStub, "/buckets", {
-          safe: true,
-        });
+    it("should accept a safe option", async () => {
+      await api.deleteBuckets({ safe: true });
+      sinon.assert.calledWithMatch(deleteRequestStub, "/buckets", {
+        safe: true,
       });
     });
 
-    it("should extend request headers with optional ones", () => {
+    it("should extend request headers with optional ones", async () => {
       api["_headers"] = { Foo: "Bar" };
 
-      return api.deleteBuckets({ headers: { Baz: "Qux" } }).then(_ => {
-        sinon.assert.calledWithMatch(deleteRequestStub, "/buckets", {
-          headers: { Foo: "Bar", Baz: "Qux" },
-        });
+      await api.deleteBuckets({ headers: { Baz: "Qux" } });
+      sinon.assert.calledWithMatch(deleteRequestStub, "/buckets", {
+        headers: { Foo: "Bar", Baz: "Qux" },
       });
     });
 
-    it("should reject if http_api_version mismatches", () => {
+    it("should reject if http_api_version mismatches", async () => {
       api.serverInfo = {
         project_name: "",
         project_version: "",
@@ -1268,7 +1264,17 @@ describe("KintoClient", () => {
         capabilities: {},
       };
 
-      return api.deleteBuckets().should.be.rejectedWith(Error, /Version/);
+      let error: Error;
+
+      try {
+        await api.deleteBuckets();
+      } catch (err) {
+        error = err;
+      }
+
+      error!.should.not.be.undefined;
+      error!.should.be.instanceOf(Error);
+      error!.should.have.property("message").match(/Version/);
     });
   });
 });
