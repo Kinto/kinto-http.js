@@ -1,18 +1,20 @@
 import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import KintoClient from "../src";
 import Bucket, { BucketOptions } from "../src/bucket";
 import Collection from "../src/collection";
 import * as requests from "../src/requests";
 import { PaginationResult } from "../src/base";
-import { Stub } from "./test_utils";
+import { Stub, expectAsyncError } from "./test_utils";
 
-chai.use(chaiAsPromised);
 chai.should();
 chai.config.includeStack = true;
 
 const FAKE_SERVER_URL = "http://fake-server/v1";
+
+const fakeHeaders = {
+  get: () => "",
+};
 
 /** @test {Bucket} */
 describe("Bucket", () => {
@@ -42,12 +44,12 @@ describe("Bucket", () => {
 
   /** @test {Bucket#getData} */
   describe("#getData()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogBucket().getData();
+      await getBlogBucket().getData();
 
       sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog",
@@ -55,13 +57,14 @@ describe("Bucket", () => {
       });
     });
 
-    it("should resolve with response data", () => {
+    it("should resolve with response data", async () => {
       const response = { data: { foo: "bar" }, permissions: {} };
       sandbox.stub(client, "execute").returns(Promise.resolve(response));
 
-      return getBlogBucket()
-        .getData()
-        .should.become({ foo: "bar" });
+      const data = (await getBlogBucket().getData()) as { foo: string };
+      data.should.deep.equal({
+        foo: "bar",
+      });
     });
 
     it("should support query and fields", () => {
@@ -120,10 +123,8 @@ describe("Bucket", () => {
       );
     });
 
-    it("should resolve with json result", () => {
-      return getBlogBucket()
-        .setData({ a: 1 })
-        .should.become({ data: 1 });
+    it("should resolve with json result", async () => {
+      (await getBlogBucket().setData({ a: 1 })).should.deep.equal({ data: 1 });
     });
   });
 
@@ -152,12 +153,12 @@ describe("Bucket", () => {
 
   /** @test {Bucket#getCollectionsTimestamp} */
   describe("#getCollectionsTimestamp()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogBucket().getCollectionsTimestamp();
+      await getBlogBucket().getCollectionsTimestamp();
 
       sinon.assert.calledWithMatch(
         executeStub,
@@ -166,7 +167,7 @@ describe("Bucket", () => {
       );
     });
 
-    it("should resolve with the ETag header value", () => {
+    it("should resolve with the ETag header value", async () => {
       const etag = '"42"';
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
@@ -178,9 +179,9 @@ describe("Bucket", () => {
         })
       );
 
-      return getBlogBucket()
-        .getCollectionsTimestamp()
-        .should.become(etag);
+      (await getBlogBucket().getCollectionsTimestamp())!.should.deep.equal(
+        etag
+      );
     });
   });
 
@@ -244,10 +245,8 @@ describe("Bucket", () => {
       );
     });
 
-    it("should return the list of collections", () => {
-      return getBlogBucket()
-        .listCollections()
-        .should.become(data);
+    it("should return the list of collections", async () => {
+      (await getBlogBucket().listCollections()).should.deep.equal(data);
     });
   });
 
@@ -415,12 +414,12 @@ describe("Bucket", () => {
 
   /** @test {Bucket#getGroupsTimestamp} */
   describe("#getGroupsTimestamp()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogBucket().getGroupsTimestamp();
+      await getBlogBucket().getGroupsTimestamp();
 
       sinon.assert.calledWithMatch(
         executeStub,
@@ -429,7 +428,7 @@ describe("Bucket", () => {
       );
     });
 
-    it("should resolve with the ETag header value", () => {
+    it("should resolve with the ETag header value", async () => {
       const etag = '"42"';
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
@@ -441,9 +440,7 @@ describe("Bucket", () => {
         })
       );
 
-      return getBlogBucket()
-        .getGroupsTimestamp()
-        .should.become(etag);
+      (await getBlogBucket().getGroupsTimestamp())!.should.deep.equal(etag);
     });
   });
 
@@ -503,10 +500,8 @@ describe("Bucket", () => {
       });
     });
 
-    it("should return the list of groups", () => {
-      return getBlogBucket()
-        .listGroups()
-        .should.become(data);
+    it("should return the list of groups", async () => {
+      (await getBlogBucket().listGroups()).should.deep.equal(data);
     });
   });
 
@@ -532,10 +527,8 @@ describe("Bucket", () => {
       });
     });
 
-    it("should return the group", () => {
-      return getBlogBucket()
-        .getGroup("foo")
-        .should.become(fakeGroup);
+    it("should return the group", async () => {
+      (await getBlogBucket().getGroup("foo")).should.deep.equal(fakeGroup);
     });
 
     it("should support query and fields", () => {
@@ -623,17 +616,18 @@ describe("Bucket", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
     });
 
-    it("should throw if record is not an object", () => {
-      return (getBlogBucket().updateGroup as any)().should.be.rejectedWith(
-        Error,
+    it("should throw if record is not an object", async () => {
+      await expectAsyncError(
+        () => getBlogBucket().updateGroup(undefined as any),
         /group object is required/
       );
     });
 
-    it("should throw if id is missing", () => {
-      return getBlogBucket()
-        .updateGroup({} as any)
-        .should.be.rejectedWith(Error, /group id is required/);
+    it("should throw if id is missing", async () => {
+      expectAsyncError(
+        () => getBlogBucket().updateGroup({} as any),
+        /group id is required/
+      );
     });
 
     it("should accept a patch option", () => {
@@ -780,9 +774,11 @@ describe("Bucket", () => {
       );
     });
 
-    it("should retrieve permissions", () => {
+    it("should retrieve permissions", async () => {
       const bucket = getBlogBucket();
-      return bucket.getPermissions().should.become({ write: ["fakeperms"] });
+      (await bucket.getPermissions()).should.deep.equal({
+        write: ["fakeperms"],
+      });
     });
 
     it("should merge default options", () => {
@@ -846,10 +842,9 @@ describe("Bucket", () => {
       );
     });
 
-    it("should resolve with response data", () => {
-      return getBlogBucket()
-        .setPermissions(fakePermissions)
-        .should.eventually.have.property("permissions")
+    it("should resolve with response data", async () => {
+      (await getBlogBucket().setPermissions(fakePermissions)).should.have
+        .property("permissions")
         .eql(fakePermissions);
     });
   });

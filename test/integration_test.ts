@@ -1,12 +1,11 @@
 import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 
 import Api from "../src";
 import KintoClientBase, { KintoClientOptions } from "../src/base";
 import { EventEmitter } from "events";
 import KintoServer from "kinto-node-test-server";
-import { delayedPromise, Stub } from "./test_utils";
+import { delayedPromise, Stub, expectAsyncError } from "./test_utils";
 import Bucket from "../src/bucket";
 import Collection from "../src/collection";
 import {
@@ -23,7 +22,6 @@ interface TitleRecord extends KintoObject {
   title: string;
 }
 
-chai.use(chaiAsPromised);
 chai.should();
 chai.config.includeStack = true;
 
@@ -108,74 +106,61 @@ describe("Integration tests", function() {
 
     // XXX move this to batch tests
     describe("new batch", () => {
-      it("should support root batch", () => {
-        return api
-          .batch((batch: KintoClientBase) => {
-            const bucket = batch.bucket("default");
-            bucket.createCollection("posts");
-            const coll = bucket.collection("posts");
-            coll.createRecord({ a: 1 });
-            coll.createRecord({ a: 2 });
-          })
-          .then(_ =>
-            api
-              .bucket("default")
-              .collection("posts")
-              .listRecords()
-          )
-          .then(res => res.data)
-          .should.eventually.have.lengthOf(2);
+      it("should support root batch", async function() {
+        await api.batch((batch: KintoClientBase) => {
+          const bucket = batch.bucket("default");
+          bucket.createCollection("posts");
+          const coll = bucket.collection("posts");
+          coll.createRecord({ a: 1 });
+          coll.createRecord({ a: 2 });
+        });
+        const res = await api
+          .bucket("default")
+          .collection("posts")
+          .listRecords();
+        res.data.should.have.lengthOf(2);
       });
 
-      it("should support bucket batch", () => {
-        return api
+      it("should support bucket batch", async function() {
+        await api.bucket("default").batch(batch => {
+          batch.createCollection("posts");
+          const coll = batch.collection("posts");
+          coll.createRecord({ a: 1 });
+          coll.createRecord({ a: 2 });
+        });
+        const res = await api
           .bucket("default")
-          .batch(batch => {
-            batch.createCollection("posts");
-            const coll = batch.collection("posts");
-            coll.createRecord({ a: 1 });
-            coll.createRecord({ a: 2 });
-          })
-          .then(_ =>
-            api
-              .bucket("default")
-              .collection("posts")
-              .listRecords()
-          )
-          .then(res => res.data)
-          .should.eventually.have.lengthOf(2);
+          .collection("posts")
+          .listRecords();
+        res.data.should.have.lengthOf(2);
       });
     });
 
     describe("Server properties", () => {
-      it("should retrieve server settings", () => {
-        return api
-          .fetchServerSettings()
-          .should.eventually.have.property("batch_max_requests")
+      it("should retrieve server settings", async () => {
+        (await api.fetchServerSettings()).should.have
+          .property("batch_max_requests")
           .eql(25);
       });
 
-      it("should retrieve server capabilities", () => {
-        return api.fetchServerCapabilities().then(capabilities => {
-          expect(capabilities).to.be.an("object");
-
-          // Kinto protocol 1.4 exposes capability descriptions
-          Object.keys(capabilities).forEach(capability => {
-            const capabilityObj = capabilities[capability];
-            expect(capabilityObj).to.include.keys("url", "description");
-          });
+      it("should retrieve server capabilities", async () => {
+        const capabilities = await api.fetchServerCapabilities();
+        expect(capabilities).to.be.an("object");
+        // Kinto protocol 1.4 exposes capability descriptions
+        Object.keys(capabilities).forEach(capability => {
+          const capabilityObj = capabilities[capability];
+          expect(capabilityObj).to.include.keys("url", "description");
         });
       });
 
-      it("should retrieve user information", () => {
-        return api.fetchUser().then(user => {
-          expect(user!.id).to.match(/^basicauth:/);
-          expect(user!.bucket).to.have.lengthOf(36);
-        });
+      it("should retrieve user information", async () => {
+        const user = await api.fetchUser();
+        expect(user!.id).to.match(/^basicauth:/);
+        expect(user!.bucket).to.have.lengthOf(36);
       });
 
-      it("should retrieve current API version", () => {
-        return api.fetchHTTPApiVersion().should.eventually.match(/^\d\.\d+$/);
+      it("should retrieve current API version", async () => {
+        (await api.fetchHTTPApiVersion()).should.match(/^\d\.\d+$/);
       });
     });
 
@@ -184,10 +169,9 @@ describe("Integration tests", function() {
 
       describe("Default options", () => {
         describe("Autogenerated id", () => {
-          beforeEach(() => {
-            return api
-              .createBucket(null)
-              .then(res => (result = res as KintoResponse));
+          beforeEach(async () => {
+            const res = await api.createBucket(null);
+            return (result = res as KintoResponse);
           });
 
           it("should create a bucket", () => {
@@ -199,10 +183,9 @@ describe("Integration tests", function() {
         });
 
         describe("Custom id", () => {
-          beforeEach(() => {
-            return api
-              .createBucket("foo")
-              .then(res => (result = res as KintoResponse));
+          beforeEach(async () => {
+            const res = await api.createBucket("foo");
+            return (result = res as KintoResponse);
           });
 
           it("should create a bucket with the passed id", () => {
@@ -220,30 +203,31 @@ describe("Integration tests", function() {
           });
 
           describe("data option", () => {
-            it("should create bucket data", () => {
-              return api
-                .createBucket("foo", { data: { a: 1 } })
-                .should.eventually.have.property("data")
+            it("should create bucket data", async () => {
+              (await api.createBucket("foo", { data: { a: 1 } })).should.have
+                .property("data")
                 .to.have.property("a")
                 .eql(1);
             });
           });
 
           describe("Safe option", () => {
-            it("should not override existing bucket", () => {
-              return api
-                .createBucket("foo", { safe: true })
-                .should.be.rejectedWith(Error, /412 Precondition Failed/);
+            it("should not override existing bucket", async () => {
+              await expectAsyncError(
+                () => api.createBucket("foo", { safe: true }),
+                /412 Precondition Failed/
+              );
             });
           });
         });
       });
 
       describe("permissions option", () => {
-        beforeEach(() => {
-          return api
-            .createBucket("foo", { permissions: { read: ["github:n1k0"] } })
-            .then(res => (result = res as KintoResponse));
+        beforeEach(async () => {
+          const res = await api.createBucket("foo", {
+            permissions: { read: ["github:n1k0"] },
+          });
+          return (result = res as KintoResponse);
         });
 
         it("should create a bucket having a list of write permissions", () => {
@@ -258,30 +242,27 @@ describe("Integration tests", function() {
     describe("#deleteBucket()", () => {
       let last_modified: number;
 
-      beforeEach(() => {
-        return api
-          .createBucket("foo")
-          .then(
-            res => (last_modified = (res as KintoResponse).data.last_modified)
-          );
+      beforeEach(async () => {
+        const res = await api.createBucket("foo");
+        return (last_modified = (res as KintoResponse).data.last_modified);
       });
 
-      it("should delete a bucket", () => {
-        return api
-          .deleteBucket("foo")
-          .then(_ => api.listBuckets())
-          .then(({ data }) => data.map(bucket => bucket.id))
-          .should.eventually.not.include("foo");
+      it("should delete a bucket", async () => {
+        await api.deleteBucket("foo");
+        const { data } = await api.listBuckets();
+        data.map(bucket => bucket.id).should.not.include("foo");
       });
 
       describe("Safe option", () => {
-        it("should raise a conflict error when resource has changed", () => {
-          return api
-            .deleteBucket("foo", {
-              last_modified: last_modified - 1000,
-              safe: true,
-            })
-            .should.be.rejectedWith(Error, /412 Precondition Failed/);
+        it("should raise a conflict error when resource has changed", async () => {
+          await expectAsyncError(
+            () =>
+              api.deleteBucket("foo", {
+                last_modified: last_modified - 1000,
+                safe: true,
+              }),
+            /412 Precondition Failed/
+          );
         });
       });
     });
@@ -294,17 +275,11 @@ describe("Integration tests", function() {
         });
       });
 
-      it("should delete all buckets", () => {
-        return (
-          api
-            .deleteBuckets()
-            // Note: Server tends to take a lot of time to perform this operation,
-            // so we're delaying check a little.
-            .then(_ => delayedPromise(50))
-            .then(_ => api.listBuckets())
-            .then(({ data }) => data)
-            .should.become([])
-        );
+      it("should delete all buckets", async () => {
+        await api.deleteBuckets();
+        await delayedPromise(50);
+        const { data } = await api.listBuckets();
+        data.should.deep.equal([]);
       });
     });
 
@@ -330,21 +305,20 @@ describe("Integration tests", function() {
           });
         });
 
-        it("should retrieve the list of permissions", () => {
-          return api.listPermissions().then(({ data }) => {
-            if (shouldHaveCreatePermission) {
-              // One element is for the root element which has
-              // `bucket:create` as well as `account:create`. Remove
-              // it.
-              const isBucketCreate = (p: PermissionData) =>
-                p.permissions.includes("bucket:create");
-              const bucketCreate = data.filter(isBucketCreate);
-              expect(bucketCreate.length).eql(1);
-              data = data.filter(p => !isBucketCreate(p));
-            }
-            expect(data).to.have.lengthOf(2);
-            expect(data.map(p => p.id).sort()).eql(["b1", "c1"]);
-          });
+        it("should retrieve the list of permissions", async () => {
+          let { data } = await api.listPermissions();
+          if (shouldHaveCreatePermission) {
+            // One element is for the root element which has
+            // `bucket:create` as well as `account:create`. Remove
+            // it.
+            const isBucketCreate = (p_1: PermissionData) =>
+              p_1.permissions.includes("bucket:create");
+            const bucketCreate = data.filter(isBucketCreate);
+            expect(bucketCreate.length).eql(1);
+            data = data.filter(p_2 => !isBucketCreate(p_2));
+          }
+          expect(data).to.have.lengthOf(2);
+          expect(data.map(p_3 => p_3.id).sort()).eql(["b1", "c1"]);
         });
       });
 
@@ -357,14 +331,13 @@ describe("Integration tests", function() {
           });
         });
 
-        it("should retrieve the list of permissions", () => {
-          return api.listPermissions({ pages: Infinity }).then(results => {
-            let expectedRecords = 15;
-            if (shouldHaveCreatePermission) {
-              expectedRecords++;
-            }
-            expect(results.data).to.have.lengthOf(expectedRecords);
-          });
+        it("should retrieve the list of permissions", async () => {
+          const results = await api.listPermissions({ pages: Infinity });
+          let expectedRecords = 15;
+          if (shouldHaveCreatePermission) {
+            expectedRecords++;
+          }
+          expect(results.data).to.have.lengthOf(expectedRecords);
         });
       });
     });
@@ -379,139 +352,122 @@ describe("Integration tests", function() {
         });
       });
 
-      it("should retrieve the list of buckets", () => {
-        return api
-          .listBuckets()
-          .then(({ data }) => data.map(bucket => bucket.id).sort())
-          .should.become(["b1", "b2", "b3", "b4"]);
+      it("should retrieve the list of buckets", async () => {
+        const { data } = await api.listBuckets();
+        data
+          .map(bucket => bucket.id)
+          .sort()
+          .should.deep.equal(["b1", "b2", "b3", "b4"]);
       });
 
-      it("should order buckets by field", () => {
-        return api
-          .listBuckets({ sort: "-size" })
-          .then(({ data }) => data.map(bucket => bucket.id))
-          .should.eventually.become(["b3", "b1", "b2", "b4"]);
+      it("should order buckets by field", async () => {
+        const { data } = await api.listBuckets({ sort: "-size" });
+        data
+          .map(bucket => bucket.id)
+          .should.deep.equal(["b3", "b1", "b2", "b4"]);
       });
 
       describe("Filtering", () => {
-        it("should filter buckets", () => {
-          return api
-            .listBuckets({ sort: "size", filters: { min_size: 20 } })
-            .then(({ data }) => data.map(bucket => bucket.id))
-            .should.become(["b1", "b3"]);
+        it("should filter buckets", async () => {
+          const { data } = await api.listBuckets({
+            sort: "size",
+            filters: { min_size: 20 },
+          });
+          data.map(bucket => bucket.id).should.deep.equal(["b1", "b3"]);
         });
 
-        it("should resolve with buckets last_modified value", () => {
-          return api
-            .listBuckets()
-            .should.eventually.have.property("last_modified")
+        it("should resolve with buckets last_modified value", async () => {
+          (await api.listBuckets()).should.have
+            .property("last_modified")
             .to.be.a("string");
         });
 
-        it("should retrieve only buckets after provided timestamp", () => {
-          let timestamp: string;
-          return api
-            .listBuckets()
-            .then(({ last_modified }) => {
-              timestamp = last_modified!;
-              return api.createBucket("b5");
-            })
-            .then(() => api.listBuckets({ since: timestamp }))
-            .should.eventually.have.property("data")
+        it("should retrieve only buckets after provided timestamp", async () => {
+          const timestamp = (await api.listBuckets()).last_modified!;
+          await api.createBucket("b5");
+          (await api.listBuckets({ since: timestamp })).should.have
+            .property("data")
             .to.have.lengthOf(1);
         });
       });
 
       describe("Pagination", () => {
-        it("should not paginate by default", () => {
-          return api
-            .listBuckets()
-            .then(({ data }) => data.map(bucket => bucket.id))
-            .should.become(["b4", "b3", "b2", "b1"]);
+        it("should not paginate by default", async () => {
+          const { data } = await api.listBuckets();
+          data
+            .map(bucket => bucket.id)
+            .should.deep.equal(["b4", "b3", "b2", "b1"]);
         });
 
-        it("should paginate by chunks", () => {
-          return api
-            .listBuckets({ limit: 2 })
-            .then(({ data }) => data.map(bucket => bucket.id))
-            .should.become(["b4", "b3"]);
+        it("should paginate by chunks", async () => {
+          const { data } = await api.listBuckets({ limit: 2 });
+          data.map(bucket => bucket.id).should.deep.equal(["b4", "b3"]);
         });
 
-        it("should expose a hasNextPage boolean prop", () => {
-          return api
-            .listBuckets({ limit: 2 })
-            .should.eventually.have.property("hasNextPage")
+        it("should expose a hasNextPage boolean prop", async () => {
+          (await api.listBuckets({ limit: 2 })).should.have
+            .property("hasNextPage")
             .eql(true);
         });
 
-        it("should provide a next method to load next page", () => {
-          return api
-            .listBuckets({ limit: 2 })
-            .then(res => res.next())
-            .then(({ data }) => data.map(bucket => bucket.id))
-            .should.become(["b2", "b1"]);
+        it("should provide a next method to load next page", async () => {
+          const res = await api.listBuckets({ limit: 2 });
+          const { data } = await res.next();
+          data.map(bucket => bucket.id).should.deep.equal(["b2", "b1"]);
         });
       });
     });
 
     describe("#createAccount", () => {
-      it("should create an account", () => {
-        return api
-          .createAccount("testuser", "testpw")
-          .then(() =>
-            createClient({
-              headers: { Authorization: "Basic " + btoa("testuser:testpw") },
-            }).fetchUser()
-          )
-          .then(user => {
-            expect(user!.id).equal("account:testuser");
-          });
+      it("should create an account", async () => {
+        await api.createAccount("testuser", "testpw");
+        const user = await createClient({
+          headers: { Authorization: "Basic " + btoa("testuser:testpw") },
+        }).fetchUser();
+        expect(user!.id).equal("account:testuser");
       });
     });
 
     describe("#batch", () => {
       describe("No chunked requests", () => {
-        it("should allow batching operations", () => {
-          return api
-            .batch((batch: KintoClientBase) => {
-              batch.createBucket("custom");
-              const bucket = batch.bucket("custom");
-              bucket.createCollection("blog");
-              const coll = bucket.collection("blog");
-              coll.createRecord({ title: "art1" });
-              coll.createRecord({ title: "art2" });
-            })
-            .then(_ =>
-              api
-                .bucket("custom")
-                .collection("blog")
-                .listRecords<TitleRecord>()
-            )
-            .then(({ data }) => data.map(record => record.title))
-            .should.become(["art2", "art1"]);
+        it("should allow batching operations", async () => {
+          await api.batch((batch: KintoClientBase) => {
+            batch.createBucket("custom");
+            const bucket = batch.bucket("custom");
+            bucket.createCollection("blog");
+            const coll = bucket.collection("blog");
+            coll.createRecord({ title: "art1" });
+            coll.createRecord({ title: "art2" });
+          });
+
+          const { data } = await api
+            .bucket("custom")
+            .collection("blog")
+            .listRecords<TitleRecord>();
+          data.map(record => record.title).should.deep.equal(["art2", "art1"]);
         });
       });
 
       describe("Chunked requests", () => {
-        it("should allow batching by chunks", () => {
+        it("should allow batching by chunks", async () => {
           // Note: kinto server configuration has kinto.paginated_by set to 10.
-          return api
-            .batch((batch: KintoClientBase) => {
-              batch.createBucket("custom");
-              const bucket = batch.bucket("custom");
-              bucket.createCollection("blog");
-              const coll = bucket.collection("blog");
-              for (let i = 1; i <= 27; i++) {
-                coll.createRecord({ title: "art" + i });
-              }
-            })
-            .then(_ =>
-              api
-                .bucket("custom")
-                .collection("blog")
-                .listRecords()
-            )
-            .should.eventually.have.property("data")
+          await api.batch((batch: KintoClientBase) => {
+            batch.createBucket("custom");
+            const bucket = batch.bucket("custom");
+            bucket.createCollection("blog");
+            const coll = bucket.collection("blog");
+            for (let i = 1; i <= 27; i++) {
+              coll.createRecord({ title: "art" + i });
+            }
+          });
+
+          (
+            await api
+              .bucket("custom")
+              .collection("blog")
+              .listRecords()
+          ).should.have
+            .property("data")
             .to.have.lengthOf(10);
         });
       });
@@ -521,20 +477,19 @@ describe("Integration tests", function() {
           describe("No chunking", () => {
             let results: AggregateResponse;
 
-            beforeEach(() => {
-              return api
-                .batch(
-                  (batch: KintoClientBase) => {
-                    batch.createBucket("custom");
-                    const bucket = batch.bucket("custom");
-                    bucket.createCollection("blog");
-                    const coll = bucket.collection("blog");
-                    coll.createRecord({ title: "art1" });
-                    coll.createRecord({ title: "art2" });
-                  },
-                  { aggregate: true }
-                )
-                .then(_results => (results = _results as AggregateResponse));
+            beforeEach(async () => {
+              const _results = await api.batch(
+                (batch: KintoClientBase) => {
+                  batch.createBucket("custom");
+                  const bucket = batch.bucket("custom");
+                  bucket.createCollection("blog");
+                  const coll = bucket.collection("blog");
+                  coll.createRecord({ title: "art1" });
+                  coll.createRecord({ title: "art2" });
+                },
+                { aggregate: true }
+              );
+              return (results = _results as AggregateResponse);
             });
 
             it("should return an aggregated result object", () => {
@@ -556,8 +511,8 @@ describe("Integration tests", function() {
           describe("Chunked response", () => {
             let results: AggregateResponse;
 
-            beforeEach(() => {
-              return api
+            beforeEach(async () => {
+              const _results = await api
                 .bucket("default")
                 .collection("blog")
                 .batch(
@@ -567,8 +522,8 @@ describe("Integration tests", function() {
                     }
                   },
                   { aggregate: true }
-                )
-                .then(_results => (results = _results as AggregateResponse));
+                );
+              return (results = _results as AggregateResponse);
             });
 
             it("should return an aggregated result object", () => {
@@ -600,11 +555,10 @@ describe("Integration tests", function() {
 
     beforeEach(() => server.flush());
 
-    it("should appropriately populate the backoff property", () => {
+    it("should appropriately populate the backoff property", async () => {
       // Issuing a first api call to retrieve backoff information
-      return api
-        .listBuckets()
-        .then(() => expect(Math.round(api.backoff / 1000)).eql(backoffSeconds));
+      await api.listBuckets();
+      return expect(Math.round(api.backoff / 1000)).eql(backoffSeconds);
     });
   });
 
@@ -631,14 +585,13 @@ describe("Integration tests", function() {
         consoleWarnStub = sandbox.stub(console, "warn");
       });
 
-      it("should warn when the server sends a deprecation Alert header", () => {
-        return api.fetchServerSettings().then(_ => {
-          sinon.assert.calledWithExactly(
-            consoleWarnStub,
-            "Boom",
-            "http://www.perdu.com"
-          );
-        });
+      it("should warn when the server sends a deprecation Alert header", async () => {
+        await api.fetchServerSettings();
+        sinon.assert.calledWithExactly(
+          consoleWarnStub,
+          "Boom",
+          "http://www.perdu.com"
+        );
       });
     });
 
@@ -658,10 +611,11 @@ describe("Integration tests", function() {
 
       beforeEach(() => sandbox.stub(console, "warn"));
 
-      it("should reject with a 410 Gone when hard EOL is received", () => {
-        return api
-          .fetchServerSettings()
-          .should.be.rejectedWith(Error, /HTTP 410 Gone: Service deprecated/);
+      it("should reject with a 410 Gone when hard EOL is received", async () => {
+        await expectAsyncError(
+          () => api.fetchServerSettings(),
+          /HTTP 410 Gone: Service deprecated/
+        );
       });
     });
   });
@@ -686,18 +640,14 @@ describe("Integration tests", function() {
         });
       });
 
-      it("should fetch one results page", () => {
-        return collection
-          .listRecords()
-          .then(({ data }) => data.map(record => record.n))
-          .should.eventually.have.lengthOf(1);
+      it("should fetch one results page", async () => {
+        const { data } = await collection.listRecords();
+        data.map(record => record.id).should.have.lengthOf(1);
       });
 
-      it("should fetch all available pages", () => {
-        return collection
-          .listRecords({ pages: Infinity })
-          .then(({ data }) => data.map(record => record.n))
-          .should.eventually.have.lengthOf(2);
+      it("should fetch all available pages", async () => {
+        const { data } = await collection.listRecords({ pages: Infinity });
+        data.map(record => record.id).should.have.lengthOf(2);
       });
     });
   });
@@ -712,28 +662,27 @@ describe("Integration tests", function() {
     describe(".bucket()", () => {
       let bucket: Bucket;
 
-      beforeEach(() => {
+      beforeEach(async () => {
         bucket = api.bucket("custom");
-        return api.createBucket("custom").then(_ =>
-          bucket.batch(batch => {
-            batch.createCollection("c1", { data: { size: 24 } });
-            batch.createCollection("c2", { data: { size: 13 } });
-            batch.createCollection("c3", { data: { size: 38 } });
-            batch.createCollection("c4", { data: { size: -4 } });
-
-            batch.createGroup("g1", [], { data: { size: 24 } });
-            batch.createGroup("g2", [], { data: { size: 13 } });
-            batch.createGroup("g3", [], { data: { size: 38 } });
-            batch.createGroup("g4", [], { data: { size: -4 } });
-          })
-        );
+        await api.createBucket("custom");
+        return await bucket.batch(batch => {
+          batch.createCollection("c1", { data: { size: 24 } });
+          batch.createCollection("c2", { data: { size: 13 } });
+          batch.createCollection("c3", { data: { size: 38 } });
+          batch.createCollection("c4", { data: { size: -4 } });
+          batch.createGroup("g1", [], { data: { size: 24 } });
+          batch.createGroup("g2", [], { data: { size: 13 } });
+          batch.createGroup("g3", [], { data: { size: 38 } });
+          batch.createGroup("g4", [], { data: { size: -4 } });
+        });
       });
 
       describe(".getData()", () => {
         let result: KintoObject;
 
-        beforeEach(() => {
-          return bucket.getData<KintoObject>().then(res => (result = res));
+        beforeEach(async () => {
+          const res = await bucket.getData<KintoObject>();
+          return (result = res);
         });
 
         it("should retrieve the bucket identifier", () => {
@@ -754,43 +703,34 @@ describe("Integration tests", function() {
           return bucket.setPermissions({ read: ["github:jon"] });
         });
 
-        it("should post data to the bucket", () => {
-          return bucket.setData({ a: 1 }).then(res => {
-            expect((res as KintoResponse).data.a).eql(1);
-            expect((res as KintoResponse).permissions.read).to.include(
-              "github:jon"
-            );
-          });
+        it("should post data to the bucket", async () => {
+          const res = await bucket.setData({ a: 1 });
+          expect((res as KintoResponse).data.a).eql(1);
+          expect((res as KintoResponse).permissions.read).to.include(
+            "github:jon"
+          );
         });
 
-        it("should patch existing data for the bucket", () => {
-          return bucket
-            .setData({ a: 1 })
-            .then(() => bucket.setData({ b: 2 }, { patch: true }))
-            .then(res => {
-              expect((res as KintoResponse).data.a).eql(1);
-              expect((res as KintoResponse).data.b).eql(2);
-              expect((res as KintoResponse).permissions.read).to.include(
-                "github:jon"
-              );
-            });
+        it("should patch existing data for the bucket", async () => {
+          await bucket.setData({ a: 1 });
+          const res = await bucket.setData({ b: 2 }, { patch: true });
+          expect((res as KintoResponse).data.a).eql(1);
+          expect((res as KintoResponse).data.b).eql(2);
+          expect((res as KintoResponse).permissions.read).to.include(
+            "github:jon"
+          );
         });
 
-        it("should post data to the default bucket", () => {
-          return api
-            .bucket("default")
-            .setData({ a: 1 })
-            .then(res => (res as KintoResponse).data)
-            .should.eventually.have.property("a")
-            .eql(1);
+        it("should post data to the default bucket", async () => {
+          const { data } = await api.bucket("default").setData({ a: 1 });
+          data.should.have.property("a").eql(1);
         });
       });
 
       describe(".getPermissions()", () => {
-        it("should retrieve bucket permissions", () => {
-          return bucket
-            .getPermissions()
-            .should.eventually.have.property("write")
+        it("should retrieve bucket permissions", async () => {
+          (await bucket.getPermissions()).should.have
+            .property("write")
             .to.have.lengthOf(1);
         });
       });
@@ -800,70 +740,61 @@ describe("Integration tests", function() {
           return bucket.setData({ a: 1 });
         });
 
-        it("should set bucket permissions", () => {
-          return bucket.setPermissions({ read: ["github:n1k0"] }).then(res => {
-            expect((res as KintoResponse).data.a).eql(1);
-            expect((res as KintoResponse).permissions.read).eql([
-              "github:n1k0",
-            ]);
-          });
+        it("should set bucket permissions", async () => {
+          const res = await bucket.setPermissions({ read: ["github:n1k0"] });
+          expect((res as KintoResponse).data.a).eql(1);
+          expect((res as KintoResponse).permissions.read).eql(["github:n1k0"]);
         });
 
         describe("Safe option", () => {
-          it("should check for concurrency", () => {
-            return bucket
-              .setPermissions(
-                { read: ["github:n1k0"] },
-                { safe: true, last_modified: 1 }
-              )
-              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          it("should check for concurrency", async () => {
+            await expectAsyncError(
+              () =>
+                bucket.setPermissions(
+                  { read: ["github:n1k0"] },
+                  { safe: true, last_modified: 1 }
+                ),
+              /412 Precondition Failed/
+            );
           });
         });
       });
 
       describe(".addPermissions()", () => {
-        beforeEach(() => {
-          return bucket
-            .setPermissions({ read: ["github:n1k0"] })
-            .then(() => bucket.setData({ a: 1 }));
+        beforeEach(async () => {
+          await bucket.setPermissions({ read: ["github:n1k0"] });
+          return await bucket.setData({ a: 1 });
         });
 
-        it("should append bucket permissions", () => {
-          return bucket
-            .addPermissions({ read: ["accounts:gabi"] })
-            .then(res => {
-              expect((res as KintoResponse).data.a).eql(1);
-              expect((res as KintoResponse).permissions.read!.sort()).eql([
-                "accounts:gabi",
-                "github:n1k0",
-              ]);
-            });
+        it("should append bucket permissions", async () => {
+          const res = await bucket.addPermissions({ read: ["accounts:gabi"] });
+          expect((res as KintoResponse).data.a).eql(1);
+          expect((res as KintoResponse).permissions.read!.sort()).eql([
+            "accounts:gabi",
+            "github:n1k0",
+          ]);
         });
       });
 
       describe(".removePermissions()", () => {
-        beforeEach(() => {
-          return bucket
-            .setPermissions({ read: ["github:n1k0"] })
-            .then(() => bucket.setData({ a: 1 }));
+        beforeEach(async () => {
+          await bucket.setPermissions({ read: ["github:n1k0"] });
+          return await bucket.setData({ a: 1 });
         });
 
-        it("should pop bucket permissions", () => {
-          return bucket
-            .removePermissions({ read: ["github:n1k0"] })
-            .then(res => {
-              expect((res as KintoResponse).data.a).eql(1);
-              expect((res as KintoResponse).permissions.read).eql(undefined);
-            });
+        it("should pop bucket permissions", async () => {
+          const res = await bucket.removePermissions({ read: ["github:n1k0"] });
+          expect((res as KintoResponse).data.a).eql(1);
+          expect((res as KintoResponse).permissions.read).eql(undefined);
         });
       });
 
       describe(".listHistory()", () => {
-        it("should retrieve the list of history entries", () => {
-          return bucket
-            .listHistory()
-            .then(({ data }) => data.map(entry => entry.target.data.id))
-            .should.become([
+        it("should retrieve the list of history entries", async () => {
+          const { data } = await bucket.listHistory();
+          data
+            .map(entry => entry.target.data.id)
+            .should.deep.equal([
               "g4",
               "g3",
               "g2",
@@ -876,11 +807,11 @@ describe("Integration tests", function() {
             ]);
         });
 
-        it("should order entries by field", () => {
-          return bucket
-            .listHistory({ sort: "last_modified" })
-            .then(({ data }) => data.map(entry => entry.target.data.id))
-            .should.eventually.become([
+        it("should order entries by field", async () => {
+          const { data } = await bucket.listHistory({ sort: "last_modified" });
+          data
+            .map(entry => entry.target.data.id)
+            .should.deep.equal([
               "custom",
               "c1",
               "c2",
@@ -894,189 +825,175 @@ describe("Integration tests", function() {
         });
 
         describe("Filtering", () => {
-          it("should filter entries by top-level attributes", () => {
-            return bucket
-              .listHistory({ filters: { resource_name: "bucket" } })
-              .then(({ data }) => data.map(entry => entry.target.data.id))
-              .should.become(["custom"]);
+          it("should filter entries by top-level attributes", async () => {
+            const { data } = await bucket.listHistory({
+              filters: { resource_name: "bucket" },
+            });
+            data
+              .map(entry => entry.target.data.id)
+              .should.deep.equal(["custom"]);
           });
 
-          it("should filter entries by target attributes", () => {
-            return bucket
-              .listHistory({ filters: { "target.data.id": "custom" } })
-              .then(({ data }) => data.map(entry => entry.target.data.id))
-              .should.become(["custom"]);
+          it("should filter entries by target attributes", async () => {
+            const { data } = await bucket.listHistory({
+              filters: { "target.data.id": "custom" },
+            });
+            data
+              .map(entry => entry.target.data.id)
+              .should.deep.equal(["custom"]);
           });
 
-          it("should resolve with entries last_modified value", () => {
-            return bucket
-              .listHistory()
-              .should.eventually.have.property("last_modified")
+          it("should resolve with entries last_modified value", async () => {
+            (await bucket.listHistory()).should.have
+              .property("last_modified")
               .to.be.a("string");
           });
 
-          it("should retrieve only entries after provided timestamp", () => {
-            let timestamp: string;
-            return bucket
-              .listHistory()
-              .then(res => {
-                timestamp = res.last_modified!;
-                return bucket.createCollection("c5");
-              })
-              .then(() => bucket.listHistory({ since: timestamp }))
-              .should.eventually.have.property("data")
+          it("should retrieve only entries after provided timestamp", async () => {
+            const timestamp = (await bucket.listHistory()).last_modified!;
+            await bucket.createCollection("c5");
+            (await bucket.listHistory({ since: timestamp })).should.have
+              .property("data")
               .to.have.lengthOf(1);
           });
         });
 
         describe("Pagination", () => {
-          it("should not paginate by default", () => {
-            return bucket
-              .listHistory()
-              .then(({ data }) => data.map(entry => entry.target.data.id))
-              .should.eventually.have.lengthOf(9);
+          it("should not paginate by default", async () => {
+            const { data } = await bucket.listHistory();
+            data.map(entry => entry.target.data.id).should.have.lengthOf(9);
           });
 
-          it("should paginate by chunks", () => {
-            return bucket
-              .listHistory({ limit: 2 })
-              .then(({ data }) => data.map(entry => entry.target.data.id))
-              .should.become(["g4", "g3"]);
+          it("should paginate by chunks", async () => {
+            const { data } = await bucket.listHistory({ limit: 2 });
+            data
+              .map(entry => entry.target.data.id)
+              .should.deep.equal(["g4", "g3"]);
           });
 
-          it("should provide a next method to load next page", () => {
-            return bucket
-              .listHistory({ limit: 2 })
-              .then(res => res.next())
-              .then(({ data }) => data.map(entry => entry.target.data.id))
-              .should.become(["g2", "g1"]);
+          it("should provide a next method to load next page", async () => {
+            const res = await bucket.listHistory({ limit: 2 });
+            const { data } = await res.next();
+            data
+              .map(entry => entry.target.data.id)
+              .should.deep.equal(["g2", "g1"]);
           });
         });
       });
 
       describe(".listCollections()", () => {
-        it("should retrieve the list of collections", () => {
-          return bucket
-            .listCollections()
-            .then(({ data }) => data.map(collection => collection.id).sort())
-            .should.become(["c1", "c2", "c3", "c4"]);
+        it("should retrieve the list of collections", async () => {
+          const { data } = await bucket.listCollections();
+          data
+            .map(collection => collection.id)
+            .sort()
+            .should.deep.equal(["c1", "c2", "c3", "c4"]);
         });
 
-        it("should order collections by field", () => {
-          return bucket
-            .listCollections({ sort: "-size" })
-            .then(({ data }) => data.map(collection => collection.id))
-            .should.eventually.become(["c3", "c1", "c2", "c4"]);
+        it("should order collections by field", async () => {
+          const { data } = await bucket.listCollections({ sort: "-size" });
+          data
+            .map(collection => collection.id)
+            .should.deep.equal(["c3", "c1", "c2", "c4"]);
         });
 
-        it("should work in a batch", () => {
-          return api
-            .batch((batch: KintoClientBase) =>
-              batch.bucket("custom").listCollections()
-            )
-            .then(res => {
-              return ((res as unknown) as OperationResponse<
-                KintoObject[]
-              >[])[0].body.data.map(r => r.id);
-            })
-            .should.eventually.become(["c4", "c3", "c2", "c1"]);
+        it("should work in a batch", async () => {
+          const res = ((await api.batch((batch: KintoClientBase) => {
+            batch.bucket("custom").listCollections();
+          })) as unknown) as OperationResponse<KintoObject[]>[];
+          res[0].body.data
+            .map(r => r.id)
+            .should.deep.equal(["c4", "c3", "c2", "c1"]);
         });
 
         describe("Filtering", () => {
-          it("should filter collections", () => {
-            return bucket
-              .listCollections({ sort: "size", filters: { min_size: 20 } })
-              .then(({ data }) => data.map(collection => collection.id))
-              .should.become(["c1", "c3"]);
+          it("should filter collections", async () => {
+            const { data } = await bucket.listCollections({
+              sort: "size",
+              filters: { min_size: 20 },
+            });
+            data
+              .map(collection => collection.id)
+              .should.deep.equal(["c1", "c3"]);
           });
 
-          it("should resolve with collections last_modified value", () => {
-            return bucket
-              .listCollections()
-              .should.eventually.have.property("last_modified")
+          it("should resolve with collections last_modified value", async () => {
+            (await bucket.listCollections()).should.have
+              .property("last_modified")
               .to.be.a("string");
           });
 
-          it("should retrieve only collections after provided timestamp", () => {
-            let timestamp: string;
-            return bucket
-              .listCollections()
-              .then(({ last_modified }) => {
-                timestamp = last_modified!;
-                return bucket.createCollection("c5");
-              })
-              .then(() => bucket.listCollections({ since: timestamp }))
-              .should.eventually.have.property("data")
+          it("should retrieve only collections after provided timestamp", async () => {
+            const timestamp = (await bucket.listCollections()).last_modified!;
+            await bucket.createCollection("c5");
+            (await bucket.listCollections({ since: timestamp })).should.have
+              .property("data")
               .to.have.lengthOf(1);
           });
         });
 
         describe("Pagination", () => {
-          it("should not paginate by default", () => {
-            return bucket
-              .listCollections()
-              .then(({ data }) => data.map(collection => collection.id))
-              .should.become(["c4", "c3", "c2", "c1"]);
+          it("should not paginate by default", async () => {
+            const { data } = await bucket.listCollections();
+            data
+              .map(collection => collection.id)
+              .should.deep.equal(["c4", "c3", "c2", "c1"]);
           });
 
-          it("should paginate by chunks", () => {
-            return bucket
-              .listCollections({ limit: 2 })
-              .then(({ data }) => data.map(collection => collection.id))
-              .should.become(["c4", "c3"]);
+          it("should paginate by chunks", async () => {
+            const { data } = await bucket.listCollections({ limit: 2 });
+            data
+              .map(collection => collection.id)
+              .should.deep.equal(["c4", "c3"]);
           });
 
-          it("should provide a next method to load next page", () => {
-            return bucket
-              .listCollections({ limit: 2 })
-              .then(res => res.next())
-              .then(({ data }) => data.map(collection => collection.id))
-              .should.become(["c2", "c1"]);
+          it("should provide a next method to load next page", async () => {
+            const res = await bucket.listCollections({ limit: 2 });
+            const { data } = await res.next();
+            data
+              .map(collection => collection.id)
+              .should.deep.equal(["c2", "c1"]);
           });
         });
       });
 
       describe(".createCollection()", () => {
-        it("should create a named collection", () => {
-          return bucket
-            .createCollection("foo")
-            .then(_ => bucket.listCollections())
-            .then(({ data }) => data.map(coll => coll.id))
-            .should.eventually.include("foo");
+        it("should create a named collection", async () => {
+          await bucket.createCollection("foo");
+          const { data } = await bucket.listCollections();
+          data.map(coll => coll.id).should.include("foo");
         });
 
-        it("should create an automatically named collection", () => {
+        it("should create an automatically named collection", async () => {
           let generated: string;
 
-          return bucket
-            .createCollection()
-            .then(res => (generated = (res as KintoResponse).data.id))
-            .then(_ => bucket.listCollections())
-            .then(({ data }) =>
-              expect(data.some(x => x.id === generated)).eql(true)
-            );
+          const res = await bucket.createCollection();
+          generated = (res as KintoResponse).data.id;
+          const { data } = await bucket.listCollections();
+          return expect(data.some(x => x.id === generated)).eql(true);
         });
 
         describe("Safe option", () => {
-          it("should not override existing collection", () => {
-            return bucket
-              .createCollection("posts")
-              .then(_ => bucket.createCollection("posts", { safe: true }))
-              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          it("should not override existing collection", async () => {
+            await bucket.createCollection("posts");
+
+            await expectAsyncError(
+              () => bucket.createCollection("posts", { safe: true }),
+              /412 Precondition Failed/
+            );
           });
         });
 
         describe("Permissions option", () => {
           let result: KintoResponse;
 
-          beforeEach(() => {
-            return bucket
-              .createCollection("posts", {
-                permissions: {
-                  read: ["github:n1k0"],
-                },
-              })
-              .then(res => (result = res as KintoResponse));
+          beforeEach(async () => {
+            const res = await bucket.createCollection("posts", {
+              permissions: {
+                read: ["github:n1k0"],
+              },
+            });
+            return (result = res as KintoResponse);
           });
 
           it("should create a collection having a list of write permissions", () => {
@@ -1090,10 +1007,11 @@ describe("Integration tests", function() {
         describe("Data option", () => {
           let result: KintoResponse;
 
-          beforeEach(() => {
-            return bucket
-              .createCollection("posts", { data: { foo: "bar" } })
-              .then(res => (result = res as KintoResponse));
+          beforeEach(async () => {
+            const res = await bucket.createCollection("posts", {
+              data: { foo: "bar" },
+            });
+            return (result = res as KintoResponse);
           });
 
           it("should create a collection having the expected data attached", () => {
@@ -1106,141 +1024,131 @@ describe("Integration tests", function() {
       });
 
       describe(".deleteCollection()", () => {
-        it("should delete a collection", () => {
-          return bucket
-            .createCollection("foo")
-            .then(_ => bucket.deleteCollection("foo"))
-            .then(_ => bucket.listCollections())
-            .then(({ data }) => data.map(coll => coll.id))
-            .should.eventually.not.include("foo");
+        it("should delete a collection", async () => {
+          await bucket.createCollection("foo");
+          await bucket.deleteCollection("foo");
+          const { data } = await bucket.listCollections();
+          data.map(coll => coll.id).should.not.include("foo");
         });
 
         describe("Safe option", () => {
-          it("should check for concurrency", () => {
-            return bucket
-              .createCollection("posts")
-              .then(res =>
+          it("should check for concurrency", async () => {
+            const res = await bucket.createCollection("posts");
+
+            expectAsyncError(
+              () =>
                 bucket.deleteCollection("posts", {
                   safe: true,
-                  last_modified:
-                    (res as KintoResponse).data.last_modified - 1000,
-                })
-              )
-              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+                  last_modified: res.data.last_modified - 1000,
+                }),
+              /412 Precondition Failed/
+            );
           });
         });
       });
 
       describe(".listGroups()", () => {
-        it("should retrieve the list of groups", () => {
-          return bucket
-            .listGroups()
-            .then(res => res.data.map(group => group.id).sort())
-            .should.become(["g1", "g2", "g3", "g4"]);
+        it("should retrieve the list of groups", async () => {
+          const { data } = await bucket.listGroups();
+          data
+            .map(group => group.id)
+            .sort()
+            .should.deep.equal(["g1", "g2", "g3", "g4"]);
         });
 
-        it("should order groups by field", () => {
-          return bucket
-            .listGroups({ sort: "-size" })
-            .then(({ data }) => data.map(group => group.id))
-            .should.eventually.become(["g3", "g1", "g2", "g4"]);
+        it("should order groups by field", async () => {
+          const { data } = await bucket.listGroups({ sort: "-size" });
+          data
+            .map(group => group.id)
+            .should.deep.equal(["g3", "g1", "g2", "g4"]);
         });
 
         describe("Filtering", () => {
-          it("should filter groups", () => {
-            return bucket
-              .listGroups({ sort: "size", filters: { min_size: 20 } })
-              .then(({ data }) => data.map(group => group.id))
-              .should.become(["g1", "g3"]);
+          it("should filter groups", async () => {
+            const { data } = await bucket.listGroups({
+              sort: "size",
+              filters: { min_size: 20 },
+            });
+            data.map(group => group.id).should.deep.equal(["g1", "g3"]);
           });
 
-          it("should resolve with groups last_modified value", () => {
-            return bucket
-              .listGroups()
-              .should.eventually.have.property("last_modified")
+          it("should resolve with groups last_modified value", async () => {
+            (await bucket.listGroups()).should.have
+              .property("last_modified")
               .to.be.a("string");
           });
 
-          it("should retrieve only groups after provided timestamp", () => {
-            let timestamp: string;
-            return bucket
-              .listGroups()
-              .then(({ last_modified }) => {
-                timestamp = last_modified!;
-                return bucket.createGroup("g5", []);
-              })
-              .then(() => bucket.listGroups({ since: timestamp }))
-              .should.eventually.have.property("data")
+          it("should retrieve only groups after provided timestamp", async () => {
+            const timestamp = (await bucket.listGroups()).last_modified!;
+            await bucket.createGroup("g5", []);
+            (await bucket.listGroups({ since: timestamp })).should.have
+              .property("data")
               .to.have.lengthOf(1);
           });
         });
 
         describe("Pagination", () => {
-          it("should not paginate by default", () => {
-            return bucket
-              .listGroups()
-              .then(({ data }) => data.map(group => group.id))
-              .should.become(["g4", "g3", "g2", "g1"]);
+          it("should not paginate by default", async () => {
+            const { data } = await bucket.listGroups();
+            data
+              .map(group => group.id)
+              .should.deep.equal(["g4", "g3", "g2", "g1"]);
           });
 
-          it("should paginate by chunks", () => {
-            return bucket
-              .listGroups({ limit: 2 })
-              .then(({ data }) => data.map(group => group.id))
-              .should.become(["g4", "g3"]);
+          it("should paginate by chunks", async () => {
+            const { data } = await bucket.listGroups({ limit: 2 });
+            data.map(group => group.id).should.deep.equal(["g4", "g3"]);
           });
 
-          it("should provide a next method to load next page", () => {
-            return bucket
-              .listGroups({ limit: 2 })
-              .then(res => res.next())
-              .then(({ data }) => data.map(group => group.id))
-              .should.become(["g2", "g1"]);
+          it("should provide a next method to load next page", async () => {
+            const res = await bucket.listGroups({ limit: 2 });
+            const { data } = await res.next();
+            data.map(group => group.id).should.deep.equal(["g2", "g1"]);
           });
         });
       });
 
       describe(".createGroup()", () => {
-        it("should create a named group", () => {
-          return bucket
-            .createGroup("foo")
-            .then(_ => bucket.listGroups())
-            .then(({ data }) => data.map(group => group.id))
-            .should.eventually.include("foo");
+        it("should create a named group", async () => {
+          await bucket.createGroup("foo");
+          const { data } = await bucket.listGroups();
+          data.map(group => group.id).should.include("foo");
         });
 
-        it("should create an automatically named group", () => {
+        it("should create an automatically named group", async () => {
           let generated: string;
 
-          return bucket
-            .createGroup()
-            .then(res => (generated = (res as KintoResponse<Group>).data.id))
-            .then(_ => bucket.listGroups())
-            .then(({ data }) =>
-              expect(data.some(x => x.id === generated)).eql(true)
-            );
+          const res = await bucket.createGroup();
+          generated = (res as KintoResponse<Group>).data.id;
+          const { data } = await bucket.listGroups();
+          return expect(data.some(x => x.id === generated)).eql(true);
         });
 
         describe("Safe option", () => {
-          it("should not override existing group", () => {
-            return bucket
-              .createGroup("admins")
-              .then(_ => bucket.createGroup("admins", [], { safe: true }))
-              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+          it("should not override existing group", async () => {
+            await bucket.createGroup("admins");
+
+            await expectAsyncError(
+              () => bucket.createGroup("admins", [], { safe: true }),
+              /412 Precondition Failed/
+            );
           });
         });
 
         describe("Permissions option", () => {
           let result: KintoResponse<Group>;
 
-          beforeEach(() => {
-            return bucket
-              .createGroup("admins", ["twitter:leplatrem"], {
+          beforeEach(async () => {
+            const res = await bucket.createGroup(
+              "admins",
+              ["twitter:leplatrem"],
+              {
                 permissions: {
                   read: ["github:n1k0"],
                 },
-              })
-              .then(res => (result = res as KintoResponse<Group>));
+              }
+            );
+            return (result = res as KintoResponse<Group>);
           });
 
           it("should create a collection having a list of write permissions", () => {
@@ -1255,12 +1163,15 @@ describe("Integration tests", function() {
         describe("Data option", () => {
           let result: KintoResponse<Group>;
 
-          beforeEach(() => {
-            return bucket
-              .createGroup("admins", ["twitter:leplatrem"], {
+          beforeEach(async () => {
+            const res = await bucket.createGroup(
+              "admins",
+              ["twitter:leplatrem"],
+              {
                 data: { foo: "bar" },
-              })
-              .then(res => (result = res as KintoResponse<Group>));
+              }
+            );
+            return (result = res as KintoResponse<Group>);
           });
 
           it("should create a collection having the expected data attached", () => {
@@ -1274,151 +1185,140 @@ describe("Integration tests", function() {
       });
 
       describe(".getGroup()", () => {
-        it("should get a group", () => {
-          return bucket
-            .createGroup("foo")
-            .then(_ => bucket.getGroup("foo"))
-            .then(res => {
-              expect((res as KintoResponse<Group>).data.id).eql("foo");
-              expect((res as KintoResponse<Group>).data.members).eql([]);
-              expect(
-                (res as KintoResponse<Group>).permissions.write
-              ).to.have.lengthOf(1);
-            });
+        it("should get a group", async () => {
+          await bucket.createGroup("foo");
+          const res = await bucket.getGroup("foo");
+          expect((res as KintoResponse<Group>).data.id).eql("foo");
+          expect((res as KintoResponse<Group>).data.members).eql([]);
+          expect(
+            (res as KintoResponse<Group>).permissions.write
+          ).to.have.lengthOf(1);
         });
       });
 
       describe(".updateGroup()", () => {
-        it("should update a group", () => {
-          return bucket
-            .createGroup("foo")
-            .then(res =>
-              bucket.updateGroup({
-                ...(res as KintoResponse<Group>).data,
-                title: "mod",
-              })
-            )
-            .then(_ => bucket.listGroups())
-            .then(({ data }) => data[0].title)
-            .should.become("mod");
+        it("should update a group", async () => {
+          const res = await bucket.createGroup("foo");
+          await bucket.updateGroup({ ...res.data, title: "mod" });
+          const { data } = await bucket.listGroups();
+
+          // type Group doesn't have a title property, so we create an
+          // intersection type that does
+          const firstGroup = data[0] as Group & { title: string };
+          firstGroup.title.should.equal("mod");
         });
 
-        it("should patch a group", () => {
-          return bucket
-            .createGroup("foo", ["github:me"], {
-              data: { title: "foo", blah: 42 },
-            })
-            .then(res =>
-              bucket.updateGroup(
-                { id: (res as KintoResponse<Group>).data.id, blah: 43 },
-                { patch: true }
-              )
-            )
-            .then(_ => bucket.listGroups())
-            .then(({ data }) => {
-              expect(data[0].title).eql("foo");
-              expect(data[0].members).eql(["github:me"]);
-              expect(data[0].blah).eql(43);
-            });
+        it("should patch a group", async () => {
+          const res = await bucket.createGroup("foo", ["github:me"], {
+            data: { title: "foo", blah: 42 },
+          });
+          await bucket.updateGroup(
+            { id: (res as KintoResponse<Group>).data.id, blah: 43 },
+            { patch: true }
+          );
+          const { data } = await bucket.listGroups();
+          expect(data[0].title).eql("foo");
+          expect(data[0].members).eql(["github:me"]);
+          expect(data[0].blah).eql(43);
         });
 
         describe("Safe option", () => {
           const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
 
-          it("should perform concurrency checks with last_modified", () => {
-            return bucket
-              .createGroup("foo")
-              .then(res =>
+          it("should perform concurrency checks with last_modified", async () => {
+            const { data } = await bucket.createGroup("foo");
+
+            await expectAsyncError(
+              () =>
                 bucket.updateGroup(
                   {
-                    id: (res as KintoResponse<Group>).data.id,
+                    id: data.id,
                     members: ["github:me"],
                     title: "foo",
                     last_modified: 1,
                   },
                   { safe: true }
-                )
-              )
-              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+                ),
+              /412 Precondition Failed/
+            );
           });
 
-          it("should create a non-existent resource when safe is true", () => {
-            return bucket
-              .updateGroup({ id, members: ["all"] }, { safe: true })
-              .should.eventually.have.property("data")
+          it("should create a non-existent resource when safe is true", async () => {
+            (
+              await bucket.updateGroup({ id, members: ["all"] }, { safe: true })
+            ).should.have
+              .property("data")
               .to.have.property("members")
               .eql(["all"]);
           });
 
-          it("should not override existing data with no last_modified", () => {
-            return bucket
-              .createGroup("foo")
-              .then(res =>
+          it("should not override existing data with no last_modified", async () => {
+            const { data } = await bucket.createGroup("foo");
+
+            await expectAsyncError(
+              () =>
                 bucket.updateGroup(
-                  {
-                    id: (res as KintoResponse<Group>).data.id,
-                    members: [],
-                    title: "foo",
-                  },
+                  { id: data.id, members: [], title: "foo" },
                   { safe: true }
-                )
-              )
-              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+                ),
+              /412 Precondition Failed/
+            );
           });
         });
       });
 
       describe(".deleteGroup()", () => {
-        it("should delete a group", () => {
-          return bucket
-            .createGroup("foo")
-            .then(_ => bucket.deleteGroup("foo"))
-            .then(_ => bucket.listGroups())
-            .then(({ data }) => data.map(coll => coll.id))
-            .should.eventually.not.include("foo");
+        it("should delete a group", async () => {
+          await bucket.createGroup("foo");
+          await bucket.deleteGroup("foo");
+          const { data } = await bucket.listGroups();
+          data.map(coll => coll.id).should.not.include("foo");
         });
 
         describe("Safe option", () => {
-          it("should check for concurrency", () => {
-            return bucket
-              .createGroup("posts")
-              .then(res =>
+          it("should check for concurrency", async () => {
+            const { data } = await bucket.createGroup("posts");
+
+            await expectAsyncError(
+              () =>
                 bucket.deleteGroup("posts", {
                   safe: true,
-                  last_modified:
-                    (res as KintoResponse<Group>).data.last_modified - 1000,
-                })
-              )
-              .should.be.rejectedWith(Error, /412 Precondition Failed/);
+                  last_modified: data.last_modified - 1000,
+                }),
+              /412 Precondition Failed/
+            );
           });
         });
       });
 
       describe(".batch()", () => {
-        it("should allow batching operations for current bucket", () => {
-          return bucket
-            .batch(batch => {
-              batch.createCollection("comments");
-              const coll = batch.collection("comments");
-              coll.createRecord({ content: "plop" });
-              coll.createRecord({ content: "yo" });
-            })
-            .then(_ => bucket.collection("comments").listRecords())
-            .then(({ data }) => data.map(comment => comment.content).sort())
-            .should.become(["plop", "yo"]);
+        it("should allow batching operations for current bucket", async () => {
+          await bucket.batch(batch => {
+            batch.createCollection("comments");
+            const coll = batch.collection("comments");
+            coll.createRecord({ content: "plop" });
+            coll.createRecord({ content: "yo" });
+          });
+
+          const { data } = await bucket.collection("comments").listRecords();
+          data
+            .map(comment => comment.content)
+            .sort()
+            .should.deep.equal(["plop", "yo"]);
         });
 
         describe("Safe option", () => {
-          it("should allow batching operations for current bucket", () => {
-            return bucket
-              .batch(
+          it("should allow batching operations for current bucket", async () => {
+            (
+              await bucket.batch(
                 batch => {
                   batch.createCollection("comments");
                   batch.createCollection("comments");
                 },
                 { safe: true, aggregate: true }
               )
-              .should.eventually.have.property("conflicts")
+            ).should.have
+              .property("conflicts")
               .to.have.lengthOf(1);
           });
         });
@@ -1430,31 +1330,29 @@ describe("Integration tests", function() {
         describe(label, () => {
           let coll: Collection;
 
-          beforeEach(() => {
-            return collPromise().then(_coll => (coll = _coll));
+          beforeEach(async () => {
+            const _coll = await collPromise();
+            return (coll = _coll);
           });
 
           describe(".getTotalRecords()", () => {
-            it("should retrieve the initial total number of records", () => {
-              return coll.getTotalRecords().should.become(0);
+            it("should retrieve the initial total number of records", async () => {
+              (await coll.getTotalRecords()).should.equal(0);
             });
 
-            it("should retrieve the updated total number of records", () => {
-              return coll
-                .batch(batch => {
-                  batch.createRecord({ a: 1 });
-                  batch.createRecord({ a: 2 });
-                })
-                .then(() => coll.getTotalRecords())
-                .should.become(2);
+            it("should retrieve the updated total number of records", async () => {
+              await coll.batch(batch => {
+                batch.createRecord({ a: 1 });
+                batch.createRecord({ a: 2 });
+              });
+              (await coll.getTotalRecords()).should.equal(2);
             });
           });
 
           describe(".getPermissions()", () => {
-            it("should retrieve permissions", () => {
-              return coll
-                .getPermissions()
-                .should.eventually.have.property("write")
+            it("should retrieve permissions", async () => {
+              (await coll.getPermissions()).should.have
+                .property("write")
                 .to.have.lengthOf(1);
             });
           });
@@ -1464,75 +1362,66 @@ describe("Integration tests", function() {
               return coll.setData({ a: 1 });
             });
 
-            it("should set typed permissions", () => {
-              return coll
-                .setPermissions({ read: ["github:n1k0"] })
-                .then(res => {
-                  expect((res as KintoResponse).data.a).eql(1);
-                  expect((res as KintoResponse).permissions.read).eql([
-                    "github:n1k0",
-                  ]);
-                });
+            it("should set typed permissions", async () => {
+              const res = await coll.setPermissions({ read: ["github:n1k0"] });
+              expect((res as KintoResponse).data.a).eql(1);
+              expect((res as KintoResponse).permissions.read).eql([
+                "github:n1k0",
+              ]);
             });
 
             describe("Safe option", () => {
-              it("should perform concurrency checks", () => {
-                return coll
-                  .setPermissions(
-                    { read: ["github:n1k0"] },
-                    { safe: true, last_modified: 1 }
-                  )
-                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+              it("should perform concurrency checks", async () => {
+                await expectAsyncError(
+                  () =>
+                    coll.setPermissions(
+                      { read: ["github:n1k0"] },
+                      { safe: true, last_modified: 1 }
+                    ),
+                  /412 Precondition Failed/
+                );
               });
             });
           });
 
           describe(".addPermissions()", () => {
-            beforeEach(() => {
-              return coll
-                .setPermissions({ read: ["github:n1k0"] })
-                .then(() => coll.setData({ a: 1 }));
+            beforeEach(async () => {
+              await coll.setPermissions({ read: ["github:n1k0"] });
+              return await coll.setData({ a: 1 });
             });
 
-            it("should append collection permissions", () => {
-              return coll
-                .addPermissions({ read: ["accounts:gabi"] })
-                .then(res => {
-                  expect((res as KintoResponse).data.a).eql(1);
-                  expect((res as KintoResponse).permissions.read!.sort()).eql([
-                    "accounts:gabi",
-                    "github:n1k0",
-                  ]);
-                });
+            it("should append collection permissions", async () => {
+              const res = await coll.addPermissions({
+                read: ["accounts:gabi"],
+              });
+              expect((res as KintoResponse).data.a).eql(1);
+              expect((res as KintoResponse).permissions.read!.sort()).eql([
+                "accounts:gabi",
+                "github:n1k0",
+              ]);
             });
           });
 
           describe(".removePermissions()", () => {
-            beforeEach(() => {
-              return coll
-                .setPermissions({ read: ["github:n1k0"] })
-                .then(() => coll.setData({ a: 1 }));
+            beforeEach(async () => {
+              await coll.setPermissions({ read: ["github:n1k0"] });
+              return await coll.setData({ a: 1 });
             });
 
-            it("should pop collection permissions", () => {
-              return coll
-                .removePermissions({ read: ["github:n1k0"] })
-                .then(res => {
-                  expect((res as KintoResponse).data.a).eql(1);
-                  expect((res as KintoResponse).permissions.read).eql(
-                    undefined
-                  );
-                });
+            it("should pop collection permissions", async () => {
+              const res = await coll.removePermissions({
+                read: ["github:n1k0"],
+              });
+              expect((res as KintoResponse).data.a).eql(1);
+              expect((res as KintoResponse).permissions.read).eql(undefined);
             });
           });
 
           describe(".getData()", () => {
-            it("should retrieve collection data", () => {
-              return coll
-                .setData({ signed: true })
-                .then(_ => coll.getData())
-                .should.eventually.have.property("signed")
-                .eql(true);
+            it("should retrieve collection data", async () => {
+              await coll.setData({ signed: true });
+              const data = (await coll.getData()) as { signed: boolean };
+              data.should.have.property("signed").eql(true);
             });
           });
 
@@ -1541,48 +1430,49 @@ describe("Integration tests", function() {
               return coll.setPermissions({ read: ["github:n1k0"] });
             });
 
-            it("should set collection data", () => {
-              return coll.setData({ signed: true }).then(res => {
-                expect((res as KintoResponse).data.signed).eql(true);
-                expect((res as KintoResponse).permissions.read).to.include(
-                  "github:n1k0"
-                );
-              });
+            it("should set collection data", async () => {
+              const res = await coll.setData({ signed: true });
+              expect((res as KintoResponse).data.signed).eql(true);
+              expect((res as KintoResponse).permissions.read).to.include(
+                "github:n1k0"
+              );
             });
 
             describe("Safe option", () => {
-              it("should perform concurrency checks", () => {
-                return coll
-                  .setData({ signed: true }, { safe: true, last_modified: 1 })
-                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+              it("should perform concurrency checks", async () => {
+                await expectAsyncError(
+                  () =>
+                    coll.setData(
+                      { signed: true },
+                      { safe: true, last_modified: 1 }
+                    ),
+                  /412 Precondition Failed/
+                );
               });
             });
           });
 
           describe(".createRecord()", () => {
             describe("No record id provided", () => {
-              it("should create a record", () => {
-                return coll
-                  .createRecord({ title: "foo" })
-                  .should.eventually.have.property("data")
+              it("should create a record", async () => {
+                (await coll.createRecord({ title: "foo" })).should.have
+                  .property("data")
                   .to.have.property("title")
                   .eql("foo");
               });
 
               describe("Safe option", () => {
-                it("should check for existing record", () => {
-                  return coll
-                    .createRecord({ title: "foo" })
-                    .then(res =>
+                it("should check for existing record", async () => {
+                  const { data } = await coll.createRecord({ title: "foo" });
+
+                  await expectAsyncError(
+                    () =>
                       coll.createRecord(
-                        {
-                          id: (res as KintoResponse).data.id,
-                          title: "foo",
-                        },
+                        { id: data.id, title: "foo" },
                         { safe: true }
-                      )
-                    )
-                    .should.be.rejectedWith(Error, /412 Precondition Failed/);
+                      ),
+                    /412 Precondition Failed/
+                  );
                 });
               });
             });
@@ -1593,10 +1483,9 @@ describe("Integration tests", function() {
                 title: "foo",
               };
 
-              it("should create a record", () => {
-                return coll
-                  .createRecord(record)
-                  .should.eventually.have.property("data")
+              it("should create a record", async () => {
+                (await coll.createRecord(record)).should.have
+                  .property("data")
                   .to.have.property("title")
                   .eql("foo");
               });
@@ -1604,43 +1493,33 @@ describe("Integration tests", function() {
           });
 
           describe(".updateRecord()", () => {
-            it("should update a record", () => {
-              return coll
-                .createRecord({ title: "foo" })
-                .then(res =>
-                  coll.updateRecord({
-                    ...(res as KintoResponse).data,
-                    title: "mod",
-                  })
-                )
-                .then(_ => coll.listRecords())
-                .then(({ data }) => data[0].title)
-                .should.become("mod");
+            it("should update a record", async () => {
+              const res = await coll.createRecord({ title: "foo" });
+              await coll.updateRecord({ ...res.data, title: "mod" });
+              const { data } = await coll.listRecords();
+              // type KintoObject doesn't have a title property, so we create
+              // an intersection type that does
+              const record = data[0] as KintoObject & { title: string };
+              record.title.should.equal("mod");
             });
 
-            it("should patch a record", () => {
-              return coll
-                .createRecord({ title: "foo", blah: 42 })
-                .then(res =>
-                  coll.updateRecord(
-                    { id: (res as KintoResponse).data.id, blah: 43 },
-                    { patch: true }
-                  )
-                )
-                .then(_ => coll.listRecords())
-                .then(({ data }) => {
-                  expect(data[0].title).eql("foo");
-                  expect(data[0].blah).eql(43);
-                });
+            it("should patch a record", async () => {
+              const res = await coll.createRecord({ title: "foo", blah: 42 });
+              await coll.updateRecord(
+                { id: (res as KintoResponse).data.id, blah: 43 },
+                { patch: true }
+              );
+              const { data } = await coll.listRecords();
+              expect(data[0].title).eql("foo");
+              expect(data[0].blah).eql(43);
             });
 
-            it("should create the record if it doesn't exist yet", () => {
+            it("should create the record if it doesn't exist yet", async () => {
               const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
 
-              return coll
-                .updateRecord({ id, title: "blah" })
-                .then(res => coll.getRecord((res as KintoResponse).data.id))
-                .should.eventually.have.property("data")
+              const { data } = await coll.updateRecord({ id, title: "blah" });
+              (await coll.getRecord(data.id)).should.have
+                .property("data")
                 .to.have.property("title")
                 .eql("blah");
             });
@@ -1648,68 +1527,64 @@ describe("Integration tests", function() {
             describe("Safe option", () => {
               const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
 
-              it("should perform concurrency checks with last_modified", () => {
-                return coll
-                  .createRecord({ title: "foo" })
-                  .then(res =>
+              it("should perform concurrency checks with last_modified", async () => {
+                const { data } = await coll.createRecord({ title: "foo" });
+
+                await expectAsyncError(
+                  () =>
                     coll.updateRecord(
-                      {
-                        id: (res as KintoResponse).data.id,
-                        title: "foo",
-                        last_modified: 1,
-                      },
+                      { id: data.id, title: "foo", last_modified: 1 },
                       { safe: true }
-                    )
-                  )
-                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+                    ),
+                  /412 Precondition Failed/
+                );
               });
 
-              it("should create a non-existent resource when safe is true", () => {
-                return coll
-                  .updateRecord({ id, title: "foo" }, { safe: true })
-                  .should.eventually.have.property("data")
+              it("should create a non-existent resource when safe is true", async () => {
+                (
+                  await coll.updateRecord({ id, title: "foo" }, { safe: true })
+                ).should.have
+                  .property("data")
                   .to.have.property("title")
                   .eql("foo");
               });
 
-              it("should not override existing data with no last_modified", () => {
-                return coll
-                  .createRecord({ title: "foo" })
-                  .then(res =>
+              it("should not override existing data with no last_modified", async () => {
+                const { data } = await coll.createRecord({ title: "foo" });
+
+                await expectAsyncError(
+                  () =>
                     coll.updateRecord(
-                      {
-                        id: (res as KintoResponse).data.id,
-                        title: "foo",
-                      },
+                      { id: data.id, title: "foo" },
                       { safe: true }
-                    )
-                  )
-                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+                    ),
+                  /412 Precondition Failed/
+                );
               });
             });
           });
 
           describe(".deleteRecord()", () => {
-            it("should delete a record", () => {
-              return coll
-                .createRecord({ title: "foo" })
-                .then(res => coll.deleteRecord((res as KintoResponse).data.id))
-                .then(_ => coll.listRecords())
-                .should.eventually.have.property("data")
-                .eql([]);
+            it("should delete a record", async () => {
+              const { data } = await coll.createRecord({ title: "foo" });
+              await coll.deleteRecord(data.id);
+              (await coll.listRecords()).should.have
+                .property("data")
+                .deep.equals([]);
             });
 
             describe("Safe option", () => {
-              it("should perform concurrency checks", () => {
-                return coll
-                  .createRecord({ title: "foo" })
-                  .then(res =>
-                    coll.deleteRecord((res as KintoResponse).data.id, {
+              it("should perform concurrency checks", async () => {
+                const { data } = await coll.createRecord({ title: "foo" });
+
+                await expectAsyncError(
+                  () =>
+                    coll.deleteRecord(data.id, {
                       last_modified: 1,
                       safe: true,
-                    })
-                  )
-                  .should.be.rejectedWith(Error, /412 Precondition Failed/);
+                    }),
+                  /412 Precondition Failed/
+                );
               });
             });
           });
@@ -1722,19 +1597,15 @@ describe("Integration tests", function() {
 
               let result: KintoResponse<{ attachment: Attachment }>;
 
-              beforeEach(() => {
-                return coll
-                  .addAttachment(
-                    dataURL,
-                    { foo: "bar" },
-                    { permissions: { write: ["github:n1k0"] } }
-                  )
-                  .then(
-                    res =>
-                      (result = res as KintoResponse<{
-                        attachment: Attachment;
-                      }>)
-                  );
+              beforeEach(async () => {
+                const res = await coll.addAttachment(
+                  dataURL,
+                  { foo: "bar" },
+                  { permissions: { write: ["github:n1k0"] } }
+                );
+                return (result = res as KintoResponse<{
+                  attachment: Attachment;
+                }>);
               });
 
               it("should create a record with an attachment", () => {
@@ -1763,28 +1634,31 @@ describe("Integration tests", function() {
             describe("Without filename", () => {
               const dataURL = "data:text/plain;base64," + btoa("blah");
 
-              it("should default filename to 'untitled' if not specified", () => {
-                return coll
-                  .addAttachment(dataURL)
-                  .should.eventually.have.property("data")
+              it("should default filename to 'untitled' if not specified", async () => {
+                (await coll.addAttachment(dataURL)).should.have
+                  .property("data")
                   .have.property("attachment")
                   .have.property("filename")
                   .eql("untitled");
               });
 
-              it("should allow to specify safe in options", () => {
-                return coll
-                  .addAttachment(dataURL, undefined, { safe: true })
-                  .should.eventually.to.have.property("data")
+              it("should allow to specify safe in options", async () => {
+                (
+                  await coll.addAttachment(dataURL, undefined, { safe: true })
+                ).should.to.have
+                  .property("data")
                   .to.have.property("attachment")
                   .to.have.property("size")
                   .eql(4);
               });
 
-              it("should allow to specify a filename in options", () => {
-                return coll
-                  .addAttachment(dataURL, undefined, { filename: "MYFILE.DAT" })
-                  .should.eventually.have.property("data")
+              it("should allow to specify a filename in options", async () => {
+                (
+                  await coll.addAttachment(dataURL, undefined, {
+                    filename: "MYFILE.DAT",
+                  })
+                ).should.have
+                  .property("data")
                   .have.property("attachment")
                   .have.property("filename")
                   .eql("MYFILE.DAT");
@@ -1799,54 +1673,52 @@ describe("Integration tests", function() {
 
             let recordId: string;
 
-            beforeEach(() => {
-              return coll.addAttachment(dataURL).then(
-                res =>
-                  (recordId = (res as KintoResponse<{
-                    attachment: Attachment;
-                  }>).data.id)
-              );
+            beforeEach(async () => {
+              const res = await coll.addAttachment(dataURL);
+              return (recordId = (res as KintoResponse<{
+                attachment: Attachment;
+              }>).data.id);
             });
 
-            it("should remove an attachment from a record", () => {
-              return coll
-                .removeAttachment(recordId)
-                .then(() => coll.getRecord(recordId))
-                .should.eventually.have.property("data")
+            it("should remove an attachment from a record", async () => {
+              await coll.removeAttachment(recordId);
+              (await coll.getRecord(recordId)).should.have
+                .property("data")
                 .to.have.property("attachment")
                 .eql(null);
             });
           });
 
           describe(".getRecord()", () => {
-            it("should retrieve a record by its id", () => {
-              return coll
-                .createRecord({ title: "blah" })
-                .then(res => coll.getRecord((res as KintoResponse).data.id))
-                .should.eventually.have.property("data")
+            it("should retrieve a record by its id", async () => {
+              const { data } = await coll.createRecord({ title: "blah" });
+
+              (await coll.getRecord(data.id)).should.have
+                .property("data")
                 .to.have.property("title")
                 .eql("blah");
             });
           });
 
           describe(".listRecords()", () => {
-            it("should list records", () => {
-              return coll
-                .createRecord({ title: "foo" })
-                .then(_ => coll.listRecords())
-                .then(({ data }) => data.map(record => record.title))
-                .should.become(["foo"]);
+            it("should list records", async () => {
+              await coll.createRecord({ title: "foo" });
+
+              const { data } = await coll.listRecords();
+              data.map(record => record.title).should.deep.equal(["foo"]);
             });
 
-            it("should order records by field", () => {
-              return Promise.all(
+            it("should order records by field", async () => {
+              await Promise.all(
                 ["art3", "art1", "art2"].map(title => {
                   return coll.createRecord({ title });
                 })
-              )
-                .then(_ => coll.listRecords({ sort: "title" }))
-                .then(({ data }) => data.map(record => record.title))
-                .should.eventually.become(["art1", "art2", "art3"]);
+              );
+
+              const { data } = await coll.listRecords({ sort: "title" });
+              data
+                .map(record => record.title)
+                .should.deep.equal(["art1", "art2", "art3"]);
             });
 
             describe("Filtering", () => {
@@ -1859,24 +1731,26 @@ describe("Integration tests", function() {
                 });
               });
 
-              it("should filter records", () => {
-                return coll
-                  .listRecords({ sort: "age", filters: { min_age: 30 } })
-                  .then(({ data }) => data.map(record => record.name))
-                  .should.become(["john", "jess"]);
+              it("should filter records", async () => {
+                const { data } = await coll.listRecords({
+                  sort: "age",
+                  filters: { min_age: 30 },
+                });
+                data
+                  .map(record => record.name)
+                  .should.deep.equal(["john", "jess"]);
               });
 
-              it("should properly escape unicode filters", () => {
-                return coll
-                  .listRecords({ filters: { name: "rené" } })
-                  .then(({ data }) => data.map(record => record.name))
-                  .should.become(["rené"]);
+              it("should properly escape unicode filters", async () => {
+                const { data } = await coll.listRecords({
+                  filters: { name: "rené" },
+                });
+                data.map(record => record.name).should.deep.equal(["rené"]);
               });
 
-              it("should resolve with collection last_modified value", () => {
-                return coll
-                  .listRecords()
-                  .should.eventually.have.property("last_modified")
+              it("should resolve with collection last_modified value", async () => {
+                (await coll.listRecords()).should.have
+                  .property("last_modified")
                   .to.be.a("string");
               });
             });
@@ -1884,27 +1758,22 @@ describe("Integration tests", function() {
             describe("since", () => {
               let ts1: string, ts2: string;
 
-              beforeEach(() => {
-                return coll
-                  .listRecords()
-                  .then(({ last_modified }) => (ts1 = last_modified!))
-                  .then(_ => coll.createRecord({ n: 1 }))
-                  .then(_ => coll.listRecords())
-                  .then(({ last_modified }) => (ts2 = last_modified!))
-                  .then(_ => coll.createRecord({ n: 2 }));
+              beforeEach(async () => {
+                ts1 = (await coll.listRecords()).last_modified!;
+                await coll.createRecord({ n: 1 });
+                ts2 = (await coll.listRecords()).last_modified!;
+                return await coll.createRecord({ n: 2 });
               });
 
-              it("should retrieve all records modified since provided timestamp", () => {
-                return coll
-                  .listRecords({ since: ts1 })
-                  .should.eventually.have.property("data")
+              it("should retrieve all records modified since provided timestamp", async () => {
+                (await coll.listRecords({ since: ts1 })).should.have
+                  .property("data")
                   .to.have.lengthOf(2);
               });
 
-              it("should only list changes made after the provided timestamp", () => {
-                return coll
-                  .listRecords({ since: ts2 })
-                  .should.eventually.have.property("data")
+              it("should only list changes made after the provided timestamp", async () => {
+                (await coll.listRecords({ since: ts2 })).should.have
+                  .property("data")
                   .to.have.lengthOf(1);
               });
             });
@@ -1912,81 +1781,61 @@ describe("Integration tests", function() {
             describe("'at' retrieves a snapshot at a given timestamp", () => {
               let rec1: KintoObject, rec2: KintoObject, rec3: KintoObject;
 
-              beforeEach(() => {
-                return coll
-                  .createRecord({ n: 1 })
-                  .then(resp => {
-                    rec1 = (resp as KintoResponse).data;
-                    return coll.createRecord({ n: 2 });
-                  })
-                  .then(res => {
-                    rec2 = (res as KintoResponse).data;
-                    return coll.createRecord({ n: 3 });
-                  })
-                  .then(res => (rec3 = (res as KintoResponse).data));
+              beforeEach(async () => {
+                const resp = await coll.createRecord({ n: 1 });
+                rec1 = (resp as KintoResponse).data;
+                const res = await coll.createRecord({ n: 2 });
+                rec2 = (res as KintoResponse).data;
+                const res_1 = await coll.createRecord({ n: 3 });
+                return (rec3 = (res_1 as KintoResponse).data);
               });
 
-              it("should resolve with a regular list result object", () => {
-                return coll
-                  .listRecords({ at: rec3.last_modified })
-                  .then(result => {
-                    const expectedSnapshot = [rec3, rec2, rec1];
-                    expect(result.data).to.eql(expectedSnapshot);
-                    expect(result.last_modified).eql(
-                      String(rec3.last_modified)
-                    );
-                    expect(result.hasNextPage).eql(false);
-                    expect(result.totalRecords).eql(expectedSnapshot.length);
-                    expect(() => result.next()).to.Throw(Error, /pagination/);
-                  });
+              it("should resolve with a regular list result object", async () => {
+                const result = await coll.listRecords({
+                  at: rec3.last_modified,
+                });
+                const expectedSnapshot = [rec3, rec2, rec1];
+                expect(result.data).to.eql(expectedSnapshot);
+                expect(result.last_modified).eql(String(rec3.last_modified));
+                expect(result.hasNextPage).eql(false);
+                expect(result.totalRecords).eql(expectedSnapshot.length);
+                expect(() => result.next()).to.Throw(Error, /pagination/);
               });
 
-              it("should handle creations", () => {
-                return coll
-                  .listRecords({ at: rec1.last_modified })
-                  .should.eventually.have.property("data")
+              it("should handle creations", async () => {
+                (await coll.listRecords({ at: rec1.last_modified })).should.have
+                  .property("data")
                   .eql([rec1]);
               });
 
-              it("should handle updates", () => {
+              it("should handle updates", async () => {
                 let updatedRec2: KintoObject;
-                return coll
-                  .updateRecord({ ...rec2, n: 42 })
-                  .then(res => {
-                    updatedRec2 = (res as KintoResponse).data;
-                    return coll.listRecords({ at: updatedRec2.last_modified });
-                  })
-                  .then(({ data }) => {
-                    expect(data).eql([updatedRec2, rec3, rec1]);
-                  });
+                const res = await coll.updateRecord({ ...rec2, n: 42 });
+                updatedRec2 = (res as KintoResponse).data;
+                const { data } = await coll.listRecords({
+                  at: updatedRec2.last_modified,
+                });
+                expect(data).eql([updatedRec2, rec3, rec1]);
               });
 
-              it("should handle deletions", () => {
-                return coll
-                  .deleteRecord(rec1.id)
-                  .then(res => {
-                    return coll.listRecords({
-                      at: (res as KintoResponse).data.last_modified,
-                    });
-                  })
-                  .then(({ data }) => {
-                    expect(data).eql([rec3, rec2]);
-                  });
+              it("should handle deletions", async () => {
+                const res = await coll.deleteRecord(rec1.id);
+                const { data } = await coll.listRecords({
+                  at: (res as KintoResponse).data.last_modified,
+                });
+                expect(data).eql([rec3, rec2]);
               });
 
-              it("should handle long list of changes", () => {
-                return coll
-                  .batch(batch => {
-                    for (let n = 4; n <= 100; n++) {
-                      batch.createRecord({ n });
-                    }
-                  })
-                  .then(res => {
-                    const at = (res as OperationResponse[])[50].body.data
-                      .last_modified;
-                    return coll.listRecords({ at });
-                  })
-                  .should.eventually.have.property("data")
+              it("should handle long list of changes", async () => {
+                const res = await coll.batch(batch => {
+                  for (let n = 4; n <= 100; n++) {
+                    batch.createRecord({ n });
+                  }
+                });
+                const at = (res as OperationResponse[])[50].body.data
+                  .last_modified;
+                (await coll.listRecords({ at })).should.have
+                  .property("data")
                   .to.lengthOf(54);
               });
 
@@ -1998,36 +1847,30 @@ describe("Integration tests", function() {
                   s4: KintoObject[] = [];
                 let rec1up: KintoObject;
 
-                beforeEach(() => {
-                  return coll
-                    .batch(batch => {
-                      batch.deleteRecord(rec2.id);
-                      batch.updateRecord({
-                        ...rec1,
-                        foo: "bar",
-                      });
-                      batch.createRecord({ n: 4 });
-                    })
-                    .then(responses => {
-                      rec1up = (responses as OperationResponse[])[1].body.data;
-                      rec4 = (responses as OperationResponse[])[
-                        (responses as OperationResponse[]).length - 1
-                      ].body.data;
-
-                      return Promise.all([
-                        coll.listRecords({ at: rec1.last_modified }),
-                        coll.listRecords({ at: rec2.last_modified }),
-                        coll.listRecords({ at: rec3.last_modified }),
-                        coll.listRecords({ at: rec4.last_modified }),
-                      ]);
-                    })
-                    .then(results => {
-                      const snapshots = results.map(({ data }) => data);
-                      s1 = snapshots[0];
-                      s2 = snapshots[1];
-                      s3 = snapshots[2];
-                      s4 = snapshots[3];
+                beforeEach(async () => {
+                  const responses = await coll.batch(batch => {
+                    batch.deleteRecord(rec2.id);
+                    batch.updateRecord({
+                      ...rec1,
+                      foo: "bar",
                     });
+                    batch.createRecord({ n: 4 });
+                  });
+                  rec1up = (responses as OperationResponse[])[1].body.data;
+                  rec4 = (responses as OperationResponse[])[
+                    (responses as OperationResponse[]).length - 1
+                  ].body.data;
+                  const results = await Promise.all([
+                    coll.listRecords({ at: rec1.last_modified }),
+                    coll.listRecords({ at: rec2.last_modified }),
+                    coll.listRecords({ at: rec3.last_modified }),
+                    coll.listRecords({ at: rec4.last_modified }),
+                  ]);
+                  const snapshots = results.map(({ data }) => data);
+                  s1 = snapshots[0];
+                  s2 = snapshots[1];
+                  s3 = snapshots[2];
+                  s4 = snapshots[3];
                 });
 
                 it("should compute snapshot1 as expected", () => {
@@ -2057,96 +1900,82 @@ describe("Integration tests", function() {
                 });
               });
 
-              it("should not paginate by default", () => {
-                return coll
-                  .listRecords()
-                  .then(({ data }) => data.map(record => record.n))
-                  .should.become([3, 2, 1]);
+              it("should not paginate by default", async () => {
+                const { data } = await coll.listRecords();
+                data.map(record => record.n).should.deep.equal([3, 2, 1]);
               });
 
-              it("should paginate by chunks", () => {
-                return coll
-                  .listRecords({ limit: 2 })
-                  .then(({ data }) => data.map(record => record.n))
-                  .should.become([3, 2]);
+              it("should paginate by chunks", async () => {
+                const { data } = await coll.listRecords({ limit: 2 });
+                data.map(record => record.n).should.deep.equal([3, 2]);
               });
 
-              it("should provide a next method to load next page", () => {
-                return coll
-                  .listRecords({ limit: 2 })
-                  .then(res => res.next())
-                  .then(({ data }) => data.map(record => record.n))
-                  .should.become([1]);
+              it("should provide a next method to load next page", async () => {
+                const res = await coll.listRecords({ limit: 2 });
+                const { data } = await res.next();
+                data.map(record => record.n).should.deep.equal([1]);
               });
 
-              it("should resolve with an empty array on exhausted pagination", () => {
-                return coll
-                  .listRecords({ limit: 2 }) // 1st page of 2 records
-                  .then(res => res.next()) // 2nd page of 1 record
-                  .then(res => res.next()) // No next page
-                  .should.be.rejectedWith(Error, /Pagination exhausted./);
+              it("should resolve with an empty array on exhausted pagination", async () => {
+                const res1 = await coll.listRecords({ limit: 2 });
+                const res2 = await res1.next();
+
+                await expectAsyncError(
+                  () => res2.next(),
+                  /Pagination exhausted./
+                );
               });
 
-              it("should retrieve all pages", () => {
+              it("should retrieve all pages", async () => {
                 // Note: Server has no limit by default, so here we get all the
                 // records.
-                return coll
-                  .listRecords()
-                  .then(({ data }) => data.map(record => record.n))
-                  .should.become([3, 2, 1]);
+                const { data } = await coll.listRecords();
+                data.map(record => record.n).should.deep.equal([3, 2, 1]);
               });
 
-              it("should retrieve specified number of pages", () => {
-                return coll
-                  .listRecords({ limit: 1, pages: 2 })
-                  .then(({ data }) => data.map(record => record.n))
-                  .should.become([3, 2]);
+              it("should retrieve specified number of pages", async () => {
+                const { data } = await coll.listRecords({ limit: 1, pages: 2 });
+                data.map(record => record.n).should.deep.equal([3, 2]);
               });
 
-              it("should allow fetching next page after last page if any", () => {
-                return coll
-                  .listRecords({ limit: 1, pages: 1 }) // 1 record
-                  .then(({ next }) => next()) // 2 records
-                  .then(({ data }) => data.map(record => record.n))
-                  .should.become([3, 2]);
+              it("should allow fetching next page after last page if any", async () => {
+                const { next } = await coll.listRecords({ limit: 1, pages: 1 });
+                const { data } = await next();
+                data.map(record => record.n).should.deep.equal([3, 2]);
               });
 
-              it("should should retrieve all existing pages", () => {
-                return coll
-                  .listRecords({ limit: 1, pages: Infinity })
-                  .then(({ data }) => data.map(record => record.n))
-                  .should.become([3, 2, 1]);
+              it("should should retrieve all existing pages", async () => {
+                const { data } = await coll.listRecords({
+                  limit: 1,
+                  pages: Infinity,
+                });
+                data.map(record => record.n).should.deep.equal([3, 2, 1]);
               });
             });
           });
 
           describe(".batch()", () => {
-            it("should allow batching operations in the current collection", () => {
-              return coll
-                .batch(batch => {
-                  batch.createRecord({ title: "a" });
-                  batch.createRecord({ title: "b" });
-                })
-                .then(_ => coll.listRecords({ sort: "title" }))
-                .then(({ data }) => data.map(record => record.title))
-                .should.become(["a", "b"]);
+            it("should allow batching operations in the current collection", async () => {
+              await coll.batch(batch => {
+                batch.createRecord({ title: "a" });
+                batch.createRecord({ title: "b" });
+              });
+              const { data } = await coll.listRecords({ sort: "title" });
+              data.map(record => record.title).should.deep.equal(["a", "b"]);
             });
           });
         });
       }
 
-      runSuite("default bucket", () => {
-        return api
-          .bucket("default")
-          .createCollection("plop")
-          .then(_ => api.bucket("default").collection("plop"));
+      runSuite("default bucket", async () => {
+        await api.bucket("default").createCollection("plop");
+        return api.bucket("default").collection("plop");
       });
 
-      runSuite("custom bucket", () => {
-        return api
-          .createBucket("custom")
-          .then(_ => api.bucket("custom").createCollection("plop"))
-          .then(_ => api.bucket("custom").collection("plop"));
+      runSuite("custom bucket", async () => {
+        await api.createBucket("custom");
+        await api.bucket("custom").createCollection("plop");
+        return api.bucket("custom").collection("plop");
       });
     });
   });

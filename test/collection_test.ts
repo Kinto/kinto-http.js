@@ -1,14 +1,12 @@
 import chai from "chai";
-import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import KintoClient from "../src";
 import Bucket from "../src/bucket";
 import Collection, { CollectionOptions } from "../src/collection";
 import * as requests from "../src/requests";
-import { fakeServerResponse, Stub } from "./test_utils";
+import { fakeServerResponse, Stub, expectAsyncError } from "./test_utils";
 import { PaginationResult } from "../src/base";
 
-chai.use(chaiAsPromised);
 chai.should();
 chai.config.includeStack = true;
 
@@ -29,18 +27,22 @@ describe("Collection", () => {
     sandbox.restore();
   });
 
+  const fakeHeaders = {
+    get: () => "",
+  };
+
   function getBlogPostsCollection(options?: CollectionOptions) {
     return new Bucket(client, "blog").collection("posts", options);
   }
 
   /** @test {Collection#getTotalRecords} */
   describe("#getTotalRecords()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogPostsCollection().getTotalRecords();
+      await getBlogPostsCollection().getTotalRecords();
 
       sinon.assert.calledWithMatch(
         executeStub,
@@ -53,7 +55,7 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with the Total-Records header value", () => {
+    it("should resolve with the Total-Records header value", async () => {
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
           headers: {
@@ -64,20 +66,18 @@ describe("Collection", () => {
         })
       );
 
-      return getBlogPostsCollection()
-        .getTotalRecords()
-        .should.become(42);
+      (await getBlogPostsCollection().getTotalRecords()).should.equal(42);
     });
   });
 
   /** @test {Collection#getData} */
   describe("#getData()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogPostsCollection().getData();
+      await getBlogPostsCollection().getData();
 
       sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog/collections/posts",
@@ -85,21 +85,24 @@ describe("Collection", () => {
       });
     });
 
-    it("should resolve with response data", () => {
+    it("should resolve with response data", async () => {
       const response = { data: { foo: "bar" } };
       sandbox.stub(client, "execute").returns(Promise.resolve(response));
 
-      return getBlogPostsCollection()
-        .getData()
-        .should.become({ foo: "bar" });
+      const data = (await getBlogPostsCollection().getData()) as {
+        foo: string;
+      };
+      data.should.deep.equal({
+        foo: "bar",
+      });
     });
 
-    it("should pass query through", () => {
+    it("should pass query through", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogPostsCollection().getData({ query: { _expected: '"123"' } });
+      await getBlogPostsCollection().getData({ query: { _expected: '"123"' } });
 
       sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog/collections/posts?_expected=%22123%22",
@@ -107,12 +110,12 @@ describe("Collection", () => {
       });
     });
 
-    it("supports _fields", () => {
+    it("supports _fields", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogPostsCollection().getData({ fields: ["a", "b"] });
+      await getBlogPostsCollection().getData({ fields: ["a", "b"] });
 
       sinon.assert.calledWithMatch(executeStub, {
         path: "/buckets/blog/collections/posts?_fields=a,b",
@@ -132,8 +135,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should retrieve permissions", () => {
-      return coll.getPermissions().should.become({ write: ["fakeperms"] });
+    it("should retrieve permissions", async () => {
+      (await coll.getPermissions()).should.deep.equal({ write: ["fakeperms"] });
     });
   });
 
@@ -169,8 +172,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with json result", () => {
-      return coll.setPermissions(fakePermissions).should.become({});
+    it("should resolve with json result", async () => {
+      (await coll.setPermissions(fakePermissions)).should.deep.equal({});
     });
   });
 
@@ -211,8 +214,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with json result", () => {
-      return coll.setPermissions(fakePermissions).should.become({});
+    it("should resolve with json result", async () => {
+      (await coll.setPermissions(fakePermissions)).should.deep.equal({});
     });
   });
 
@@ -248,8 +251,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with json result", () => {
-      return coll.setPermissions(fakePermissions).should.become({});
+    it("should resolve with json result", async () => {
+      (await coll.setPermissions(fakePermissions)).should.deep.equal({});
     });
   });
 
@@ -261,8 +264,9 @@ describe("Collection", () => {
         .returns(Promise.resolve({ data: { a: 1 } }));
     });
 
-    it("should retrieve data", () => {
-      return coll.getData().should.become({ a: 1 });
+    it("should retrieve data", async () => {
+      const data = (await coll.getData()) as { a: number };
+      data.should.deep.equal({ a: 1 });
     });
   });
 
@@ -310,8 +314,10 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with json result", () => {
-      return coll.setData({ a: 1 }).should.become({ data: { foo: "bar" } });
+    it("should resolve with json result", async () => {
+      (await coll.setData({ a: 1 })).should.deep.equal({
+        data: { foo: "bar" },
+      });
     });
   });
 
@@ -361,8 +367,8 @@ describe("Collection", () => {
       });
     });
 
-    it("should resolve with response body", () => {
-      return coll.createRecord(record).should.become({ data: 1 });
+    it("should resolve with response body", async () => {
+      (await coll.createRecord(record)).should.deep.equal({ data: 1 });
     });
   });
 
@@ -374,16 +380,18 @@ describe("Collection", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: 1 }));
     });
 
-    it("should throw if record is not an object", () => {
-      return coll
-        .updateRecord(2 as any)
-        .should.be.rejectedWith(Error, /record object is required/);
+    it("should throw if record is not an object", async () => {
+      await expectAsyncError(
+        () => coll.updateRecord(2 as any),
+        /record object is required/
+      );
     });
 
-    it("should throw if id is missing", () => {
-      return coll
-        .updateRecord({} as any)
-        .should.be.rejectedWith(Error, /record id is required/);
+    it("should throw if id is missing", async () => {
+      await expectAsyncError(
+        () => coll.updateRecord({} as any),
+        /record id is required/
+      );
     });
 
     it("should create the expected request", () => {
@@ -430,8 +438,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with response body", () => {
-      return coll.updateRecord(record).should.become({ data: 1 });
+    it("should resolve with response body", async () => {
+      (await coll.updateRecord(record)).should.deep.equal({ data: 1 });
     });
   });
 
@@ -444,10 +452,11 @@ describe("Collection", () => {
       sandbox.stub(client, "execute").returns(Promise.resolve({ data: 1 }));
     });
 
-    it("should throw if id is missing", () => {
-      return coll
-        .deleteRecord({} as any)
-        .should.be.rejectedWith(Error, /record id is required/);
+    it("should throw if id is missing", async () => {
+      await expectAsyncError(
+        () => coll.deleteRecord({} as any),
+        /record id is required/
+      );
     });
 
     it("should delete a record", () => {
@@ -510,8 +519,8 @@ describe("Collection", () => {
       });
     });
 
-    it("should retrieve a record", () => {
-      return coll.getRecord("1").should.become({ data: 1 });
+    it("should retrieve a record", async () => {
+      (await coll.getRecord("1")).should.deep.equal({ data: 1 });
     });
 
     it("should support query and fields", () => {
@@ -526,12 +535,12 @@ describe("Collection", () => {
 
   /** @test {Collection#getRecordsTimestamp} */
   describe("#getRecordsTimestamp()", () => {
-    it("should execute expected request", () => {
+    it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve());
+        .returns(Promise.resolve({ headers: fakeHeaders }));
 
-      getBlogPostsCollection().getRecordsTimestamp();
+      await getBlogPostsCollection().getRecordsTimestamp();
 
       sinon.assert.calledWithMatch(
         executeStub,
@@ -544,7 +553,7 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with the ETag header value", () => {
+    it("should resolve with the ETag header value", async () => {
       const etag = '"42"';
       sandbox.stub(client, "execute").returns(
         Promise.resolve({
@@ -556,9 +565,9 @@ describe("Collection", () => {
         })
       );
 
-      return getBlogPostsCollection()
-        .getRecordsTimestamp()
-        .should.become(etag);
+      (await getBlogPostsCollection().getRecordsTimestamp())!.should.deep.equal(
+        etag
+      );
     });
   });
 
@@ -607,11 +616,8 @@ describe("Collection", () => {
       );
     });
 
-    it("should resolve with a result object", () => {
-      return coll
-        .listRecords()
-        .should.eventually.have.property("data")
-        .eql(data.data);
+    it("should resolve with a result object", async () => {
+      (await coll.listRecords()).should.have.property("data").eql(data.data);
     });
 
     it("should support filters and fields", () => {
@@ -637,12 +643,9 @@ describe("Collection", () => {
         fetchStub.onCall(1).returns(fakeServerResponse(200, response));
       });
 
-      it("should retry the request if option is specified", () => {
-        return coll
-          .listRecords({ retry: 1 })
-          .then(r => r.data[0])
-          .should.eventually.have.property("title")
-          .eql("art");
+      it("should retry the request if option is specified", async () => {
+        const { data } = await coll.listRecords({ retry: 1 });
+        data[0].should.have.property("title").eql("art");
       });
     });
   });

@@ -1,4 +1,5 @@
 import sinon from "sinon";
+import { expect } from "chai";
 
 export function fakeServerResponse(
   status: number,
@@ -36,3 +37,33 @@ export type Spy<T extends (...args: any[]) => any> = sinon.SinonSpy<
   Parameters<T>,
   ReturnType<T>
 >;
+
+export async function expectAsyncError<T>(
+  fn: () => Promise<T>,
+  message?: string | RegExp,
+  baseClass: any = Error
+): Promise<Error> {
+  let error: Error;
+
+  try {
+    await fn();
+  } catch (err) {
+    error = err;
+  }
+
+  expect(error!).not.to.be.undefined;
+  expect(error!).to.be.instanceOf(baseClass);
+  if (message) {
+    if (typeof message === "string") {
+      expect(error!)
+        .to.have.property("message")
+        .equal(message);
+    } else {
+      expect(error!)
+        .to.have.property("message")
+        .match(message);
+    }
+  }
+
+  return error!;
+}

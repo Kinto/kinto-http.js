@@ -13,6 +13,7 @@ import {
   cleanUndefinedProperties,
   addEndpointOptions,
 } from "../src/utils";
+import { expectAsyncError } from "./test_utils";
 
 chai.should();
 chai.config.includeStack = true;
@@ -124,7 +125,7 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.fulfilled;
+      return new FakeClient().test();
     });
 
     it("should make decorated method rejecting on version mismatch", () => {
@@ -139,7 +140,14 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.rejected;
+      return new FakeClient().test().then(
+        () => {
+          throw new Error("Should be rejected");
+        },
+        err => {
+          err.should.not.be.undefined;
+        }
+      );
     });
 
     it("should check for an attached client instance", () => {
@@ -160,7 +168,14 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.rejected;
+      return new FakeClient().test().then(
+        () => {
+          throw new Error("Should be rejected");
+        },
+        err => {
+          expect(err).to.be.undefined;
+        }
+      );
     });
   });
 
@@ -181,7 +196,7 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.fulfilled;
+      return new FakeClient().test();
     });
 
     it("should make decorated method resolve on capability match", () => {
@@ -200,10 +215,10 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.fulfilled;
+      return new FakeClient().test();
     });
 
-    it("should make decorated method rejecting on missing capability", () => {
+    it("should make decorated method rejecting on missing capability", async () => {
       class FakeClient {
         fetchServerCapabilities() {
           return Promise.resolve({ attachments: {} });
@@ -215,9 +230,10 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient()
-        .test()
-        .should.be.rejectedWith(Error, /default not present/);
+      await expectAsyncError(
+        () => new FakeClient().test(),
+        /default not present/
+      );
     });
   });
 
@@ -240,7 +256,7 @@ describe("Utils", () => {
         }
       }
 
-      return new FakeClient().test().should.be.fulfilled;
+      return new FakeClient().test();
     });
 
     it("should make decorated method to throw if in batch", () => {
