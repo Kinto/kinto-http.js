@@ -1201,7 +1201,11 @@ describe("Integration tests", function() {
           const res = await bucket.createGroup("foo");
           await bucket.updateGroup({ ...res.data, title: "mod" });
           const { data } = await bucket.listGroups();
-          (data[0] as Group & { title: string }).title.should.equal("mod");
+
+          // type Group doesn't have a title property, so we create an
+          // intersection type that does
+          const firstGroup = data[0] as Group & { title: string };
+          firstGroup.title.should.equal("mod");
         });
 
         it("should patch a group", async () => {
@@ -1493,9 +1497,10 @@ describe("Integration tests", function() {
               const res = await coll.createRecord({ title: "foo" });
               await coll.updateRecord({ ...res.data, title: "mod" });
               const { data } = await coll.listRecords();
-              (data[0] as KintoObject & { title: string }).title.should.equal(
-                "mod"
-              );
+              // type KintoObject doesn't have a title property, so we create
+              // an intersection type that does
+              const record = data[0] as KintoObject & { title: string };
+              record.title.should.equal("mod");
             });
 
             it("should patch a record", async () => {
