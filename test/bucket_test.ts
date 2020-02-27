@@ -61,7 +61,8 @@ describe("Bucket", () => {
       const response = { data: { foo: "bar" }, permissions: {} };
       sandbox.stub(client, "execute").returns(Promise.resolve(response));
 
-      ((await getBlogBucket().getData()) as { foo: string }).should.deep.equal({
+      const data = (await getBlogBucket().getData()) as { foo: string };
+      data.should.deep.equal({
         foo: "bar",
       });
     });

@@ -1416,9 +1416,8 @@ describe("Integration tests", function() {
           describe(".getData()", () => {
             it("should retrieve collection data", async () => {
               await coll.setData({ signed: true });
-              ((await coll.getData()) as { signed: boolean }).should.have
-                .property("signed")
-                .eql(true);
+              const data = (await coll.getData()) as { signed: boolean };
+              data.should.have.property("signed").eql(true);
             });
           });
 

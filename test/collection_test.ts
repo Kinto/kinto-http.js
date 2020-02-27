@@ -89,9 +89,10 @@ describe("Collection", () => {
       const response = { data: { foo: "bar" } };
       sandbox.stub(client, "execute").returns(Promise.resolve(response));
 
-      ((await getBlogPostsCollection().getData()) as {
+      const data = (await getBlogPostsCollection().getData()) as {
         foo: string;
-      }).should.deep.equal({
+      };
+      data.should.deep.equal({
         foo: "bar",
       });
     });
@@ -264,7 +265,8 @@ describe("Collection", () => {
     });
 
     it("should retrieve data", async () => {
-      ((await coll.getData()) as { a: number }).should.deep.equal({ a: 1 });
+      const data = (await coll.getData()) as { a: number };
+      data.should.deep.equal({ a: 1 });
     });
   });
 

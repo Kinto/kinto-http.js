@@ -573,7 +573,8 @@ describe("KintoClient", () => {
               responses: [{ status: 200, body: { data: 4 } }],
             })
           );
-        ((await executeBatch(fixtures)) as OperationResponse[])
+        const responses = (await executeBatch(fixtures)) as OperationResponse[];
+        responses
           .map(response => response.body.data)
           .should.deep.equal([1, 2, 3, 4]);
       });
@@ -616,7 +617,8 @@ describe("KintoClient", () => {
             })
           );
 
-        ((await executeBatch(fixtures)) as OperationResponse[])
+        const responses = (await executeBatch(fixtures)) as OperationResponse[];
+        responses
           .map(response => response.status)
           .should.deep.equal([412, 412, 412, 412]);
       });
@@ -654,7 +656,8 @@ describe("KintoClient", () => {
               setTimeout(onTimeout, 5);
             })
           );
-        ((await executeBatch(fixtures)) as OperationResponse[])
+        const responses = (await executeBatch(fixtures)) as OperationResponse[];
+        responses
           .map(response => response.body.data)
           .should.deep.equal([1, 2, 3, 4]);
       });
