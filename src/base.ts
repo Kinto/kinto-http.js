@@ -39,7 +39,7 @@ export const SUPPORTED_PROTOCOL_VERSION = "v1";
 
 export interface KintoClientOptions {
   safe?: boolean;
-  events: EventEmitter;
+  events?: EventEmitter;
   headers?: Record<string, string>;
   retry?: number;
   bucket?: string;
@@ -88,7 +88,7 @@ export default class KintoClientBase {
   private _safe: boolean;
   private _headers: Record<string, string>;
   public serverInfo: HelloResponse | null;
-  public events: EventEmitter;
+  public events?: EventEmitter;
   public http: HTTP;
   private _remote!: string;
   private _version!: string;
@@ -205,7 +205,7 @@ export default class KintoClientBase {
    */
   private _registerHTTPEvents(): void {
     // Prevent registering event from a batch client instance
-    if (!this._isBatch) {
+    if (!this._isBatch && this.events) {
       this.events.on("backoff", backoffMs => {
         this._backoffReleaseTime = backoffMs;
       });

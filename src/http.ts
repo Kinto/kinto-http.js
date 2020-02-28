@@ -47,7 +47,7 @@ export default class HTTP {
     return { timeout: null, requestMode: "cors" };
   }
 
-  public events: NodeJS.EventEmitter;
+  public events?: NodeJS.EventEmitter;
   public requestMode: RequestMode;
   public timeout: number;
 
@@ -59,15 +59,12 @@ export default class HTTP {
    * @param {Number}       [options.timeout=null]       The request timeout in ms, if any (default: `null`).
    * @param {String}       [options.requestMode="cors"] The HTTP request mode (default: `"cors"`).
    */
-  constructor(events: NodeJS.EventEmitter, options: HttpOptions = {}) {
+  constructor(events?: NodeJS.EventEmitter, options: HttpOptions = {}) {
     // public properties
     /**
      * The event emitter instance.
      * @type {EventEmitter}
      */
-    if (!events) {
-      throw new Error("No events handler provided");
-    }
     this.events = events;
 
     /**
@@ -221,7 +218,9 @@ export default class HTTP {
       return;
     }
     console.warn(alert.message, alert.url);
-    this.events.emit("deprecated", alert);
+    if (this.events) {
+      this.events.emit("deprecated", alert);
+    }
   }
 
   _checkForBackoffHeader(headers: Headers): void {
@@ -233,7 +232,9 @@ export default class HTTP {
     } else {
       backoffMs = 0;
     }
-    this.events.emit("backoff", backoffMs);
+    if (this.events) {
+      this.events.emit("backoff", backoffMs);
+    }
   }
 
   _checkForRetryAfterHeader(headers: Headers): number | undefined {
@@ -243,7 +244,9 @@ export default class HTTP {
     }
     const delay = parseInt(retryAfter, 10) * 1000;
     const tryAgainAfter = new Date().getTime() + delay;
-    this.events.emit("retry-after", tryAgainAfter);
+    if (this.events) {
+      this.events.emit("retry-after", tryAgainAfter);
+    }
     return delay;
   }
 }
