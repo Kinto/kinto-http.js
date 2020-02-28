@@ -1,6 +1,7 @@
 import chai, { expect } from "chai";
 import sinon from "sinon";
 import { EventEmitter } from "events";
+import mitt from "mitt";
 import { fakeServerResponse, Stub, expectAsyncError } from "./test_utils";
 import HTTP from "../src/http";
 import {
@@ -8,21 +9,20 @@ import {
   ServerResponse,
   UnparseableResponseError,
 } from "../src/errors";
+import { Emitter } from "../src/types";
 
 chai.should();
 chai.config.includeStack = true;
 
 /** @test {HTTP} */
 describe("HTTP class", () => {
-  function runSuite(label: string, emitter?: typeof EventEmitter) {
+  function runSuite(label: string, emitter?: () => Emitter) {
     describe(label, () => {
-      let sandbox: sinon.SinonSandbox,
-        events: EventEmitter | undefined,
-        http: HTTP;
+      let sandbox: sinon.SinonSandbox, events: Emitter | undefined, http: HTTP;
 
       beforeEach(() => {
         sandbox = sinon.createSandbox();
-        events = emitter ? new emitter() : undefined;
+        events = emitter ? emitter() : undefined;
         http = new HTTP(events, { timeout: 100 });
       });
 
@@ -31,9 +31,11 @@ describe("HTTP class", () => {
       /** @test {HTTP#constructor} */
       describe("#constructor", () => {
         it("should expose a passed events instance", () => {
-          const events = new EventEmitter();
-          const http = new HTTP(events);
-          expect(http.events).to.eql(events);
+          if (emitter) {
+            const events = emitter();
+            const http = new HTTP(events);
+            expect(http.events).to.eql(events);
+          }
         });
 
         it("should accept a requestMode option", () => {
@@ -282,7 +284,7 @@ describe("HTTP class", () => {
           };
 
           let consoleWarnStub: Stub<typeof console.warn>;
-          let eventsEmitStub: Stub<EventEmitter["emit"]> | null;
+          let eventsEmitStub: Stub<Emitter["emit"]> | null;
 
           beforeEach(() => {
             consoleWarnStub = sandbox.stub(console, "warn");
@@ -343,7 +345,7 @@ describe("HTTP class", () => {
         });
 
         describe("Backoff header handling", () => {
-          let eventsEmitStub: Stub<EventEmitter["emit"]> | null;
+          let eventsEmitStub: Stub<Emitter["emit"]> | null;
           beforeEach(() => {
             // Make Date#getTime always returning 1000000, for predictability
             sandbox.stub(Date.prototype, "getTime").returns(1000 * 1000);
@@ -390,7 +392,7 @@ describe("HTTP class", () => {
         });
 
         describe("Retry-After header handling", () => {
-          let eventsEmitStub: Stub<EventEmitter["emit"]> | null;
+          let eventsEmitStub: Stub<Emitter["emit"]> | null;
           describe("Event", () => {
             beforeEach(() => {
               // Make Date#getTime always returning 1000000, for predictability
@@ -467,6 +469,7 @@ describe("HTTP class", () => {
     });
   }
 
-  runSuite("with EventEmitter", EventEmitter);
+  runSuite("with EventEmitter", () => new EventEmitter());
+  runSuite("with mitt", () => mitt());
   runSuite("without EventEmitter");
 });

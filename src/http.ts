@@ -5,6 +5,7 @@ import {
   UnparseableResponseError,
   ServerResponseObject,
 } from "./errors";
+import { Emitter } from "./types";
 
 interface HttpOptions {
   timeout?: number | null;
@@ -47,7 +48,7 @@ export default class HTTP {
     return { timeout: null, requestMode: "cors" };
   }
 
-  public events?: NodeJS.EventEmitter;
+  public events?: Emitter;
   public requestMode: RequestMode;
   public timeout: number;
 
@@ -59,7 +60,7 @@ export default class HTTP {
    * @param {Number}       [options.timeout=null]       The request timeout in ms, if any (default: `null`).
    * @param {String}       [options.requestMode="cors"] The HTTP request mode (default: `"cors"`).
    */
-  constructor(events?: NodeJS.EventEmitter, options: HttpOptions = {}) {
+  constructor(events?: Emitter, options: HttpOptions = {}) {
     // public properties
     /**
      * The event emitter instance.

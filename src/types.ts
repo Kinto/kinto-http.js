@@ -109,3 +109,9 @@ export interface Attachment {
 export interface Group extends KintoObject {
   members: string[];
 }
+
+export interface Emitter {
+  emit(type: string, event?: any): void;
+  on(type: string, handler: (event?: any) => void): void;
+  off(type: string, handler: (event?: any) => void): void;
+}

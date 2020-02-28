@@ -12,7 +12,6 @@ import * as requests from "./requests";
 import { aggregate, AggregateResponse } from "./batch";
 import Bucket from "./bucket";
 import { capable } from "./utils";
-import { EventEmitter } from "events";
 import {
   HelloResponse,
   KintoRequest,
@@ -28,6 +27,7 @@ import {
   ServerSettings,
   ServerCapability,
   User,
+  Emitter,
 } from "./types";
 import Collection from "./collection";
 
@@ -39,7 +39,7 @@ export const SUPPORTED_PROTOCOL_VERSION = "v1";
 
 export interface KintoClientOptions {
   safe?: boolean;
-  events?: EventEmitter;
+  events?: Emitter;
   headers?: Record<string, string>;
   retry?: number;
   bucket?: string;
@@ -88,7 +88,7 @@ export default class KintoClientBase {
   private _safe: boolean;
   private _headers: Record<string, string>;
   public serverInfo: HelloResponse | null;
-  public events?: EventEmitter;
+  public events?: Emitter;
   public http: HTTP;
   private _remote!: string;
   private _version!: string;
