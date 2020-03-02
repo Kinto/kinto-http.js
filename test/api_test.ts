@@ -106,10 +106,8 @@ describe("KintoClient", () => {
       ).eql(timeout);
     });
 
-    it("should create an event emitter if none is provided", () => {
-      expect(new KintoClient(sampleRemote).events).to.be.an.instanceOf(
-        EventEmitter
-      );
+    it("should not create an event emitter if none is provided", () => {
+      expect(new KintoClient(sampleRemote).events).to.be.undefined;
     });
 
     it("should expose provided event emitter as a property", () => {
