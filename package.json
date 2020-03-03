@@ -2,7 +2,7 @@
   "name": "kinto-http",
   "version": "5.0.0-alpha.2",
   "description": "JavaScript HTTP client for the Kinto API.",
-  "main": "lib/cjs-es5/index.js",
+  "main": "dist/kinto-http.node.js",
   "module": "lib/esm/index.js",
   "unpkg": "dist/kinto-http.min.js",
   "types": "lib/esm/index.d.ts",
@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^11.0.1",
+    "@rollup/plugin-inject": "^4.0.1",
     "@rollup/plugin-node-resolve": "^7.0.0",
     "@rollup/plugin-typescript": "^3.0.0",
     "@types/chai": "^4.2.0",
@@ -60,7 +61,6 @@
     "@typescript-eslint/eslint-plugin": "^2.6.0",
     "@typescript-eslint/parser": "^2.6.0",
     "atob": "^2.1.2",
-    "btoa": "^1.1.2",
     "chai": "^4.1.0",
     "coveralls": "^3.0.0",
     "cross-env": "^7.0.0",
@@ -68,7 +68,6 @@
     "eslint-config-prettier": "^6.0.0",
     "form-data": "^3.0.0",
     "http-server": "^0.12.0",
-    "jsdom": "^16.0.0",
     "kinto-node-test-server": "^1.0.0",
     "mitt": "^1.2.0",
     "mocha": "^7.0.0",
@@ -88,7 +87,23 @@
     "typedoc": "^0.16.2",
     "typescript": "^3.5.2"
   },
+  "peerDependencies": {
+    "node-fetch": ">=2.6.0",
+    "form-data": ">=3.0.0",
+    "atob": ">=2.1.2"
+  },
+  "peerDependenciesMeta": {
+    "node-fetch": {
+      "optional": true
+    },
+    "form-data": {
+      "optional": true
+    },
+    "atob": {
+      "optional": true
+    }
+  },
   "engines": {
-    "node": ">=6"
+    "node": ">=10"
   }
 }

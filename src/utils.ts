@@ -285,14 +285,8 @@ export function extractFileInfo(
   for (let i = 0; i < binary.length; i++) {
     array.push(binary.charCodeAt(i));
   }
-  let blob;
-  if (typeof Blob !== "undefined") {
-    // Running in a browser environment.
-    blob = new Blob([new Uint8Array(array)], { type });
-  } else {
-    // In NodeJS. Blob is not available.
-    blob = (Buffer.from(array) as unknown) as Blob;
-  }
+  const blob = new Blob([new Uint8Array(array)], { type });
+
   return { blob, name };
 }
 
