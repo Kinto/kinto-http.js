@@ -67,3 +67,7 @@ export async function expectAsyncError<T>(
 
   return error!;
 }
+
+export function btoa(str: string): string {
+  return Buffer.from(str, "binary").toString("base64");
+}

@@ -97,10 +97,16 @@ In the browser, you can load prebuilt scripts hosted on unpkg:
 <script src="https://unpkg.com/kinto-http/dist/kinto-http.min.js"></script>
 ```
 
-In nodejs:
+From npm:
 
 ```
 $ npm install kinto-http --save
+```
+
+**Note:** If you're using `kinto-http` in Node (as opposed to the browser), you'll also need to install polyfills for `fetch`, `FormData`, and `atob`.
+
+```
+$ npm install node-fetch form-data atob
 ```
 
 Then (ES6):

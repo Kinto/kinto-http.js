@@ -5,7 +5,7 @@ import Api from "../src";
 import KintoClientBase, { KintoClientOptions } from "../src/base";
 import { EventEmitter } from "events";
 import KintoServer from "kinto-node-test-server";
-import { delayedPromise, Stub, expectAsyncError } from "./test_utils";
+import { delayedPromise, Stub, expectAsyncError, btoa } from "./test_utils";
 import Bucket from "../src/bucket";
 import Collection from "../src/collection";
 import {

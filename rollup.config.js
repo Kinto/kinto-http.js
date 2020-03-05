@@ -1,7 +1,9 @@
+import path from "path";
 import builtins from "rollup-plugin-node-builtins";
 import typescript from "@rollup/plugin-typescript";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
+import inject from "@rollup/plugin-inject";
 import { terser } from "rollup-plugin-terser";
 
 const geckoBuild = {
@@ -50,4 +52,30 @@ const browserBuild = {
   ],
 };
 
-export default [geckoBuild, browserBuild];
+const nodeBuild = {
+  input: "./src/index.ts",
+  output: [
+    {
+      file: "dist/kinto-http.node.js",
+      format: "cjs",
+      sourcemap: true,
+    },
+  ],
+  external: ["uuid", "node-fetch", "form-data", "atob"],
+  plugins: [
+    typescript({
+      include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"],
+      target: "es2018",
+    }),
+    inject({
+      fetch: "node-fetch",
+      Headers: ["node-fetch", "Headers"],
+      FormData: "form-data",
+      atob: "atob",
+      Blob: path.resolve("./blob.js"),
+    }),
+    commonjs(),
+  ],
+};
+
+export default [geckoBuild, browserBuild, nodeBuild];
