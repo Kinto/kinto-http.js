@@ -22,11 +22,11 @@
     "prepublish": "npm run build:readme",
     "publish-to-npm": "npm run build && npm run dist && npm publish",
     "report-coverage": "npm run test-cover && ./node_modules/coveralls/bin/coveralls.js < ./coverage/lcov.info",
-    "tdd": "mocha -r ts-node/register --require ./test/setup-globals.js --watch \"test/**/*_test.{js,ts}\"",
+    "tdd": "mocha -r ts-node/register --require ./test/setup-globals.ts --watch \"test/**/*_test.{js,ts}\"",
     "test": "npm run test-nocover",
     "test-cover": "nyc --reporter=lcov --reporter=text-summary --report-dir=coverage npm run test-nocover",
     "test-cover-html": "nyc --reporter=html --report-dir=coverage npm run test-nocover && open coverage/index.html",
-    "test-nocover": "mocha -r ts-node/register --require source-map-support/register --full-trace --bail --require ./test/setup-globals.js \"test/**/*_test.{js,ts}\"",
+    "test-nocover": "mocha -r ts-node/register --require source-map-support/register --full-trace --bail --require ./test/setup-globals.ts \"test/**/*_test.{js,ts}\"",
     "lint": "eslint \"src/**/*.{js,ts}\" \"test/**/*.{js,ts}\""
   },
   "repository": {
@@ -55,6 +55,7 @@
     "@rollup/plugin-typescript": "^3.0.0",
     "@types/chai": "^4.2.0",
     "@types/mocha": "^7.0.1",
+    "@types/node-fetch": "^2.5.5",
     "@types/shelljs": "^0.8.5",
     "@types/sinon": "^7.0.13",
     "@types/uuid": "^7.0.0",
