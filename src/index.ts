@@ -1,6 +1,6 @@
-import KintoClientBase, { KintoClientOptions } from "./base";
+import KintoClientBase, { KintoClientOptions, SUPPORTED_PROTOCOL_VERSION } from "./base";
 import { AggregateResponse } from "./batch";
-import type Collection from "./collection";
+import Collection from "./collection";
 import { KintoObject, KintoIdObject, KintoResponse, Permission } from "./types";
 
 export default class KintoClient extends KintoClientBase {
@@ -18,4 +18,5 @@ export {
   AggregateResponse,
   KintoResponse,
   Permission,
+  SUPPORTED_PROTOCOL_VERSION
 };
