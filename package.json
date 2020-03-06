@@ -1,6 +1,6 @@
 {
   "name": "kinto-http",
-  "version": "5.0.0-alpha.2",
+  "version": "5.0.0-alpha.3",
   "description": "JavaScript HTTP client for the Kinto API.",
   "main": "dist/kinto-http.node.js",
   "module": "lib/index.js",
