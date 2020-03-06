@@ -3,13 +3,15 @@
   "version": "5.0.0-alpha.2",
   "description": "JavaScript HTTP client for the Kinto API.",
   "main": "dist/kinto-http.node.js",
-  "module": "lib/esm/index.js",
+  "module": "lib/index.js",
   "unpkg": "dist/kinto-http.min.js",
-  "types": "lib/esm/index.d.ts",
+  "types": "lib/index.d.ts",
+  "files": [
+    "/dist",
+    "/lib"
+  ],
   "scripts": {
-    "build": "npm run build:es && npm run build:cjs-es5",
-    "build:es": "tsc -p .",
-    "build:cjs-es5": "tsc -p . --outDir lib/cjs-es5 --module commonjs --target es5",
+    "build": "tsc -p .",
     "build:demo": "npm run dist && shx cp dist/kinto-http.min.js demo/kinto-http.min.js && shx cp dist/kinto-http.min.js.map demo/kinto-http.min.js.map",
     "build:readme": "./node_modules/.bin/toctoc -w -d 2 README.md",
     "cs-check": "prettier -l \"{src,test,bin}/**/*.{js,ts}\"",
