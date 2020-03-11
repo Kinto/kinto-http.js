@@ -1,10 +1,9 @@
-import chai, { expect } from "chai";
-
 import { btoa } from "./test_utils";
 import * as requests from "../src/requests";
 
-chai.should();
-chai.config.includeStack = true;
+const { expect } = intern.getPlugin("chai");
+intern.getPlugin("chai").should();
+const { describe, it } = intern.getPlugin("interface.bdd");
 
 describe("requests module", () => {
   describe("createRequest()", () => {
@@ -174,14 +173,18 @@ describe("requests module", () => {
         .to.have.property("If-Match")
         .eql('"42"');
     });
+  });
 
-    it("should accept a patch option", () => {
-      expect(
-        requests.updateRequest("/foo", { data: { id: "foo" } }, { patch: true })
+  it("should accept a patch option", () => {
+    expect(
+      requests.updateRequest(
+        "/foo",
+        { data: { id: "foo", last_modified: 42 } },
+        { patch: true }
       )
-        .to.have.property("method")
-        .eql("PATCH");
-    });
+    )
+      .to.have.property("method")
+      .eql("PATCH");
   });
 
   describe("addAttachmentRequest()", () => {

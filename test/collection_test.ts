@@ -1,14 +1,14 @@
-import chai from "chai";
 import sinon from "sinon";
 import KintoClient from "../src";
 import Bucket from "../src/bucket";
 import Collection, { CollectionOptions } from "../src/collection";
-import * as requests from "../src/requests";
 import { fakeServerResponse, Stub, expectAsyncError } from "./test_utils";
 import { PaginationResult } from "../src/base";
 
-chai.should();
-chai.config.includeStack = true;
+intern.getPlugin("chai").should();
+const { describe, it, beforeEach, afterEach } = intern.getPlugin(
+  "interface.bdd"
+);
 
 const FAKE_SERVER_URL = "http://fake-server/v1";
 
@@ -142,22 +142,30 @@ describe("Collection", () => {
 
   /** @test {Collection#setPermissions} */
   describe("#setPermissions()", () => {
-    const fakePermissions = { read: [], write: [] };
-    let updateRequestStub: Stub<typeof requests.updateRequest>;
+    const fakePermissions = { read: [] as string[], write: [] as string[] };
+    let executeStub: Stub<typeof coll.client.execute>;
 
     beforeEach(() => {
-      updateRequestStub = sandbox.stub(requests, "updateRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({}));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({}));
     });
 
     it("should set permissions", () => {
       coll.setPermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/collections/posts",
-        { data: { last_modified: undefined }, permissions: fakePermissions },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/collections/posts",
+          headers: { Foo: "Bar", Baz: "Qux" },
+          body: {
+            data: undefined,
+            permissions: fakePermissions,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -165,10 +173,17 @@ describe("Collection", () => {
       coll.setPermissions(fakePermissions, { safe: true, last_modified: 42 });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/collections/posts",
-        { data: { last_modified: 42 }, permissions: fakePermissions },
-        { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/collections/posts",
+          headers: { Foo: "Bar", Baz: "Qux", "If-Match": '"42"' },
+          body: {
+            data: undefined,
+            permissions: fakePermissions,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -179,26 +194,31 @@ describe("Collection", () => {
 
   /** @test {Collection#addPermissions} */
   describe("#addPermissions()", () => {
-    const fakePermissions = { read: [], write: [] };
-    let jsonPatchPermissionsRequestStub: Stub<typeof requests.jsonPatchPermissionsRequest>;
+    const fakePermissions = { read: [] as string[], write: [] as string[] };
+    let executeStub: Stub<typeof coll.client.execute>;
 
     beforeEach(() => {
-      jsonPatchPermissionsRequestStub = sandbox.stub(
-        requests,
-        "jsonPatchPermissionsRequest"
-      );
-      sandbox.stub(client, "execute").returns(Promise.resolve({}));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({}));
     });
 
     it("should append permissions", () => {
       coll.addPermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(
-        jsonPatchPermissionsRequestStub,
-        "/buckets/blog/collections/posts",
-        fakePermissions,
-        "add",
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PATCH",
+          path: "/buckets/blog/collections/posts",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+            "Content-Type": "application/json-patch+json",
+          },
+          body: [],
+        },
+        { retry: 0 }
       );
     });
 
@@ -206,11 +226,19 @@ describe("Collection", () => {
       coll.addPermissions(fakePermissions, { safe: true, last_modified: 42 });
 
       sinon.assert.calledWithMatch(
-        jsonPatchPermissionsRequestStub,
-        "/buckets/blog/collections/posts",
-        fakePermissions,
-        "add",
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PATCH",
+          path: "/buckets/blog/collections/posts",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+            "Content-Type": "application/json-patch+json",
+            "If-Match": `"42"`,
+          },
+          body: [],
+        },
+        { retry: 0 }
       );
     });
 
@@ -221,22 +249,30 @@ describe("Collection", () => {
 
   /** @test {Collection#removePermissions} */
   describe("#removePermissions()", () => {
-    const fakePermissions = { read: [], write: [] };
-    let updateRequestStub: Stub<typeof requests.updateRequest>;
+    const fakePermissions = { read: [] as string[], write: [] as string[] };
+    let executeStub: Stub<typeof coll.client.execute>;
 
     beforeEach(() => {
-      updateRequestStub = sandbox.stub(requests, "updateRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({}));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({}));
     });
 
     it("should pop permissions", () => {
       coll.setPermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/collections/posts",
-        { data: { last_modified: undefined }, permissions: fakePermissions },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/collections/posts",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+          },
+          body: { data: undefined, permissions: fakePermissions },
+        },
+        { retry: 0 }
       );
     });
 
@@ -244,10 +280,18 @@ describe("Collection", () => {
       coll.setPermissions(fakePermissions, { safe: true, last_modified: 42 });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/collections/posts",
-        { data: { last_modified: 42 }, permissions: fakePermissions },
-        { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/collections/posts",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+            "If-Match": `"42"`,
+          },
+          body: { data: undefined, permissions: fakePermissions },
+        },
+        { retry: 0 }
       );
     });
 
@@ -256,27 +300,12 @@ describe("Collection", () => {
     });
   });
 
-  /** @test {Collection#getData} */
-  describe("#getData()", () => {
-    beforeEach(() => {
-      sandbox
-        .stub(client, "execute")
-        .returns(Promise.resolve({ data: { a: 1 } }));
-    });
-
-    it("should retrieve data", async () => {
-      const data = (await coll.getData()) as { a: number };
-      data.should.deep.equal({ a: 1 });
-    });
-  });
-
   /** @test {Collection#setData} */
   describe("#setData()", () => {
-    let updateRequestStub: Stub<typeof requests.updateRequest>;
+    let executeStub: Stub<typeof coll.client.execute>;
 
     beforeEach(() => {
-      updateRequestStub = sandbox.stub(requests, "updateRequest");
-      sandbox
+      executeStub = sandbox
         .stub(client, "execute")
         .returns(Promise.resolve({ data: { foo: "bar" } }));
     });
@@ -285,10 +314,17 @@ describe("Collection", () => {
       coll.setData({ a: 1 });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/collections/posts",
-        { data: { a: 1 }, permissions: undefined },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/collections/posts",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+          },
+          body: { data: { a: 1 } },
+        },
+        { retry: 0 }
       );
     });
 
@@ -296,10 +332,18 @@ describe("Collection", () => {
       coll.setData({ a: 1 }, { safe: true, last_modified: 42 });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/collections/posts",
-        { data: { a: 1 }, permissions: undefined },
-        { headers: { Foo: "Bar", Baz: "Qux" }, safe: true, last_modified: 42 }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/collections/posts",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+            "If-Match": `"42"`,
+          },
+          body: { data: { a: 1 } },
+        },
+        { retry: 0 }
       );
     });
 
@@ -307,10 +351,17 @@ describe("Collection", () => {
       coll.setData({ a: 1 }, { patch: true });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/collections/posts",
-        { data: { a: 1 }, permissions: undefined },
-        { headers: { Foo: "Bar", Baz: "Qux" }, patch: true }
+        executeStub,
+        {
+          method: "PATCH",
+          path: "/buckets/blog/collections/posts",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+          },
+          body: { data: { a: 1 } },
+        },
+        { retry: 0 }
       );
     });
 
@@ -333,28 +384,39 @@ describe("Collection", () => {
     });
 
     it("should create the expected request", () => {
-      const createRequestStub = sandbox.stub(requests, "createRequest");
-
       coll.createRecord(record);
 
-      sinon.assert.calledWith(
-        createRequestStub,
-        "/buckets/blog/collections/posts/records",
-        { data: record, permissions: undefined },
-        { headers: { Foo: "Bar", Baz: "Qux" }, safe: false }
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "POST",
+          path: "/buckets/blog/collections/posts/records",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+          },
+          body: { data: record },
+        },
+        { retry: 0 }
       );
     });
 
     it("should accept a safe option", () => {
-      const createRequestStub = sandbox.stub(requests, "createRequest");
-
       coll.createRecord(record, { safe: true });
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/blog/collections/posts/records",
-        { data: record, permissions: undefined },
-        { safe: true, headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "POST",
+          path: "/buckets/blog/collections/posts/records",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+            "If-None-Match": "*",
+          },
+          body: { data: record },
+        },
+        { retry: 0 }
       );
     });
 
@@ -375,9 +437,12 @@ describe("Collection", () => {
   /** @test {Collection#updateRecord} */
   describe("#updateRecord()", () => {
     const record = { id: "2", title: "foo" };
+    let executeStub: Stub<typeof coll.client.execute>;
 
     beforeEach(() => {
-      sandbox.stub(client, "execute").returns(Promise.resolve({ data: 1 }));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: 1 }));
     });
 
     it("should throw if record is not an object", async () => {
@@ -395,46 +460,57 @@ describe("Collection", () => {
     });
 
     it("should create the expected request", () => {
-      const updateRequestStub = sandbox.stub(requests, "updateRequest");
-
       coll.updateRecord(record);
 
-      sinon.assert.calledWith(
-        updateRequestStub,
-        "/buckets/blog/collections/posts/records/2",
-        { data: record, permissions: undefined },
+      sinon.assert.calledWithMatch(
+        executeStub,
         {
-          headers: { Foo: "Bar", Baz: "Qux" },
-          safe: false,
-          last_modified: undefined,
-          patch: false,
-        }
+          method: "PUT",
+          path: "/buckets/blog/collections/posts/records/2",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+          },
+          body: { data: record },
+        },
+        { retry: 0 }
       );
     });
 
     it("should accept a safe option", () => {
-      const updateRequestStub = sandbox.stub(requests, "updateRequest");
-
       coll.updateRecord({ ...record, last_modified: 42 }, { safe: true });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/collections/posts/records/2",
-        { data: { ...record, last_modified: 42 }, permissions: undefined },
-        { safe: true, headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/collections/posts/records/2",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+            "If-Match": `"42"`,
+          },
+          body: { data: record },
+        },
+        { retry: 0 }
       );
     });
 
     it("should accept a patch option", () => {
-      const updateRequestStub = sandbox.stub(requests, "updateRequest");
-
       coll.updateRecord(record, { patch: true });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/collections/posts/records/2",
-        { data: record, permissions: undefined },
-        { patch: true, headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PATCH",
+          path: "/buckets/blog/collections/posts/records/2",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+          },
+          body: { data: record, permissions: undefined },
+        },
+        { retry: 0 }
       );
     });
 
@@ -445,11 +521,14 @@ describe("Collection", () => {
 
   /** @test {Collection#deleteRecord} */
   describe("#deleteRecord()", () => {
-    let deleteRequestStub: Stub<typeof requests.deleteRequest>;
+    // let deleteRequestStub: Stub<typeof requests.deleteRequest>;
+    let executeStub: Stub<typeof coll.client.execute>;
 
     beforeEach(() => {
-      deleteRequestStub = sandbox.stub(requests, "deleteRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({ data: 1 }));
+      // deleteRequestStub = sandbox.stub(requests, "deleteRequest");
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: 1 }));
     });
 
     it("should throw if id is missing", async () => {
@@ -462,27 +541,24 @@ describe("Collection", () => {
     it("should delete a record", () => {
       coll.deleteRecord("1");
 
-      sinon.assert.calledWith(
-        deleteRequestStub,
-        "/buckets/blog/collections/posts/records/1",
+      sinon.assert.calledWithMatch(
+        executeStub,
         {
-          last_modified: undefined,
-          headers: { Foo: "Bar", Baz: "Qux" },
-          safe: false,
-        }
+          method: "DELETE",
+          path: "/buckets/blog/collections/posts/records/1",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+          },
+        },
+        { retry: 0 }
       );
     });
 
-    it("should accept a safe option", () => {
-      coll.deleteRecord("1", { safe: true });
-
-      sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/collections/posts/records/1",
-        {
-          last_modified: undefined,
-          safe: true,
-        }
+    it("should throw if safe is true and last_modified isn't provided", async () => {
+      await expectAsyncError(
+        () => coll.deleteRecord("1", { safe: true }),
+        /Safe concurrency check requires a last_modified value./
       );
     });
 
@@ -490,12 +566,17 @@ describe("Collection", () => {
       coll.deleteRecord({ id: "1", last_modified: 42 }, { safe: true });
 
       sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "buckets/blog/collections/posts/records/1",
+        executeStub,
         {
-          last_modified: 42,
-          safe: true,
-        }
+          method: "DELETE",
+          path: "/buckets/blog/collections/posts/records/1",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+            "If-Match": `"42"`,
+          },
+        },
+        { retry: 0 }
       );
     });
   });
@@ -635,8 +716,7 @@ describe("Collection", () => {
 
       beforeEach(() => {
         sandbox.restore();
-        sandbox.stub(global, "setTimeout").callsFake(setImmediate as any);
-        const fetchStub = sandbox.stub(global as any, "fetch");
+        const fetchStub = sandbox.stub(globalThis as any, "fetch");
         fetchStub
           .onCall(0)
           .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));

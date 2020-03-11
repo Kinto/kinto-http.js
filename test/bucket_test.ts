@@ -1,14 +1,15 @@
-import chai, { expect } from "chai";
 import sinon from "sinon";
 import KintoClient from "../src";
 import Bucket, { BucketOptions } from "../src/bucket";
 import Collection from "../src/collection";
-import * as requests from "../src/requests";
 import { PaginationResult } from "../src/base";
 import { Stub, expectAsyncError } from "./test_utils";
 
-chai.should();
-chai.config.includeStack = true;
+const { expect } = intern.getPlugin("chai");
+intern.getPlugin("chai").should();
+const { describe, it, beforeEach, afterEach } = intern.getPlugin(
+  "interface.bdd"
+);
 
 const FAKE_SERVER_URL = "http://fake-server/v1";
 
@@ -83,21 +84,29 @@ describe("Bucket", () => {
   });
 
   describe("#setData()", () => {
-    let updateRequestStub: Stub<typeof requests.updateRequest>;
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
-      updateRequestStub = sandbox.stub(requests, "updateRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({ data: 1 }));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: 1 }));
     });
 
     it("should set the bucket data", () => {
       getBlogBucket().setData({ a: 1 });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog",
-        { data: { id: "blog", a: 1 }, permissions: undefined },
-        { headers: {} }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog",
+          headers: {},
+          body: {
+            data: { id: "blog", a: 1 },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -105,10 +114,17 @@ describe("Bucket", () => {
       getBlogBucket().setData({ a: 1 }, { patch: true });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog",
-        { data: { id: "blog", a: 1 }, permissions: undefined },
-        { patch: true }
+        executeStub,
+        {
+          method: "PATCH",
+          path: "/buckets/blog",
+          headers: {},
+          body: {
+            data: { id: "blog", a: 1 },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -116,10 +132,17 @@ describe("Bucket", () => {
       getBlogBucket().setData({ a: 1 }, { safe: true, last_modified: 42 });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog",
-        { data: { id: "blog", a: 1 }, permissions: undefined },
-        { headers: {}, safe: true, last_modified: 42 }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog",
+          headers: { "If-Match": `"42"` },
+          body: {
+            data: { id: "blog", a: 1 },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -252,20 +275,29 @@ describe("Bucket", () => {
 
   /** @test {Bucket#createCollection} */
   describe("#createCollection()", () => {
-    let createRequestStub: Stub<typeof requests.createRequest>;
+    let executeStub: Stub<typeof client.execute>;
+
     beforeEach(() => {
-      createRequestStub = sandbox.stub(requests, "createRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: {} }));
     });
 
     it("should accept a safe option", () => {
       getBlogBucket().createCollection("foo", { safe: true });
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/blog/collections/foo",
-        { data: { id: "foo" }, permissions: undefined },
-        { safe: true }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/collections/foo",
+          headers: { "If-None-Match": `*` },
+          body: {
+            data: { id: "foo" },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -275,10 +307,17 @@ describe("Bucket", () => {
       }).createCollection("foo", { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/blog/collections/foo",
-        { data: { id: "foo" }, permissions: undefined },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/collections/foo",
+          headers: { Baz: "Qux" },
+          body: {
+            data: { id: "foo" },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -287,10 +326,17 @@ describe("Bucket", () => {
         getBlogBucket().createCollection("foo");
 
         sinon.assert.calledWithMatch(
-          createRequestStub,
-          "/buckets/blog/collections/foo",
-          { data: { id: "foo" }, permissions: undefined },
-          { headers: {} }
+          executeStub,
+          {
+            method: "PUT",
+            path: "/buckets/blog/collections/foo",
+            headers: {},
+            body: {
+              data: { id: "foo" },
+              permissions: undefined,
+            },
+          },
+          { retry: 0 }
         );
       });
 
@@ -301,10 +347,17 @@ describe("Bucket", () => {
         }).createCollection("foo", { headers: { Baz: "Qux" } });
 
         sinon.assert.calledWithMatch(
-          createRequestStub,
-          "/buckets/blog/collections/foo",
-          { data: { id: "foo" }, permissions: undefined },
-          { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
+          executeStub,
+          {
+            method: "PUT",
+            path: "/buckets/blog/collections/foo",
+            headers: { Foo: "Bar", Baz: "Qux", "If-None-Match": "*" },
+            body: {
+              data: { id: "foo" },
+              permissions: undefined,
+            },
+          },
+          { retry: 0 }
         );
       });
     });
@@ -314,10 +367,17 @@ describe("Bucket", () => {
         getBlogBucket().createCollection();
 
         sinon.assert.calledWithMatch(
-          createRequestStub,
-          "/buckets/blog/collections",
-          { data: { id: undefined }, permissions: undefined },
-          { headers: {} }
+          executeStub,
+          {
+            method: "POST",
+            path: "/buckets/blog/collections",
+            headers: {},
+            body: {
+              data: {},
+              permissions: undefined,
+            },
+          },
+          { retry: 0 }
         );
       });
 
@@ -328,10 +388,17 @@ describe("Bucket", () => {
         }).createCollection("", { headers: { Baz: "Qux" } });
 
         sinon.assert.calledWithMatch(
-          createRequestStub,
-          "/buckets/blog/collections",
-          { data: {}, permissions: undefined },
-          { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
+          executeStub,
+          {
+            method: "POST",
+            path: "/buckets/blog/collections",
+            headers: { Foo: "Bar", Baz: "Qux", "If-None-Match": "*" },
+            body: {
+              data: {},
+              permissions: undefined,
+            },
+          },
+          { retry: 0 }
         );
       });
     });
@@ -339,19 +406,25 @@ describe("Bucket", () => {
 
   /** @test {Bucket#deleteCollection} */
   describe("#deleteCollection", () => {
-    let deleteRequestStub: Stub<typeof requests.deleteRequest>;
+    let executeStub: Stub<typeof client.execute>;
+
     beforeEach(() => {
-      deleteRequestStub = sandbox.stub(requests, "deleteRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: {} }));
     });
 
     it("should delete a collection", () => {
       getBlogBucket().deleteCollection("todelete");
 
       sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/collections/todelete",
-        { headers: {} }
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets/blog/collections/todelete",
+          headers: {},
+        },
+        { retry: 0 }
       );
     });
 
@@ -359,25 +432,26 @@ describe("Bucket", () => {
       getBlogBucket({
         headers: { Foo: "Bar" },
         safe: true,
-      }).deleteCollection("todelete", { headers: { Baz: "Qux" } });
+      }).deleteCollection("todelete", {
+        headers: { Baz: "Qux" },
+        last_modified: 42,
+      });
 
       sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/collections/todelete",
+        executeStub,
         {
-          headers: { Foo: "Bar", Baz: "Qux" },
-          safe: true,
-        }
+          method: "DELETE",
+          path: "/buckets/blog/collections/todelete",
+          headers: { Baz: "Qux", "If-Match": `"42"` },
+        },
+        { retry: 0 }
       );
     });
 
-    it("should accept a safe option", () => {
-      getBlogBucket().deleteCollection("todelete", { safe: true });
-
-      sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/collections/todelete",
-        { safe: true }
+    it("should throw if safe is true and last_modified isn't provided", async () => {
+      await expectAsyncError(
+        () => getBlogBucket().deleteCollection("todelete", { safe: true }),
+        /Safe concurrency check requires a last_modified value./
       );
     });
 
@@ -388,12 +462,13 @@ describe("Bucket", () => {
       );
 
       sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/collections/todelete",
+        executeStub,
         {
-          last_modified: 42,
-          safe: true,
-        }
+          method: "DELETE",
+          path: "/buckets/blog/collections/todelete",
+          headers: { "If-Match": `"42"` },
+        },
+        { retry: 0 }
       );
     });
 
@@ -403,11 +478,13 @@ describe("Bucket", () => {
       }).deleteCollection("todelete", { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/collections/todelete",
+        executeStub,
         {
+          method: "DELETE",
+          path: "/buckets/blog/collections/todelete",
           headers: { Foo: "Bar", Baz: "Qux" },
-        }
+        },
+        { retry: 0 }
       );
     });
   });
@@ -537,30 +614,39 @@ describe("Bucket", () => {
         fields: ["c", "d"],
       });
 
-      sinon.assert.calledWithMatch(executeStub, {
-        path: "/buckets/blog/groups/foo?a=b&_fields=c,d",
-        headers: {},
-      });
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          path: "/buckets/blog/groups/foo?a=b&_fields=c,d",
+          headers: {},
+        },
+        { retry: 0 }
+      );
     });
   });
 
   /** @test {Bucket#createGroup} */
   describe("#createGroup", () => {
-    let createRequestStub: Stub<typeof requests.createRequest>;
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
-      createRequestStub = sandbox.stub(requests, "createRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: {} }));
     });
 
     it("should accept a safe option", () => {
       getBlogBucket().createGroup("foo", [], { safe: true });
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/blog/groups/foo",
-        { data: { id: "foo", members: [] }, permissions: undefined },
-        { safe: true }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/groups/foo",
+          headers: { "If-None-Match": `*` },
+          body: { data: { id: "foo", members: [] }, permissions: undefined },
+        },
+        { retry: 0 }
       );
     });
 
@@ -570,10 +656,14 @@ describe("Bucket", () => {
       }).createGroup("foo", [], { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/blog/groups/foo",
-        { data: { id: "foo", members: [] }, permissions: undefined },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/groups/foo",
+          headers: { Foo: "Bar", Baz: "Qux" },
+          body: { data: { id: "foo", members: [] }, permissions: undefined },
+        },
+        { retry: 0 }
       );
     });
 
@@ -581,10 +671,14 @@ describe("Bucket", () => {
       getBlogBucket().createGroup("foo");
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/blog/groups/foo",
-        { data: { id: "foo", members: [] }, permissions: undefined },
-        { headers: {} }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/groups/foo",
+          headers: {},
+          body: { data: { id: "foo", members: [] }, permissions: undefined },
+        },
+        { retry: 0 }
       );
     });
 
@@ -596,24 +690,29 @@ describe("Bucket", () => {
       getBlogBucket().createGroup("foo", [], group);
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/blog/groups/foo",
+        executeStub,
         {
-          data: { id: "foo", members: [], age: 21 },
-          permissions: group.permissions,
+          method: "PUT",
+          path: "/buckets/blog/groups/foo",
+          headers: {},
+          body: {
+            data: { id: "foo", members: [], age: 21 },
+            permissions: group.permissions,
+          },
         },
-        { headers: {} }
+        { retry: 0 }
       );
     });
   });
 
   /** @test {Bucket#updateGroup} */
   describe("#updateGroup", () => {
-    let updateRequestStub: Stub<typeof requests.updateRequest>;
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
-      updateRequestStub = sandbox.stub(requests, "updateRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: {} }));
     });
 
     it("should throw if record is not an object", async () => {
@@ -634,10 +733,17 @@ describe("Bucket", () => {
       getBlogBucket().updateGroup({ id: "foo", members: [] }, { patch: true });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/groups/foo",
-        { data: { id: "foo", members: [] }, permissions: undefined },
-        { patch: true }
+        executeStub,
+        {
+          method: "PATCH",
+          path: "/buckets/blog/groups/foo",
+          headers: {},
+          body: {
+            data: { id: "foo", members: [] },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -647,10 +753,17 @@ describe("Bucket", () => {
       }).updateGroup({ id: "foo", members: [] }, { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/groups/foo",
-        { data: { id: "foo", members: [] }, permissions: undefined },
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog/groups/foo",
+          headers: { Foo: "Bar", Baz: "Qux" },
+          body: {
+            data: { id: "foo", members: [] },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -658,11 +771,17 @@ describe("Bucket", () => {
       getBlogBucket().updateGroup({ id: "foo", members: [] });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/groups/foo",
+        executeStub,
         {
-          data: { id: "foo", members: [] },
-        }
+          method: "PUT",
+          path: "/buckets/blog/groups/foo",
+          headers: {},
+          body: {
+            data: { id: "foo", members: [] },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -674,33 +793,42 @@ describe("Bucket", () => {
       getBlogBucket().updateGroup({ id: "foo", members: [] }, group);
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog/groups/foo",
+        executeStub,
         {
-          data: { id: "foo", members: [], age: 21 },
-          permissions: group.permissions,
+          method: "PUT",
+          path: "/buckets/blog/groups/foo",
+          headers: {},
+          body: {
+            data: { id: "foo", members: [], age: 21 },
+            permissions: group.permissions,
+          },
         },
-        { headers: {} }
+        { retry: 0 }
       );
     });
   });
 
   /** @test {Bucket#updateGroup} */
   describe("#deleteGroup", () => {
-    let deleteRequestStub: Stub<typeof requests.deleteRequest>;
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
-      deleteRequestStub = sandbox.stub(requests, "deleteRequest");
-      sandbox.stub(client, "execute").returns(Promise.resolve({ data: {} }));
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: {} }));
     });
 
     it("should delete a group", () => {
       getBlogBucket().deleteGroup("todelete");
 
       sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/groups/todelete",
-        { headers: {} }
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets/blog/groups/todelete",
+          headers: {},
+        },
+        { retry: 0 }
       );
     });
 
@@ -708,25 +836,26 @@ describe("Bucket", () => {
       getBlogBucket({
         headers: { Foo: "Bar" },
         safe: true,
-      }).deleteGroup("todelete", { headers: { Baz: "Qux" } });
+      }).deleteGroup("todelete", {
+        headers: { Baz: "Qux" },
+        last_modified: 42,
+      });
 
       sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/groups/todelete",
+        executeStub,
         {
-          headers: { Foo: "Bar", Baz: "Qux" },
-          safe: true,
-        }
+          method: "DELETE",
+          path: "/buckets/blog/groups/todelete",
+          headers: { Foo: "Bar", Baz: "Qux", "If-Match": `"42"` },
+        },
+        { retry: 0 }
       );
     });
 
-    it("should accept a safe option", () => {
-      getBlogBucket().deleteGroup("todelete", { safe: true });
-
-      sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/groups/todelete",
-        { safe: true }
+    it("should throw if safe is true and last_modified isn't provided", async () => {
+      await expectAsyncError(
+        () => getBlogBucket().deleteGroup("todelete", { safe: true }),
+        /Safe concurrency check requires a last_modified value./
       );
     });
 
@@ -737,12 +866,13 @@ describe("Bucket", () => {
       );
 
       sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/groups/todelete",
+        executeStub,
         {
-          last_modified: 42,
-          safe: true,
-        }
+          method: "DELETE",
+          path: "/buckets/blog/groups/todelete",
+          headers: { "If-Match": `"42"` },
+        },
+        { retry: 0 }
       );
     });
 
@@ -752,11 +882,13 @@ describe("Bucket", () => {
       }).deleteGroup("todelete", { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        deleteRequestStub,
-        "/buckets/blog/groups/todelete",
+        executeStub,
         {
+          method: "DELETE",
+          path: "/buckets/blog/groups/todelete",
           headers: { Foo: "Bar", Baz: "Qux" },
-        }
+        },
+        { retry: 0 }
       );
     });
   });
@@ -795,12 +927,11 @@ describe("Bucket", () => {
 
   /** @test {Bucket#setPermissions} */
   describe("#setPermissions()", () => {
-    const fakePermissions = { read: [], write: [] };
-    let updateRequestStub: Stub<typeof requests.updateRequest>;
+    const fakePermissions = { read: [] as string[], write: [] as string[] };
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
-      updateRequestStub = sandbox.stub(requests, "updateRequest");
-      sandbox.stub(client, "execute").returns(
+      executeStub = sandbox.stub(client, "execute").returns(
         Promise.resolve({
           data: {},
           permissions: fakePermissions,
@@ -811,9 +942,16 @@ describe("Bucket", () => {
     it("should set permissions", () => {
       getBlogBucket().setPermissions(fakePermissions);
 
-      sinon.assert.calledWithMatch(updateRequestStub, "/buckets/blog", {
-        permissions: fakePermissions,
-      });
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog",
+          headers: {},
+          body: { permissions: fakePermissions },
+        },
+        { retry: 0 }
+      );
     });
 
     it("should merge default options", () => {
@@ -822,10 +960,14 @@ describe("Bucket", () => {
       bucket.setPermissions(fakePermissions, { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog",
-        { permissions: fakePermissions, data: { last_modified: undefined } },
-        { headers: { Foo: "Bar", Baz: "Qux" }, safe: true }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog",
+          headers: { Foo: "Bar", Baz: "Qux", "If-None-Match": "*" },
+          body: { permissions: fakePermissions },
+        },
+        { retry: 0 }
       );
     });
 
@@ -835,10 +977,14 @@ describe("Bucket", () => {
       bucket.setPermissions(fakePermissions, { last_modified: 42 });
 
       sinon.assert.calledWithMatch(
-        updateRequestStub,
-        "/buckets/blog",
-        { data: { last_modified: 42 }, permissions: fakePermissions },
-        { safe: true }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/blog",
+          headers: { Foo: "Bar", "If-Match": `"42"` },
+          body: { permissions: fakePermissions },
+        },
+        { retry: 0 }
       );
     });
 
@@ -851,15 +997,11 @@ describe("Bucket", () => {
 
   /** @test {Bucket#addPermissions} */
   describe("#addPermissions()", () => {
-    const fakePermissions = { read: [], write: [] };
-    let jsonPatchPermissionsRequestStub: Stub<typeof requests.jsonPatchPermissionsRequest>;
+    const fakePermissions = { read: [] as string[], write: [] as string[] };
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
-      jsonPatchPermissionsRequestStub = sandbox.stub(
-        requests,
-        "jsonPatchPermissionsRequest"
-      );
-      sandbox.stub(client, "execute").returns(
+      executeStub = sandbox.stub(client, "execute").returns(
         Promise.resolve({
           data: {},
           permissions: fakePermissions,
@@ -871,10 +1013,16 @@ describe("Bucket", () => {
       getBlogBucket().addPermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(
-        jsonPatchPermissionsRequestStub,
-        "/buckets/blog",
-        fakePermissions,
-        "add"
+        executeStub,
+        {
+          method: "PATCH",
+          path: "/buckets/blog",
+          headers: {
+            "Content-Type": "application/json-patch+json",
+          },
+          body: [],
+        },
+        { retry: 0 }
       );
     });
 
@@ -884,26 +1032,30 @@ describe("Bucket", () => {
       bucket.addPermissions(fakePermissions, { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        jsonPatchPermissionsRequestStub,
-        "/buckets/blog",
-        fakePermissions,
-        "add",
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PATCH",
+          path: "/buckets/blog",
+          headers: {
+            "Content-Type": "application/json-patch+json",
+            Foo: "Bar",
+            Baz: "Qux",
+            "If-None-Match": "*",
+          },
+          body: [],
+        },
+        { retry: 0 }
       );
     });
   });
 
   /** @test {Bucket#removePermissions} */
   describe("#removePermissions()", () => {
-    const fakePermissions = { read: [], write: [] };
-    let jsonPatchPermissionsRequestStub: Stub<typeof requests.jsonPatchPermissionsRequest>;
+    const fakePermissions = { read: [] as string[], write: [] as string[] };
+    let executeStub: Stub<typeof client.execute>;
 
     beforeEach(() => {
-      jsonPatchPermissionsRequestStub = sandbox.stub(
-        requests,
-        "jsonPatchPermissionsRequest"
-      );
-      sandbox.stub(client, "execute").returns(
+      executeStub = sandbox.stub(client, "execute").returns(
         Promise.resolve({
           data: {},
           permissions: fakePermissions,
@@ -915,10 +1067,16 @@ describe("Bucket", () => {
       getBlogBucket().removePermissions(fakePermissions);
 
       sinon.assert.calledWithMatch(
-        jsonPatchPermissionsRequestStub,
-        "/buckets/blog",
-        fakePermissions,
-        "remove"
+        executeStub,
+        {
+          method: "PATCH",
+          path: "/buckets/blog",
+          headers: {
+            "Content-Type": "application/json-patch+json",
+          },
+          body: [],
+        },
+        { retry: 0 }
       );
     });
 
@@ -928,11 +1086,19 @@ describe("Bucket", () => {
       bucket.removePermissions(fakePermissions, { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        jsonPatchPermissionsRequestStub,
-        "/buckets/blog",
-        fakePermissions,
-        "remove",
-        { headers: { Foo: "Bar", Baz: "Qux" } }
+        executeStub,
+        {
+          method: "PATCH",
+          path: "/buckets/blog",
+          headers: {
+            "Content-Type": "application/json-patch+json",
+            Foo: "Bar",
+            Baz: "Qux",
+            "If-None-Match": "*",
+          },
+          body: [],
+        },
+        { retry: 0 }
       );
     });
   });

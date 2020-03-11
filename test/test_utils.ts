@@ -1,5 +1,6 @@
 import sinon from "sinon";
-import { expect } from "chai";
+
+const { expect } = intern.getPlugin("chai");
 
 export function fakeServerResponse(
   status: number,
@@ -69,5 +70,9 @@ export async function expectAsyncError<T>(
 }
 
 export function btoa(str: string): string {
+  if (globalThis.btoa) {
+    return globalThis.btoa(str);
+  }
+
   return Buffer.from(str, "binary").toString("base64");
 }

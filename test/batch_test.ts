@@ -1,11 +1,10 @@
-import chai, { expect } from "chai";
-
 import * as requests from "../src/requests";
 import { aggregate, AggregateResponse, KintoBatchResponse } from "../src/batch";
 import { KintoRequest } from "../src/types";
 
-chai.should();
-chai.config.includeStack = true;
+const { expect } = intern.getPlugin("chai");
+intern.getPlugin("chai").should();
+const { describe, it, beforeEach } = intern.getPlugin("interface.bdd");
 
 describe("batch module", () => {
   describe("aggregate()", () => {

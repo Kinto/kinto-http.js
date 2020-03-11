@@ -22,12 +22,10 @@ interface RecordRequestBody extends RequestBody {
   data?: { id?: string; last_modified?: number; [key: string]: any };
 }
 
-const requestDefaults = {
+const requestDefaults: RequestOptions = {
   safe: false,
   // check if we should set default content type here
   headers: {},
-  permissions: undefined,
-  data: undefined,
   patch: false,
 };
 
@@ -35,7 +33,7 @@ const requestDefaults = {
  * @private
  */
 function safeHeader(
-  safe: boolean,
+  safe?: boolean,
   last_modified?: number
 ): Record<string, string> {
   if (!safe) {

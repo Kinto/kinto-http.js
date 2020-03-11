@@ -1,5 +1,3 @@
-import chai, { expect } from "chai";
-
 import { btoa } from "./test_utils";
 import {
   partition,
@@ -16,8 +14,9 @@ import {
 } from "../src/utils";
 import { expectAsyncError } from "./test_utils";
 
-chai.should();
-chai.config.includeStack = true;
+const { expect } = intern.getPlugin("chai");
+intern.getPlugin("chai").should();
+const { describe, it } = intern.getPlugin("interface.bdd");
 
 describe("Utils", () => {
   /** @test {partition} */
@@ -311,36 +310,13 @@ describe("Utils", () => {
 
       const { blob, name } = extractFileInfo(dataURL);
 
-      expect(blob instanceof Buffer);
-      expect(((blob as unknown) as Buffer).length).eql(4);
-      expect(name).eql("t.txt");
-    });
-
-    it("should use Blob if present", () => {
-      class MyBlob {
-        public sequences: Uint8Array[];
-        public options: { type: string };
-        constructor(sequences: Uint8Array[], options: { type: string }) {
-          this.sequences = sequences;
-          this.options = options;
-        }
+      if ("size" in blob) {
+        expect(blob.size).eql(4);
+      } else {
+        // In Node, `blob` is actually a Buffer
+        expect((blob as any).length).eql(4);
       }
-      (global as any).Blob = MyBlob;
-      const dataURL = "data:text/plain;name=t.txt;base64," + btoa("test");
-
-      const { blob } = extractFileInfo(dataURL);
-
-      const testAsChars = Array.from("test").map(c => c.charCodeAt(0));
-      expect(blob instanceof MyBlob);
-      expect(((blob as unknown) as MyBlob).sequences.length).eql(1);
-      expect(((blob as unknown) as MyBlob).sequences[0] instanceof Uint8Array);
-      expect(((blob as unknown) as MyBlob).sequences[0].length).eql(4);
-      expect(((blob as unknown) as MyBlob).sequences[0]).eql(
-        new Uint8Array(testAsChars)
-      );
-      expect(((blob as unknown) as MyBlob).options).deep.equal({
-        type: "text/plain",
-      });
+      expect(name).eql("t.txt");
     });
   });
 
