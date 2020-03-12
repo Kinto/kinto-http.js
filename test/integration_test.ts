@@ -223,15 +223,10 @@ describe("Integration tests", function(__test) {
 
           describe("Safe option", () => {
             it("should not override existing bucket", async () => {
-              try {
-                await api.createBucket("foo", { safe: true });
-                throw new Error("Should not have passed");
-              } catch (err) {
-                err.should.be.instanceOf(Error);
-                err.should.have
-                  .property("message")
-                  .match(/412 Precondition Failed/);
-              }
+              await expectAsyncError(
+                () => api.createBucket("foo", { safe: true }),
+                /412 Precondition Failed/
+              );
             });
           });
         });
@@ -270,18 +265,14 @@ describe("Integration tests", function(__test) {
 
       describe("Safe option", () => {
         it("should raise a conflict error when resource has changed", async () => {
-          try {
-            await api.deleteBucket("foo", {
-              last_modified: last_modified - 1000,
-              safe: true,
-            });
-            throw new Error("Should not have passed");
-          } catch (err) {
-            err.should.be.instanceOf(Error);
-            err.should.have
-              .property("message")
-              .match(/412 Precondition Failed/);
-          }
+          await expectAsyncError(
+            () =>
+              api.deleteBucket("foo", {
+                last_modified: last_modified - 1000,
+                safe: true,
+              }),
+            /412 Precondition Failed/
+          );
         });
       });
     });
@@ -780,22 +771,14 @@ describe("Integration tests", function(__test) {
 
         describe("Safe option", () => {
           it("should check for concurrency", async () => {
-            let error: Error;
-
-            try {
-              await bucket.setPermissions(
-                { read: ["github:n1k0"] },
-                { safe: true, last_modified: 1 }
-              );
-            } catch (err) {
-              error = err;
-            }
-
-            expect(error!).not.to.be.undefined;
-            error!.should.be.instanceOf(Error);
-            error!.should.have
-              .property("message")
-              .match(/412 Precondition Failed/);
+            await expectAsyncError(
+              () =>
+                bucket.setPermissions(
+                  { read: ["github:n1k0"] },
+                  { safe: true, last_modified: 1 }
+                ),
+              /412 Precondition Failed/
+            );
           });
         });
       });
@@ -1013,20 +996,12 @@ describe("Integration tests", function(__test) {
 
         describe("Safe option", () => {
           it("should not override existing collection", async () => {
-            let error: Error;
             await bucket.createCollection("posts");
 
-            try {
-              await bucket.createCollection("posts", { safe: true });
-            } catch (err) {
-              error = err;
-            }
-
-            expect(error!).not.to.be.undefined;
-            error!.should.be.instanceOf(Error);
-            error!.should.have
-              .property("message")
-              .match(/412 Precondition Failed/);
+            await expectAsyncError(
+              () => bucket.createCollection("posts", { safe: true }),
+              /412 Precondition Failed/
+            );
           });
         });
 
@@ -1079,23 +1054,16 @@ describe("Integration tests", function(__test) {
 
         describe("Safe option", () => {
           it("should check for concurrency", async () => {
-            let error: Error;
             const res = await bucket.createCollection("posts");
 
-            try {
-              await bucket.deleteCollection("posts", {
-                safe: true,
-                last_modified: res.data.last_modified - 1000,
-              });
-            } catch (err) {
-              error = err;
-            }
-
-            expect(error!).not.to.be.undefined;
-            error!.should.be.instanceOf(Error);
-            error!.should.have
-              .property("message")
-              .match(/412 Precondition Failed/);
+            expectAsyncError(
+              () =>
+                bucket.deleteCollection("posts", {
+                  safe: true,
+                  last_modified: res.data.last_modified - 1000,
+                }),
+              /412 Precondition Failed/
+            );
           });
         });
       });
@@ -1177,20 +1145,12 @@ describe("Integration tests", function(__test) {
 
         describe("Safe option", () => {
           it("should not override existing group", async () => {
-            let error: Error;
             await bucket.createGroup("admins");
 
-            try {
-              await bucket.createGroup("admins", [], { safe: true });
-            } catch (err) {
-              error = err;
-            }
-
-            expect(error!).not.to.be.undefined;
-            error!.should.be.instanceOf(Error);
-            error!.should.have
-              .property("message")
-              .match(/412 Precondition Failed/);
+            await expectAsyncError(
+              () => bucket.createGroup("admins", [], { safe: true }),
+              /412 Precondition Failed/
+            );
           });
         });
 
@@ -1260,7 +1220,11 @@ describe("Integration tests", function(__test) {
           const res = await bucket.createGroup("foo");
           await bucket.updateGroup({ ...res.data, title: "mod" });
           const { data } = await bucket.listGroups();
-          (data[0] as Group & { title: string }).title.should.equal("mod");
+
+          // type Group doesn't have a title property, so we create an
+          // intersection type that does
+          const firstGroup = data[0] as Group & { title: string };
+          firstGroup.title.should.equal("mod");
         });
 
         it("should patch a group", async () => {
@@ -1281,28 +1245,21 @@ describe("Integration tests", function(__test) {
           const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
 
           it("should perform concurrency checks with last_modified", async () => {
-            let error: Error;
             const { data } = await bucket.createGroup("foo");
 
-            try {
-              await bucket.updateGroup(
-                {
-                  id: data.id,
-                  members: ["github:me"],
-                  title: "foo",
-                  last_modified: 1,
-                },
-                { safe: true }
-              );
-            } catch (err) {
-              error = err;
-            }
-
-            expect(error!).not.to.be.undefined;
-            error!.should.be.instanceOf(Error);
-            error!.should.have
-              .property("message")
-              .match(/412 Precondition Failed/);
+            await expectAsyncError(
+              () =>
+                bucket.updateGroup(
+                  {
+                    id: data.id,
+                    members: ["github:me"],
+                    title: "foo",
+                    last_modified: 1,
+                  },
+                  { safe: true }
+                ),
+              /412 Precondition Failed/
+            );
           });
 
           it("should create a non-existent resource when safe is true", async () => {
@@ -1315,23 +1272,16 @@ describe("Integration tests", function(__test) {
           });
 
           it("should not override existing data with no last_modified", async () => {
-            let error: Error;
             const { data } = await bucket.createGroup("foo");
 
-            try {
-              await bucket.updateGroup(
-                { id: data.id, members: [], title: "foo" },
-                { safe: true }
-              );
-            } catch (err) {
-              error = err;
-            }
-
-            expect(error!).not.to.be.undefined;
-            error!.should.be.instanceOf(Error);
-            error!.should.have
-              .property("message")
-              .match(/412 Precondition Failed/);
+            await expectAsyncError(
+              () =>
+                bucket.updateGroup(
+                  { id: data.id, members: [], title: "foo" },
+                  { safe: true }
+                ),
+              /412 Precondition Failed/
+            );
           });
         });
       });
@@ -1346,23 +1296,16 @@ describe("Integration tests", function(__test) {
 
         describe("Safe option", () => {
           it("should check for concurrency", async () => {
-            let error: Error;
             const { data } = await bucket.createGroup("posts");
 
-            try {
-              await bucket.deleteGroup("posts", {
-                safe: true,
-                last_modified: data.last_modified - 1000,
-              });
-            } catch (err) {
-              error = err;
-            }
-
-            expect(error!).not.to.be.undefined;
-            error!.should.be.instanceOf(Error);
-            error!.should.have
-              .property("message")
-              .match(/412 Precondition Failed/);
+            await expectAsyncError(
+              () =>
+                bucket.deleteGroup("posts", {
+                  safe: true,
+                  last_modified: data.last_modified - 1000,
+                }),
+              /412 Precondition Failed/
+            );
           });
         });
       });
@@ -1448,22 +1391,14 @@ describe("Integration tests", function(__test) {
 
             describe("Safe option", () => {
               it("should perform concurrency checks", async () => {
-                let error: Error;
-
-                try {
-                  await coll.setPermissions(
-                    { read: ["github:n1k0"] },
-                    { safe: true, last_modified: 1 }
-                  );
-                } catch (err) {
-                  error = err;
-                }
-
-                expect(error!).not.to.be.undefined;
-                error!.should.be.instanceOf(Error);
-                error!.should.have
-                  .property("message")
-                  .match(/412 Precondition Failed/);
+                await expectAsyncError(
+                  () =>
+                    coll.setPermissions(
+                      { read: ["github:n1k0"] },
+                      { safe: true, last_modified: 1 }
+                    ),
+                  /412 Precondition Failed/
+                );
               });
             });
           });
@@ -1504,9 +1439,8 @@ describe("Integration tests", function(__test) {
           describe(".getData()", () => {
             it("should retrieve collection data", async () => {
               await coll.setData({ signed: true });
-              ((await coll.getData()) as { signed: boolean }).should.have
-                .property("signed")
-                .eql(true);
+              const data = (await coll.getData()) as { signed: boolean };
+              data.should.have.property("signed").eql(true);
             });
           });
 
@@ -1525,22 +1459,14 @@ describe("Integration tests", function(__test) {
 
             describe("Safe option", () => {
               it("should perform concurrency checks", async () => {
-                let error: Error;
-
-                try {
-                  await coll.setData(
-                    { signed: true },
-                    { safe: true, last_modified: 1 }
-                  );
-                } catch (err) {
-                  error = err;
-                }
-
-                expect(error!).not.to.be.undefined;
-                error!.should.be.instanceOf(Error);
-                error!.should.have
-                  .property("message")
-                  .match(/412 Precondition Failed/);
+                await expectAsyncError(
+                  () =>
+                    coll.setData(
+                      { signed: true },
+                      { safe: true, last_modified: 1 }
+                    ),
+                  /412 Precondition Failed/
+                );
               });
             });
           });
@@ -1556,23 +1482,16 @@ describe("Integration tests", function(__test) {
 
               describe("Safe option", () => {
                 it("should check for existing record", async () => {
-                  let error: Error;
                   const { data } = await coll.createRecord({ title: "foo" });
 
-                  try {
-                    await coll.createRecord(
-                      { id: data.id, title: "foo" },
-                      { safe: true }
-                    );
-                  } catch (err) {
-                    error = err;
-                  }
-
-                  expect(error!).not.to.be.undefined;
-                  error!.should.be.instanceOf(Error);
-                  error!.should.have
-                    .property("message")
-                    .match(/412 Precondition Failed/);
+                  await expectAsyncError(
+                    () =>
+                      coll.createRecord(
+                        { id: data.id, title: "foo" },
+                        { safe: true }
+                      ),
+                    /412 Precondition Failed/
+                  );
                 });
               });
             });
@@ -1597,9 +1516,10 @@ describe("Integration tests", function(__test) {
               const res = await coll.createRecord({ title: "foo" });
               await coll.updateRecord({ ...res.data, title: "mod" });
               const { data } = await coll.listRecords();
-              (data[0] as KintoObject & { title: string }).title.should.equal(
-                "mod"
-              );
+              // type KintoObject doesn't have a title property, so we create
+              // an intersection type that does
+              const record = data[0] as KintoObject & { title: string };
+              record.title.should.equal("mod");
             });
 
             it("should patch a record", async () => {
@@ -1627,23 +1547,16 @@ describe("Integration tests", function(__test) {
               const id = "2dcd0e65-468c-4655-8015-30c8b3a1c8f8";
 
               it("should perform concurrency checks with last_modified", async () => {
-                let error: Error;
                 const { data } = await coll.createRecord({ title: "foo" });
 
-                try {
-                  await coll.updateRecord(
-                    { id: data.id, title: "foo", last_modified: 1 },
-                    { safe: true }
-                  );
-                } catch (err) {
-                  error = err;
-                }
-
-                expect(error!).not.to.be.undefined;
-                error!.should.be.instanceOf(Error);
-                error!.should.have
-                  .property("message")
-                  .match(/412 Precondition Failed/);
+                await expectAsyncError(
+                  () =>
+                    coll.updateRecord(
+                      { id: data.id, title: "foo", last_modified: 1 },
+                      { safe: true }
+                    ),
+                  /412 Precondition Failed/
+                );
               });
 
               it("should create a non-existent resource when safe is true", async () => {
@@ -1656,23 +1569,16 @@ describe("Integration tests", function(__test) {
               });
 
               it("should not override existing data with no last_modified", async () => {
-                let error: Error;
                 const { data } = await coll.createRecord({ title: "foo" });
 
-                try {
-                  await coll.updateRecord(
-                    { id: data.id, title: "foo" },
-                    { safe: true }
-                  );
-                } catch (err) {
-                  error = err;
-                }
-
-                expect(error!).not.to.be.undefined;
-                error!.should.be.instanceOf(Error);
-                error!.should.have
-                  .property("message")
-                  .match(/412 Precondition Failed/);
+                await expectAsyncError(
+                  () =>
+                    coll.updateRecord(
+                      { id: data.id, title: "foo" },
+                      { safe: true }
+                    ),
+                  /412 Precondition Failed/
+                );
               });
             });
           });
@@ -1688,23 +1594,16 @@ describe("Integration tests", function(__test) {
 
             describe("Safe option", () => {
               it("should perform concurrency checks", async () => {
-                let error: Error;
                 const { data } = await coll.createRecord({ title: "foo" });
 
-                try {
-                  await coll.deleteRecord(data.id, {
-                    last_modified: 1,
-                    safe: true,
-                  });
-                } catch (err) {
-                  error = err;
-                }
-
-                expect(error!).not.to.be.undefined;
-                error!.should.be.instanceOf(Error);
-                error!.should.have
-                  .property("message")
-                  .match(/412 Precondition Failed/);
+                await expectAsyncError(
+                  () =>
+                    coll.deleteRecord(data.id, {
+                      last_modified: 1,
+                      safe: true,
+                    }),
+                  /412 Precondition Failed/
+                );
               });
             });
           });
@@ -2036,22 +1935,13 @@ describe("Integration tests", function(__test) {
               });
 
               it("should resolve with an empty array on exhausted pagination", async () => {
-                let error: Error;
-
                 const res1 = await coll.listRecords({ limit: 2 });
                 const res2 = await res1.next();
 
-                try {
-                  await res2.next();
-                } catch (err) {
-                  error = err;
-                }
-
-                expect(error!).not.to.be.undefined;
-                error!.should.be.instanceOf(Error);
-                error!.should.have
-                  .property("message")
-                  .match(/Pagination exhausted./);
+                await expectAsyncError(
+                  () => res2.next(),
+                  /Pagination exhausted./
+                );
               });
 
               it("should retrieve all pages", async () => {
