@@ -135,7 +135,7 @@ describe("HTTP class", () => {
         describe("Request timeout", () => {
           beforeEach(() => {
             sandbox.stub(global as any, "fetch").returns(
-              new Promise(resolve => {
+              new Promise((resolve) => {
                 setTimeout(resolve, 20000);
               })
             );
@@ -425,7 +425,7 @@ describe("HTTP class", () => {
               // clock at the right moment (just after request failure).
               sandbox
                 .stub(global, "setTimeout")
-                .callsFake(fn => setImmediate(fn) as any);
+                .callsFake((fn) => setImmediate(fn) as any);
             });
 
             it("should not retry the request by default", async () => {

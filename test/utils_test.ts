@@ -145,7 +145,7 @@ describe("Utils", () => {
         () => {
           throw new Error("Should be rejected");
         },
-        err => {
+        (err) => {
           err.should.not.be.undefined;
         }
       );
@@ -173,7 +173,7 @@ describe("Utils", () => {
         () => {
           throw new Error("Should be rejected");
         },
-        err => {
+        (err) => {
           expect(err).to.be.undefined;
         }
       );
@@ -330,7 +330,7 @@ describe("Utils", () => {
 
       const { blob } = extractFileInfo(dataURL);
 
-      const testAsChars = Array.from("test").map(c => c.charCodeAt(0));
+      const testAsChars = Array.from("test").map((c) => c.charCodeAt(0));
       expect(blob instanceof MyBlob);
       expect(((blob as unknown) as MyBlob).sequences.length).eql(1);
       expect(((blob as unknown) as MyBlob).sequences[0] instanceof Uint8Array);

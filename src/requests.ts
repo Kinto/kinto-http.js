@@ -81,7 +81,7 @@ export function updateRequest(
 
   const hasNoData =
     data &&
-    Object.keys(data).filter(k => k !== "id" && k !== "last_modified")
+    Object.keys(data).filter((k) => k !== "id" && k !== "last_modified")
       .length === 0;
   if (hasNoData) {
     data = undefined;

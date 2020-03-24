@@ -206,7 +206,7 @@ export default class KintoClientBase {
   private _registerHTTPEvents(): void {
     // Prevent registering event from a batch client instance
     if (!this._isBatch && this.events) {
-      this.events.on("backoff", backoffMs => {
+      this.events.on("backoff", (backoffMs) => {
         this._backoffReleaseTime = backoffMs;
       });
     }
@@ -628,7 +628,7 @@ export default class KintoClientBase {
     let results: T[] = [],
       current = 0;
 
-    const next = async function(
+    const next = async function (
       nextPage: string | null
     ): Promise<PaginationResult<T>> {
       if (!nextPage) {
@@ -661,7 +661,7 @@ export default class KintoClientBase {
       };
     };
 
-    const handleResponse = async function({
+    const handleResponse = async function ({
       headers,
       json,
     }: HttpResponse<DataResponse<T[]>>): Promise<PaginationResult<T>> {

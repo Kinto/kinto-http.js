@@ -23,7 +23,7 @@ export function fakeServerResponse(
 }
 
 export function delayedPromise(ms: number) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     setTimeout(() => resolve(), ms);
   });
 }
@@ -55,13 +55,9 @@ export async function expectAsyncError<T>(
   expect(error!).to.be.instanceOf(baseClass);
   if (message) {
     if (typeof message === "string") {
-      expect(error!)
-        .to.have.property("message")
-        .equal(message);
+      expect(error!).to.have.property("message").equal(message);
     } else {
-      expect(error!)
-        .to.have.property("message")
-        .match(message);
+      expect(error!).to.have.property("message").match(message);
     }
   }
 
