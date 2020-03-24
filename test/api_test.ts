@@ -179,9 +179,7 @@ describe("KintoClient", () => {
       const bucket = api.bucket("foo", options);
       expect(bucket).property("_safe", options.safe);
       expect(bucket).property("_retry", options.retry);
-      expect(bucket)
-        .property("_headers")
-        .eql(options.headers);
+      expect(bucket).property("_headers").eql(options.headers);
     });
   });
 
@@ -212,9 +210,7 @@ describe("KintoClient", () => {
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       await api.fetchServerInfo();
-      expect(api)
-        .property("serverInfo")
-        .deep.equal(fakeServerInfo);
+      expect(api).property("serverInfo").deep.equal(fakeServerInfo);
     });
 
     it("should not fetch server settings if they're cached already", () => {
@@ -303,7 +299,7 @@ describe("KintoClient", () => {
       return api
         .bucket("default")
         .collection("blog")
-        .batch(batch => {
+        .batch((batch) => {
           for (const article of fixtures) {
             batch.createRecord(article);
           }
@@ -336,7 +332,7 @@ describe("KintoClient", () => {
       describe("empty request list", () => {
         it("should not perform request on empty operation list", () => {
           // @ts-ignore
-          api.batch(batch => {});
+          api.batch((batch) => {});
 
           sinon.assert.notCalled(fetch);
         });
@@ -355,7 +351,7 @@ describe("KintoClient", () => {
             .bucket("default")
             .collection("blog")
             .batch(
-              batch => {
+              (batch) => {
                 for (const article of fixtures) {
                   batch.createRecord(article);
                 }
@@ -395,7 +391,7 @@ describe("KintoClient", () => {
             .bucket("default")
             .collection("blog")
             .batch(
-              batch => {
+              (batch) => {
                 for (const article of fixtures) {
                   batch.createRecord(article);
                 }
@@ -439,7 +435,7 @@ describe("KintoClient", () => {
           const r = await api
             .bucket("default")
             .collection("blog")
-            .batch(batch => batch.createRecord({}), {
+            .batch((batch) => batch.createRecord({}), {
               retry: 1,
             });
           return expect((r as OperationResponse[])[0]).eql(response);
@@ -573,7 +569,7 @@ describe("KintoClient", () => {
           );
         const responses = (await executeBatch(fixtures)) as OperationResponse[];
         responses
-          .map(response => response.body.data)
+          .map((response) => response.body.data)
           .should.deep.equal([1, 2, 3, 4]);
       });
 
@@ -617,7 +613,7 @@ describe("KintoClient", () => {
 
         const responses = (await executeBatch(fixtures)) as OperationResponse[];
         responses
-          .map(response => response.status)
+          .map((response) => response.status)
           .should.deep.equal([412, 412, 412, 412]);
       });
 
@@ -626,7 +622,7 @@ describe("KintoClient", () => {
           .stub(global as any, "fetch")
           .onFirstCall()
           .returns(
-            new Promise(resolve => {
+            new Promise((resolve) => {
               function onTimeout() {
                 resolve(
                   fakeServerResponse(200, {
@@ -643,7 +639,7 @@ describe("KintoClient", () => {
           )
           .onSecondCall()
           .returns(
-            new Promise(resolve => {
+            new Promise((resolve) => {
               function onTimeout() {
                 resolve(
                   fakeServerResponse(200, {
@@ -656,7 +652,7 @@ describe("KintoClient", () => {
           );
         const responses = (await executeBatch(fixtures)) as OperationResponse[];
         responses
-          .map(response => response.body.data)
+          .map((response) => response.body.data)
           .should.deep.equal([1, 2, 3, 4]);
       });
     });
