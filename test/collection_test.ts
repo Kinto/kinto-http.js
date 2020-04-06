@@ -89,9 +89,11 @@ describe("Collection", () => {
       const response = { data: { foo: "bar" } };
       sandbox.stub(client, "execute").returns(Promise.resolve(response));
 
-      const data = (await getBlogPostsCollection().getData()) as {
-        foo: string;
-      };
+      const data =
+        (await getBlogPostsCollection().getData()) as
+        {
+          foo: string;
+        };
       data.should.deep.equal({
         foo: "bar",
       });
@@ -578,9 +580,10 @@ describe("Collection", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as PaginationResult<{
-            id: string;
-          }>
+          ({} as unknown) as
+            PaginationResult<{
+              id: string;
+            }>
         );
       },
       hasNextPage: false,

@@ -18,9 +18,9 @@ import * as errors from "./errors";
 import { EventEmitter as ee } from "events";
 
 declare const ChromeUtils: any;
-const { EventEmitter } = ChromeUtils.import(
-  "resource://gre/modules/EventEmitter.jsm"
-) as { EventEmitter: any };
+const { EventEmitter } =
+  ChromeUtils.import("resource://gre/modules/EventEmitter.jsm") as
+  { EventEmitter: any };
 
 export default class KintoHttpClient extends KintoClientBase {
   constructor(remote: string, options: Partial<KintoClientOptions> = {}) {

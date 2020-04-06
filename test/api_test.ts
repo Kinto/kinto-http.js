@@ -935,9 +935,10 @@ describe("KintoClient", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as PaginationResult<{
-            id: string;
-          }>
+          ({} as unknown) as
+            PaginationResult<{
+              id: string;
+            }>
         );
       },
       hasNextPage: false,
@@ -1020,9 +1021,10 @@ describe("KintoClient", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as PaginationResult<{
-            id: string;
-          }>
+          ({} as unknown) as
+            PaginationResult<{
+              id: string;
+            }>
         );
       },
       hasNextPage: false,
