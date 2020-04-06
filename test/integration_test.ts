@@ -47,7 +47,7 @@ async function stopServer(server: KintoServer) {
   }
 }
 
-describe("Integration tests", function(__test) {
+describe("Integration tests", function (__test) {
   let sandbox: sinon.SinonSandbox, server: KintoServer, api: Api;
 
   // Disabling test timeouts until pserve gets decent startup time.
@@ -73,7 +73,7 @@ describe("Integration tests", function(__test) {
       return;
     }
     const logLines = server.logs.toString().split("\n");
-    const serverDidCrash = logLines.some(l => l.startsWith("Traceback"));
+    const serverDidCrash = logLines.some((l) => l.startsWith("Traceback"));
     if (serverDidCrash) {
       // Server errors have been encountered, raise to break the build
       const trace = logLines.join("\n");
@@ -88,7 +88,7 @@ describe("Integration tests", function(__test) {
     return new Api(TEST_KINTO_SERVER, options);
   }
 
-  beforeEach(__test => {
+  beforeEach((__test) => {
     __test.timeout = 12500;
 
     sandbox = sinon.createSandbox();
@@ -116,7 +116,7 @@ describe("Integration tests", function(__test) {
 
     // XXX move this to batch tests
     describe("new batch", () => {
-      it("should support root batch", async function() {
+      it("should support root batch", async function () {
         await api.batch((batch: KintoClientBase) => {
           const bucket = batch.bucket("default");
           bucket.createCollection("posts");
@@ -131,8 +131,8 @@ describe("Integration tests", function(__test) {
         res.data.should.have.lengthOf(2);
       });
 
-      it("should support bucket batch", async function() {
-        await api.bucket("default").batch(batch => {
+      it("should support bucket batch", async function () {
+        await api.bucket("default").batch((batch) => {
           batch.createCollection("posts");
           const coll = batch.collection("posts");
           coll.createRecord({ a: 1 });
@@ -157,7 +157,7 @@ describe("Integration tests", function(__test) {
         const capabilities = await api.fetchServerCapabilities();
         expect(capabilities).to.be.an("object");
         // Kinto protocol 1.4 exposes capability descriptions
-        Object.keys(capabilities).forEach(capability => {
+        Object.keys(capabilities).forEach((capability) => {
           const capabilityObj = capabilities[capability];
           expect(capabilityObj).to.include.keys("url", "description");
         });
@@ -260,7 +260,7 @@ describe("Integration tests", function(__test) {
       it("should delete a bucket", async () => {
         await api.deleteBucket("foo");
         const { data } = await api.listBuckets();
-        data.map(bucket => bucket.id).should.not.include("foo");
+        data.map((bucket) => bucket.id).should.not.include("foo");
       });
 
       describe("Safe option", () => {
@@ -325,10 +325,10 @@ describe("Integration tests", function(__test) {
               p_1.permissions.includes("bucket:create");
             const bucketCreate = data.filter(isBucketCreate);
             expect(bucketCreate.length).eql(1);
-            data = data.filter(p_2 => !isBucketCreate(p_2));
+            data = data.filter((p_2) => !isBucketCreate(p_2));
           }
           expect(data).to.have.lengthOf(2);
-          expect(data.map(p_3 => p_3.id).sort()).eql(["b1", "c1"]);
+          expect(data.map((p_3) => p_3.id).sort()).eql(["b1", "c1"]);
         });
       });
 
@@ -365,7 +365,7 @@ describe("Integration tests", function(__test) {
       it("should retrieve the list of buckets", async () => {
         const { data } = await api.listBuckets();
         data
-          .map(bucket => bucket.id)
+          .map((bucket) => bucket.id)
           .sort()
           .should.deep.equal(["b1", "b2", "b3", "b4"]);
       });
@@ -373,7 +373,7 @@ describe("Integration tests", function(__test) {
       it("should order buckets by field", async () => {
         const { data } = await api.listBuckets({ sort: "-size" });
         data
-          .map(bucket => bucket.id)
+          .map((bucket) => bucket.id)
           .should.deep.equal(["b3", "b1", "b2", "b4"]);
       });
 
@@ -383,7 +383,7 @@ describe("Integration tests", function(__test) {
             sort: "size",
             filters: { min_size: 20 },
           });
-          data.map(bucket => bucket.id).should.deep.equal(["b1", "b3"]);
+          data.map((bucket) => bucket.id).should.deep.equal(["b1", "b3"]);
         });
 
         it("should resolve with buckets last_modified value", async () => {
@@ -405,13 +405,13 @@ describe("Integration tests", function(__test) {
         it("should not paginate by default", async () => {
           const { data } = await api.listBuckets();
           data
-            .map(bucket => bucket.id)
+            .map((bucket) => bucket.id)
             .should.deep.equal(["b4", "b3", "b2", "b1"]);
         });
 
         it("should paginate by chunks", async () => {
           const { data } = await api.listBuckets({ limit: 2 });
-          data.map(bucket => bucket.id).should.deep.equal(["b4", "b3"]);
+          data.map((bucket) => bucket.id).should.deep.equal(["b4", "b3"]);
         });
 
         it("should expose a hasNextPage boolean prop", async () => {
@@ -423,7 +423,7 @@ describe("Integration tests", function(__test) {
         it("should provide a next method to load next page", async () => {
           const res = await api.listBuckets({ limit: 2 });
           const { data } = await res.next();
-          data.map(bucket => bucket.id).should.deep.equal(["b2", "b1"]);
+          data.map((bucket) => bucket.id).should.deep.equal(["b2", "b1"]);
         });
       });
     });
@@ -454,7 +454,9 @@ describe("Integration tests", function(__test) {
             .bucket("custom")
             .collection("blog")
             .listRecords<TitleRecord>();
-          data.map(record => record.title).should.deep.equal(["art2", "art1"]);
+          data
+            .map((record) => record.title)
+            .should.deep.equal(["art2", "art1"]);
         });
       });
 
@@ -472,10 +474,7 @@ describe("Integration tests", function(__test) {
           });
 
           (
-            await api
-              .bucket("custom")
-              .collection("blog")
-              .listRecords()
+            await api.bucket("custom").collection("blog").listRecords()
           ).should.have
             .property("data")
             .to.have.lengthOf(10);
@@ -512,9 +511,9 @@ describe("Integration tests", function(__test) {
             });
 
             it("should contain the list of succesful publications", () => {
-              expect(results.published.map(body => body.data)).to.have.lengthOf(
-                4
-              );
+              expect(
+                results.published.map((body) => body.data)
+              ).to.have.lengthOf(4);
             });
           });
 
@@ -526,7 +525,7 @@ describe("Integration tests", function(__test) {
                 .bucket("default")
                 .collection("blog")
                 .batch(
-                  batch => {
+                  (batch) => {
                     for (let i = 1; i <= 26; i++) {
                       batch.createRecord({ title: "art" + i });
                     }
@@ -657,7 +656,7 @@ describe("Integration tests", function(__test) {
 
       beforeEach(() => {
         collection = api.bucket("default").collection("posts");
-        return collection.batch(batch => {
+        return collection.batch((batch) => {
           batch.createRecord({ n: 1 });
           batch.createRecord({ n: 2 });
         });
@@ -665,12 +664,12 @@ describe("Integration tests", function(__test) {
 
       it("should fetch one results page", async () => {
         const { data } = await collection.listRecords();
-        data.map(record => record.id).should.have.lengthOf(1);
+        data.map((record) => record.id).should.have.lengthOf(1);
       });
 
       it("should fetch all available pages", async () => {
         const { data } = await collection.listRecords({ pages: Infinity });
-        data.map(record => record.id).should.have.lengthOf(2);
+        data.map((record) => record.id).should.have.lengthOf(2);
       });
     });
   });
@@ -688,7 +687,7 @@ describe("Integration tests", function(__test) {
       beforeEach(async () => {
         bucket = api.bucket("custom");
         await api.createBucket("custom");
-        return await bucket.batch(batch => {
+        return await bucket.batch((batch) => {
           batch.createCollection("c1", { data: { size: 24 } });
           batch.createCollection("c2", { data: { size: 13 } });
           batch.createCollection("c3", { data: { size: 38 } });
@@ -709,15 +708,11 @@ describe("Integration tests", function(__test) {
         });
 
         it("should retrieve the bucket identifier", () => {
-          expect(result)
-            .to.have.property("id")
-            .eql("custom");
+          expect(result).to.have.property("id").eql("custom");
         });
 
         it("should retrieve bucket last_modified value", () => {
-          expect(result)
-            .to.have.property("last_modified")
-            .to.be.gt(1);
+          expect(result).to.have.property("last_modified").to.be.gt(1);
         });
       });
 
@@ -816,7 +811,7 @@ describe("Integration tests", function(__test) {
         it("should retrieve the list of history entries", async () => {
           const { data } = await bucket.listHistory();
           data
-            .map(entry => entry.target.data.id)
+            .map((entry) => entry.target.data.id)
             .should.deep.equal([
               "g4",
               "g3",
@@ -833,7 +828,7 @@ describe("Integration tests", function(__test) {
         it("should order entries by field", async () => {
           const { data } = await bucket.listHistory({ sort: "last_modified" });
           data
-            .map(entry => entry.target.data.id)
+            .map((entry) => entry.target.data.id)
             .should.deep.equal([
               "custom",
               "c1",
@@ -853,7 +848,7 @@ describe("Integration tests", function(__test) {
               filters: { resource_name: "bucket" },
             });
             data
-              .map(entry => entry.target.data.id)
+              .map((entry) => entry.target.data.id)
               .should.deep.equal(["custom"]);
           });
 
@@ -862,7 +857,7 @@ describe("Integration tests", function(__test) {
               filters: { "target.data.id": "custom" },
             });
             data
-              .map(entry => entry.target.data.id)
+              .map((entry) => entry.target.data.id)
               .should.deep.equal(["custom"]);
           });
 
@@ -884,13 +879,13 @@ describe("Integration tests", function(__test) {
         describe("Pagination", () => {
           it("should not paginate by default", async () => {
             const { data } = await bucket.listHistory();
-            data.map(entry => entry.target.data.id).should.have.lengthOf(9);
+            data.map((entry) => entry.target.data.id).should.have.lengthOf(9);
           });
 
           it("should paginate by chunks", async () => {
             const { data } = await bucket.listHistory({ limit: 2 });
             data
-              .map(entry => entry.target.data.id)
+              .map((entry) => entry.target.data.id)
               .should.deep.equal(["g4", "g3"]);
           });
 
@@ -898,7 +893,7 @@ describe("Integration tests", function(__test) {
             const res = await bucket.listHistory({ limit: 2 });
             const { data } = await res.next();
             data
-              .map(entry => entry.target.data.id)
+              .map((entry) => entry.target.data.id)
               .should.deep.equal(["g2", "g1"]);
           });
         });
@@ -908,7 +903,7 @@ describe("Integration tests", function(__test) {
         it("should retrieve the list of collections", async () => {
           const { data } = await bucket.listCollections();
           data
-            .map(collection => collection.id)
+            .map((collection) => collection.id)
             .sort()
             .should.deep.equal(["c1", "c2", "c3", "c4"]);
         });
@@ -916,16 +911,19 @@ describe("Integration tests", function(__test) {
         it("should order collections by field", async () => {
           const { data } = await bucket.listCollections({ sort: "-size" });
           data
-            .map(collection => collection.id)
+            .map((collection) => collection.id)
             .should.deep.equal(["c3", "c1", "c2", "c4"]);
         });
 
         it("should work in a batch", async () => {
-          const res = ((await api.batch((batch: KintoClientBase) => {
-            batch.bucket("custom").listCollections();
-          })) as unknown) as OperationResponse<KintoObject[]>[];
+          const res =
+            ((await api.batch((batch: KintoClientBase) => {
+              batch.bucket("custom").listCollections();
+            })) as
+              unknown) as
+            OperationResponse<KintoObject[]>[];
           res[0].body.data
-            .map(r => r.id)
+            .map((r) => r.id)
             .should.deep.equal(["c4", "c3", "c2", "c1"]);
         });
 
@@ -936,7 +934,7 @@ describe("Integration tests", function(__test) {
               filters: { min_size: 20 },
             });
             data
-              .map(collection => collection.id)
+              .map((collection) => collection.id)
               .should.deep.equal(["c1", "c3"]);
           });
 
@@ -959,14 +957,14 @@ describe("Integration tests", function(__test) {
           it("should not paginate by default", async () => {
             const { data } = await bucket.listCollections();
             data
-              .map(collection => collection.id)
+              .map((collection) => collection.id)
               .should.deep.equal(["c4", "c3", "c2", "c1"]);
           });
 
           it("should paginate by chunks", async () => {
             const { data } = await bucket.listCollections({ limit: 2 });
             data
-              .map(collection => collection.id)
+              .map((collection) => collection.id)
               .should.deep.equal(["c4", "c3"]);
           });
 
@@ -974,7 +972,7 @@ describe("Integration tests", function(__test) {
             const res = await bucket.listCollections({ limit: 2 });
             const { data } = await res.next();
             data
-              .map(collection => collection.id)
+              .map((collection) => collection.id)
               .should.deep.equal(["c2", "c1"]);
           });
         });
@@ -984,14 +982,14 @@ describe("Integration tests", function(__test) {
         it("should create a named collection", async () => {
           await bucket.createCollection("foo");
           const { data } = await bucket.listCollections();
-          data.map(coll => coll.id).should.include("foo");
+          data.map((coll) => coll.id).should.include("foo");
         });
 
         it("should create an automatically named collection", async () => {
           const res = await bucket.createCollection();
           const generated = (res as KintoResponse).data.id;
           const { data } = await bucket.listCollections();
-          return expect(data.some(x => x.id === generated)).eql(true);
+          return expect(data.some((x) => x.id === generated)).eql(true);
         });
 
         describe("Safe option", () => {
@@ -1049,7 +1047,7 @@ describe("Integration tests", function(__test) {
           await bucket.createCollection("foo");
           await bucket.deleteCollection("foo");
           const { data } = await bucket.listCollections();
-          data.map(coll => coll.id).should.not.include("foo");
+          data.map((coll) => coll.id).should.not.include("foo");
         });
 
         describe("Safe option", () => {
@@ -1072,7 +1070,7 @@ describe("Integration tests", function(__test) {
         it("should retrieve the list of groups", async () => {
           const { data } = await bucket.listGroups();
           data
-            .map(group => group.id)
+            .map((group) => group.id)
             .sort()
             .should.deep.equal(["g1", "g2", "g3", "g4"]);
         });
@@ -1080,7 +1078,7 @@ describe("Integration tests", function(__test) {
         it("should order groups by field", async () => {
           const { data } = await bucket.listGroups({ sort: "-size" });
           data
-            .map(group => group.id)
+            .map((group) => group.id)
             .should.deep.equal(["g3", "g1", "g2", "g4"]);
         });
 
@@ -1090,7 +1088,7 @@ describe("Integration tests", function(__test) {
               sort: "size",
               filters: { min_size: 20 },
             });
-            data.map(group => group.id).should.deep.equal(["g1", "g3"]);
+            data.map((group) => group.id).should.deep.equal(["g1", "g3"]);
           });
 
           it("should resolve with groups last_modified value", async () => {
@@ -1112,19 +1110,19 @@ describe("Integration tests", function(__test) {
           it("should not paginate by default", async () => {
             const { data } = await bucket.listGroups();
             data
-              .map(group => group.id)
+              .map((group) => group.id)
               .should.deep.equal(["g4", "g3", "g2", "g1"]);
           });
 
           it("should paginate by chunks", async () => {
             const { data } = await bucket.listGroups({ limit: 2 });
-            data.map(group => group.id).should.deep.equal(["g4", "g3"]);
+            data.map((group) => group.id).should.deep.equal(["g4", "g3"]);
           });
 
           it("should provide a next method to load next page", async () => {
             const res = await bucket.listGroups({ limit: 2 });
             const { data } = await res.next();
-            data.map(group => group.id).should.deep.equal(["g2", "g1"]);
+            data.map((group) => group.id).should.deep.equal(["g2", "g1"]);
           });
         });
       });
@@ -1133,14 +1131,14 @@ describe("Integration tests", function(__test) {
         it("should create a named group", async () => {
           await bucket.createGroup("foo");
           const { data } = await bucket.listGroups();
-          data.map(group => group.id).should.include("foo");
+          data.map((group) => group.id).should.include("foo");
         });
 
         it("should create an automatically named group", async () => {
           const res = await bucket.createGroup();
           const generated = (res as KintoResponse<Group>).data.id;
           const { data } = await bucket.listGroups();
-          return expect(data.some(x => x.id === generated)).eql(true);
+          return expect(data.some((x) => x.id === generated)).eql(true);
         });
 
         describe("Safe option", () => {
@@ -1291,7 +1289,7 @@ describe("Integration tests", function(__test) {
           await bucket.createGroup("foo");
           await bucket.deleteGroup("foo");
           const { data } = await bucket.listGroups();
-          data.map(coll => coll.id).should.not.include("foo");
+          data.map((coll) => coll.id).should.not.include("foo");
         });
 
         describe("Safe option", () => {
@@ -1312,7 +1310,7 @@ describe("Integration tests", function(__test) {
 
       describe(".batch()", () => {
         it("should allow batching operations for current bucket", async () => {
-          await bucket.batch(batch => {
+          await bucket.batch((batch) => {
             batch.createCollection("comments");
             const coll = batch.collection("comments");
             coll.createRecord({ content: "plop" });
@@ -1321,7 +1319,7 @@ describe("Integration tests", function(__test) {
 
           const { data } = await bucket.collection("comments").listRecords();
           data
-            .map(comment => comment.content)
+            .map((comment) => comment.content)
             .sort()
             .should.deep.equal(["plop", "yo"]);
         });
@@ -1330,7 +1328,7 @@ describe("Integration tests", function(__test) {
           it("should allow batching operations for current bucket", async () => {
             (
               await bucket.batch(
-                batch => {
+                (batch) => {
                   batch.createCollection("comments");
                   batch.createCollection("comments");
                 },
@@ -1360,7 +1358,7 @@ describe("Integration tests", function(__test) {
             });
 
             it("should retrieve the updated total number of records", async () => {
-              await coll.batch(batch => {
+              await coll.batch((batch) => {
                 batch.createRecord({ a: 1 });
                 batch.createRecord({ a: 2 });
               });
@@ -1622,9 +1620,11 @@ describe("Integration tests", function(__test) {
                   { foo: "bar" },
                   { permissions: { write: ["github:n1k0"] } }
                 );
-                return (result = res as KintoResponse<{
-                  attachment: Attachment;
-                }>);
+                return (result =
+                  res as
+                  KintoResponse<{
+                    attachment: Attachment;
+                  }>);
               });
 
               it("should create a record with an attachment", () => {
@@ -1694,9 +1694,12 @@ describe("Integration tests", function(__test) {
 
             beforeEach(async () => {
               const res = await coll.addAttachment(dataURL);
-              return (recordId = (res as KintoResponse<{
-                attachment: Attachment;
-              }>).data.id);
+              return (recordId = (
+                res as
+                KintoResponse<{
+                  attachment: Attachment;
+                }>
+              ).data.id);
             });
 
             it("should remove an attachment from a record", async () => {
@@ -1724,25 +1727,25 @@ describe("Integration tests", function(__test) {
               await coll.createRecord({ title: "foo" });
 
               const { data } = await coll.listRecords();
-              data.map(record => record.title).should.deep.equal(["foo"]);
+              data.map((record) => record.title).should.deep.equal(["foo"]);
             });
 
             it("should order records by field", async () => {
               await Promise.all(
-                ["art3", "art1", "art2"].map(title => {
+                ["art3", "art1", "art2"].map((title) => {
                   return coll.createRecord({ title });
                 })
               );
 
               const { data } = await coll.listRecords({ sort: "title" });
               data
-                .map(record => record.title)
+                .map((record) => record.title)
                 .should.deep.equal(["art1", "art2", "art3"]);
             });
 
             describe("Filtering", () => {
               beforeEach(() => {
-                return coll.batch(batch => {
+                return coll.batch((batch) => {
                   batch.createRecord({ name: "paul", age: 28 });
                   batch.createRecord({ name: "jess", age: 54 });
                   batch.createRecord({ name: "john", age: 33 });
@@ -1756,7 +1759,7 @@ describe("Integration tests", function(__test) {
                   filters: { min_age: 30 },
                 });
                 data
-                  .map(record => record.name)
+                  .map((record) => record.name)
                   .should.deep.equal(["john", "jess"]);
               });
 
@@ -1764,7 +1767,7 @@ describe("Integration tests", function(__test) {
                 const { data } = await coll.listRecords({
                   filters: { name: "rené" },
                 });
-                data.map(record => record.name).should.deep.equal(["rené"]);
+                data.map((record) => record.name).should.deep.equal(["rené"]);
               });
 
               it("should resolve with collection last_modified value", async () => {
@@ -1845,7 +1848,7 @@ describe("Integration tests", function(__test) {
               });
 
               it("should handle long list of changes", async () => {
-                const res = await coll.batch(batch => {
+                const res = await coll.batch((batch) => {
                   for (let n = 4; n <= 100; n++) {
                     batch.createRecord({ n });
                   }
@@ -1866,7 +1869,7 @@ describe("Integration tests", function(__test) {
                 let rec1up: KintoObject;
 
                 beforeEach(async () => {
-                  const responses = await coll.batch(batch => {
+                  const responses = await coll.batch((batch) => {
                     batch.deleteRecord(rec2.id);
                     batch.updateRecord({
                       ...rec1,
@@ -1911,7 +1914,7 @@ describe("Integration tests", function(__test) {
 
             describe("Pagination", () => {
               beforeEach(() => {
-                return coll.batch(batch => {
+                return coll.batch((batch) => {
                   for (let i = 1; i <= 3; i++) {
                     batch.createRecord({ n: i });
                   }
@@ -1920,18 +1923,18 @@ describe("Integration tests", function(__test) {
 
               it("should not paginate by default", async () => {
                 const { data } = await coll.listRecords();
-                data.map(record => record.n).should.deep.equal([3, 2, 1]);
+                data.map((record) => record.n).should.deep.equal([3, 2, 1]);
               });
 
               it("should paginate by chunks", async () => {
                 const { data } = await coll.listRecords({ limit: 2 });
-                data.map(record => record.n).should.deep.equal([3, 2]);
+                data.map((record) => record.n).should.deep.equal([3, 2]);
               });
 
               it("should provide a next method to load next page", async () => {
                 const res = await coll.listRecords({ limit: 2 });
                 const { data } = await res.next();
-                data.map(record => record.n).should.deep.equal([1]);
+                data.map((record) => record.n).should.deep.equal([1]);
               });
 
               it("should resolve with an empty array on exhausted pagination", async () => {
@@ -1948,18 +1951,18 @@ describe("Integration tests", function(__test) {
                 // Note: Server has no limit by default, so here we get all the
                 // records.
                 const { data } = await coll.listRecords();
-                data.map(record => record.n).should.deep.equal([3, 2, 1]);
+                data.map((record) => record.n).should.deep.equal([3, 2, 1]);
               });
 
               it("should retrieve specified number of pages", async () => {
                 const { data } = await coll.listRecords({ limit: 1, pages: 2 });
-                data.map(record => record.n).should.deep.equal([3, 2]);
+                data.map((record) => record.n).should.deep.equal([3, 2]);
               });
 
               it("should allow fetching next page after last page if any", async () => {
                 const { next } = await coll.listRecords({ limit: 1, pages: 1 });
                 const { data } = await next();
-                data.map(record => record.n).should.deep.equal([3, 2]);
+                data.map((record) => record.n).should.deep.equal([3, 2]);
               });
 
               it("should should retrieve all existing pages", async () => {
@@ -1967,19 +1970,19 @@ describe("Integration tests", function(__test) {
                   limit: 1,
                   pages: Infinity,
                 });
-                data.map(record => record.n).should.deep.equal([3, 2, 1]);
+                data.map((record) => record.n).should.deep.equal([3, 2, 1]);
               });
             });
           });
 
           describe(".batch()", () => {
             it("should allow batching operations in the current collection", async () => {
-              await coll.batch(batch => {
+              await coll.batch((batch) => {
                 batch.createRecord({ title: "a" });
                 batch.createRecord({ title: "b" });
               });
               const { data } = await coll.listRecords({ sort: "title" });
-              data.map(record => record.title).should.deep.equal(["a", "b"]);
+              data.map((record) => record.title).should.deep.equal(["a", "b"]);
             });
           });
         });

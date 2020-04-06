@@ -144,7 +144,7 @@ describe("Utils", () => {
         () => {
           throw new Error("Should be rejected");
         },
-        err => {
+        (err) => {
           err.should.not.be.undefined;
         }
       );
@@ -172,7 +172,7 @@ describe("Utils", () => {
         () => {
           throw new Error("Should be rejected");
         },
-        err => {
+        (err) => {
           expect(err).to.be.undefined;
         }
       );

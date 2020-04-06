@@ -26,7 +26,7 @@ export function partition<T>(array: T[], n: number): T[][] {
  * @return Promise<void>
  */
 export function delay(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 interface Entity {
@@ -62,7 +62,7 @@ export function qsify(obj: { [key: string]: any }): string {
     encodeURIComponent(typeof v === "boolean" ? String(v) : v);
   const stripped = cleanUndefinedProperties(obj);
   return Object.keys(stripped)
-    .map(k => {
+    .map((k) => {
       const ks = encode(k) + "=";
       if (Array.isArray(stripped[k])) {
         return ks + stripped[k].map((v: any) => encode(v)).join(",");
@@ -87,7 +87,7 @@ export function checkVersion(
   maxVersion: string
 ): void {
   const extract = (str: string): number[] =>
-    str.split(".").map(x => parseInt(x, 10));
+    str.split(".").map((x) => parseInt(x, 10));
   const [verMajor, verMinor] = extract(version);
   const [minMajor, minMinor] = extract(minVersion);
   const [maxMajor, maxMinor] = extract(maxVersion);
@@ -97,7 +97,7 @@ export function checkVersion(
     verMajor > maxMajor,
     verMajor === maxMajor && verMinor >= maxMinor,
   ];
-  if (checks.some(x => x)) {
+  if (checks.some((x) => x)) {
     throw new Error(
       `Version ${version} doesn't satisfy ${minVersion} <= x < ${maxVersion}`
     );
@@ -122,7 +122,7 @@ type DecoratorReturn = (
  * @return {Function}
  */
 export function support(min: string, max: string): DecoratorReturn {
-  return function(
+  return function (
     // @ts-ignore
     target: any,
     key: string,
@@ -159,7 +159,7 @@ export function support(min: string, max: string): DecoratorReturn {
  * @return {Function}
  */
 export function capable(capabilities: string[]): DecoratorReturn {
-  return function(
+  return function (
     // @ts-ignore
     target: any,
     key: string,
@@ -175,7 +175,7 @@ export function capable(capabilities: string[]): DecoratorReturn {
           return client
             .fetchServerCapabilities()
             .then((available: string[]) => {
-              const missing = capabilities.filter(c => !(c in available));
+              const missing = capabilities.filter((c) => !(c in available));
               if (missing.length > 0) {
                 const missingStr = missing.join(", ");
                 throw new Error(
@@ -204,7 +204,7 @@ export function capable(capabilities: string[]): DecoratorReturn {
  * @return {Function}
  */
 export function nobatch(message: string): DecoratorReturn {
-  return function(
+  return function (
     // @ts-ignore
     target: any,
     key: string,

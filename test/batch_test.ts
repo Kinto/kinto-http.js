@@ -76,7 +76,7 @@ describe("batch module", () => {
 
       expect(aggregate(responses, _requests))
         .to.have.property("published")
-        .eql(responses.map(r => r.body));
+        .eql(responses.map((r) => r.body));
     });
 
     it("should expose HTTP 404 responses in the skipped list", () => {
@@ -104,7 +104,7 @@ describe("batch module", () => {
       expect(aggregate(responses, _requests))
         .to.have.property("skipped")
         .eql(
-          responses.map(r => ({
+          responses.map((r) => ({
             id: "123",
             path: "records/123",
             error: r.body,

@@ -137,7 +137,7 @@ describe("HTTP class", () => {
         describe("Request timeout", () => {
           beforeEach(() => {
             sandbox.stub(globalThis as any, "fetch").returns(
-              new Promise(resolve => {
+              new Promise((resolve) => {
                 setTimeout(resolve, 20000);
               })
             );

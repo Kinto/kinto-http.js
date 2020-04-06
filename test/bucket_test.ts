@@ -215,9 +215,10 @@ describe("Bucket", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as PaginationResult<{
-            id: string;
-          }>
+          ({} as unknown) as
+            PaginationResult<{
+              id: string;
+            }>
         );
       },
       hasNextPage: false,
@@ -528,9 +529,10 @@ describe("Bucket", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as PaginationResult<{
-            id: string;
-          }>
+          ({} as unknown) as
+            PaginationResult<{
+              id: string;
+            }>
         );
       },
       hasNextPage: false,
@@ -916,7 +918,7 @@ describe("Bucket", () => {
     it("should merge default options", () => {
       const bucket = getBlogBucket({ headers: { Foo: "Bar" }, safe: true });
 
-      return bucket.getPermissions({ headers: { Baz: "Qux" } }).then(_ => {
+      return bucket.getPermissions({ headers: { Baz: "Qux" } }).then((_) => {
         sinon.assert.calledWithMatch(executeStub, {
           path: "/buckets/blog",
           headers: { Baz: "Qux", Foo: "Bar" },
