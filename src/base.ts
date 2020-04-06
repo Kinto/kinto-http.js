@@ -7,7 +7,7 @@ import {
   cleanUndefinedProperties,
 } from "./utils";
 import HTTP, { HttpResponse } from "./http";
-import endpoint from "./endpoint";
+import Endpoints from "./endpoints";
 import * as requests from "./requests";
 import { aggregate, AggregateResponse } from "./batch";
 import Bucket from "./bucket";
@@ -90,6 +90,7 @@ export default class KintoClientBase {
   public serverInfo: HelloResponse | null;
   public events?: Emitter;
   public http: HTTP;
+  public endpoints: typeof Endpoints;
   private _remote!: string;
   private _version!: string;
 
@@ -140,6 +141,8 @@ export default class KintoClientBase {
      * @type {Class}
      */
     this.events = options.events;
+
+    this.endpoints = Endpoints;
 
     const { requestMode, timeout } = options;
     /**
@@ -311,7 +314,7 @@ export default class KintoClientBase {
       headers?: Record<string, string>;
     } = {}
   ): Promise<HelloResponse> {
-    const path = this.remote + endpoint.root();
+    const path = this.remote + Endpoints.root();
     const { json } = await this.http.request<HelloResponse>(
       path,
       { headers: this._getHeaders(options) },
@@ -449,7 +452,7 @@ export default class KintoClientBase {
         // FIXME: is this really necessary, since it's also present in
         // the "defaults"?
         headers,
-        path: endpoint.batch(),
+        path: Endpoints.batch(),
         method: "POST",
         body: {
           defaults: { headers },
@@ -716,7 +719,7 @@ export default class KintoClientBase {
       headers?: Record<string, string>;
     } = {}
   ): Promise<PaginationResult<PermissionData>> {
-    const path = endpoint.permissions();
+    const path = Endpoints.permissions();
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
     const paginationOptions = { sort: "id", ...options };
@@ -748,7 +751,7 @@ export default class KintoClientBase {
       since?: string;
     } = {}
   ): Promise<PaginationResult<KintoObject>> {
-    const path = endpoint.bucket();
+    const path = Endpoints.bucket();
     return this.paginatedList<KintoObject>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -779,7 +782,7 @@ export default class KintoClientBase {
   ): Promise<KintoResponse<T>> {
     const { data, permissions } = options;
     const _data = { ...data, id: id ? id : undefined };
-    const path = _data.id ? endpoint.bucket(_data.id) : endpoint.bucket();
+    const path = _data.id ? Endpoints.bucket(_data.id) : Endpoints.bucket();
     return this.execute<KintoResponse<T>>(
       requests.createRequest(
         path,
@@ -819,7 +822,7 @@ export default class KintoClientBase {
     if (!bucketObj.id) {
       throw new Error("A bucket id is required.");
     }
-    const path = endpoint.bucket(bucketObj.id);
+    const path = Endpoints.bucket(bucketObj.id);
     const { last_modified } = { ...bucketObj, ...options };
     return this.execute<KintoResponse<{ deleted: boolean }>>(
       requests.deleteRequest(path, {
@@ -850,7 +853,7 @@ export default class KintoClientBase {
       last_modified?: number;
     } = {}
   ): Promise<KintoResponse<{ deleted: boolean }>> {
-    const path = endpoint.bucket();
+    const path = Endpoints.bucket();
     return this.execute<KintoResponse<{ deleted: boolean }>>(
       requests.deleteRequest(path, {
         last_modified: options.last_modified,

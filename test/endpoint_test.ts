@@ -1,6 +1,6 @@
 import chai, { expect } from "chai";
 
-import endpoint from "../src/endpoint";
+import Endpoints from "../src/endpoints";
 
 chai.should();
 chai.config.includeStack = true;
@@ -8,36 +8,36 @@ chai.config.includeStack = true;
 /** @test {endpoint} */
 describe("endpoint()", () => {
   it("should provide a root endpoint", () => {
-    expect(endpoint.root()).eql("/");
+    expect(Endpoints.root()).eql("/");
   });
 
   it("should provide a batch endpoint", () => {
-    expect(endpoint.batch()).eql("/batch");
+    expect(Endpoints.batch()).eql("/batch");
   });
 
   it("should provide a bucket endpoint", () => {
-    expect(endpoint.bucket("foo")).eql("/buckets/foo");
+    expect(Endpoints.bucket("foo")).eql("/buckets/foo");
   });
 
   it("should provide a collection endpoint", () => {
-    expect(endpoint.collection("foo", "bar")).eql(
+    expect(Endpoints.collection("foo", "bar")).eql(
       "/buckets/foo/collections/bar"
     );
   });
 
   it("should provide a records endpoint", () => {
-    expect(endpoint.record("foo", "bar")).eql(
+    expect(Endpoints.record("foo", "bar")).eql(
       "/buckets/foo/collections/bar/records"
     );
   });
 
   it("should provide a record endpoint", () => {
-    expect(endpoint.record("foo", "bar", "42")).eql(
+    expect(Endpoints.record("foo", "bar", "42")).eql(
       "/buckets/foo/collections/bar/records/42"
     );
   });
 
   it("should provide a permissions endpoint", () => {
-    expect(endpoint.permissions()).eql("/permissions");
+    expect(Endpoints.permissions()).eql("/permissions");
   });
 });
