@@ -800,4 +800,21 @@ export default class Collection {
       aggregate: !!options.aggregate,
     });
   }
+
+  @capable(["changes"])
+  async getChangeset<T>(
+    options: {
+      headers?: Record<string, string>;
+      query?: { [key: string]: string };
+      retry?: number;
+    } = {}
+  ): Promise<T> {
+    let path = endpoint.changeset(this.bucket.name, this.name);
+    path = addEndpointOptions(path, options);
+    const request = { headers: this._getHeaders(options), path };
+    const response = (await this.client.execute(request, {
+      retry: this._getRetry(options),
+    })) as T;
+    return response;
+  }
 }

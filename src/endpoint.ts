@@ -16,6 +16,8 @@ const ENDPOINTS = {
     `${ENDPOINTS.collection(bucket, coll)}/records` + (id ? `/${id}` : ""),
   attachment: (bucket: string, coll: string, id: string) =>
     `${ENDPOINTS.record(bucket, coll, id)}/attachment`,
+  changeset: (bucket: string, coll: string) =>
+    `${ENDPOINTS.collection(bucket, coll)}/changeset`,
 };
 
 export default ENDPOINTS;
