@@ -1,21 +1,38 @@
 import sinon from "sinon";
 import { expect } from "chai";
 
+class Headers extends Map {
+  append(name: string, value: string) {
+    this.set(name, value);
+  }
+  forEach(
+    callbackfn: (value: string, key: string, parent: Headers) => void,
+    thisArg?: any
+  ) {
+    Array.from(thisArg.keys()).forEach((k) => {
+      callbackfn(this.get(k), k as string, this);
+    });
+  }
+}
+
+export function fakeHeaders(headers: { [key: string]: string | number } = {}) {
+  const h = new Headers();
+  Object.entries(headers).forEach(([k, v]) => h.set(k, v));
+  return h;
+}
+
 export function fakeServerResponse(
   status: number,
   json: any,
   headers: { [key: string]: string | number } = {}
 ) {
+  const respHeaders = fakeHeaders(headers);
+  if (!respHeaders.has("Content-Length")) {
+    respHeaders.set("Content-Length", JSON.stringify(json).length);
+  }
   return Promise.resolve({
     status: status,
-    headers: {
-      get(name: string) {
-        if (!("Content-Length" in headers) && name === "Content-Length") {
-          return JSON.stringify(json).length;
-        }
-        return headers[name];
-      },
-    },
+    headers: respHeaders,
     text() {
       return Promise.resolve(JSON.stringify(json));
     },

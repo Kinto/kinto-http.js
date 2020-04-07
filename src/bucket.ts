@@ -1,4 +1,4 @@
-import { toDataBody, isObject, capable, addEndpointOptions } from "./utils";
+import { toDataBody, isObject, capable } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
 import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
@@ -211,14 +211,15 @@ export default class Bucket {
       retry?: number;
     } = {}
   ): Promise<T> {
-    let path = this._endpoints.bucket(this.name);
-    path = addEndpointOptions(path, options);
+    const path = this._endpoints.bucket(this.name);
     const request = {
       headers: this._getHeaders(options),
       path,
     };
     const { data } = (await this.client.execute(request, {
       retry: this._getRetry(options),
+      query: options.query,
+      fields: options.fields,
     })) as { data: T };
     return data;
   }
@@ -455,14 +456,15 @@ export default class Bucket {
       fields?: string[];
     } = {}
   ): Promise<KintoResponse<Group>> {
-    let path = this._endpoints.group(this.name, id);
-    path = addEndpointOptions(path, options);
+    const path = this._endpoints.group(this.name, id);
     const request = {
       headers: this._getHeaders(options),
       path,
     };
     return this.client.execute<KintoResponse<Group>>(request, {
       retry: this._getRetry(options),
+      query: options.query,
+      fields: options.fields,
     }) as Promise<KintoResponse<Group>>;
   }
 

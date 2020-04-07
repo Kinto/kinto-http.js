@@ -2,7 +2,6 @@ import { v4 as uuid } from "uuid";
 
 import { capable, toDataBody, isObject } from "./utils";
 import * as requests from "./requests";
-import { addEndpointOptions } from "./utils";
 import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
 import Bucket from "./bucket";
 import {
@@ -195,11 +194,12 @@ export default class Collection {
       retry?: number;
     } = {}
   ): Promise<T> {
-    let path = this._endpoints.collection(this.bucket.name, this.name);
-    path = addEndpointOptions(path, options);
+    const path = this._endpoints.collection(this.bucket.name, this.name);
     const request = { headers: this._getHeaders(options), path };
     const { data } = (await this.client.execute(request, {
       retry: this._getRetry(options),
+      query: options.query,
+      fields: options.fields,
     })) as { data: T };
     return data;
   }
@@ -508,7 +508,11 @@ export default class Collection {
     } = {}
   ): Promise<{}> {
     const { last_modified } = options;
-    const path = this._endpoints.attachment(this.bucket.name, this.name, recordId);
+    const path = this._endpoints.attachment(
+      this.bucket.name,
+      this.name,
+      recordId
+    );
     const request = requests.deleteRequest(path, {
       last_modified,
       headers: this._getHeaders(options),
@@ -629,11 +633,12 @@ export default class Collection {
       retry?: number;
     } = {}
   ): Promise<KintoResponse<T>> {
-    let path = this._endpoints.record(this.bucket.name, this.name, id);
-    path = addEndpointOptions(path, options);
+    const path = this._endpoints.record(this.bucket.name, this.name, id);
     const request = { headers: this._getHeaders(options), path };
     return this.client.execute<KintoResponse<T>>(request, {
       retry: this._getRetry(options),
+      query: options.query,
+      fields: options.fields,
     }) as Promise<KintoResponse<T>>;
   }
 

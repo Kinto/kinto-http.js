@@ -11,7 +11,7 @@ import Endpoints from "./endpoints";
 import * as requests from "./requests";
 import { aggregate, AggregateResponse } from "./batch";
 import Bucket from "./bucket";
-import { capable } from "./utils";
+import { addEndpointOptions, capable } from "./utils";
 import {
   HelloResponse,
   KintoRequest,
@@ -536,7 +536,13 @@ export default class KintoClientBase {
    */
   async execute<T>(
     request: KintoRequest,
-    options: { raw?: boolean; stringify?: boolean; retry?: number } = {}
+    options: {
+      raw?: boolean;
+      stringify?: boolean;
+      retry?: number;
+      query?: { [key: string]: string };
+      fields?: string[];
+    } = {}
   ): Promise<T | HttpResponse<T>> {
     const { raw = false, stringify = true } = options;
     // If we're within a batch, add the request to the stack to send at once.
@@ -550,8 +556,9 @@ export default class KintoClientBase {
         ? ({ status: 0, json: msg, headers: new Headers() } as HttpResponse<T>)
         : msg;
     }
+    const uri = this.remote + addEndpointOptions(request.path, options);
     const result = await this.http.request<T>(
-      this.remote + request.path,
+      uri,
       cleanUndefinedProperties({
         // Limit requests to only those parts that would be allowed in
         // a batch request -- don't pass through other fancy fetch()
