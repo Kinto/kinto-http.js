@@ -447,20 +447,21 @@ export default class KintoClientBase {
       }
       return results;
     }
-    const { responses } = (await this.execute<BatchResponse>(
-      {
-        // FIXME: is this really necessary, since it's also present in
-        // the "defaults"?
-        headers,
-        path: Endpoints.batch(),
-        method: "POST",
-        body: {
-          defaults: { headers },
-          requests,
+    const { responses } =
+      (await this.execute<BatchResponse>(
+        {
+          // FIXME: is this really necessary, since it's also present in
+          // the "defaults"?
+          headers,
+          path: Endpoints.batch(),
+          method: "POST",
+          body: {
+            defaults: { headers },
+            requests,
+          },
         },
-      },
-      { retry: this._getRetry(options) }
-    )) as BatchResponse;
+        { retry: this._getRetry(options) }
+      )) as BatchResponse;
     return responses;
   }
 
@@ -550,8 +551,11 @@ export default class KintoClientBase {
       this._requests.push(request);
       // Resolve with a message in case people attempt at consuming the result
       // from within a batch operation.
-      const msg = (("This result is generated from within a batch " +
-        "operation and should not be consumed.") as unknown) as T;
+      const msg =
+        (("This result is generated from within a batch " +
+          "operation and should not be consumed.") as
+          unknown) as
+        T;
       return raw
         ? ({ status: 0, json: msg, headers: new Headers() } as HttpResponse<T>)
         : msg;
@@ -790,17 +794,19 @@ export default class KintoClientBase {
     const { data, permissions } = options;
     const _data = { ...data, id: id ? id : undefined };
     const path = _data.id ? Endpoints.bucket(_data.id) : Endpoints.bucket();
-    return this.execute<KintoResponse<T>>(
-      requests.createRequest(
-        path,
-        { data: _data, permissions },
-        {
-          headers: this._getHeaders(options),
-          safe: this._getSafe(options),
-        }
-      ),
-      { retry: this._getRetry(options) }
-    ) as Promise<KintoResponse<T>>;
+    return (
+      this.execute<KintoResponse<T>>(
+        requests.createRequest(
+          path,
+          { data: _data, permissions },
+          {
+            headers: this._getHeaders(options),
+            safe: this._getSafe(options),
+          }
+        ),
+        { retry: this._getRetry(options) }
+      ) as Promise<KintoResponse<T>>
+    );
   }
 
   /**
@@ -831,14 +837,16 @@ export default class KintoClientBase {
     }
     const path = Endpoints.bucket(bucketObj.id);
     const { last_modified } = { ...bucketObj, ...options };
-    return this.execute<KintoResponse<{ deleted: boolean }>>(
-      requests.deleteRequest(path, {
-        last_modified,
-        headers: this._getHeaders(options),
-        safe: this._getSafe(options),
-      }),
-      { retry: this._getRetry(options) }
-    ) as Promise<KintoResponse<{ deleted: boolean }>>;
+    return (
+      this.execute<KintoResponse<{ deleted: boolean }>>(
+        requests.deleteRequest(path, {
+          last_modified,
+          headers: this._getHeaders(options),
+          safe: this._getSafe(options),
+        }),
+        { retry: this._getRetry(options) }
+      ) as Promise<KintoResponse<{ deleted: boolean }>>
+    );
   }
 
   /**
@@ -861,14 +869,16 @@ export default class KintoClientBase {
     } = {}
   ): Promise<KintoResponse<{ deleted: boolean }>> {
     const path = Endpoints.bucket();
-    return this.execute<KintoResponse<{ deleted: boolean }>>(
-      requests.deleteRequest(path, {
-        last_modified: options.last_modified,
-        headers: this._getHeaders(options),
-        safe: this._getSafe(options),
-      }),
-      { retry: this._getRetry(options) }
-    ) as Promise<KintoResponse<{ deleted: boolean }>>;
+    return (
+      this.execute<KintoResponse<{ deleted: boolean }>>(
+        requests.deleteRequest(path, {
+          last_modified: options.last_modified,
+          headers: this._getHeaders(options),
+          safe: this._getSafe(options),
+        }),
+        { retry: this._getRetry(options) }
+      ) as Promise<KintoResponse<{ deleted: boolean }>>
+    );
   }
 
   @capable(["accounts"])
@@ -876,12 +886,14 @@ export default class KintoClientBase {
     username: string,
     password: string
   ): Promise<KintoResponse<{ password: string }>> {
-    return this.execute<KintoResponse<{ password: string }>>(
-      requests.createRequest(
-        `/accounts/${username}`,
-        { data: { password } },
-        { method: "PUT" }
-      )
-    ) as Promise<KintoResponse<{ password: string }>>;
+    return (
+      this.execute<KintoResponse<{ password: string }>>(
+        requests.createRequest(
+          `/accounts/${username}`,
+          { data: { password } },
+          { method: "PUT" }
+        )
+      ) as Promise<KintoResponse<{ password: string }>>
+    );
   }
 }
