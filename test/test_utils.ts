@@ -2,8 +2,8 @@ import sinon from "sinon";
 import { expect } from "chai";
 
 export function fakeHeaders(headers: { [key: string]: string | number } = {}) {
-  const h = new (global as any).Headers();
-  Object.entries(headers).forEach(([k, v]) => h.set(k, v));
+  const h = new Headers();
+  Object.entries(headers).forEach(([k, v]) => h.set(k, v.toString()));
   return h;
 }
 
@@ -14,7 +14,7 @@ export function fakeServerResponse(
 ) {
   const respHeaders = fakeHeaders(headers);
   if (!respHeaders.has("Content-Length")) {
-    respHeaders.set("Content-Length", JSON.stringify(json).length);
+    respHeaders.set("Content-Length", JSON.stringify(json).length.toString());
   }
   return Promise.resolve({
     status: status,
