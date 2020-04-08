@@ -1,22 +1,8 @@
 import sinon from "sinon";
 import { expect } from "chai";
 
-class Headers extends Map {
-  append(name: string, value: string) {
-    this.set(name, value);
-  }
-  forEach(
-    callbackfn: (value: string, key: string, parent: Headers) => void,
-    thisArg?: any
-  ) {
-    Array.from(thisArg.keys()).forEach((k) => {
-      callbackfn(this.get(k), k as string, this);
-    });
-  }
-}
-
 export function fakeHeaders(headers: { [key: string]: string | number } = {}) {
-  const h = new Headers();
+  const h = new (global as any).Headers();
   Object.entries(headers).forEach(([k, v]) => h.set(k, v));
   return h;
 }
