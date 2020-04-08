@@ -963,10 +963,8 @@ describe("Integration tests", function () {
         });
 
         it("should create an automatically named collection", async () => {
-          let generated: string;
-
           const res = await bucket.createCollection();
-          generated = (res as KintoResponse).data.id;
+          const generated: string = (res as KintoResponse).data.id;
           const { data } = await bucket.listCollections();
           return expect(data.some((x) => x.id === generated)).eql(true);
         });
@@ -1114,10 +1112,8 @@ describe("Integration tests", function () {
         });
 
         it("should create an automatically named group", async () => {
-          let generated: string;
-
           const res = await bucket.createGroup();
-          generated = (res as KintoResponse<Group>).data.id;
+          const generated: string = (res as KintoResponse<Group>).data.id;
           const { data } = await bucket.listGroups();
           return expect(data.some((x) => x.id === generated)).eql(true);
         });
@@ -1812,9 +1808,8 @@ describe("Integration tests", function () {
               });
 
               it("should handle updates", async () => {
-                let updatedRec2: KintoObject;
                 const res = await coll.updateRecord({ ...rec2, n: 42 });
-                updatedRec2 = (res as KintoResponse).data;
+                const updatedRec2: KintoObject = (res as KintoResponse).data;
                 const { data } = await coll.listRecords({
                   at: updatedRec2.last_modified,
                 });
