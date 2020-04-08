@@ -28,7 +28,7 @@ export interface BucketOptions {
 export default class Bucket {
   private client: KintoClientBase;
   public name: string;
-  private _endpoints: any;
+  private _endpoints: KintoClientBase["endpoints"];
   private _retry: number;
   private _safe: boolean;
   private _headers: Record<string, string>;

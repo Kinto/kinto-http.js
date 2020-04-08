@@ -32,7 +32,7 @@ export default class Collection {
   public client: KintoClientBase;
   private bucket: Bucket;
   public name: string;
-  private _endpoints: any;
+  private _endpoints: KintoClientBase["endpoints"];
   private _retry: number;
   private _safe: boolean;
   private _headers: Record<string, string>;
