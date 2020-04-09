@@ -3,7 +3,7 @@ import KintoClient from "../src";
 import Bucket, { BucketOptions } from "../src/bucket";
 import Collection from "../src/collection";
 import { PaginationResult } from "../src/base";
-import { Stub, expectAsyncError } from "./test_utils";
+import { Stub, expectAsyncError, fakeHeaders } from "./test_utils";
 
 const { expect } = intern.getPlugin("chai");
 intern.getPlugin("chai").should();
@@ -12,10 +12,6 @@ const { describe, it, beforeEach, afterEach } = intern.getPlugin(
 );
 
 const FAKE_SERVER_URL = "http://fake-server/v1";
-
-const fakeHeaders = {
-  get: () => "",
-};
 
 /** @test {Bucket} */
 describe("Bucket", () => {
@@ -48,7 +44,7 @@ describe("Bucket", () => {
     it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve({ headers: fakeHeaders }));
+        .returns(Promise.resolve({ headers: fakeHeaders() }));
 
       await getBlogBucket().getData();
 
@@ -70,16 +66,23 @@ describe("Bucket", () => {
 
     it("should support query and fields", () => {
       const response = { data: { foo: "bar" }, permissions: {} };
-      const executeStub = sandbox
-        .stub(client, "execute")
-        .returns(Promise.resolve(response));
+      const requestStub = sandbox.stub(client.http, "request").returns(
+        Promise.resolve({
+          headers: fakeHeaders(),
+          json: response,
+          status: 200,
+        })
+      );
 
       getBlogBucket().getData({ query: { a: "b" }, fields: ["c", "d"] });
 
-      sinon.assert.calledWithMatch(executeStub, {
-        path: "/buckets/blog?a=b&_fields=c,d",
-        headers: {},
-      });
+      sinon.assert.calledWithMatch(
+        requestStub,
+        "http://fake-server/v1/buckets/blog?a=b&_fields=c,d",
+        {
+          headers: {},
+        }
+      );
     });
   });
 
@@ -179,7 +182,7 @@ describe("Bucket", () => {
     it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve({ headers: fakeHeaders }));
+        .returns(Promise.resolve({ headers: fakeHeaders() }));
 
       await getBlogBucket().getCollectionsTimestamp();
 
@@ -495,7 +498,7 @@ describe("Bucket", () => {
     it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve({ headers: fakeHeaders }));
+        .returns(Promise.resolve({ headers: fakeHeaders() }));
 
       await getBlogBucket().getGroupsTimestamp();
 
@@ -589,13 +592,11 @@ describe("Bucket", () => {
     const fakeGroup = { data: {}, permissions: {} };
     let executeStub: Stub<typeof client.execute>;
 
-    beforeEach(() => {
+    it("should extend request headers with optional ones", () => {
       executeStub = sandbox
         .stub(client, "execute")
         .returns(Promise.resolve(fakeGroup));
-    });
 
-    it("should extend request headers with optional ones", () => {
       getBlogBucket({
         headers: { Foo: "Bar" },
       }).getGroup("foo", { headers: { Baz: "Qux" } });
@@ -607,22 +608,33 @@ describe("Bucket", () => {
     });
 
     it("should return the group", async () => {
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve(fakeGroup));
+
       (await getBlogBucket().getGroup("foo")).should.deep.equal(fakeGroup);
     });
 
     it("should support query and fields", () => {
+      const requestStub = sandbox.stub(client.http, "request").returns(
+        Promise.resolve({
+          headers: fakeHeaders(),
+          json: {},
+          status: 200,
+        })
+      );
+
       getBlogBucket().getGroup("foo", {
         query: { a: "b" },
         fields: ["c", "d"],
       });
 
       sinon.assert.calledWithMatch(
-        executeStub,
+        requestStub,
+        "http://fake-server/v1/buckets/blog/groups/foo?a=b&_fields=c,d",
         {
-          path: "/buckets/blog/groups/foo?a=b&_fields=c,d",
           headers: {},
-        },
-        { retry: 0 }
+        }
       );
     });
   });

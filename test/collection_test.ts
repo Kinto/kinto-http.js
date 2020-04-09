@@ -2,7 +2,13 @@ import sinon from "sinon";
 import KintoClient from "../src";
 import Bucket from "../src/bucket";
 import Collection, { CollectionOptions } from "../src/collection";
-import { fakeServerResponse, Stub, expectAsyncError } from "./test_utils";
+import * as requests from "../src/requests";
+import {
+  fakeServerResponse,
+  Stub,
+  expectAsyncError,
+  fakeHeaders,
+} from "./test_utils";
 import { PaginationResult } from "../src/base";
 
 intern.getPlugin("chai").should();
@@ -27,10 +33,6 @@ describe("Collection", () => {
     sandbox.restore();
   });
 
-  const fakeHeaders = {
-    get: () => "",
-  };
-
   function getBlogPostsCollection(options?: CollectionOptions) {
     return new Bucket(client, "blog").collection("posts", options);
   }
@@ -40,7 +42,7 @@ describe("Collection", () => {
     it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve({ headers: fakeHeaders }));
+        .returns(Promise.resolve({ headers: fakeHeaders() }));
 
       await getBlogPostsCollection().getTotalRecords();
 
@@ -75,7 +77,7 @@ describe("Collection", () => {
     it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve({ headers: fakeHeaders }));
+        .returns(Promise.resolve({ headers: fakeHeaders() }));
 
       await getBlogPostsCollection().getData();
 
@@ -100,29 +102,43 @@ describe("Collection", () => {
     });
 
     it("should pass query through", async () => {
-      const executeStub = sandbox
-        .stub(client, "execute")
-        .returns(Promise.resolve({ headers: fakeHeaders }));
+      const requestStub = sandbox.stub(client.http, "request").returns(
+        Promise.resolve({
+          headers: fakeHeaders(),
+          json: {},
+          status: 200,
+        })
+      );
 
       await getBlogPostsCollection().getData({ query: { _expected: '"123"' } });
 
-      sinon.assert.calledWithMatch(executeStub, {
-        path: "/buckets/blog/collections/posts?_expected=%22123%22",
-        headers: {},
-      });
+      sinon.assert.calledWithMatch(
+        requestStub,
+        "http://fake-server/v1/buckets/blog/collections/posts?_expected=%22123%22",
+        {
+          headers: {},
+        }
+      );
     });
 
     it("supports _fields", async () => {
-      const executeStub = sandbox
-        .stub(client, "execute")
-        .returns(Promise.resolve({ headers: fakeHeaders }));
+      const requestStub = sandbox.stub(client.http, "request").returns(
+        Promise.resolve({
+          headers: fakeHeaders(),
+          json: {},
+          status: 200,
+        })
+      );
 
       await getBlogPostsCollection().getData({ fields: ["a", "b"] });
 
-      sinon.assert.calledWithMatch(executeStub, {
-        path: "/buckets/blog/collections/posts?_fields=a,b",
-        headers: {},
-      });
+      sinon.assert.calledWithMatch(
+        requestStub,
+        "http://fake-server/v1/buckets/blog/collections/posts?_fields=a,b",
+        {
+          headers: {},
+        }
+      );
     });
   });
 
@@ -609,10 +625,14 @@ describe("Collection", () => {
     it("should support query and fields", () => {
       coll.getRecord("1", { query: { a: "b" }, fields: ["c", "d"] });
 
-      sinon.assert.calledWith(executeStub, {
-        headers: { Baz: "Qux", Foo: "Bar" },
-        path: "/buckets/blog/collections/posts/records/1?a=b&_fields=c,d",
-      });
+      sinon.assert.calledWith(
+        executeStub,
+        {
+          headers: { Baz: "Qux", Foo: "Bar" },
+          path: "/buckets/blog/collections/posts/records/1",
+        },
+        { fields: ["c", "d"], query: { a: "b" }, retry: 0 }
+      );
     });
   });
 
@@ -621,7 +641,7 @@ describe("Collection", () => {
     it("should execute expected request", async () => {
       const executeStub = sandbox
         .stub(client, "execute")
-        .returns(Promise.resolve({ headers: fakeHeaders }));
+        .returns(Promise.resolve({ headers: fakeHeaders() }));
 
       await getBlogPostsCollection().getRecordsTimestamp();
 

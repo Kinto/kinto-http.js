@@ -7,11 +7,11 @@ import {
   cleanUndefinedProperties,
 } from "./utils";
 import HTTP, { HttpResponse } from "./http";
-import endpoint from "./endpoint";
+import endpoints from "./endpoints";
 import * as requests from "./requests";
 import { aggregate, AggregateResponse } from "./batch";
 import Bucket from "./bucket";
-import { capable } from "./utils";
+import { addEndpointOptions, capable } from "./utils";
 import {
   HelloResponse,
   KintoRequest,
@@ -90,6 +90,7 @@ export default class KintoClientBase {
   public serverInfo: HelloResponse | null;
   public events?: Emitter;
   public http: HTTP;
+  public endpoints: typeof endpoints;
   private _remote!: string;
   private _version!: string;
 
@@ -140,6 +141,8 @@ export default class KintoClientBase {
      * @type {Class}
      */
     this.events = options.events;
+
+    this.endpoints = endpoints;
 
     const { requestMode, timeout } = options;
     /**
@@ -311,7 +314,7 @@ export default class KintoClientBase {
       headers?: Record<string, string>;
     } = {}
   ): Promise<HelloResponse> {
-    const path = this.remote + endpoint.root();
+    const path = this.remote + endpoints.root();
     const { json } = await this.http.request<HelloResponse>(
       path,
       { headers: this._getHeaders(options) },
@@ -450,7 +453,7 @@ export default class KintoClientBase {
           // FIXME: is this really necessary, since it's also present in
           // the "defaults"?
           headers,
-          path: endpoint.batch(),
+          path: endpoints.batch(),
           method: "POST",
           body: {
             defaults: { headers },
@@ -534,7 +537,13 @@ export default class KintoClientBase {
    */
   async execute<T>(
     request: KintoRequest,
-    options: { raw?: boolean; stringify?: boolean; retry?: number } = {}
+    options: {
+      raw?: boolean;
+      stringify?: boolean;
+      retry?: number;
+      query?: { [key: string]: string };
+      fields?: string[];
+    } = {}
   ): Promise<T | HttpResponse<T>> {
     const { raw = false, stringify = true } = options;
     // If we're within a batch, add the request to the stack to send at once.
@@ -551,8 +560,9 @@ export default class KintoClientBase {
         ? ({ status: 0, json: msg, headers: new Headers() } as HttpResponse<T>)
         : msg;
     }
+    const uri = this.remote + addEndpointOptions(request.path, options);
     const result = await this.http.request<T>(
-      this.remote + request.path,
+      uri,
       cleanUndefinedProperties({
         // Limit requests to only those parts that would be allowed in
         // a batch request -- don't pass through other fancy fetch()
@@ -720,7 +730,7 @@ export default class KintoClientBase {
       headers?: Record<string, string>;
     } = {}
   ): Promise<PaginationResult<PermissionData>> {
-    const path = endpoint.permissions();
+    const path = endpoints.permissions();
     // Ensure the default sort parameter is something that exists in permissions
     // entries, as `last_modified` doesn't; here, we pick "id".
     const paginationOptions = { sort: "id", ...options };
@@ -752,7 +762,7 @@ export default class KintoClientBase {
       since?: string;
     } = {}
   ): Promise<PaginationResult<KintoObject>> {
-    const path = endpoint.bucket();
+    const path = endpoints.bucket();
     return this.paginatedList<KintoObject>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -783,7 +793,7 @@ export default class KintoClientBase {
   ): Promise<KintoResponse<T>> {
     const { data, permissions } = options;
     const _data = { ...data, id: id ? id : undefined };
-    const path = _data.id ? endpoint.bucket(_data.id) : endpoint.bucket();
+    const path = _data.id ? endpoints.bucket(_data.id) : endpoints.bucket();
     return (
       this.execute<KintoResponse<T>>(
         requests.createRequest(
@@ -825,7 +835,7 @@ export default class KintoClientBase {
     if (!bucketObj.id) {
       throw new Error("A bucket id is required.");
     }
-    const path = endpoint.bucket(bucketObj.id);
+    const path = endpoints.bucket(bucketObj.id);
     const { last_modified } = { ...bucketObj, ...options };
     return (
       this.execute<KintoResponse<{ deleted: boolean }>>(
@@ -858,7 +868,7 @@ export default class KintoClientBase {
       last_modified?: number;
     } = {}
   ): Promise<KintoResponse<{ deleted: boolean }>> {
-    const path = endpoint.bucket();
+    const path = endpoints.bucket();
     return (
       this.execute<KintoResponse<{ deleted: boolean }>>(
         requests.deleteRequest(path, {
