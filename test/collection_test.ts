@@ -2,7 +2,6 @@ import sinon from "sinon";
 import KintoClient from "../src";
 import Bucket from "../src/bucket";
 import Collection, { CollectionOptions } from "../src/collection";
-import * as requests from "../src/requests";
 import {
   fakeServerResponse,
   Stub,
