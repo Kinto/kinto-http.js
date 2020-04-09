@@ -128,7 +128,7 @@ describe("HTTP class", () => {
 
           it("should resolve with headers", async () => {
             const { headers } = await http.request("/");
-            headers.get("b")!.should.equal(2);
+            headers.get("b")!.should.equal("2");
           });
         });
 

@@ -1,7 +1,6 @@
-import { toDataBody, isObject, capable, addEndpointOptions } from "./utils";
+import { toDataBody, isObject, capable } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
-import endpoint from "./endpoint";
 import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
 import {
   KintoRequest,
@@ -29,6 +28,7 @@ export interface BucketOptions {
 export default class Bucket {
   private client: KintoClientBase;
   public name: string;
+  private _endpoints: KintoClientBase["endpoints"];
   private _retry: number;
   private _safe: boolean;
   private _headers: Record<string, string>;
@@ -57,6 +57,9 @@ export default class Bucket {
      * @type {String}
      */
     this.name = name;
+
+    this._endpoints = client.endpoints;
+
     /**
      * @ignore
      */
@@ -145,7 +148,7 @@ export default class Bucket {
       retry?: number;
     } = {}
   ): Promise<string | null> {
-    const path = endpoint.collection(this.name);
+    const path = this._endpoints.collection(this.name);
     const request: KintoRequest = {
       headers: this._getHeaders(options),
       path,
@@ -174,7 +177,7 @@ export default class Bucket {
       retry?: number;
     } = {}
   ): Promise<string | null> {
-    const path = endpoint.group(this.name);
+    const path = this._endpoints.group(this.name);
     const request: KintoRequest = {
       headers: this._getHeaders(options),
       path,
@@ -210,8 +213,7 @@ export default class Bucket {
       retry?: number;
     } = {}
   ): Promise<T> {
-    let path = endpoint.bucket(this.name);
-    path = addEndpointOptions(path, options);
+    const path = this._endpoints.bucket(this.name);
     const request = {
       headers: this._getHeaders(options),
       path,
@@ -219,6 +221,8 @@ export default class Bucket {
     const { data } =
       (await this.client.execute(request, {
         retry: this._getRetry(options),
+        query: options.query,
+        fields: options.fields,
       })) as { data: T };
     return data;
   }
@@ -259,7 +263,7 @@ export default class Bucket {
       delete bucket.id;
     }
 
-    const path = endpoint.bucket(bucketId);
+    const path = this._endpoints.bucket(bucketId);
     const { patch, permissions } = options;
     const { last_modified } = { ...data, ...options };
     const request = requests.updateRequest(
@@ -295,7 +299,7 @@ export default class Bucket {
       retry?: number;
     } = {}
   ): Promise<PaginationResult<HistoryEntry<T>>> {
-    const path = endpoint.history(this.name);
+    const path = this._endpoints.history(this.name);
     return this.client.paginatedList<HistoryEntry<T>>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -322,7 +326,7 @@ export default class Bucket {
       fields?: string[];
     } = {}
   ): Promise<PaginationResult<KintoObject>> {
-    const path = endpoint.collection(this.name);
+    const path = this._endpoints.collection(this.name);
     return this.client.paginatedList<KintoObject>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -354,7 +358,7 @@ export default class Bucket {
   ): Promise<KintoResponse<{}>> {
     const { permissions, data = {} } = options;
     data.id = id;
-    const path = endpoint.collection(this.name, id);
+    const path = this._endpoints.collection(this.name, id);
     const request = requests.createRequest(
       path,
       { data, permissions },
@@ -397,7 +401,7 @@ export default class Bucket {
     }
     const { id } = collectionObj;
     const { last_modified } = { ...collectionObj, ...options };
-    const path = endpoint.collection(this.name, id);
+    const path = this._endpoints.collection(this.name, id);
     const request = requests.deleteRequest(path, {
       last_modified,
       headers: this._getHeaders(options),
@@ -430,7 +434,7 @@ export default class Bucket {
       fields?: string[];
     } = {}
   ): Promise<PaginationResult<Group>> {
-    const path = endpoint.group(this.name);
+    const path = this._endpoints.group(this.name);
     return this.client.paginatedList<Group>(path, options, {
       headers: this._getHeaders(options),
       retry: this._getRetry(options),
@@ -461,8 +465,7 @@ export default class Bucket {
       fields?: string[];
     } = {}
   ): Promise<KintoResponse<Group>> {
-    let path = endpoint.group(this.name, id);
-    path = addEndpointOptions(path, options);
+    const path = this._endpoints.group(this.name, id);
     const request = {
       headers: this._getHeaders(options),
       path,
@@ -470,6 +473,8 @@ export default class Bucket {
     return (
       this.client.execute<KintoResponse<Group>>(request, {
         retry: this._getRetry(options),
+        query: options.query,
+        fields: options.fields,
       }) as Promise<KintoResponse<Group>>
     );
   }
@@ -504,7 +509,7 @@ export default class Bucket {
       id,
       members,
     };
-    const path = endpoint.group(this.name, id);
+    const path = this._endpoints.group(this.name, id);
     const { permissions } = options;
     const request = requests.createRequest(
       path,
@@ -557,7 +562,7 @@ export default class Bucket {
       ...options.data,
       ...group,
     };
-    const path = endpoint.group(this.name, group.id);
+    const path = this._endpoints.group(this.name, group.id);
     const { patch, permissions } = options;
     const { last_modified } = { ...data, ...options };
     const request = requests.updateRequest(
@@ -601,7 +606,7 @@ export default class Bucket {
     const groupObj = toDataBody(group);
     const { id } = groupObj;
     const { last_modified } = { ...groupObj, ...options };
-    const path = endpoint.group(this.name, id);
+    const path = this._endpoints.group(this.name, id);
     const request = requests.deleteRequest(path, {
       last_modified,
       headers: this._getHeaders(options),
@@ -631,7 +636,7 @@ export default class Bucket {
   ): Promise<{ [key in Permission]?: string[] }> {
     const request = {
       headers: this._getHeaders(options),
-      path: endpoint.bucket(this.name),
+      path: this._endpoints.bucket(this.name),
     };
     const { permissions } =
       (await this.client.execute<KintoResponse>(request, {
@@ -664,7 +669,7 @@ export default class Bucket {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
-    const path = endpoint.bucket(this.name);
+    const path = this._endpoints.bucket(this.name);
     const { last_modified } = options;
     const data = { last_modified };
     const request = requests.updateRequest(
@@ -706,7 +711,7 @@ export default class Bucket {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
-    const path = endpoint.bucket(this.name);
+    const path = this._endpoints.bucket(this.name);
     const { last_modified } = options;
     const request = requests.jsonPatchPermissionsRequest(
       path,
@@ -749,7 +754,7 @@ export default class Bucket {
     if (!isObject(permissions)) {
       throw new Error("A permissions object is required.");
     }
-    const path = endpoint.bucket(this.name);
+    const path = this._endpoints.bucket(this.name);
     const { last_modified } = options;
     const request = requests.jsonPatchPermissionsRequest(
       path,
