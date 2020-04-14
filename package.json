@@ -78,7 +78,7 @@
     "mitt": "^1.2.0",
     "node-fetch": "^2.6.0",
     "nyc": "^15.0.0",
-    "open-cli": "^5.0.0",
+    "open-cli": "^6.0.1",
     "prettier": "^2.0.1",
     "rollup": "^1.18.0",
     "rollup-plugin-node-builtins": "^2.1.2",
