@@ -165,11 +165,10 @@ export default class Collection {
       path,
       method: "HEAD",
     };
-    const { headers } =
-      (await this.client.execute(request, {
-        raw: true,
-        retry: this._getRetry(options),
-      })) as HttpResponse<{}>;
+    const { headers } = (await this.client.execute(request, {
+      raw: true,
+      retry: this._getRetry(options),
+    })) as HttpResponse<{}>;
     return headers.get("ETag");
   }
 
@@ -197,12 +196,11 @@ export default class Collection {
   ): Promise<T> {
     const path = this._endpoints.collection(this.bucket.name, this.name);
     const request = { headers: this._getHeaders(options), path };
-    const { data } =
-      (await this.client.execute(request, {
-        retry: this._getRetry(options),
-        query: options.query,
-        fields: options.fields,
-      })) as { data: T };
+    const { data } = (await this.client.execute(request, {
+      retry: this._getRetry(options),
+      query: options.query,
+      fields: options.fields,
+    })) as { data: T };
     return data;
   }
 
@@ -246,11 +244,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<T>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<T>>
-    );
+    return this.client.execute<KintoResponse<T>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -270,10 +266,9 @@ export default class Collection {
   ): Promise<{ [key in Permission]?: string[] }> {
     const path = this._endpoints.collection(this.bucket.name, this.name);
     const request = { headers: this._getHeaders(options), path };
-    const { permissions } =
-      (await this.client.execute<KintoResponse>(request, {
-        retry: this._getRetry(options),
-      })) as KintoResponse;
+    const { permissions } = (await this.client.execute<KintoResponse>(request, {
+      retry: this._getRetry(options),
+    })) as KintoResponse;
     return permissions;
   }
 
@@ -311,11 +306,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<{}>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<{}>>
-    );
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -354,11 +347,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<{}>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<{}>>
-    );
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -397,11 +388,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<{}>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<{}>>
-    );
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -435,11 +424,9 @@ export default class Collection {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<T>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<T>>
-    );
+    return this.client.execute<KintoResponse<T>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -531,11 +518,9 @@ export default class Collection {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return (
-      this.client.execute<{}>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<{}>
-    );
+    return this.client.execute<{}>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<{}>;
   }
 
   /**
@@ -581,11 +566,9 @@ export default class Collection {
         patch: !!options.patch,
       }
     );
-    return (
-      this.client.execute<KintoResponse<T>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<T>>
-    );
+    return this.client.execute<KintoResponse<T>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -621,11 +604,9 @@ export default class Collection {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return (
-      this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<{ deleted: boolean }>>
-    );
+    return this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   /**
@@ -654,13 +635,11 @@ export default class Collection {
   ): Promise<KintoResponse<T>> {
     const path = this._endpoints.record(this.bucket.name, this.name, id);
     const request = { headers: this._getHeaders(options), path };
-    return (
-      this.client.execute<KintoResponse<T>>(request, {
-        retry: this._getRetry(options),
-        query: options.query,
-        fields: options.fields,
-      }) as Promise<KintoResponse<T>>
-    );
+    return this.client.execute<KintoResponse<T>>(request, {
+      retry: this._getRetry(options),
+      query: options.query,
+      fields: options.fields,
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -788,17 +767,15 @@ export default class Collection {
         snapshot.push(record);
       }
     }
-    return (
-      {
-        last_modified: String(at),
-        data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
-        next: () => {
-          throw new Error("Snapshots don't support pagination");
-        },
-        hasNextPage: false,
-        totalRecords: snapshot.length,
-      } as PaginationResult<T>
-    );
+    return {
+      last_modified: String(at),
+      data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
+      next: () => {
+        throw new Error("Snapshots don't support pagination");
+      },
+      hasNextPage: false,
+      totalRecords: snapshot.length,
+    } as PaginationResult<T>;
   }
 
   /**

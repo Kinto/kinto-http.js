@@ -218,10 +218,9 @@ describe("Bucket", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as
-            PaginationResult<{
-              id: string;
-            }>
+          ({} as unknown) as PaginationResult<{
+            id: string;
+          }>
         );
       },
       hasNextPage: false,
@@ -532,10 +531,9 @@ describe("Bucket", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as
-            PaginationResult<{
-              id: string;
-            }>
+          ({} as unknown) as PaginationResult<{
+            id: string;
+          }>
         );
       },
       hasNextPage: false,
