@@ -1,5 +1,6 @@
 import sinon from "sinon";
-import { expect } from "chai";
+
+const { expect } = intern.getPlugin("chai");
 
 export function fakeHeaders(headers: { [key: string]: string | number } = {}) {
   const h = new Headers();
@@ -68,5 +69,9 @@ export async function expectAsyncError<T>(
 }
 
 export function btoa(str: string): string {
+  if (globalThis.btoa) {
+    return globalThis.btoa(str);
+  }
+
   return Buffer.from(str, "binary").toString("base64");
 }

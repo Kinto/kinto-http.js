@@ -1,9 +1,8 @@
-import chai, { expect } from "chai";
-
 import endpoints from "../src/endpoints";
 
-chai.should();
-chai.config.includeStack = true;
+const { expect } = intern.getPlugin("chai");
+intern.getPlugin("chai").should();
+const { describe, it } = intern.getPlugin("interface.bdd");
 
 /** @test {endpoint} */
 describe("endpoint()", () => {

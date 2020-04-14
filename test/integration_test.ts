@@ -1,11 +1,10 @@
-import chai, { expect } from "chai";
 import sinon from "sinon";
 
 import Api from "../src";
 import KintoClientBase, { KintoClientOptions } from "../src/base";
 import { EventEmitter } from "events";
 import KintoServer from "kinto-node-test-server";
-import { delayedPromise, Stub, expectAsyncError, btoa } from "./test_utils";
+import { delayedPromise, Stub, btoa, expectAsyncError } from "./test_utils";
 import Bucket from "../src/bucket";
 import Collection from "../src/collection";
 import {
@@ -22,31 +21,39 @@ interface TitleRecord extends KintoObject {
   title: string;
 }
 
-chai.should();
-chai.config.includeStack = true;
+const { expect } = intern.getPlugin("chai");
+intern.getPlugin("chai").should();
+const { describe, it, before, after, beforeEach, afterEach } = intern.getPlugin(
+  "interface.bdd"
+);
 
 const skipLocalServer = !!process.env.TEST_KINTO_SERVER;
 const TEST_KINTO_SERVER =
   process.env.TEST_KINTO_SERVER || "http://0.0.0.0:8888/v1";
+const KINTO_PROXY_SERVER = process.env.KINTO_PROXY_SERVER || TEST_KINTO_SERVER;
 
-function startServer(
+async function startServer(
   server: KintoServer,
   options: { [key: string]: string } = {}
 ) {
-  return !skipLocalServer && server.start(options);
+  if (!skipLocalServer) {
+    await server.start(options);
+  }
 }
 
-function stopServer(server: KintoServer) {
-  return !skipLocalServer && server.stop();
+async function stopServer(server: KintoServer) {
+  if (!skipLocalServer) {
+    await server.stop();
+  }
 }
 
-describe("Integration tests", function () {
+describe("Integration tests", function (__test) {
   let sandbox: sinon.SinonSandbox, server: KintoServer, api: Api;
 
   // Disabling test timeouts until pserve gets decent startup time.
-  this.timeout(0);
+  __test.timeout = 0;
 
-  before(() => {
+  before(async () => {
     if (skipLocalServer) {
       return;
     }
@@ -54,10 +61,11 @@ describe("Integration tests", function () {
     if (process.env.SERVER && process.env.SERVER !== "master") {
       kintoConfigPath = `${__dirname}/kinto-${process.env.SERVER}.ini`;
     }
-    server = new KintoServer(TEST_KINTO_SERVER, {
+    server = new KintoServer(KINTO_PROXY_SERVER, {
       maxAttempts: 200,
       kintoConfigPath,
     });
+    await server.loadConfig(kintoConfigPath);
   });
 
   after(() => {
@@ -80,8 +88,8 @@ describe("Integration tests", function () {
     return new Api(TEST_KINTO_SERVER, options);
   }
 
-  beforeEach(function () {
-    this.timeout(12500);
+  beforeEach((__test) => {
+    __test.timeout = 12500;
 
     sandbox = sinon.createSandbox();
     const events = new EventEmitter();
@@ -94,15 +102,17 @@ describe("Integration tests", function () {
   afterEach(() => sandbox.restore());
 
   describe("Default server configuration", () => {
-    before(() => {
-      return startServer(server);
+    before(async () => {
+      await startServer(server);
     });
 
-    after(() => {
-      return stopServer(server);
+    after(async () => {
+      await stopServer(server);
     });
 
-    beforeEach(() => server.flush());
+    beforeEach(async () => {
+      await server.flush();
+    });
 
     // XXX move this to batch tests
     describe("new batch", () => {
@@ -546,13 +556,17 @@ describe("Integration tests", function () {
   describe("Backed off server", () => {
     const backoffSeconds = 10;
 
-    before(() => {
-      return startServer(server, { KINTO_BACKOFF: backoffSeconds.toString() });
+    before(async () => {
+      await startServer(server, { KINTO_BACKOFF: backoffSeconds.toString() });
     });
 
-    after(() => stopServer(server));
+    after(async () => {
+      await stopServer(server);
+    });
 
-    beforeEach(() => server.flush());
+    beforeEach(async () => {
+      await server.flush();
+    });
 
     it("should appropriately populate the backoff property", async () => {
       // Issuing a first api call to retrieve backoff information
@@ -562,7 +576,9 @@ describe("Integration tests", function () {
   });
 
   describe("Deprecated protocol version", () => {
-    beforeEach(() => server.flush());
+    beforeEach(async () => {
+      await server.flush();
+    });
 
     describe("Soft EOL", () => {
       let consoleWarnStub: Stub<typeof console.warn>;
@@ -578,7 +594,9 @@ describe("Integration tests", function () {
         });
       });
 
-      after(() => stopServer(server));
+      after(async () => {
+        await stopServer(server);
+      });
 
       beforeEach(() => {
         consoleWarnStub = sandbox.stub(console, "warn");
@@ -608,12 +626,17 @@ describe("Integration tests", function () {
 
       after(() => stopServer(server));
 
-      beforeEach(() => sandbox.stub(console, "warn"));
+      beforeEach(() => {
+        sandbox.stub(console, "warn");
+      });
 
       it("should reject with a 410 Gone when hard EOL is received", async () => {
+        // As of Kinto 13.6.2, EOL responses don't contain CORS headers, so we
+        // can only assert than an error is throw.
         await expectAsyncError(
-          () => api.fetchServerSettings(),
-          /HTTP 410 Gone: Service deprecated/
+          () => api.fetchServerSettings()
+          // /HTTP 410 Gone: Service deprecated/,
+          // ServerResponse
         );
       });
     });
@@ -963,10 +986,8 @@ describe("Integration tests", function () {
         });
 
         it("should create an automatically named collection", async () => {
-          let generated: string;
-
           const res = await bucket.createCollection();
-          generated = (res as KintoResponse).data.id;
+          const generated = (res as KintoResponse).data.id;
           const { data } = await bucket.listCollections();
           return expect(data.some((x) => x.id === generated)).eql(true);
         });
@@ -1114,10 +1135,8 @@ describe("Integration tests", function () {
         });
 
         it("should create an automatically named group", async () => {
-          let generated: string;
-
           const res = await bucket.createGroup();
-          generated = (res as KintoResponse<Group>).data.id;
+          const generated = (res as KintoResponse<Group>).data.id;
           const { data } = await bucket.listGroups();
           return expect(data.some((x) => x.id === generated)).eql(true);
         });
@@ -1812,9 +1831,8 @@ describe("Integration tests", function () {
               });
 
               it("should handle updates", async () => {
-                let updatedRec2: KintoObject;
                 const res = await coll.updateRecord({ ...rec2, n: 42 });
-                updatedRec2 = (res as KintoResponse).data;
+                const updatedRec2 = (res as KintoResponse).data;
                 const { data } = await coll.listRecords({
                   at: updatedRec2.last_modified,
                 });

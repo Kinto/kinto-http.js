@@ -1,4 +1,3 @@
-import chai, { expect } from "chai";
 import sinon from "sinon";
 import { EventEmitter } from "events";
 import { fakeServerResponse, Stub, expectAsyncError } from "./test_utils";
@@ -7,13 +6,15 @@ import KintoClientBase, {
   SUPPORTED_PROTOCOL_VERSION as SPV,
   PaginationResult,
 } from "../src/base";
-import * as requests from "../src/requests";
 import Bucket from "../src/bucket";
 import { HelloResponse, OperationResponse } from "../src/types";
-import { KintoBatchResponse } from "../src/batch";
+import { KintoBatchResponse, AggregateResponse } from "../src/batch";
 
-chai.should();
-chai.config.includeStack = true;
+const { expect } = intern.getPlugin("chai");
+intern.getPlugin("chai").should();
+const { describe, it, beforeEach, afterEach } = intern.getPlugin(
+  "interface.bdd"
+);
 
 const FAKE_SERVER_URL = "http://fake-server/v1";
 
@@ -145,7 +146,7 @@ describe("KintoClient", () => {
       // Make Date#getTime always returning 1000000, for predictability
       sandbox.stub(Date.prototype, "getTime").returns(1000 * 1000);
       sandbox
-        .stub(global as any, "fetch")
+        .stub(globalThis as any, "fetch")
         .returns(fakeServerResponse(200, {}, { Backoff: "1000" }));
 
       await api.listBuckets();
@@ -154,7 +155,7 @@ describe("KintoClient", () => {
 
     it("should provide no remaining backoff time when none is set", async () => {
       sandbox
-        .stub(global as any, "fetch")
+        .stub(globalThis as any, "fetch")
         .returns(fakeServerResponse(200, {}, {}));
 
       await api.listBuckets();
@@ -197,7 +198,7 @@ describe("KintoClient", () => {
 
     it("should retrieve server settings on first request made", async () => {
       sandbox
-        .stub(global as any, "fetch")
+        .stub(globalThis as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       (await api.fetchServerInfo()).should.deep.equal(fakeServerInfo);
@@ -206,7 +207,7 @@ describe("KintoClient", () => {
     it("should store server settings into the serverSettings property", async () => {
       // api.serverSettings = { a: 1 };
       sandbox
-        .stub(global as any, "fetch")
+        .stub(globalThis as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       await api.fetchServerInfo();
@@ -215,7 +216,7 @@ describe("KintoClient", () => {
 
     it("should not fetch server settings if they're cached already", () => {
       api.serverInfo = fakeServerInfo;
-      const fetchStub = sandbox.stub(global as any, "fetch");
+      const fetchStub = sandbox.stub(globalThis as any, "fetch");
 
       api.fetchServerInfo();
       sinon.assert.notCalled(fetchStub);
@@ -236,7 +237,7 @@ describe("KintoClient", () => {
 
     it("should retrieve server settings", async () => {
       sandbox
-        .stub(global as any, "fetch")
+        .stub(globalThis as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       (await api.fetchServerSettings()).should.have.property("fake").eql(true);
@@ -249,7 +250,7 @@ describe("KintoClient", () => {
 
     it("should retrieve server capabilities", async () => {
       sandbox
-        .stub(global as any, "fetch")
+        .stub(globalThis as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       (await api.fetchServerCapabilities()).should.have
@@ -264,7 +265,7 @@ describe("KintoClient", () => {
 
     it("should retrieve user information", async () => {
       sandbox
-        .stub(global as any, "fetch")
+        .stub(globalThis as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       (await api.fetchUser())!.should.have.property("fake").eql(true);
@@ -277,7 +278,7 @@ describe("KintoClient", () => {
 
     it("should retrieve current API version", async () => {
       sandbox
-        .stub(global as any, "fetch")
+        .stub(globalThis as any, "fetch")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       (await api.fetchHTTPApiVersion()).should.have.property("fake").eql(true);
@@ -320,7 +321,7 @@ describe("KintoClient", () => {
       let requestBody: any, requestHeaders: any, fetch: sinon.SinonStub;
 
       beforeEach(() => {
-        fetch = sandbox.stub(global as any, "fetch");
+        fetch = sandbox.stub(globalThis as any, "fetch");
         fetch.returns(fakeServerResponse(200, { responses: [] }));
       });
 
@@ -411,7 +412,7 @@ describe("KintoClient", () => {
         });
       });
 
-      describe("Retry", () => {
+      describe("Retry", (__test) => {
         const response = {
           status: 201,
           path: `/${SPV}/buckets/blog/collections/articles/records`,
@@ -419,8 +420,6 @@ describe("KintoClient", () => {
         };
 
         beforeEach(() => {
-          sandbox.stub(global, "setTimeout").callsFake(setImmediate as any);
-
           fetch
             .onCall(0)
             .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));
@@ -450,7 +449,7 @@ describe("KintoClient", () => {
       ];
 
       it("should reject on HTTP 400", async () => {
-        sandbox.stub(global as any, "fetch").returns(
+        sandbox.stub(globalThis as any, "fetch").returns(
           fakeServerResponse(400, {
             error: true,
             errno: 117,
@@ -462,7 +461,7 @@ describe("KintoClient", () => {
       });
 
       it("should reject on HTTP error status code", async () => {
-        sandbox.stub(global as any, "fetch").returns(
+        sandbox.stub(globalThis as any, "fetch").returns(
           fakeServerResponse(500, {
             error: true,
             message: "http 500",
@@ -486,7 +485,7 @@ describe("KintoClient", () => {
           },
         ];
         sandbox
-          .stub(global as any, "fetch")
+          .stub(globalThis as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));
 
         (await executeBatch(fixtures)).should.deep.equal(responses);
@@ -502,7 +501,7 @@ describe("KintoClient", () => {
           },
         ];
         sandbox
-          .stub(global as any, "fetch")
+          .stub(globalThis as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));
 
         (await executeBatch(fixtures)).should.deep.equal(responses);
@@ -517,7 +516,7 @@ describe("KintoClient", () => {
           },
         ];
         sandbox
-          .stub(global as any, "fetch")
+          .stub(globalThis as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));
 
         (await executeBatch(fixtures)).should.deep.equal(responses);
@@ -532,7 +531,7 @@ describe("KintoClient", () => {
           },
         ];
         sandbox
-          .stub(global as any, "fetch")
+          .stub(globalThis as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));
 
         (await executeBatch(fixtures)).should.deep.equal(responses);
@@ -550,7 +549,7 @@ describe("KintoClient", () => {
 
       it("should chunk batch requests", async () => {
         sandbox
-          .stub(global as any, "fetch")
+          .stub(globalThis as any, "fetch")
           .onFirstCall()
           .returns(
             fakeServerResponse(200, {
@@ -580,7 +579,7 @@ describe("KintoClient", () => {
           })
         );
         sandbox.stub(api, "fetchServerSettings").get(() => fetchServerSettings);
-        const fetchStub = sandbox.stub(global as any, "fetch").returns(
+        const fetchStub = sandbox.stub(globalThis as any, "fetch").returns(
           fakeServerResponse(200, {
             responses: [],
           })
@@ -591,7 +590,7 @@ describe("KintoClient", () => {
 
       it("should map initial records to conflict objects", async () => {
         sandbox
-          .stub(global as any, "fetch")
+          .stub(globalThis as any, "fetch")
           .onFirstCall()
           .returns(
             fakeServerResponse(200, {
@@ -619,7 +618,7 @@ describe("KintoClient", () => {
 
       it("should chunk batch requests concurrently", async () => {
         sandbox
-          .stub(global as any, "fetch")
+          .stub(globalThis as any, "fetch")
           .onFirstCall()
           .returns(
             new Promise((resolve) => {
@@ -666,15 +665,34 @@ describe("KintoClient", () => {
       ];
 
       it("should resolve with an aggregated result object", async () => {
-        const responses: KintoBatchResponse[] = [];
+        const responses: KintoBatchResponse[] = [
+          {
+            status: 200,
+            path: "",
+            body: {},
+            headers: {},
+          },
+          {
+            status: 200,
+            path: "",
+            body: {},
+            headers: {},
+          },
+        ];
         sandbox
-          .stub(global as any, "fetch")
+          .stub(globalThis as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));
-        const batchModule = require("../src/batch");
-        const aggregate = sandbox.stub(batchModule, "aggregate");
 
-        await executeBatch(fixtures, { aggregate: true });
-        sinon.assert.calledWith(aggregate, responses);
+        const aggregateResponse =
+          (await executeBatch(fixtures, {
+            aggregate: true,
+          })) as AggregateResponse;
+        aggregateResponse.should.deep.equal({
+          errors: [],
+          published: [{}, {}, {}, {}],
+          conflicts: [],
+          skipped: [],
+        });
       });
     });
   });
@@ -1077,21 +1095,27 @@ describe("KintoClient", () => {
 
   /** @test {KintoClient#createBucket} */
   describe("#createBucket", () => {
-    let createRequestStub: Stub<typeof requests.createRequest>;
+    let executeStub: Stub<typeof api.execute>;
 
     beforeEach(() => {
-      createRequestStub = sandbox.stub(requests, "createRequest");
-      sandbox.stub(api, "execute").returns(Promise.resolve());
+      executeStub = sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
     it("should execute expected request", () => {
       api.createBucket("foo");
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/foo",
-        { data: { id: "foo" }, permissions: undefined },
-        { headers: {}, safe: false }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/foo",
+          headers: {},
+          body: {
+            data: { id: "foo" },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -1099,10 +1123,17 @@ describe("KintoClient", () => {
       api.createBucket("foo", { data: { a: 1 } });
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/foo",
-        { data: { id: "foo", a: 1 }, permissions: undefined },
-        { headers: {}, safe: false }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/foo",
+          headers: {},
+          body: {
+            data: { a: 1 },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -1110,10 +1141,17 @@ describe("KintoClient", () => {
       api.createBucket("foo", { safe: true });
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/foo",
-        { data: { id: "foo" }, permissions: undefined },
-        { headers: {}, safe: true }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/foo",
+          headers: { "If-None-Match": "*" },
+          body: {
+            data: { id: "foo" },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
 
@@ -1123,47 +1161,78 @@ describe("KintoClient", () => {
       api.createBucket("foo", { headers: { Baz: "Qux" } });
 
       sinon.assert.calledWithMatch(
-        createRequestStub,
-        "/buckets/foo",
-        { data: { id: "foo" }, permissions: undefined },
-        { headers: { Foo: "Bar", Baz: "Qux" }, safe: false }
+        executeStub,
+        {
+          method: "PUT",
+          path: "/buckets/foo",
+          headers: { Foo: "Bar", Baz: "Qux" },
+          body: {
+            data: { id: "foo" },
+            permissions: undefined,
+          },
+        },
+        { retry: 0 }
       );
     });
   });
 
   /** @test {KintoClient#deleteBucket} */
   describe("#deleteBucket()", () => {
-    let deleteRequestStub: Stub<typeof requests.deleteRequest>;
+    let executeStub: Stub<typeof api.execute>;
 
     beforeEach(() => {
-      deleteRequestStub = sandbox.stub(requests, "deleteRequest");
-      sandbox.stub(api, "execute").returns(Promise.resolve());
+      executeStub = sandbox.stub(api, "execute").returns(Promise.resolve());
     });
 
     it("should execute expected request", () => {
       api.deleteBucket("plop");
 
-      sinon.assert.calledWithMatch(deleteRequestStub, "/buckets/plop", {
-        headers: {},
-        safe: false,
-      });
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets/plop",
+          headers: {},
+        },
+        { retry: 0 }
+      );
     });
 
     it("should accept a bucket object", () => {
       api.deleteBucket({ id: "plop" });
 
-      sinon.assert.calledWithMatch(deleteRequestStub, "/buckets/plop", {
-        headers: {},
-        safe: false,
-      });
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets/plop",
+          headers: {},
+        },
+        { retry: 0 }
+      );
     });
 
-    it("should accept a safe option", () => {
-      api.deleteBucket("plop", { safe: true });
+    it("should throw if safe is true and last_modified isn't provided", async () => {
+      await expectAsyncError(
+        () => api.deleteBucket("plop", { safe: true }),
+        /Safe concurrency check requires a last_modified value./
+      );
+    });
 
-      sinon.assert.calledWithMatch(deleteRequestStub, "/buckets/plop", {
-        safe: true,
-      });
+    it("should rely on the provided last_modified for the safe option", () => {
+      api.deleteBucket("plop", { last_modified: 42, safe: true });
+
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets/plop",
+          headers: {
+            "If-Match": `"42"`,
+          },
+        },
+        { retry: 0 }
+      );
     });
 
     it("should extend request headers with optional ones", () => {
@@ -1171,15 +1240,24 @@ describe("KintoClient", () => {
 
       api.deleteBucket("plop", { headers: { Baz: "Qux" } });
 
-      sinon.assert.calledWithMatch(deleteRequestStub, "/buckets/plop", {
-        headers: { Foo: "Bar", Baz: "Qux" },
-      });
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets/plop",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+          },
+        },
+        { retry: 0 }
+      );
     });
   });
 
   /** @test {KintoClient#deleteBuckets} */
   describe("#deleteBuckets()", () => {
-    let deleteRequestStub: Stub<typeof requests.deleteRequest>;
+    let executeStub: Stub<typeof api.execute>;
 
     beforeEach(() => {
       api.serverInfo = {
@@ -1191,32 +1269,62 @@ describe("KintoClient", () => {
         settings: { readonly: false, batch_max_requests: 25 },
         capabilities: {},
       };
-      deleteRequestStub = sandbox.stub(requests, "deleteRequest");
-      sandbox.stub(api, "execute").returns(Promise.resolve({}));
+      executeStub = sandbox.stub(api, "execute").returns(Promise.resolve({}));
     });
 
     it("should execute expected request", async () => {
       await api.deleteBuckets();
-      sinon.assert.calledWithMatch(deleteRequestStub, "/buckets", {
-        headers: {},
-        safe: false,
-      });
+
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets",
+          headers: {},
+        },
+        { retry: 0 }
+      );
     });
 
-    it("should accept a safe option", async () => {
-      await api.deleteBuckets({ safe: true });
-      sinon.assert.calledWithMatch(deleteRequestStub, "/buckets", {
-        safe: true,
-      });
+    it("should throw if safe is true and last_modified isn't provided", async () => {
+      await expectAsyncError(
+        () => api.deleteBuckets({ safe: true }),
+        /Safe concurrency check requires a last_modified value./
+      );
+    });
+
+    it("should rely on the provided last_modified for the safe option", async () => {
+      await api.deleteBuckets({ last_modified: 42, safe: true });
+
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets",
+          headers: {
+            "If-Match": `"42"`,
+          },
+        },
+        { retry: 0 }
+      );
     });
 
     it("should extend request headers with optional ones", async () => {
       api["_headers"] = { Foo: "Bar" };
 
       await api.deleteBuckets({ headers: { Baz: "Qux" } });
-      sinon.assert.calledWithMatch(deleteRequestStub, "/buckets", {
-        headers: { Foo: "Bar", Baz: "Qux" },
-      });
+      sinon.assert.calledWithMatch(
+        executeStub,
+        {
+          method: "DELETE",
+          path: "/buckets",
+          headers: {
+            Foo: "Bar",
+            Baz: "Qux",
+          },
+        },
+        { retry: 0 }
+      );
     });
 
     it("should reject if http_api_version mismatches", async () => {
