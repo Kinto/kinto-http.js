@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "build": "tsc -p .",
-    "build:test-browser": "rollup -c rollup.test.config.js",
+    "build:test-browser": "rollup --environment BROWSER_TESTING -c",
     "build:demo": "npm run dist && shx cp dist/kinto-http.min.js demo/kinto-http.min.js && shx cp dist/kinto-http.min.js.map demo/kinto-http.min.js.map",
     "build:readme": "./node_modules/.bin/toctoc -w -d 2 README.md",
     "cs-check": "prettier -l \"{src,test,bin}/**/*.{js,ts}\"",
