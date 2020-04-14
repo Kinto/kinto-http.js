@@ -683,10 +683,9 @@ describe("KintoClient", () => {
           .stub(globalThis as any, "fetch")
           .returns(fakeServerResponse(200, { responses }));
 
-        const aggregateResponse =
-          (await executeBatch(fixtures, {
-            aggregate: true,
-          })) as AggregateResponse;
+        const aggregateResponse = (await executeBatch(fixtures, {
+          aggregate: true,
+        })) as AggregateResponse;
         aggregateResponse.should.deep.equal({
           errors: [],
           published: [{}, {}, {}, {}],
@@ -953,10 +952,9 @@ describe("KintoClient", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as
-            PaginationResult<{
-              id: string;
-            }>
+          ({} as unknown) as PaginationResult<{
+            id: string;
+          }>
         );
       },
       hasNextPage: false,
@@ -1039,10 +1037,9 @@ describe("KintoClient", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as
-            PaginationResult<{
-              id: string;
-            }>
+          ({} as unknown) as PaginationResult<{
+            id: string;
+          }>
         );
       },
       hasNextPage: false,

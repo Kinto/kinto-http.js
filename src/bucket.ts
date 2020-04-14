@@ -154,11 +154,10 @@ export default class Bucket {
       path,
       method: "HEAD",
     };
-    const { headers } =
-      (await this.client.execute(request, {
-        raw: true,
-        retry: this._getRetry(options),
-      })) as HttpResponse<{}>;
+    const { headers } = (await this.client.execute(request, {
+      raw: true,
+      retry: this._getRetry(options),
+    })) as HttpResponse<{}>;
     return headers.get("ETag");
   }
 
@@ -183,11 +182,10 @@ export default class Bucket {
       path,
       method: "HEAD",
     };
-    const { headers } =
-      (await this.client.execute(request, {
-        raw: true,
-        retry: this._getRetry(options),
-      })) as HttpResponse<{}>;
+    const { headers } = (await this.client.execute(request, {
+      raw: true,
+      retry: this._getRetry(options),
+    })) as HttpResponse<{}>;
     return headers.get("ETag");
   }
 
@@ -218,12 +216,11 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path,
     };
-    const { data } =
-      (await this.client.execute(request, {
-        retry: this._getRetry(options),
-        query: options.query,
-        fields: options.fields,
-      })) as { data: T };
+    const { data } = (await this.client.execute(request, {
+      retry: this._getRetry(options),
+      query: options.query,
+      fields: options.fields,
+    })) as { data: T };
     return data;
   }
 
@@ -276,11 +273,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<T>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<T>>
-    );
+    return this.client.execute<KintoResponse<T>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<T>>;
   }
 
   /**
@@ -367,11 +362,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<{}>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<{}>>
-    );
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -407,11 +400,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return (
-      this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<{ deleted: boolean }>>
-    );
+    return this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   /**
@@ -470,13 +461,11 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path,
     };
-    return (
-      this.client.execute<KintoResponse<Group>>(request, {
-        retry: this._getRetry(options),
-        query: options.query,
-        fields: options.fields,
-      }) as Promise<KintoResponse<Group>>
-    );
+    return this.client.execute<KintoResponse<Group>>(request, {
+      retry: this._getRetry(options),
+      query: options.query,
+      fields: options.fields,
+    }) as Promise<KintoResponse<Group>>;
   }
 
   /**
@@ -519,11 +508,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<Group>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<Group>>
-    );
+    return this.client.execute<KintoResponse<Group>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<Group>>;
   }
 
   /**
@@ -575,11 +562,12 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<T & { members: string[] }>>(request, {
+    return this.client.execute<KintoResponse<T & { members: string[] }>>(
+      request,
+      {
         retry: this._getRetry(options),
-      }) as Promise<KintoResponse<T & { members: string[] }>>
-    );
+      }
+    ) as Promise<KintoResponse<T & { members: string[] }>>;
   }
 
   /**
@@ -612,11 +600,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       safe: this._getSafe(options),
     });
-    return (
-      this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<{ deleted: boolean }>>
-    );
+    return this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{ deleted: boolean }>>;
   }
 
   /**
@@ -638,10 +624,9 @@ export default class Bucket {
       headers: this._getHeaders(options),
       path: this._endpoints.bucket(this.name),
     };
-    const { permissions } =
-      (await this.client.execute<KintoResponse>(request, {
-        retry: this._getRetry(options),
-      })) as KintoResponse;
+    const { permissions } = (await this.client.execute<KintoResponse>(request, {
+      retry: this._getRetry(options),
+    })) as KintoResponse;
     return permissions;
   }
 
@@ -680,11 +665,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<{}>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<{}>>
-    );
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -723,11 +706,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<{}>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<{}>>
-    );
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**
@@ -766,11 +747,9 @@ export default class Bucket {
         safe: this._getSafe(options),
       }
     );
-    return (
-      this.client.execute<KintoResponse<{}>>(request, {
-        retry: this._getRetry(options),
-      }) as Promise<KintoResponse<{}>>
-    );
+    return this.client.execute<KintoResponse<{}>>(request, {
+      retry: this._getRetry(options),
+    }) as Promise<KintoResponse<{}>>;
   }
 
   /**

@@ -916,12 +916,9 @@ describe("Integration tests", function (__test) {
         });
 
         it("should work in a batch", async () => {
-          const res =
-            ((await api.batch((batch: KintoClientBase) => {
-              batch.bucket("custom").listCollections();
-            })) as
-              unknown) as
-            OperationResponse<KintoObject[]>[];
+          const res = ((await api.batch((batch: KintoClientBase) => {
+            batch.bucket("custom").listCollections();
+          })) as unknown) as OperationResponse<KintoObject[]>[];
           res[0].body.data
             .map((r) => r.id)
             .should.deep.equal(["c4", "c3", "c2", "c1"]);
@@ -1620,11 +1617,9 @@ describe("Integration tests", function (__test) {
                   { foo: "bar" },
                   { permissions: { write: ["github:n1k0"] } }
                 );
-                return (result =
-                  res as
-                  KintoResponse<{
-                    attachment: Attachment;
-                  }>);
+                return (result = res as KintoResponse<{
+                  attachment: Attachment;
+                }>);
               });
 
               it("should create a record with an attachment", () => {
@@ -1694,12 +1689,9 @@ describe("Integration tests", function (__test) {
 
             beforeEach(async () => {
               const res = await coll.addAttachment(dataURL);
-              return (recordId = (
-                res as
-                KintoResponse<{
-                  attachment: Attachment;
-                }>
-              ).data.id);
+              return (recordId = (res as KintoResponse<{
+                attachment: Attachment;
+              }>).data.id);
             });
 
             it("should remove an attachment from a record", async () => {
