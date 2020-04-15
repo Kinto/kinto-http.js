@@ -7,7 +7,7 @@ kinto-http.js
 
 A JavaScript HTTP Client for the [Kinto](http://kinto-storage.org/) API.
 
-Read the [API documentation](https://doc.esdoc.org/github.com/Kinto/kinto-http.js/).
+Read the [API documentation](https://kinto.github.io/kinto-http.js/), or [try the demo](https://kinto.github.io/kinto-http.js/demo/).
 
 ## Table of Contents
 
