@@ -1,23 +1,1795 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html class="default no-js">
 <head>
-    <title>Kinto HTTP client demo</title>
-    <script type="text/javascript" src="kinto-http.noshim.js"></script>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<title>kinto-http API Documentation - v5.0.0</title>
+	<meta name="description" content="Documentation for kinto-http API Documentation - v5.0.0">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="assets/css/main.css">
 </head>
 <body>
-    <input id="server" placeholder="https://kinto.server/v1" value="https://kinto-ota.dev.mozaws.net/v1"/>
-    <button id="go">Go!</button>
-    <pre id="capabilities"></pre>
+<header>
+	<div class="tsd-page-toolbar">
+		<div class="container">
+			<div class="table-wrap">
+				<div class="table-cell" id="tsd-search" data-index="assets/js/search.json" data-base=".">
+					<div class="field">
+						<label for="tsd-search-field" class="tsd-widget search no-caption">Search</label>
+						<input id="tsd-search-field" type="text" />
+					</div>
+					<ul class="results">
+						<li class="state loading">Preparing search index...</li>
+						<li class="state failure">The search index is not available</li>
+					</ul>
+					<a href="index.html" class="title">kinto-http API Documentation - v5.0.0</a>
+				</div>
+				<div class="table-cell" id="tsd-widgets">
+					<div id="tsd-filter">
+						<a href="#" class="tsd-widget options no-caption" data-toggle="options">Options</a>
+						<div class="tsd-filter-group">
+							<div class="tsd-select" id="tsd-filter-visibility">
+								<span class="tsd-select-label">All</span>
+								<ul class="tsd-select-list">
+									<li data-value="public">Public</li>
+									<li data-value="protected">Public/Protected</li>
+									<li data-value="private" class="selected">All</li>
+								</ul>
+							</div>
+							<input type="checkbox" id="tsd-filter-inherited" checked />
+							<label class="tsd-widget" for="tsd-filter-inherited">Inherited</label>
+							<input type="checkbox" id="tsd-filter-externals" checked />
+							<label class="tsd-widget" for="tsd-filter-externals">Externals</label>
+							<input type="checkbox" id="tsd-filter-only-exported" />
+							<label class="tsd-widget" for="tsd-filter-only-exported">Only exported</label>
+						</div>
+					</div>
+					<a href="#" class="tsd-widget menu no-caption" data-toggle="menu">Menu</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="tsd-page-title">
+		<div class="container">
+			<ul class="tsd-breadcrumb">
+				<li>
+					<a href="globals.html">Globals</a>
+				</li>
+			</ul>
+			<h1>kinto-http API Documentation - v5.0.0</h1>
+		</div>
+	</div>
+</header>
+<div class="container container-main">
+	<div class="row">
+		<div class="col-8 col-content">
+			<div class="tsd-panel tsd-typography">
+				<a href="#kinto-httpjs" id="kinto-httpjs" style="color: inherit; text-decoration: none;">
+					<h1>kinto-http.js</h1>
+				</a>
+				<p><a href="https://dependabot.com"><img src="https://api.dependabot.com/badges/status?host=github&repo=Kinto/kinto-http.js" alt="Dependabot Status"></a></p>
+				<p><a href="https://travis-ci.org/Kinto/kinto-http.js"><img src="https://travis-ci.org/Kinto/kinto-http.js.svg?branch=master" alt="Build Status"></a></p>
+				<p>A JavaScript HTTP Client for the <a href="http://kinto-storage.org/">Kinto</a> API.</p>
+				<p>Read the <a href="https://kinto.github.io/kinto-http.js/">API documentation</a>, or <a href="https://kinto.github.io/kinto-http.js/demo/">try the demo</a>.</p>
+				<a href="#table-of-contents" id="table-of-contents" style="color: inherit; text-decoration: none;">
+					<h2>Table of Contents</h2>
+				</a>
+				<ul>
+					<li><a href="#requirements">Requirements</a></li>
+					<li><a href="#installation">Installation</a></li>
+					<li><a href="#changelog">Changelog</a></li>
+					<li><a href="#usage">Usage</a></li>
+					<li><a href="#authentication">Authentication</a><ul>
+							<li><a href="#using-basic-auth">Using Basic Auth</a></li>
+							<li><a href="#using-an-oauth-bearer-token">Using an OAuth Bearer Token</a></li>
+							<li><a href="#change-headers">Change headers</a></li>
+						</ul>
+					</li>
+					<li><a href="#server-information">Server information</a></li>
+					<li><a href="#buckets">Buckets</a><ul>
+							<li><a href="#listing-buckets">Listing buckets</a></li>
+							<li><a href="#creating-a-new-bucket">Creating a new bucket</a></li>
+							<li><a href="#selecting-a-bucket">Selecting a bucket</a></li>
+							<li><a href="#getting-bucket-data">Getting bucket data</a></li>
+							<li><a href="#setting-bucket-data">Setting bucket data</a></li>
+							<li><a href="#getting-bucket-permissions">Getting bucket permissions</a></li>
+							<li><a href="#setting-bucket-permissions">Setting bucket permissions</a></li>
+							<li><a href="#deleting-a-bucket">Deleting a bucket</a></li>
+							<li><a href="#creating-a-collection">Creating a collection</a></li>
+							<li><a href="#listing-bucket-collections">Listing bucket collections</a></li>
+							<li><a href="#collections-list-timestamp">Collections list timestamp</a></li>
+							<li><a href="#deleting-a-collection">Deleting a collection</a></li>
+							<li><a href="#creating-a-user-group">Creating a user group</a></li>
+							<li><a href="#listing-bucket-groups">Listing bucket groups</a></li>
+							<li><a href="#groups-list-timestamp">Groups list timestamp</a></li>
+							<li><a href="#getting-a-bucket-group">Getting a bucket group</a></li>
+							<li><a href="#updating-an-existing-group">Updating an existing group</a></li>
+							<li><a href="#deleting-a-group">Deleting a group</a></li>
+							<li><a href="#listing-bucket-history">Listing bucket history</a></li>
+						</ul>
+					</li>
+					<li><a href="#collections">Collections</a><ul>
+							<li><a href="#selecting-a-collection">Selecting a collection</a></li>
+							<li><a href="#getting-collection-data">Getting collection data</a></li>
+							<li><a href="#setting-collection-data">Setting collection data</a></li>
+							<li><a href="#getting-collection-permissions">Getting collection permissions</a></li>
+							<li><a href="#setting-collection-permissions">Setting collection permissions</a></li>
+							<li><a href="#creating-a-new-record">Creating a new record</a></li>
+							<li><a href="#retrieving-an-existing-record">Retrieving an existing record</a></li>
+							<li><a href="#updating-an-existing-record">Updating an existing record</a></li>
+							<li><a href="#deleting-record">Deleting record</a></li>
+							<li><a href="#listing-records">Listing records</a></li>
+							<li><a href="#total-number-of-records">Total number of records</a></li>
+							<li><a href="#records-list-timestamp">Records list timestamp</a></li>
+							<li><a href="#batching-operations">Batching operations</a></li>
+						</ul>
+					</li>
+					<li><a href="#listing-all-resource-permissions">Listing all resource permissions</a></li>
+					<li><a href="#attachments">Attachments</a><ul>
+							<li><a href="#adding-an-attachment-to-a-record">Adding an attachment to a record</a></li>
+							<li><a href="#updating-an-attachment">Updating an attachment</a></li>
+							<li><a href="#deleting-an-attachment">Deleting an attachment</a></li>
+						</ul>
+					</li>
+					<li><a href="#generic-bucket-and-collection-options">Generic bucket and collection options</a></li>
+					<li><a href="#the-safe-option-explained">The safe option explained</a><ul>
+							<li><a href="#safe-creations">Safe creations</a></li>
+							<li><a href="#safe-updates">Safe updates</a></li>
+							<li><a href="#safe-deletions">Safe deletions</a></li>
+						</ul>
+					</li>
+					<li><a href="#generic-options-for-list-operations">Generic options for list operations</a><ul>
+							<li><a href="#sorting">Sorting</a></li>
+							<li><a href="#polling-for-changes">Polling for changes</a></li>
+							<li><a href="#paginating-results">Paginating results</a></li>
+						</ul>
+					</li>
+					<li><a href="#generic-options-for-singular-operations">Generic options for singular operations</a></li>
+					<li><a href="#events">Events</a><ul>
+							<li><a href="#the-backoff-event">The backoff event</a></li>
+							<li><a href="#the-deprecated-event">The deprecated event</a></li>
+							<li><a href="#the-retry-after-event">The retry-after event</a></li>
+						</ul>
+					</li>
+					<li><a href="#browser-compatibility">Browser Compatibility</a></li>
+					<li><a href="#upgrading">Upgrading</a><ul>
+							<li><a href="#from-1-x-to-2-x">From 1.x to 2.x</a></li>
+						</ul>
+					</li>
+					<li><a href="#contributing">Contributing</a><ul>
+							<li><a href="#coding-style">Coding style</a></li>
+							<li><a href="#integration-tests">Integration tests</a></li>
+							<li><a href="#releasing">Releasing</a></li>
+						</ul>
+					</li>
+				</ul>
+				<hr>
+				<a href="#requirements" id="requirements" style="color: inherit; text-decoration: none;">
+					<h2>Requirements</h2>
+				</a>
+				<ul>
+					<li>Kinto server v6.0.0+</li>
+				</ul>
+				<a href="#installation" id="installation" style="color: inherit; text-decoration: none;">
+					<h2>Installation</h2>
+				</a>
+				<p>In the browser, you can load prebuilt scripts hosted on unpkg:</p>
+				<ul>
+					<li><a href="https://unpkg.com/kinto-http/dist/kinto-http.min.js">kinto-http.min.js</a></li>
+				</ul>
+				<pre><code class="language-html"><span class="hljs-tag">&lt;<span class="hljs-name">script</span> <span class="hljs-attr">src</span>=<span class="hljs-string">"https://unpkg.com/kinto-http/dist/kinto-http.min.js"</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">script</span>&gt;</span></code></pre>
+				<p>From npm:</p>
+				<pre><code>$ npm <span class="hljs-keyword">install</span> kinto-<span class="hljs-keyword">http</span> <span class="hljs-comment">--save</span></code></pre><p><strong>Note:</strong> If you&#39;re using <code>kinto-http</code> in Node (as opposed to the browser), you&#39;ll also need to install polyfills for <code>fetch</code>, <code>FormData</code>, and <code>atob</code>.</p>
+				<pre><code>$ npm install <span class="hljs-keyword">node</span><span class="hljs-title">-fetch</span> form-data atob</code></pre><p>Then (ES6):</p>
+				<pre><code class="language-js"><span class="hljs-keyword">import</span> KintoClient <span class="hljs-keyword">from</span> <span class="hljs-string">"kinto-http"</span>;</code></pre>
+				<p>Or (ES5):</p>
+				<pre><code class="language-js"><span class="hljs-keyword">var</span> KintoClient = <span class="hljs-built_in">require</span>(<span class="hljs-string">"kinto-http"</span>);</code></pre>
+				<p>Note that this HTTP client can be transparently used server side or in a regular browser page. In the browser, creating an instance is achieved that way:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> KintoClient(<span class="hljs-string">"http://"</span>);</code></pre>
+				<a href="#changelog" id="changelog" style="color: inherit; text-decoration: none;">
+					<h2>Changelog</h2>
+				</a>
+				<p>See <a href="#upgrading">upgrading docs</a> and the full <a href="https://github.com/Kinto/kinto-http.js/releases">detailed changelog on Github</a>.</p>
+				<a href="#usage" id="usage" style="color: inherit; text-decoration: none;">
+					<h2>Usage</h2>
+				</a>
+				<p>A client instance is created using the <code>KintoClient</code> constructor, passing it the remote Kinto server root URL, including the version:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> KintoClient(<span class="hljs-string">"https://kinto.dev.mozaws.net/v1"</span>);</code></pre>
+				<a href="#options" id="options" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>safe</code>: Adds concurrency headers to every requests. (default: <code>false</code>)</li>
+					<li><code>events</code>: The events handler. If none provided an <code>EventEmitter</code> instance will be created</li>
+					<li><code>headers</code>: The key-value headers to pass to each request. (default: <code>{}</code>)</li>
+					<li><code>retry</code>: Number of retries to make when the server responds with a <code>Retry-After</code> response. (default: <code>0</code>)</li>
+					<li><code>bucket</code>: The default bucket to use. (default: <code>&quot;default&quot;</code>)</li>
+					<li><code>requestMode</code>: The HTTP <a href="https://fetch.spec.whatwg.org/#concept-request-mode">CORS</a> mode. (default: <code>&quot;cors&quot;</code>)</li>
+					<li><code>timeout</code>: The requests timeout in milliseconds. (default: <code>null</code>, which means &quot;no timeout&quot;)</li>
+				</ul>
+				<a href="#authentication" id="authentication" style="color: inherit; text-decoration: none;">
+					<h2>Authentication</h2>
+				</a>
+				<p>Authenticating against a Kinto server can be achieved by adding an <code>Authorization</code> header to the request.</p>
+				<p>By default Kinto server supports Basic Auth authentication, but others mechanisms can be activated such as OAuth (eg. <a href="https://accounts.firefox.com/">Firefox Account</a>)</p>
+				<a href="#using-basic-auth" id="using-basic-auth" style="color: inherit; text-decoration: none;">
+					<h3>Using Basic Auth</h3>
+				</a>
+				<p>Simply provide an <code>Authorization</code> header option to the <code>Kinto</code> constructor:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> secretString = <span class="hljs-string">`<span class="hljs-subst">${username}</span>:<span class="hljs-subst">${password}</span>`</span>;
+<span class="hljs-keyword">const</span> kinto = <span class="hljs-keyword">new</span> KintoClient(<span class="hljs-string">"https://my.server.tld/v1"</span>, {
+  <span class="hljs-attr">headers</span>: {
+    <span class="hljs-attr">Authorization</span>: <span class="hljs-string">"Basic "</span> + btoa(secretString)
+  }
+});</code></pre>
+				<blockquote>
+					<a href="#notes" id="notes" style="color: inherit; text-decoration: none;">
+						<h4>Notes</h4>
+					</a>
+					<ul>
+						<li>As explained in the <a href="http://kinto.readthedocs.io/en/stable/api/1.x/authentication.html#basic-auth">server docs</a>, any string is accepted. You&#39;re not obliged to use the <code>username:password</code> format.</li>
+					</ul>
+				</blockquote>
+				<a href="#using-an-oauth-bearer-token" id="using-an-oauth-bearer-token" style="color: inherit; text-decoration: none;">
+					<h3>Using an OAuth Bearer Token</h3>
+				</a>
+				<p>As for Basic Auth, once you have retrieved a valid OAuth Bearer Token, simply pass it in an <code>Authorization</code> header:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> kinto = <span class="hljs-keyword">new</span> KintoClient(<span class="hljs-string">"https://my.server.tld/v1"</span>, {
+  <span class="hljs-attr">headers</span>: {
+    <span class="hljs-attr">Authorization</span>: <span class="hljs-string">`Bearer `</span> + oauthBearerToken)
+  }
+});</code></pre>
+				<a href="#change-headers" id="change-headers" style="color: inherit; text-decoration: none;">
+					<h3>Change headers</h3>
+				</a>
+				<p>Requests headers can be altered using <code>setHeaders()</code>.</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> kinto = <span class="hljs-keyword">new</span> KintoClient(<span class="hljs-string">"https://my.server.tld/v1"</span>);
 
-    <script type="text/javascript">
-      document.getElementById("go").onclick = () => {
-        const server = document.getElementById("server").value;
-        const client = new KintoClient(server);
-        client.fetchServerInfo()
-          .then((res) => {
-            document.getElementById("capabilities").innerText = JSON.stringify(res, null, 2);
-          });
-      };
-    </script>
+<span class="hljs-comment">// Login somewhere...</span>
+<span class="hljs-comment">// [...]</span>
+
+kinto.setHeaders({
+    <span class="hljs-attr">Authorization</span>: <span class="hljs-string">`Bearer `</span> + accessToken,
+});
+</code></pre>
+				<a href="#server-information" id="server-information" style="color: inherit; text-decoration: none;">
+					<h2>Server information</h2>
+				</a>
+				<p>A Kinto server exposes some of its internal settings, information about authenticated user, the HTTP API version and the API capabilities (e.g. plugins).</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> info = <span class="hljs-keyword">await</span> client.fetchServerInfo([options]);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+    <span class="hljs-string">"project_name"</span>: <span class="hljs-string">"kinto"</span>,
+    <span class="hljs-string">"project_version"</span>: <span class="hljs-string">"3.0.2"</span>,
+    <span class="hljs-string">"url"</span>: <span class="hljs-string">"http://0.0.0.0:8889/v1/"</span>,
+    <span class="hljs-string">"project_docs"</span>: <span class="hljs-string">"https://kinto.readthedocs.io/"</span>,
+    <span class="hljs-string">"http_api_version"</span>: <span class="hljs-string">"1.6"</span>,
+    <span class="hljs-string">"settings"</span>: {
+        <span class="hljs-string">"batch_max_requests"</span>: <span class="hljs-number">25</span>,
+        <span class="hljs-string">"readonly"</span>: <span class="hljs-literal">false</span>
+    },
+    <span class="hljs-string">"user"</span>: {
+        <span class="hljs-string">"bucket"</span>: <span class="hljs-string">"2f9b1aaa-552d-48e8-1b78-371dd08688b3"</span>,
+        <span class="hljs-string">"id"</span>: <span class="hljs-string">"basicauth:f505765817a6b4ea46278be0620ddedd83b10f71f7695683719fe001cf0871d7"</span>
+    },
+    <span class="hljs-string">"capabilities"</span>: {
+        <span class="hljs-string">"default_bucket"</span>: {
+            <span class="hljs-string">"description"</span>: <span class="hljs-string">"The default bucket is an alias for a personal bucket where collections are created implicitly."</span>,
+            <span class="hljs-string">"url"</span>: <span class="hljs-string">"http://kinto.readthedocs.io/en/latest/api/1.x/buckets.html#personal-bucket-default"</span>
+        }
+    }
+}</code></pre>
+				<a href="#options-1" id="options-1" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<a href="#helpers" id="helpers" style="color: inherit; text-decoration: none;">
+					<h4>Helpers</h4>
+				</a>
+				<ul>
+					<li><code>fetchServerSettings([options])</code>: server settings</li>
+					<li><code>fetchServerCapabilities([options])</code>: API capabilities</li>
+					<li><code>fetchUser()</code>: authenticated user information</li>
+					<li><code>fetchHTTPApiVersion([options])</code>: HTTP API version</li>
+				</ul>
+				<a href="#buckets" id="buckets" style="color: inherit; text-decoration: none;">
+					<h2>Buckets</h2>
+				</a>
+				<a href="#listing-buckets" id="listing-buckets" style="color: inherit; text-decoration: none;">
+					<h3>Listing buckets</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> {data} = <span class="hljs-keyword">await</span> client.listBuckets([options]);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-attr">data</span>: [
+    {
+      <span class="hljs-attr">id</span>: <span class="hljs-string">"comments"</span>,
+      <span class="hljs-attr">last_modified</span>: <span class="hljs-number">1456182233221</span>,
+    },
+    {
+      <span class="hljs-attr">id</span>: <span class="hljs-string">"blog"</span>,
+      <span class="hljs-attr">last_modified</span>: <span class="hljs-number">1456181213214</span>,
+    },
+  ]
+}</code></pre>
+				<a href="#options-2" id="options-2" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<p>This method accepts the <a href="#generic-options-for-list-operations">generic parameters for sorting, filtering and paginating results</a>.</p>
+				<a href="#creating-a-new-bucket" id="creating-a-new-bucket" style="color: inherit; text-decoration: none;">
+					<h3>Creating a new bucket</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.createBucket(<span class="hljs-string">"blog"</span>[, options]);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456182233221</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"blog"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+    ]
+  }
+}</code></pre>
+				<p>It&#39;s alternatively possible to create a bucket without specifying an <code>id</code>, so the
+				Kinto server will create one for you:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.createBucket();</code></pre>
+				<p>Note: if you plan on providing options along id autogeneration, you have to specify
+				<code>null</code> as the first argument:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.createBucket(<span class="hljs-literal">null</span>, {<span class="hljs-attr">data</span>: {<span class="hljs-attr">foo</span>: <span class="hljs-number">42</span>}, <span class="hljs-attr">retry</span>: <span class="hljs-number">3</span>});</code></pre>
+				<a href="#options-3" id="options-3" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>data</code>: Arbitrary data to attach to the bucket</li>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Whether to override existing resource if it already exists (default: <code>false</code>)</li>
+				</ul>
+				<a href="#selecting-a-bucket" id="selecting-a-bucket" style="color: inherit; text-decoration: none;">
+					<h3>Selecting a bucket</h3>
+				</a>
+				<pre><code class="language-js">client.bucket(<span class="hljs-string">"blog"</span>);</code></pre>
+				<a href="#getting-bucket-data" id="getting-bucket-data" style="color: inherit; text-decoration: none;">
+					<h3>Getting bucket data</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).getData();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456182336242</span>,
+  <span class="hljs-string">"id"</span>: <span class="hljs-string">"blog"</span>,
+  <span class="hljs-string">"foo"</span>: <span class="hljs-string">"bar"</span>
+}</code></pre>
+				<a href="#options-4" id="options-4" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<p>This method accepts the <a href="#generic-options-for-singular-operations">generic parameters for singular operations</a>.</p>
+				<a href="#setting-bucket-data" id="setting-bucket-data" style="color: inherit; text-decoration: none;">
+					<h3>Setting bucket data</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).setData({<span class="hljs-attr">foo</span>: <span class="hljs-string">"bar"</span>});</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456182336242</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"blog"</span>,
+    <span class="hljs-string">"foo"</span>: <span class="hljs-string">"bar"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#options-5" id="options-5" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>patch</code>: Patches existing bucket data instead of replacing them (default: <code>false</code>)</li>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Whether to override existing resource if it already exists (default: <code>false</code>)</li>
+				</ul>
+				<a href="#getting-bucket-permissions" id="getting-bucket-permissions" style="color: inherit; text-decoration: none;">
+					<h3>Getting bucket permissions</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = client.bucket(<span class="hljs-string">"blog"</span>).getPermissions();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"write"</span>: [
+    <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+  ]
+}</code></pre>
+				<a href="#options-6" id="options-6" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<a href="#setting-bucket-permissions" id="setting-bucket-permissions" style="color: inherit; text-decoration: none;">
+					<h3>Setting bucket permissions</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> permissions = {
+  <span class="hljs-attr">read</span>:  [<span class="hljs-string">"github:bob"</span>],
+  <span class="hljs-attr">write</span>: [<span class="hljs-string">"github:bob"</span>, <span class="hljs-string">"github:john"</span>]
+};
+
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).setPermissions(permissions[, options]);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456182888466</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"blog"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"read"</span>: [<span class="hljs-string">"github:bob"</span>],
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"github:bob"</span>,
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>,
+      <span class="hljs-string">"github:john"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#options-7" id="options-7" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: If <code>last_modified</code> is provided, ensures the resource hasn&#39;t been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: <code>false</code>);</li>
+					<li><code>last_modified</code>: The last timestamp we know the resource has been updated on the server.</li>
+				</ul>
+				<a href="#notes-1" id="notes-1" style="color: inherit; text-decoration: none;">
+					<h4>Notes</h4>
+				</a>
+				<ul>
+					<li>This operation replaces any previously set permissions;</li>
+					<li>Owners will always keep their <code>write</code> permission bit, as per the Kinto protocol.</li>
+				</ul>
+				<a href="#deleting-a-bucket" id="deleting-a-bucket" style="color: inherit; text-decoration: none;">
+					<h3>Deleting a bucket</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.deleteBucket(<span class="hljs-string">"testbucket"</span>[, options]);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"deleted"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456182931974</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"blog"</span>
+  }
+}</code></pre>
+				<a href="#options-8" id="options-8" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Ensures the resource hasn&#39;t been modified in the meanwhile if <code>last_modified</code> is provided (default: <code>false</code>)</li>
+					<li><code>last_modified</code>: The last timestamp we know the resource has been updated on the server</li>
+				</ul>
+				<a href="#creating-a-collection" id="creating-a-collection" style="color: inherit; text-decoration: none;">
+					<h3>Creating a collection</h3>
+				</a>
+				<a href="#named-collection" id="named-collection" style="color: inherit; text-decoration: none;">
+					<h4>Named collection</h4>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).createCollection(<span class="hljs-string">"posts"</span>);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">
+{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183004372</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"posts"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#with-an-id-generated-automatically" id="with-an-id-generated-automatically" style="color: inherit; text-decoration: none;">
+					<h4>With an ID generated automatically</h4>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).createCollection();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183040592</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"OUh5VEDa"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+    ]
+  }
+}</code></pre>
+				<p>Note that <code>OUh5VEDa</code> is the collection ID automatically generated by the server.</p>
+				<a href="#options-9" id="options-9" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Whether to override existing resource if it already exists (default: <code>false</code>)</li>
+				</ul>
+				<blockquote>
+					<p>Note: For generated names, options can be specified only if the first parameters are provided: <code>createCollection(undefined, {safe: true})</code></p>
+				</blockquote>
+				<a href="#listing-bucket-collections" id="listing-bucket-collections" style="color: inherit; text-decoration: none;">
+					<h3>Listing bucket collections</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> {data} = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).listCollections();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-attr">data</span>: [
+    {
+      <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183153840</span>,
+      <span class="hljs-string">"id"</span>: <span class="hljs-string">"posts"</span>
+    },
+    {
+      <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183159386</span>,
+      <span class="hljs-string">"id"</span>: <span class="hljs-string">"comments"</span>
+    }
+  ]
+}</code></pre>
+				<a href="#options-10" id="options-10" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<p>This method accepts the <a href="#generic-options-for-list-operations">generic parameters for sorting, filtering and paginating results</a>.</p>
+				<a href="#collections-list-timestamp" id="collections-list-timestamp" style="color: inherit; text-decoration: none;">
+					<h3>Collections list timestamp</h3>
+				</a>
+				<p>The timestamp of the collections list is used for the <code>since</code> option in the <a href="#generic-options-for-list-operations">generic parameters for sorting, filtering and paginating results</a>.</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>)
+  .getCollectionsTimestamp();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js"><span class="hljs-string">"1548699177099"</span></code></pre>
+				<a href="#options-11" id="options-11" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: number of retries when request fails (default: 0)</li>
+				</ul>
+				<a href="#deleting-a-collection" id="deleting-a-collection" style="color: inherit; text-decoration: none;">
+					<h3>Deleting a collection</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).deleteCollection(<span class="hljs-string">"test"</span>);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"deleted"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183116571</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"posts"</span>
+  }
+}</code></pre>
+				<a href="#options-12" id="options-12" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Ensures the resource hasn&#39;t been modified in the meanwhile if <code>last_modified</code> is provided (default: <code>false</code>)</li>
+					<li><code>last_modified</code>: The last timestamp we know the resource has been updated on the server</li>
+				</ul>
+				<a href="#creating-a-user-group" id="creating-a-user-group" style="color: inherit; text-decoration: none;">
+					<h3>Creating a user group</h3>
+				</a>
+				<p>Kinto has a concept of groups of users. A group has a list of members and belongs to a bucket.</p>
+				<p>Permissions can refer to the group instead of an individuals - this makes it easy to define «roles», especially if the same set of permissions is applied to several objects.</p>
+				<p>When used in permissions definitions, the full group URI has to be used:</p>
+				<pre><code class="language-js">    {
+      <span class="hljs-attr">data</span>: {
+        <span class="hljs-attr">title</span>: <span class="hljs-string">"My article"</span>
+      },
+      <span class="hljs-attr">permissions</span>: {
+        <span class="hljs-attr">write</span>: [<span class="hljs-string">"/buckets/blog/groups/authors"</span>, <span class="hljs-string">"github:lili"</span>],
+        <span class="hljs-attr">read</span>: [<span class="hljs-string">"system.Everyone"</span>]
+      }
+    }</code></pre>
+				<a href="#named-group" id="named-group" style="color: inherit; text-decoration: none;">
+					<h4>Named group</h4>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).createGroup(<span class="hljs-string">"admins"</span>);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183004372</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"admins"</span>,
+    <span class="hljs-string">"members"</span>: []
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#with-a-list-of-members-and-attributes" id="with-a-list-of-members-and-attributes" style="color: inherit; text-decoration: none;">
+					<h4>With a list of members and attributes</h4>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).createGroup(<span class="hljs-string">"admins"</span>, [<span class="hljs-string">"system.Authenticated"</span>], {<span class="hljs-attr">data</span>: {<span class="hljs-attr">pi</span>: <span class="hljs-number">3.14</span>}});</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183004372</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"admins"</span>,
+    <span class="hljs-string">"members"</span>: [<span class="hljs-string">"system.Authenticated"</span>],
+    <span class="hljs-string">"pi"</span>: <span class="hljs-number">3.14</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#with-an-id-generated-automatically-1" id="with-an-id-generated-automatically-1" style="color: inherit; text-decoration: none;">
+					<h4>With an ID generated automatically</h4>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).createGroup();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183040592</span>,
+    <span class="hljs-string">"members"</span>: [],
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"7YHFF565"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+    ]
+  }
+}</code></pre>
+				<p>Note that <code>7YHFF565</code> is the group ID automatically generated by the server.</p>
+				<a href="#options-13" id="options-13" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Whether to override existing resource if it already exists (default: <code>false</code>)</li>
+					<li><code>data</code>: Extra group attributes</li>
+					<li><code>permissions</code>: Permissions to be set on the created group</li>
+				</ul>
+				<blockquote>
+					<p>Note: For generated names, options can be specified only if the first parameters are provided: <code>createGroup(undefined, [], {safe: true})</code></p>
+				</blockquote>
+				<a href="#listing-bucket-groups" id="listing-bucket-groups" style="color: inherit; text-decoration: none;">
+					<h3>Listing bucket groups</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> {data} = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).listGroups();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: [
+    {
+      <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183153840</span>,
+      <span class="hljs-string">"id"</span>: <span class="hljs-string">"admins"</span>,
+      <span class="hljs-string">"members"</span>: [<span class="hljs-string">"system.Authenticated"</span>],
+      <span class="hljs-string">"pi"</span>: <span class="hljs-number">3.14</span>
+    },
+    {
+      <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183159386</span>,
+      <span class="hljs-string">"id"</span>: <span class="hljs-string">"moderators"</span>,
+      <span class="hljs-string">"members"</span>: [<span class="hljs-string">"github:lili"</span>]
+    }
+  ]
+}</code></pre>
+				<a href="#options-14" id="options-14" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<p>This method accepts the <a href="#generic-options-for-list-operations">generic parameters for sorting, filtering and paginating results</a>.</p>
+				<a href="#groups-list-timestamp" id="groups-list-timestamp" style="color: inherit; text-decoration: none;">
+					<h3>Groups list timestamp</h3>
+				</a>
+				<p>The timestamp of the groups list is used for the <code>since</code> option in the <a href="#generic-options-for-list-operations">generic parameters for sorting, filtering and paginating results</a>.</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>)
+  .getGroupsTimestamp();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js"><span class="hljs-string">"1548699177099"</span></code></pre>
+				<a href="#options-15" id="options-15" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: number of retries when request fails (default: 0)</li>
+				</ul>
+				<a href="#getting-a-bucket-group" id="getting-a-bucket-group" style="color: inherit; text-decoration: none;">
+					<h3>Getting a bucket group</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> {data} = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).getGroup(<span class="hljs-string">"admins"</span>);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+      <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183153840</span>,
+      <span class="hljs-string">"id"</span>: <span class="hljs-string">"admins"</span>,
+      <span class="hljs-string">"members"</span>: [<span class="hljs-string">"system.Authenticated"</span>],
+      <span class="hljs-string">"pi"</span>: <span class="hljs-number">3.14</span>
+  }
+}</code></pre>
+				<a href="#options-16" id="options-16" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<p>This method accepts the <a href="#generic-options-for-singular-operations">generic parameters for singular operations</a>.</p>
+				<a href="#updating-an-existing-group" id="updating-an-existing-group" style="color: inherit; text-decoration: none;">
+					<h3>Updating an existing group</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> updated = {
+  <span class="hljs-attr">id</span>: <span class="hljs-string">"cb0f7b2b-e78f-41a8-afad-92a56f8c88db"</span>,
+  <span class="hljs-attr">members</span>: [<span class="hljs-string">"system.Everyone"</span>, <span class="hljs-string">"github:lili"</span>],
+  <span class="hljs-attr">pi</span>: <span class="hljs-number">3.141592</span>
+};
+
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).updateGroup(updated, {<span class="hljs-attr">permissions</span>: {<span class="hljs-attr">write</span>: [<span class="hljs-string">"fxa:35478"</span>]}});</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183778891</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"cb0f7b2b-e78f-41a8-afad-92a56f8c88db"</span>,
+    <span class="hljs-string">"members"</span>: [<span class="hljs-string">"system.Everyone"</span>, <span class="hljs-string">"github:lili"</span>],
+    <span class="hljs-string">"pi"</span>: <span class="hljs-number">3.141592</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>,
+      <span class="hljs-string">"fxa:35478"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#options-17" id="options-17" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>patch</code>: Patches the existing record instead of replacing it (default: <code>false</code>)</li>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: If <code>last_modified</code> is provided, ensures the resource hasn&#39;t been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: <code>false</code>)</li>
+					<li><code>permissions</code>: Permissions to be set on the group</li>
+				</ul>
+				<a href="#deleting-a-group" id="deleting-a-group" style="color: inherit; text-decoration: none;">
+					<h3>Deleting a group</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).deleteGroup(<span class="hljs-string">"admins"</span>);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"deleted"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183116571</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"admins"</span>
+  }
+}</code></pre>
+				<a href="#options-18" id="options-18" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Ensures the resource hasn&#39;t been modified in the meanwhile if <code>last_modified</code> is provided (default: <code>false</code>)</li>
+					<li><code>last_modified</code>: The last timestamp we know the resource has been updated on the server</li>
+				</ul>
+				<a href="#listing-bucket-history" id="listing-bucket-history" style="color: inherit; text-decoration: none;">
+					<h3>Listing bucket history</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> {data} = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).listHistory();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: [
+    {
+      <span class="hljs-string">"action"</span>: <span class="hljs-string">"update"</span>,
+      <span class="hljs-string">"collection_id"</span>: <span class="hljs-string">"articles"</span>,
+      <span class="hljs-string">"date"</span>: <span class="hljs-string">"2016-07-20T11:18:36.530281"</span>,
+      <span class="hljs-string">"id"</span>: <span class="hljs-string">"cb98ecd7-a66f-4f9d-82c5-73d06930f4f2"</span>,
+      <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1469006316530</span>,
+      <span class="hljs-string">"record_id"</span>: <span class="hljs-string">"b3b76c56-b6df-4195-8189-d79da4a128e1"</span>,
+      <span class="hljs-string">"resource_name"</span>: <span class="hljs-string">"record"</span>,
+      <span class="hljs-string">"target"</span>: {
+          <span class="hljs-string">"data"</span>: {
+              <span class="hljs-string">"id"</span>: <span class="hljs-string">"b3b76c56-b6df-4195-8189-d79da4a128e1"</span>,
+              <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1469006316529</span>,
+              <span class="hljs-string">"title"</span>: <span class="hljs-string">"Modified title"</span>
+          },
+          <span class="hljs-string">"permissions"</span>: {
+              <span class="hljs-string">"write"</span>: [
+                  <span class="hljs-string">"basicauth:43181ac0ae7581a23288c25a98786ef9db86433c62a04fd6071d11653ee69089"</span>
+              ]
+          }
+      },
+      <span class="hljs-string">"timestamp"</span>: <span class="hljs-number">1469006098757</span>,
+      <span class="hljs-string">"uri"</span>: <span class="hljs-string">"/buckets/blog/collections/articles/records/b3b76c56-b6df-4195-8189-d79da4a128e1"</span>,
+      <span class="hljs-string">"user_id"</span>: <span class="hljs-string">"basicauth:43181ac0ae7581a23288c25a98786ef9db86433c62a04fd6071d11653ee69089"</span>,
+    }
+  ]
+}
+</code></pre>
+				<a href="#options-19" id="options-19" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<p>This method accepts the <a href="#generic-options-for-list-operations">generic parameters for sorting, filtering and paginating results</a>.</p>
+				<a href="#collections" id="collections" style="color: inherit; text-decoration: none;">
+					<h2>Collections</h2>
+				</a>
+				<a href="#selecting-a-collection" id="selecting-a-collection" style="color: inherit; text-decoration: none;">
+					<h3>Selecting a collection</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> posts = client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>);</code></pre>
+				<a href="#getting-collection-data" id="getting-collection-data" style="color: inherit; text-decoration: none;">
+					<h3>Getting collection data</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>).getData();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183561206</span>,
+  <span class="hljs-string">"id"</span>: <span class="hljs-string">"posts"</span>,
+  <span class="hljs-string">"preferedAuthor"</span>: <span class="hljs-string">"@chucknorris"</span>
+}</code></pre>
+				<a href="#options-20" id="options-20" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<p>This method accepts the <a href="#generic-options-for-singular-operations">generic parameters for singular operations</a>.</p>
+				<a href="#setting-collection-data" id="setting-collection-data" style="color: inherit; text-decoration: none;">
+					<h3>Setting collection data</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .setData({<span class="hljs-attr">preferedAuthor</span>: <span class="hljs-string">"@chucknorris"</span>});</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183561206</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"posts"</span>,
+    <span class="hljs-string">"preferedAuthor"</span>: <span class="hljs-string">"@chucknorris"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"github:bob"</span>,
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>,
+      <span class="hljs-string">"github:john"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#options-21" id="options-21" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>patch</code>: Patches the existing data instead of replacing them (default: <code>false</code>)</li>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: If <code>last_modified</code> is provided, ensures the resource hasn&#39;t been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: <code>false</code>)</li>
+					<li><code>last_modified</code>: The last timestamp we know the resource has been updated on the server</li>
+				</ul>
+				<a href="#getting-collection-permissions" id="getting-collection-permissions" style="color: inherit; text-decoration: none;">
+					<h3>Getting collection permissions</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>).getPermissions();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"write"</span>: [
+    <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>,
+  ]
+}</code></pre>
+				<a href="#options-22" id="options-22" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<a href="#setting-collection-permissions" id="setting-collection-permissions" style="color: inherit; text-decoration: none;">
+					<h3>Setting collection permissions</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .setPermissions({
+    <span class="hljs-attr">read</span>: [<span class="hljs-string">"github:bob"</span>],
+    <span class="hljs-attr">write</span>: [<span class="hljs-string">"github:john"</span>, <span class="hljs-string">"github:bob"</span>]
+  });</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183508926</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"posts"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"read"</span>: [<span class="hljs-string">"github:bob"</span>],
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"github:bob"</span>,
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>,
+      <span class="hljs-string">"github:john"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#options-23" id="options-23" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: If <code>last_modified</code> is provided, ensures the resource hasn&#39;t been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: <code>false</code>)</li>
+					<li><code>last_modified</code>: The last timestamp we know the resource has been updated on the server.</li>
+				</ul>
+				<a href="#notes-2" id="notes-2" style="color: inherit; text-decoration: none;">
+					<h4>Notes</h4>
+				</a>
+				<ul>
+					<li>This operation replaces any previously set permissions;</li>
+					<li>Owners will always keep their <code>write</code> permission bit, as per the Kinto protocol.</li>
+				</ul>
+				<a href="#creating-a-new-record" id="creating-a-new-record" style="color: inherit; text-decoration: none;">
+					<h3>Creating a new record</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .createRecord({<span class="hljs-attr">title</span>: <span class="hljs-string">"My first post"</span>, <span class="hljs-attr">content</span>: <span class="hljs-string">"Hello World!"</span>});</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"content"</span>: <span class="hljs-string">"Hello World!"</span>,
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183657846</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"cb0f7b2b-e78f-41a8-afad-92a56f8c88db"</span>,
+    <span class="hljs-string">"title"</span>: <span class="hljs-string">"My first post"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#options-24" id="options-24" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request;</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Whether to override existing resource if it already exists and if an id is provided (default: <code>false</code>)</li>
+				</ul>
+				<a href="#retrieving-an-existing-record" id="retrieving-an-existing-record" style="color: inherit; text-decoration: none;">
+					<h3>Retrieving an existing record</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .getRecord(<span class="hljs-string">"cb0f7b2b-e78f-41a8-afad-92a56f8c88db"</span>);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"content"</span>: <span class="hljs-string">"Hello World!"</span>,
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183657846</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"cb0f7b2b-e78f-41a8-afad-92a56f8c88db"</span>,
+    <span class="hljs-string">"title"</span>: <span class="hljs-string">"My first post"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#options-25" id="options-25" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<p>This method accepts the <a href="#generic-options-for-singular-operations">generic parameters for singular operations</a>.</p>
+				<a href="#updating-an-existing-record" id="updating-an-existing-record" style="color: inherit; text-decoration: none;">
+					<h3>Updating an existing record</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> updated = {
+  <span class="hljs-attr">id</span>: <span class="hljs-string">"cb0f7b2b-e78f-41a8-afad-92a56f8c88db"</span>,
+  <span class="hljs-attr">title</span>: <span class="hljs-string">"My first post, edited"</span>,
+  <span class="hljs-attr">content</span>: <span class="hljs-string">"Hello World, again!"</span>
+};
+
+<span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .updateRecord(updated);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"content"</span>: <span class="hljs-string">"Hello World, again!"</span>,
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183778891</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"cb0f7b2b-e78f-41a8-afad-92a56f8c88db"</span>,
+    <span class="hljs-string">"title"</span>: <span class="hljs-string">"My first post, edited"</span>
+  },
+  <span class="hljs-string">"permissions"</span>: {
+    <span class="hljs-string">"write"</span>: [
+      <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+    ]
+  }
+}</code></pre>
+				<a href="#options-26" id="options-26" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>patch</code>: Patches the existing record instead of replacing it (default: <code>false</code>)</li>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: If <code>last_modified</code> is provided, ensures the resource hasn&#39;t been modified since that timestamp. Otherwise ensures no existing resource with the provided id will be overriden (default: <code>false</code>);</li>
+				</ul>
+				<a href="#deleting-record" id="deleting-record" style="color: inherit; text-decoration: none;">
+					<h3>Deleting record</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .deleteRecord(<span class="hljs-string">"cb0f7b2b-e78f-41a8-afad-92a56f8c88db"</span>);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: {
+    <span class="hljs-string">"deleted"</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456183877287</span>,
+    <span class="hljs-string">"id"</span>: <span class="hljs-string">"cb0f7b2b-e78f-41a8-afad-92a56f8c88db"</span>
+  }
+}</code></pre>
+				<a href="#options-27" id="options-27" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Ensures the resource hasn&#39;t been modified in the meanwhile if <code>last_modified</code> is provided (default: <code>false</code>);</li>
+					<li><code>last_modified</code>: When <code>safe</code> is true, the last timestamp we know the resource has been updated on the server.</li>
+				</ul>
+				<a href="#listing-records" id="listing-records" style="color: inherit; text-decoration: none;">
+					<h3>Listing records</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .listRecords();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-attr">last_modified</span>: <span class="hljs-string">"1456183930780"</span>,
+  <span class="hljs-attr">next</span>: <span class="xml"><span class="hljs-tag">&lt;<span class="hljs-name">Function</span>&gt;</span>,
+  totalRecords: 2,
+  data: [
+    {
+      "content": "True.",
+      "last_modified": 1456183930780,
+      "id": "a89dd4b2-d597-4192-bc2b-834116244d29",
+      "title": "I love cheese"
+    },
+    {
+      "content": "Yo",
+      "last_modified": 1456183914275,
+      "id": "63c1805a-565a-46cc-bfb3-007dfad54065",
+      "title": "Another post"
+    }
+  ]
+}</span></code></pre>
+				<p>The result object exposes the following properties:</p>
+				<ul>
+					<li><code>last_modified</code>: the <a href="http://kinto.readthedocs.io/en/stable/api/1.x/timestamps.html">collection&#39;s timestamp</a>. (Note: this value is the same as the one returned by <a href="#records-list-timestamp"><code>getRecordsTimestamp()</code></a>)</li>
+					<li><code>next</code>: the <a href="#paginating-results">pagination</a> helper to access the next page of results, if any</li>
+					<li><code>totalRecords</code>: the total number of records in the <strong>entire collection</strong>. This number can alternatively be retrieved using the <code>getTotalRecords()</code> method of the collection API</li>
+					<li><code>data</code>: the list of records</li>
+				</ul>
+				<a href="#options-28" id="options-28" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>at</code>: Retrieve the records list at at a given timestamp back in time (note: full list is always returned, this option doesn&#39;t support pagination and will reject if the <a href="http://kinto.readthedocs.io/en/stable/api/1.x/history.html">History plugin</a> isn&#39;t enabled or has been enabled after the creation of the collection.)</li>
+				</ul>
+				<p>This method accepts the <a href="#generic-options-for-list-operations">generic parameters for sorting, filtering and paginating results</a>.</p>
+				<a href="#total-number-of-records" id="total-number-of-records" style="color: inherit; text-decoration: none;">
+					<h3>Total number of records</h3>
+				</a>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .getTotalRecords();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js"><span class="hljs-number">42</span></code></pre>
+				<a href="#options-29" id="options-29" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: number of retries when request fails (default: 0)</li>
+				</ul>
+				<a href="#records-list-timestamp" id="records-list-timestamp" style="color: inherit; text-decoration: none;">
+					<h3>Records list timestamp</h3>
+				</a>
+				<p>The timestamp of the records list is used for the <code>since</code> option in the <a href="#generic-options-for-list-operations">generic parameters for sorting, filtering and paginating results</a>.</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>)
+  .collection(<span class="hljs-string">"posts"</span>)
+  .getRecordsTimestamp();</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js"><span class="hljs-string">"1548699177099"</span></code></pre>
+				<a href="#options-30" id="options-30" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: number of retries when request fails (default: 0)</li>
+				</ul>
+				<a href="#batching-operations" id="batching-operations" style="color: inherit; text-decoration: none;">
+					<h3>Batching operations</h3>
+				</a>
+				<p>This allows performing multiple operations in a single HTTP request.</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .batch(<span class="hljs-function"><span class="hljs-params">batch</span> =&gt;</span> {
+    batch.deleteRecord(<span class="hljs-string">"cb0f7b2b-e78f-41a8-afad-92a56f8c88db"</span>);
+    batch.createRecord({<span class="hljs-attr">title</span>: <span class="hljs-string">"new post"</span>, <span class="hljs-attr">content</span>: <span class="hljs-string">"yo"</span>});
+    batch.createRecord({<span class="hljs-attr">title</span>: <span class="hljs-string">"another"</span>, <span class="hljs-attr">content</span>: <span class="hljs-string">"yo again"</span>});
+  });</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">[
+  {
+    <span class="hljs-string">"status"</span>: <span class="hljs-number">200</span>,
+    <span class="hljs-string">"path"</span>: <span class="hljs-string">"/v1/buckets/blog/collections/posts/records/a89dd4b2-d597-4192-bc2b-834116244d29"</span>,
+    <span class="hljs-string">"body"</span>: {
+      <span class="hljs-string">"data"</span>: {
+        <span class="hljs-string">"deleted"</span>: <span class="hljs-literal">true</span>,
+        <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456184078090</span>,
+        <span class="hljs-string">"id"</span>: <span class="hljs-string">"a89dd4b2-d597-4192-bc2b-834116244d29"</span>
+      }
+    },
+    <span class="hljs-string">"headers"</span>: {
+      <span class="hljs-string">"Content-Length"</span>: <span class="hljs-string">"99"</span>,
+      <span class="hljs-string">"Content-Type"</span>: <span class="hljs-string">"application/json; charset=UTF-8"</span>,
+      <span class="hljs-string">"Access-Control-Expose-Headers"</span>: <span class="hljs-string">"Retry-After, Content-Length, Alert, Backoff"</span>
+    }
+  },
+  {
+    <span class="hljs-string">"status"</span>: <span class="hljs-number">201</span>,
+    <span class="hljs-string">"path"</span>: <span class="hljs-string">"/v1/buckets/blog/collections/posts/records"</span>,
+    <span class="hljs-string">"body"</span>: {
+      <span class="hljs-string">"data"</span>: {
+        <span class="hljs-string">"content"</span>: <span class="hljs-string">"yo"</span>,
+        <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456184078096</span>,
+        <span class="hljs-string">"id"</span>: <span class="hljs-string">"afd650b3-1625-42f6-8994-860e52d39201"</span>,
+        <span class="hljs-string">"title"</span>: <span class="hljs-string">"new post"</span>
+      },
+      <span class="hljs-string">"permissions"</span>: {
+        <span class="hljs-string">"write"</span>: [
+          <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+        ]
+      }
+    },
+    <span class="hljs-string">"headers"</span>: {
+      <span class="hljs-string">"Content-Length"</span>: <span class="hljs-string">"221"</span>,
+      <span class="hljs-string">"Content-Type"</span>: <span class="hljs-string">"application/json; charset=UTF-8"</span>,
+      <span class="hljs-string">"Access-Control-Expose-Headers"</span>: <span class="hljs-string">"Retry-After, Content-Length, Alert, Backoff"</span>
+    }
+  },
+  {
+    <span class="hljs-string">"status"</span>: <span class="hljs-number">201</span>,
+    <span class="hljs-string">"path"</span>: <span class="hljs-string">"/v1/buckets/blog/collections/posts/records"</span>,
+    <span class="hljs-string">"body"</span>: {
+      <span class="hljs-string">"data"</span>: {
+        <span class="hljs-string">"content"</span>: <span class="hljs-string">"yo again"</span>,
+        <span class="hljs-string">"last_modified"</span>: <span class="hljs-number">1456184078102</span>,
+        <span class="hljs-string">"id"</span>: <span class="hljs-string">"22c1319e-7b09-46db-bec4-c240bdf4e3e9"</span>,
+        <span class="hljs-string">"title"</span>: <span class="hljs-string">"another"</span>
+      },
+      <span class="hljs-string">"permissions"</span>: {
+        <span class="hljs-string">"write"</span>: [
+          <span class="hljs-string">"basicauth:0f7c1b72cdc89b9d42a2d48d5f0b291a1e8afd408cc38a2197cdf508269cecc8"</span>
+        ]
+      }
+    },
+    <span class="hljs-string">"headers"</span>: {
+      <span class="hljs-string">"Content-Length"</span>: <span class="hljs-string">"226"</span>,
+      <span class="hljs-string">"Content-Type"</span>: <span class="hljs-string">"application/json; charset=UTF-8"</span>,
+      <span class="hljs-string">"Access-Control-Expose-Headers"</span>: <span class="hljs-string">"Retry-After, Content-Length, Alert, Backoff"</span>
+    }
+  }
+]</code></pre>
+				<a href="#options-31" id="options-31" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Ensures operations won&#39;t override existing resources on the server if their associated <code>last_modified</code> value or option are provided; otherwise ensures resources won&#39;t be overriden if they already exist on the server</li>
+					<li><code>aggregate</code>: Produces an aggregated result object, grouped by operation types; the result object has the following structure:</li>
+				</ul>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"errors"</span>:    [], <span class="hljs-comment">// Encountered errors (HTTP 400, &gt;=500)</span>
+  <span class="hljs-string">"published"</span>: [], <span class="hljs-comment">// Successfully published resources (HTTP 200, 201)</span>
+  <span class="hljs-string">"conflicts"</span>: [], <span class="hljs-comment">// Conflicting resources (HTTP 412)</span>
+  <span class="hljs-string">"skipped"</span>:   []  <span class="hljs-comment">// Missing target resources on the server (HTTP 404)</span>
+}</code></pre>
+				<a href="#listing-all-resource-permissions" id="listing-all-resource-permissions" style="color: inherit; text-decoration: none;">
+					<h2>Listing all resource permissions</h2>
+				</a>
+				<p>If the <a href="http://kinto.readthedocs.io/en/stable/api/1.x/permissions.html#list-every-permissions"><code>permissions_endpoint</code> capability</a> is installed on the server, you can retrieve the list of all permissions set for the authenticated user using the <code>listPermissions()</code> method:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> client.listPermissions([options]);</code></pre>
+				<p>Sample result:</p>
+				<pre><code class="language-js">{
+  <span class="hljs-string">"data"</span>: [
+    {
+      <span class="hljs-string">"bucket_id"</span>: <span class="hljs-string">"mybucket"</span>,
+      <span class="hljs-string">"id"</span>: <span class="hljs-string">"mybucket"</span>,
+      <span class="hljs-string">"permissions"</span>: [
+        <span class="hljs-string">"write"</span>,
+        <span class="hljs-string">"read"</span>,
+        <span class="hljs-string">"group:create"</span>,
+        <span class="hljs-string">"collection:create"</span>
+      ],
+      <span class="hljs-string">"resource_name"</span>: <span class="hljs-string">"bucket"</span>,
+      <span class="hljs-string">"uri"</span>: <span class="hljs-string">"/buckets/mybucket"</span>
+    },
+    ...
+  ]
+}</code></pre>
+				<a href="#options-32" id="options-32" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+				</ul>
+				<a href="#result-object-properties" id="result-object-properties" style="color: inherit; text-decoration: none;">
+					<h4>Result object properties</h4>
+				</a>
+				<ul>
+					<li><code>last_modified</code>: the last modified value for the list of permissions</li>
+					<li><code>hasNextPage</code>: a boolean informing if a next page is available; when that&#39;s the case, you can call <code>next()</code></li>
+					<li><code>next</code>: the <a href="#paginating-results">pagination</a> helper to access the next page of results, if any</li>
+					<li><code>data</code>: the list of permissions</li>
+					<li><code>totalRecords</code>: the total number of permissions listed in the <code>data</code> property array</li>
+				</ul>
+				<a href="#attachments" id="attachments" style="color: inherit; text-decoration: none;">
+					<h2>Attachments</h2>
+				</a>
+				<p>If the <a href="https://github.com/Kinto/kinto-attachment">attachment</a> capability is available from the Kinto server, you can attach files to records. Files must be passed as <a href="http://dataurl.net/#about">data urls</a>, which can be generated using the <a href="https://developer.mozilla.org/en-US/docs/Web/API/FileReader/readAsDataURL">FileReader API</a> in the browser.</p>
+				<a href="#adding-an-attachment-to-a-record" id="adding-an-attachment-to-a-record" style="color: inherit; text-decoration: none;">
+					<h3>Adding an attachment to a record</h3>
+				</a>
+				<pre><code class="language-js">client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .addAttachment(dataURL, {<span class="hljs-attr">title</span>: <span class="hljs-string">"First post"</span>});</code></pre>
+				<a href="#options-33" id="options-33" style="color: inherit; text-decoration: none;">
+					<h4>Options</h4>
+				</a>
+				<ul>
+					<li><code>headers</code>: Custom headers object to send along the HTTP request</li>
+					<li><code>retry</code>: Number of retries when request fails (default: 0)</li>
+					<li><code>safe</code>: Ensures operations won&#39;t override existing resources on the server if their associated <code>last_modified</code> value or option are provided; otherwise ensures resources won&#39;t be overriden if they already exist on the server</li>
+					<li><code>last_modified</code>: When <code>safe</code> is true, the last timestamp we know the resource has been updated on the server</li>
+					<li><code>permissions</code>: Permissions to be set on the record</li>
+					<li><code>filename</code>: Allows to specify the attachment filename, in case the data URI does not contain any, or if the file has to be renamed on upload</li>
+				</ul>
+				<a href="#updating-an-attachment" id="updating-an-attachment" style="color: inherit; text-decoration: none;">
+					<h3>Updating an attachment</h3>
+				</a>
+				<pre><code class="language-js">client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .addAttachment(dataURL, {<span class="hljs-attr">id</span>: <span class="hljs-string">"22c1319e-7b09-46db-bec4-c240bdf4e3e9"</span>});</code></pre>
+				<a href="#deleting-an-attachment" id="deleting-an-attachment" style="color: inherit; text-decoration: none;">
+					<h3>Deleting an attachment</h3>
+				</a>
+				<pre><code class="language-js">client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .removeAttachment(<span class="hljs-string">"22c1319e-7b09-46db-bec4-c240bdf4e3e9"</span>);</code></pre>
+				<a href="#generic-bucket-and-collection-options" id="generic-bucket-and-collection-options" style="color: inherit; text-decoration: none;">
+					<h2>Generic bucket and collection options</h2>
+				</a>
+				<p>Both <code>bucket()</code> and <code>collection()</code> methods accept an <code>options</code> object as a second arguments where you can define the following options:</p>
+				<ul>
+					<li><code>{Object} headers</code>: Custom headers to send along the request;</li>
+					<li><code>{Boolean} safe</code>: Ensure safe transactional operations; read more about that below.</li>
+					<li><code>{Number} retry</code>: Default number of times to retry requests when faced with transient errors.</li>
+				</ul>
+				<p>Sample usage:</p>
+				<pre><code class="language-js">client.bucket(<span class="hljs-string">"blog"</span>, {
+  <span class="hljs-attr">headers</span>: {<span class="hljs-string">"X-Hello"</span>: <span class="hljs-string">"Hello!"</span>},
+  <span class="hljs-attr">safe</span>: <span class="hljs-literal">true</span>,
+  <span class="hljs-attr">retry</span>: <span class="hljs-number">2</span>,
+});</code></pre>
+				<p>Here the <code>X-Hello</code> header and the <code>safe</code> option will be used for building every outgoing request sent to the server, for every collection attached to this bucket.</p>
+				<p>This works at the collection level as well:</p>
+				<pre><code class="language-js">client.bucket(<span class="hljs-string">"blog"</span>)
+  .collection(<span class="hljs-string">"posts"</span>, {
+    <span class="hljs-attr">headers</span>: {<span class="hljs-string">"X-Hello"</span>: <span class="hljs-string">"Hello!"</span>},
+    <span class="hljs-attr">safe</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">retry</span>: <span class="hljs-number">2</span>,
+  });</code></pre>
+				<p>Every request sent for this collection will have the options applied.</p>
+				<p>Last, you can of course pass these options at the atomic operation level:</p>
+				<pre><code class="language-js">client.bucket(<span class="hljs-string">"blog"</span>)
+  .collection(<span class="hljs-string">"posts"</span>)
+  .updateRecord(updatedRecord, {
+    <span class="hljs-attr">headers</span>: {<span class="hljs-string">"X-Hello"</span>: <span class="hljs-string">"Hello!"</span>},
+    <span class="hljs-attr">safe</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">retry</span>: <span class="hljs-number">2</span>,
+  });</code></pre>
+				<p>The cool thing being you can always override the default defined options at the atomic operation level:</p>
+				<pre><code class="language-js">client.bucket(<span class="hljs-string">"blog"</span>, {<span class="hljs-attr">safe</span>: <span class="hljs-literal">true</span>})
+  .collection(<span class="hljs-string">"posts"</span>)
+  .updateRecord(updatedRecord, {<span class="hljs-attr">safe</span>: <span class="hljs-literal">false</span>});</code></pre>
+				<a href="#the-safe-option-explained" id="the-safe-option-explained" style="color: inherit; text-decoration: none;">
+					<h2>The <code>safe</code> option explained</h2>
+				</a>
+				<p>The <code>safe</code> option can be used:</p>
+				<ul>
+					<li>when creating or updating a resource, to ensure that any already existing record matching the provided ID won&#39;t be overridden if it exists on the server;</li>
+					<li>when updating or deleting a resource, to ensure it won&#39;t be overridden remotely if it has changed in the meanwhile on the server (requires a <code>last_modified</code> value to be provided).</li>
+				</ul>
+				<a href="#safe-creations" id="safe-creations" style="color: inherit; text-decoration: none;">
+					<h3>Safe creations</h3>
+				</a>
+				<p>When creating a new ressource, using the <code>safe</code> option will ensure the resource will be created only if it doesn&#39;t already exist on the server.</p>
+				<a href="#safe-updates" id="safe-updates" style="color: inherit; text-decoration: none;">
+					<h3>Safe updates</h3>
+				</a>
+				<p>If a <code>last_modified</code> property value is set in the resource object being updated, the <code>safe</code> option will ensure it won&#39;t be overriden if it&#39;s been modified on the server since that <code>last_modified</code> timestamp, raising an <code>HTTP 412</code> response describing the conflict when that happens:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> updatedRecord = {
+  <span class="hljs-attr">id</span>: <span class="hljs-string">"fbd2a565-8c10-497a-95b8-ce4ea6f474e1"</span>,
+  <span class="hljs-attr">title</span>: <span class="hljs-string">"new post, modified"</span>,
+  <span class="hljs-attr">content</span>: <span class="hljs-string">"yoyo"</span>,
+  <span class="hljs-attr">last_modified</span>: <span class="hljs-number">1456184189160</span>
+};
+
+client.bucket(<span class="hljs-string">"blog"</span>)
+  .collection(<span class="hljs-string">"posts"</span>)
+  .updateRecord(updatedRecord, {<span class="hljs-attr">safe</span>: <span class="hljs-literal">true</span>});</code></pre>
+				<p>If this record has been modified on the server already, meaning its <code>last_modified</code> is greater than the one we provide , we&#39;ll get a <code>412</code> error response.</p>
+				<p>If no <code>last_modified</code> value is provided at all, a safe update will simply guarantee that an existing resource with the provided ID won&#39;t be overriden.</p>
+				<a href="#safe-deletions" id="safe-deletions" style="color: inherit; text-decoration: none;">
+					<h3>Safe deletions</h3>
+				</a>
+				<p>The same applies for deletions, where you can pass both a <code>safe</code> and <code>last_modified</code> options:</p>
+				<pre><code class="language-js">client.bucket(<span class="hljs-string">"blog"</span>)
+  .collection(<span class="hljs-string">"posts"</span>)
+  .deleteRecord(<span class="hljs-string">"fbd2a565-8c10-497a-95b8-ce4ea6f474e1"</span>, {
+    <span class="hljs-attr">safe</span>: <span class="hljs-literal">true</span>,
+    <span class="hljs-attr">last_modified</span>: <span class="hljs-number">1456184189160</span>
+  });</code></pre>
+				<a href="#generic-options-for-list-operations" id="generic-options-for-list-operations" style="color: inherit; text-decoration: none;">
+					<h2>Generic options for list operations</h2>
+				</a>
+				<p>Every list operations like <a href="#listing-buckets">listBuckets()</a>, <a href="#listing-bucket-collections">listCollections</a>, <a href="#listing-bucket-history">listHistory</a>, <a href="#list-bucket-groups">listGroups()</a> or <a href="#listing-records">listRecords()</a> accept parameters to sort, filter and paginate the results:</p>
+				<ul>
+					<li><code>sort</code>: The order field (default: <code>-last_modified</code>);</li>
+					<li><code>pages</code>: The number of result pages to retrieve (default: <code>1</code>);</li>
+					<li><code>limit</code>: The number of records to retrieve per page: unset by default, uses default server configuration;</li>
+					<li><code>filters</code>: An object defining the filters to apply; read more about <a href="http://kinto.readthedocs.io/en/stable/api/1.x/filtering.html">what&#39;s supported</a>;</li>
+					<li><code>since</code>: The ETag header value received from the last response from the server.</li>
+					<li><code>fields</code>: The set of fields to return for each record (see the <a href="https://kinto.readthedocs.io/en/stable/api/1.x/selecting_fields.html">selecting fields</a> documentation).</li>
+				</ul>
+				<a href="#sorting" id="sorting" style="color: inherit; text-decoration: none;">
+					<h3>Sorting</h3>
+				</a>
+				<p>By default, results are listed by <code>last_modified</code> descending order. You can set the <code>sort</code> option to order by another field:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> {data, next} = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .listRecords({<span class="hljs-attr">sort</span>: <span class="hljs-string">"title"</span>});</code></pre>
+				<a href="#polling-for-changes" id="polling-for-changes" style="color: inherit; text-decoration: none;">
+					<h3>Polling for changes</h3>
+				</a>
+				<p>To retrieve the results modified since a given timestamp, use the <code>since</code> option:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> {data, next} = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .listRecords({<span class="hljs-attr">since</span>: <span class="hljs-string">"1456183930780"</span>});</code></pre>
+				<a href="#paginating-results" id="paginating-results" style="color: inherit; text-decoration: none;">
+					<h3>Paginating results</h3>
+				</a>
+				<p>By default, all results of the first page are retrieved, and the default configuration of the server defines no limit. To specify a max number of results to retrieve, you can use the <code>limit</code> option:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> {data, hasNextPage, next} = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .listRecords({<span class="hljs-attr">limit</span>: <span class="hljs-number">20</span>});</code></pre>
+				<p>To check if a next page of results is available, you can check for the <code>hasNextPage</code> boolean property. To actually fetch the next page of results, call the <code>next()</code> function obtained:</p>
+				<pre><code class="language-js">  <span class="hljs-keyword">let</span> {data, hasNextPage, next} = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+    .listRecords({<span class="hljs-attr">limit</span>: <span class="hljs-number">20</span>});
+  <span class="hljs-keyword">while</span> (hasNextPage) {
+    <span class="hljs-keyword">const</span> result = <span class="hljs-keyword">await</span> next();
+    data = data.concat(result.data);
+    hasNextPage = result.hasNextPage;
+  }</code></pre>
+				<p>Last, if you just want to retrieve and aggregate a given number of result pages, instead of dealing with calling <code>next()</code> recursively you can simply specify the <code>pages</code> option:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> {data, hasNextPage, next} = <span class="hljs-keyword">await</span> client.bucket(<span class="hljs-string">"blog"</span>).collection(<span class="hljs-string">"posts"</span>)
+  .listRecords({<span class="hljs-attr">limit</span>: <span class="hljs-number">20</span>, <span class="hljs-attr">pages</span>: <span class="hljs-number">3</span>}); <span class="hljs-comment">// A maximum of 60 results will be retrieved here</span></code></pre>
+				<blockquote>
+					<a href="#notes-3" id="notes-3" style="color: inherit; text-decoration: none;">
+						<h5>Notes</h5>
+					</a>
+					<p>If you plan on fetching all the available pages, you can set the <code>pages</code> option to <code>Infinity</code>. Be aware that for large datasets this strategy can possibly issue an excessive number of HTTP requests.</p>
+				</blockquote>
+				<a href="#generic-options-for-singular-operations" id="generic-options-for-singular-operations" style="color: inherit; text-decoration: none;">
+					<h2>Generic options for singular operations</h2>
+				</a>
+				<p>&quot;Singular&quot; operations such as <a href="#getting-bucket-data">Bucket#getData()</a>, <a href="#getting-a-bucket-group">Bucket#getGroup</a>, <a href="#getting-collection-data">Collection#getData</a>, and <a href="#retrieving-an-existing-record">Collection#getRecord</a> support some shared options:</p>
+				<ul>
+					<li><code>fields</code>: The set of fields to return for each record (see the <a href="https://kinto.readthedocs.io/en/stable/api/1.x/selecting_fields.html">selecting fields</a> documentation).</li>
+					<li><code>query</code>: Any extra query arguments to pass. This might be handy if you want to use a feature that this library doesn&#39;t support yet, or for implementing cache-busting URLs.</li>
+				</ul>
+				<a href="#events" id="events" style="color: inherit; text-decoration: none;">
+					<h2>Events</h2>
+				</a>
+				<p>The <code>KintoClient</code> exposes an <code>events</code> property you can subscribe public events from. That <code>events</code> property implements nodejs&#39; <a href="https://nodejs.org/api/events.html#events_class_events_eventemitter">EventEmitter interface</a>.</p>
+				<a href="#the-backoff-event" id="the-backoff-event" style="color: inherit; text-decoration: none;">
+					<h3>The <code>backoff</code> event</h3>
+				</a>
+				<p>Triggered when a <code>Backoff</code> HTTP header has been received from the last received response from the server, meaning clients should hold on performing further requests during a given amount of time.</p>
+				<p>The <code>backoff</code> event notifies what&#39;s the backoff release timestamp you should wait until before performing another operation:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> KintoClient();
+
+client.events.on(<span class="hljs-string">"backoff"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">releaseTime</span>) </span>{
+  <span class="hljs-keyword">const</span> releaseDate = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(releaseTime).toLocaleString();
+  alert(<span class="hljs-string">`Backed off; wait until <span class="hljs-subst">${releaseDate}</span> to retry`</span>);
+});</code></pre>
+				<a href="#the-deprecated-event" id="the-deprecated-event" style="color: inherit; text-decoration: none;">
+					<h3>The <code>deprecated</code> event</h3>
+				</a>
+				<p>Triggered when an <code>Alert</code> HTTP header is received from the server, meaning that a feature has been deprecated; the <code>event</code> argument received by the event listener contains the following deprecation information:</p>
+				<ul>
+					<li><code>type</code>: The type of deprecation, which in ou case is always <code>soft-eol</code> (<code>hard-eol</code> alerts trigger an <code>HTTP 410 Gone</code> error);</li>
+					<li><code>message</code>: The deprecation alert message;</li>
+					<li><code>url</code>: The URL you can get information about the related deprecation policy.</li>
+				</ul>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> KintoClient();
+
+client.events.on(<span class="hljs-string">"deprecated"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">event</span>) </span>{
+  <span class="hljs-built_in">console</span>.log(event.message);
+});</code></pre>
+				<a href="#the-retry-after-event" id="the-retry-after-event" style="color: inherit; text-decoration: none;">
+					<h3>The <code>retry-after</code> event</h3>
+				</a>
+				<p>Some errors on the server side are transient (service unavailable or integrity errors). A <code>Retry-After</code> HTTP header in the response indicates the duration in seconds that clients should wait before retrying the request.</p>
+				<p>The <code>retry-after</code> event notifies what is the timestamp you should wait until before performing another operation:</p>
+				<pre><code class="language-js"><span class="hljs-keyword">const</span> client = <span class="hljs-keyword">new</span> KintoClient();
+
+client.events.on(<span class="hljs-string">"retry-after"</span>, <span class="hljs-function"><span class="hljs-keyword">function</span>(<span class="hljs-params">releaseTime</span>) </span>{
+  <span class="hljs-keyword">const</span> releaseDate = <span class="hljs-keyword">new</span> <span class="hljs-built_in">Date</span>(releaseTime).toLocaleString();
+  alert(<span class="hljs-string">`Wait until <span class="hljs-subst">${releaseDate}</span> to retry`</span>);
+});</code></pre>
+				<blockquote>
+					<a href="#note" id="note" style="color: inherit; text-decoration: none;">
+						<h4>Note:</h4>
+					</a>
+					<p>We also automatically retry all requests that have a Retry-After response.</p>
+				</blockquote>
+				<a href="#browser-compatibility" id="browser-compatibility" style="color: inherit; text-decoration: none;">
+					<h2>Browser Compatibility</h2>
+				</a>
+				<p>This library uses some features that are not supported on Internet Explorer or Safari.</p>
+				<ul>
+					<li>Javascript <a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Promise#Browser_compatibility"><code>Promise</code></a></li>
+					<li><a href="https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_Objects/Object/assign#Browser_compatibility"><code>Object.assign()</code></a></li>
+					<li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API#Browser_compatibility"><code>fetch()</code></a></li>
+				</ul>
+				<p>Please <a href="https://polyfill.io/v2/docs/features/">add polyfills</a> for these to get full functionality.</p>
+				<a href="#upgrading" id="upgrading" style="color: inherit; text-decoration: none;">
+					<h2>Upgrading</h2>
+				</a>
+				<a href="#from-1x-to-2x" id="from-1x-to-2x" style="color: inherit; text-decoration: none;">
+					<h3>From 1.x to 2.x</h3>
+				</a>
+				<ul>
+					<li><code>collection.listRecords()</code> now strips the quotes (<code>&quot;</code>) from the <code>last_modified</code> attribute in result object (#110).</li>
+				</ul>
+				<a href="#contributing" id="contributing" style="color: inherit; text-decoration: none;">
+					<h2>Contributing</h2>
+				</a>
+				<a href="#coding-style" id="coding-style" style="color: inherit; text-decoration: none;">
+					<h3>Coding style</h3>
+				</a>
+				<p>All the JavaScript code in this project conforms to the <a href="https://github.com/prettier/prettier">prettier</a> coding style. A command is provided to ensure your code is always formatted accordingly:</p>
+				<pre><code>$ npm <span class="hljs-keyword">run</span> <span class="hljs-keyword">cs</span>-<span class="hljs-keyword">format</span></code></pre><p>The <code>cs-check</code> command ensures all files conform to that style:</p>
+				<pre><code>$ npm <span class="hljs-keyword">run</span><span class="bash"> cs-check</span></code></pre><p>Consider installing the pre-commit hooks that automatically format
+				your code and check that it&#39;s lint-free. To do so:</p>
+				<ul>
+					<li>Install <code>pre-commit</code>, for example using <code>pip install --user pre-commit</code></li>
+					<li><code>pre-commit install</code> to set up the hooks</li>
+					<li>If you have any leftover <code>.git/hooks/pre-commit.legacy</code>, you can safely delete it.</li>
+				</ul>
+				<a href="#integration-tests" id="integration-tests" style="color: inherit; text-decoration: none;">
+					<h3>Integration tests</h3>
+				</a>
+				<p>It&#39;s possible to run the integration test suite against an external Kinto server instance. To do so you need to define the <code>TEST_KINTO_SERVER</code> environment variable and set it to the server base URL:</p>
+				<pre><code><span class="hljs-variable">$ </span>TEST_KINTO_SERVER=<span class="hljs-symbol">https:</span>/<span class="hljs-regexp">/my.kinto-server.tld/v</span>1 npm test</code></pre>
+				<a href="#releasing" id="releasing" style="color: inherit; text-decoration: none;">
+					<h3>Releasing</h3>
+				</a>
+				<p>If you need to release a new version of kinto-http.js, you can follow
+				<a href="https://github.com/Kinto/kinto-http.js/wiki/Releasing">the Release documentation</a>.</p>
+			</div>
+		</div>
+		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+			<nav class="tsd-navigation primary">
+				<ul>
+					<li class="globals  ">
+						<a href="globals.html"><em>Globals</em></a>
+					</li>
+				</ul>
+			</nav>
+			<nav class="tsd-navigation secondary menu-sticky">
+				<ul class="before-current">
+					<li class=" tsd-kind-class">
+						<a href="classes/bucket.html" class="tsd-kind-icon">Bucket</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/collection.html" class="tsd-kind-icon">Collection</a>
+					</li>
+					<li class=" tsd-kind-class tsd-is-private">
+						<a href="classes/http.html" class="tsd-kind-icon">HTTP</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/kintoclient.html" class="tsd-kind-icon">Kinto<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/kintoclientbase.html" class="tsd-kind-icon">Kinto<wbr>Client<wbr>Base</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/kintohttpclient.html" class="tsd-kind-icon">Kinto<wbr>Http<wbr>Client</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/networktimeouterror.html" class="tsd-kind-icon">Network<wbr>Timeout<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/serverresponse.html" class="tsd-kind-icon">Server<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-class">
+						<a href="classes/unparseableresponseerror.html" class="tsd-kind-icon">Unparseable<wbr>Response<wbr>Error</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/aggregateresponse.html" class="tsd-kind-icon">Aggregate<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/attachment.html" class="tsd-kind-icon">Attachment</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/batchresponse.html" class="tsd-kind-icon">Batch<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/bucketoptions.html" class="tsd-kind-icon">Bucket<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/collectionoptions.html" class="tsd-kind-icon">Collection<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/conflictrecord.html" class="tsd-kind-icon">Conflict<wbr>Record</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/conflictresponse.html" class="tsd-kind-icon">Conflict<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/dataresponse.html" class="tsd-kind-icon">Data<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/emitter.html" class="tsd-kind-icon">Emitter</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/entity.html" class="tsd-kind-icon">Entity</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/errorresponse.html" class="tsd-kind-icon">Error<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/group.html" class="tsd-kind-icon">Group</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/helloresponse.html" class="tsd-kind-icon">Hello<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/historyentry.html" class="tsd-kind-icon">History<wbr>Entry</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/httpoptions.html" class="tsd-kind-icon">Http<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/httpresponse.html" class="tsd-kind-icon">Http<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/kintobatchresponse.html" class="tsd-kind-icon">Kinto<wbr>Batch<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/kintoclientoptions.html" class="tsd-kind-icon">Kinto<wbr>Client<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/kintoidobject.html" class="tsd-kind-icon">Kinto<wbr>IdObject</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/kintoobject.html" class="tsd-kind-icon">Kinto<wbr>Object</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/kintorequest.html" class="tsd-kind-icon">Kinto<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/kintoresponse.html" class="tsd-kind-icon">Kinto<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/operationresponse.html" class="tsd-kind-icon">Operation<wbr>Response</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/paginatedlistparams.html" class="tsd-kind-icon">Paginated<wbr>List<wbr>Params</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-has-type-parameter">
+						<a href="interfaces/paginationresult.html" class="tsd-kind-icon">Pagination<wbr>Result</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/permissiondata.html" class="tsd-kind-icon">Permission<wbr>Data</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/recordrequestbody.html" class="tsd-kind-icon">Record<wbr>Request<wbr>Body</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/requestoptions.html" class="tsd-kind-icon">Request<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/responsebody.html" class="tsd-kind-icon">Response<wbr>Body</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/servercapability.html" class="tsd-kind-icon">Server<wbr>Capability</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/serverresponseobject.html" class="tsd-kind-icon">Server<wbr>Response<wbr>Object</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/serversettings.html" class="tsd-kind-icon">Server<wbr>Settings</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/typeddataurl.html" class="tsd-kind-icon">Typed<wbr>DataURL</a>
+					</li>
+					<li class=" tsd-kind-interface">
+						<a href="interfaces/user.html" class="tsd-kind-icon">User</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#addattachmentrequestoptions" class="tsd-kind-icon">Add<wbr>Attachment<wbr>Request<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#basebatch" class="tsd-kind-icon">Base<wbr>Batch</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#bucketbatch" class="tsd-kind-icon">Bucket<wbr>Batch</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#collectionbatch" class="tsd-kind-icon">Collection<wbr>Batch</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#decoratorreturn" class="tsd-kind-icon">Decorator<wbr>Return</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#httpmethod" class="tsd-kind-icon">Http<wbr>Method</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#mappableobject" class="tsd-kind-icon">Mappable<wbr>Object</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#permission" class="tsd-kind-icon">Permission</a>
+					</li>
+					<li class=" tsd-kind-type-alias">
+						<a href="globals.html#requestbody" class="tsd-kind-icon">Request<wbr>Body</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#chromeutils" class="tsd-kind-icon">Chrome<wbr>Utils</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#eventemitter" class="tsd-kind-icon">Event<wbr>Emitter</a>
+					</li>
+					<li class=" tsd-kind-variable">
+						<a href="globals.html#supported_protocol_version" class="tsd-kind-icon">SUPPORTED_<wbr>PROTOCOL_<wbr>VERSION</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private">
+						<a href="globals.html#addattachmentrequest" class="tsd-kind-icon">add<wbr>Attachment<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#addendpointoptions" class="tsd-kind-icon">add<wbr>Endpoint<wbr>Options</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private">
+						<a href="globals.html#aggregate" class="tsd-kind-icon">aggregate</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#capable" class="tsd-kind-icon">capable</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#checkversion" class="tsd-kind-icon">check<wbr>Version</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private">
+						<a href="globals.html#cleanundefinedproperties" class="tsd-kind-icon">clean<wbr>Undefined<wbr>Properties</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#createformdata" class="tsd-kind-icon">create<wbr>Form<wbr>Data</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private">
+						<a href="globals.html#createrequest" class="tsd-kind-icon">create<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#delay" class="tsd-kind-icon">delay</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private">
+						<a href="globals.html#deleterequest" class="tsd-kind-icon">delete<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#extractfileinfo" class="tsd-kind-icon">extract<wbr>File<wbr>Info</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#isobject" class="tsd-kind-icon">is<wbr>Object</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private">
+						<a href="globals.html#jsonpatchpermissionsrequest" class="tsd-kind-icon">json<wbr>Patch<wbr>Permissions<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#nobatch" class="tsd-kind-icon">nobatch</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#obscureauthorizationheader" class="tsd-kind-icon">obscure<wbr>Authorization<wbr>Header</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#parsedataurl" class="tsd-kind-icon">parse<wbr>DataURL</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter tsd-is-private">
+						<a href="globals.html#partition" class="tsd-kind-icon">partition</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#qsify" class="tsd-kind-icon">qsify</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private">
+						<a href="globals.html#safeheader" class="tsd-kind-icon">safe<wbr>Header</a>
+					</li>
+					<li class=" tsd-kind-function">
+						<a href="globals.html#support" class="tsd-kind-icon">support</a>
+					</li>
+					<li class=" tsd-kind-function tsd-has-type-parameter tsd-is-private">
+						<a href="globals.html#todatabody" class="tsd-kind-icon">to<wbr>Data<wbr>Body</a>
+					</li>
+					<li class=" tsd-kind-function tsd-is-private">
+						<a href="globals.html#updaterequest" class="tsd-kind-icon">update<wbr>Request</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#endpoints" class="tsd-kind-icon">ENDPOINTS</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#error_codes" class="tsd-kind-icon">ERROR_<wbr>CODES</a>
+					</li>
+					<li class=" tsd-kind-object-literal">
+						<a href="globals.html#requestdefaults" class="tsd-kind-icon">request<wbr>Defaults</a>
+					</li>
+				</ul>
+			</nav>
+		</div>
+	</div>
+</div>
+<footer class="with-border-bottom">
+	<div class="container">
+		<h2>Legend</h2>
+		<div class="tsd-legend-group">
+			<ul class="tsd-legend">
+				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+			</ul>
+			<ul class="tsd-legend">
+				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+			</ul>
+		</div>
+	</div>
+</footer>
+<div class="container tsd-generator">
+	<p>Generated using <a href="https://typedoc.org/" target="_blank">TypeDoc</a></p>
+</div>
+<div class="overlay"></div>
+<script src="assets/js/main.js"></script>
+<script>if (location.protocol == 'file:') document.write('<script src="assets/js/search.js"><' + '/script>');</script>
 </body>
 </html>
