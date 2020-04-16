@@ -85,6 +85,19 @@ export default class Collection {
     };
   }
 
+  async execute<T>(
+    request: KintoRequest,
+    options: {
+      raw?: boolean;
+      stringify?: boolean;
+      retry?: number;
+      query?: { [key: string]: string };
+      fields?: string[];
+    } = {}
+  ): Promise<T | HttpResponse<T>> {
+    return this.client.execute(request, options);
+  }
+
   /**
    * Get the value of "headers" for a given request, merging the
    * per-request headers with our own "default" headers.
