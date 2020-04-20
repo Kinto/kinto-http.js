@@ -1157,4 +1157,18 @@ describe("Bucket", () => {
       });
     });
   });
+
+  /** @test {Bucket#execute} */
+  describe("#execute()", () => {
+    it("should rely on client execute", () => {
+      const bucket = getBlogBucket();
+      const executeStub = sandbox.stub();
+      sandbox.stub(client, "execute").get(() => executeStub);
+      const req = { path: "/", headers: {} };
+
+      bucket.execute(req);
+
+      sinon.assert.calledWith(executeStub, req);
+    });
+  });
 });

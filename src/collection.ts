@@ -85,6 +85,10 @@ export default class Collection {
     };
   }
 
+  get execute(): KintoClientBase["execute"] {
+    return this.client.execute;
+  }
+
   /**
    * Get the value of "headers" for a given request, merging the
    * per-request headers with our own "default" headers.

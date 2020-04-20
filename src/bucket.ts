@@ -68,6 +68,10 @@ export default class Bucket {
     this._safe = !!options.safe;
   }
 
+  get execute(): KintoClientBase["execute"] {
+    return this.client.execute;
+  }
+
   get headers(): Record<string, string> {
     return this._headers;
   }

@@ -769,4 +769,17 @@ describe("Collection", () => {
       });
     });
   });
+
+  /** @test {Collection#execute} */
+  describe("#execute()", () => {
+    it("should rely on client execute", () => {
+      const executeStub = sandbox.stub();
+      sandbox.stub(client, "execute").get(() => executeStub);
+      const req = { path: "/", headers: {} };
+
+      coll.execute(req);
+
+      sinon.assert.calledWith(executeStub, req);
+    });
+  });
 });

@@ -518,7 +518,6 @@ export default class KintoClientBase {
   /**
    * Executes an atomic HTTP request.
    *
-   * @private
    * @param  {Object}  request             The request object.
    * @param  {String}  request.path        The path to fetch, relative
    *     to the Kinto server root.
