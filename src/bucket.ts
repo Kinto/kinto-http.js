@@ -68,17 +68,8 @@ export default class Bucket {
     this._safe = !!options.safe;
   }
 
-  async execute<T>(
-    request: KintoRequest,
-    options: {
-      raw?: boolean;
-      stringify?: boolean;
-      retry?: number;
-      query?: { [key: string]: string };
-      fields?: string[];
-    } = {}
-  ): Promise<T | HttpResponse<T>> {
-    return this.client.execute(request, options);
+  get execute(): KintoClientBase["execute"] {
+    return this.client.execute;
   }
 
   get headers(): Record<string, string> {
