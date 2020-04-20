@@ -86,7 +86,7 @@ export default class Collection {
   }
 
   get execute(): KintoClientBase["execute"] {
-    return this.client.execute;
+    return this.client.execute.bind(this.client);
   }
 
   /**

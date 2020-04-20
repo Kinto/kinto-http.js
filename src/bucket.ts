@@ -69,7 +69,7 @@ export default class Bucket {
   }
 
   get execute(): KintoClientBase["execute"] {
-    return this.client.execute;
+    return this.client.execute.bind(this.client);
   }
 
   get headers(): Record<string, string> {
