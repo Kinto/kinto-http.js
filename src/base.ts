@@ -606,6 +606,8 @@ export default class KintoClientBase {
    * @param  {Number}  [options.retry=0]
    *     Number of times to retry each request if the server responds
    *     with Retry-After.
+   * @param  {String}  [options.method="GET"]
+   *     The method to use in the request.
    */
   async paginatedOperation<T>(
     path: string,
@@ -756,10 +758,10 @@ export default class KintoClientBase {
   }
 
   /**
-   * Delete some pages from a paginated list, following the `next-page`
-   * header automatically until we have deleted the requested number
-   * of pages. Return a response with a `.next()` method that can be
-   * called to delete more results.
+   * Delete multiple objects, following the pagination if the number of
+   * objects exceeds the page limit until we have deleted the requested
+   * number of pages. Return a response with a `.next()` method that can
+   * be called to delete more results.
    *
    * @private
    * @param  {String}  path

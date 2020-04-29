@@ -633,9 +633,6 @@ export default class Collection {
    *
    * @see http://kinto.readthedocs.io/en/stable/api/1.x/filtering.html
    *
-   * Paginating is done by passing a `limit` option, then calling the `next()`
-   * method from the resolved result object to delete the next page, if any.
-   *
    * @param  {Object}   [options={}]                    The options object.
    * @param  {Object}   [options.headers]               The headers object option.
    * @param  {Number}   [options.retry=0]               Number of retries to make
