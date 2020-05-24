@@ -596,6 +596,65 @@ describe("Collection", () => {
     });
   });
 
+  /** @test {Collection#deleteRecords} */
+  describe("#deleteRecords()", () => {
+    let executeStub: Stub<typeof coll.client.execute>;
+
+    beforeEach(() => {
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: {} }));
+    });
+
+    it("should delete all records", () => {
+      coll.deleteRecords();
+
+      sinon.assert.calledWithMatch(executeStub, {
+        method: "DELETE",
+        path: "/buckets/blog/collections/posts/records?_sort=-last_modified",
+        headers: {},
+      });
+    });
+
+    it("should accept a timestamp option", () => {
+      coll.deleteRecords({
+        filters: { since: 42 },
+      });
+
+      sinon.assert.calledWithMatch(executeStub, {
+        method: "DELETE",
+        path:
+          "/buckets/blog/collections/posts/records?since=42&_sort=-last_modified",
+        headers: {},
+      });
+    });
+
+    it("should extend request headers with optional ones", () => {
+      coll["_headers"] = { Foo: "Bar" };
+      coll.deleteRecords({ headers: { Baz: "Qux" } });
+
+      sinon.assert.calledWithMatch(executeStub, {
+        method: "DELETE",
+        path: "/buckets/blog/collections/posts/records?_sort=-last_modified",
+        headers: { Foo: "Bar", Baz: "Qux" },
+      });
+    });
+
+    it("should support filters and fields", () => {
+      coll.deleteRecords({
+        filters: { a: "b" },
+        fields: ["c", "d"],
+      });
+
+      sinon.assert.calledWithMatch(executeStub, {
+        method: "DELETE",
+        path:
+          "/buckets/blog/collections/posts/records?a=b&_sort=-last_modified&_fields=c,d",
+        headers: {},
+      });
+    });
+  });
+
   /** @test {Collection#getRecord} */
   describe("#getRecord()", () => {
     let executeStub: Stub<typeof client.execute>;

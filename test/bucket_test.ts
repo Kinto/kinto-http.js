@@ -258,7 +258,7 @@ describe("Bucket", () => {
       );
     });
 
-    it("should support fiters and fields", () => {
+    it("should support filters and fields", () => {
       getBlogBucket().listCollections({
         filters: { a: "b" },
         fields: ["c", "d"],
@@ -489,6 +489,61 @@ describe("Bucket", () => {
         },
         { retry: 0 }
       );
+    });
+  });
+
+  /** @test {Bucket#deleteCollections} */
+  describe("#deleteCollections", () => {
+    let executeStub: sinon.SinonStub;
+    beforeEach(() => {
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: {} }));
+    });
+
+    it("should delete all collections", () => {
+      getBlogBucket().deleteCollections();
+
+      sinon.assert.calledWithMatch(executeStub, {
+        method: "DELETE",
+        path: "/buckets/blog/collections?_sort=-last_modified",
+        headers: {},
+      });
+    });
+
+    it("should accept a timestamp option", () => {
+      getBlogBucket().deleteCollections({
+        filters: { since: 42 },
+      });
+
+      sinon.assert.calledWithMatch(executeStub, {
+        method: "DELETE",
+        path: "/buckets/blog/collections?since=42&_sort=-last_modified",
+        headers: {},
+      });
+    });
+
+    it("should merge default options", () => {
+      getBlogBucket({
+        headers: { Foo: "Bar" },
+      }).deleteCollections({ headers: { Baz: "Qux" } });
+
+      sinon.assert.calledWithMatch(executeStub, {
+        path: "/buckets/blog/collections?_sort=-last_modified",
+        headers: { Foo: "Bar", Baz: "Qux" },
+      });
+    });
+
+    it("should support filters and fields", () => {
+      getBlogBucket().deleteCollections({
+        filters: { a: "b" },
+        fields: ["c", "d"],
+      });
+
+      sinon.assert.calledWithMatch(executeStub, {
+        path: "/buckets/blog/collections?a=b&_sort=-last_modified&_fields=c,d",
+        headers: {},
+      });
     });
   });
 
@@ -902,6 +957,63 @@ describe("Bucket", () => {
         },
         { retry: 0 }
       );
+    });
+  });
+
+  /** @test {Bucket#deleteGroups} */
+  describe("#deleteGroups", () => {
+    let executeStub: sinon.SinonStub;
+    beforeEach(() => {
+      executeStub = sandbox
+        .stub(client, "execute")
+        .returns(Promise.resolve({ data: {} }));
+    });
+
+    it("should delete all Groups", () => {
+      getBlogBucket().deleteGroups();
+
+      sinon.assert.calledWithMatch(executeStub, {
+        method: "DELETE",
+        path: "/buckets/blog/groups?_sort=-last_modified",
+        headers: {},
+      });
+    });
+
+    it("should accept a timestamp option", () => {
+      getBlogBucket().deleteGroups({
+        filters: { since: 42 },
+      });
+
+      sinon.assert.calledWithMatch(executeStub, {
+        method: "DELETE",
+        path: "/buckets/blog/groups?since=42&_sort=-last_modified",
+        headers: {},
+      });
+    });
+
+    it("should merge default options", () => {
+      getBlogBucket({
+        headers: { Foo: "Bar" },
+      }).deleteGroups({ headers: { Baz: "Qux" } });
+
+      sinon.assert.calledWithMatch(executeStub, {
+        method: "DELETE",
+        path: "/buckets/blog/groups?_sort=-last_modified",
+        headers: { Foo: "Bar", Baz: "Qux" },
+      });
+    });
+
+    it("should support filters and fields", () => {
+      getBlogBucket().deleteGroups({
+        filters: { a: "b" },
+        fields: ["c", "d"],
+      });
+
+      sinon.assert.calledWithMatch(executeStub, {
+        method: "DELETE",
+        path: "/buckets/blog/groups?a=b&_sort=-last_modified&_fields=c,d",
+        headers: {},
+      });
     });
   });
 

@@ -1,7 +1,7 @@
 import { toDataBody, isObject, capable } from "./utils";
 import Collection from "./collection";
 import * as requests from "./requests";
-import KintoClientBase, { PaginatedListParams, PaginationResult } from "./base";
+import KintoClientBase, { PaginatedParams, PaginationResult } from "./base";
 import {
   KintoRequest,
   KintoIdObject,
@@ -293,7 +293,7 @@ export default class Bucket {
    */
   @capable(["history"])
   async listHistory<T>(
-    options: PaginatedListParams & {
+    options: PaginatedParams & {
       headers?: Record<string, string>;
       retry?: number;
     } = {}
@@ -318,7 +318,7 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   async listCollections(
-    options: PaginatedListParams & {
+    options: PaginatedParams & {
       filters?: Record<string, string | number>;
       headers?: Record<string, string>;
       retry?: number;
@@ -410,6 +410,31 @@ export default class Bucket {
   }
 
   /**
+   * Deletes collections from the current bucket.
+   *
+   * @param  {Object} [options={}]      The options object.
+   * @param  {Object} [options.filters={}] The filters object.
+   * @param  {Object} [options.headers] The headers object option.
+   * @param  {Number} [options.retry=0] Number of retries to make
+   *     when faced with transient errors.
+   * @param  {Array}  [options.fields]  Limit response to
+   *     just some fields.
+   * @return {Promise<Array<Object>, Error>}
+   */
+  async deleteCollections(
+    options: PaginatedParams & {
+      headers?: Record<string, string>;
+      retry?: number;
+    } = {}
+  ): Promise<PaginationResult<KintoObject>> {
+    const path = this._endpoints.collection(this.name);
+    return this.client.paginatedDelete<KintoObject>(path, options, {
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+    });
+  }
+
+  /**
    * Retrieves the list of groups in the current bucket.
    *
    * @param  {Object} [options={}]      The options object.
@@ -422,11 +447,9 @@ export default class Bucket {
    * @return {Promise<Array<Object>, Error>}
    */
   async listGroups(
-    options: PaginatedListParams & {
-      filters?: Record<string, string | number>;
+    options: PaginatedParams & {
       headers?: Record<string, string>;
       retry?: number;
-      fields?: string[];
     } = {}
   ): Promise<PaginationResult<Group>> {
     const path = this._endpoints.group(this.name);
@@ -607,6 +630,31 @@ export default class Bucket {
     return this.client.execute<KintoResponse<{ deleted: boolean }>>(request, {
       retry: this._getRetry(options),
     }) as Promise<KintoResponse<{ deleted: boolean }>>;
+  }
+
+  /**
+   * Deletes groups from the current bucket.
+   *
+   * @param  {Object} [options={}]          The options object.
+   * @param  {Object} [options.filters={}]  The filters object.
+   * @param  {Object} [options.headers]     The headers object option.
+   * @param  {Number} [options.retry=0]     Number of retries to make
+   *     when faced with transient errors.
+   * @param  {Array}  [options.fields]      Limit response to
+   *     just some fields.
+   * @return {Promise<Array<Object>, Error>}
+   */
+  async deleteGroups(
+    options: PaginatedParams & {
+      headers?: Record<string, string>;
+      retry?: number;
+    } = {}
+  ): Promise<PaginationResult<KintoObject>> {
+    const path = this._endpoints.group(this.name);
+    return this.client.paginatedDelete<KintoObject>(path, options, {
+      headers: this._getHeaders(options),
+      retry: this._getRetry(options),
+    });
   }
 
   /**
