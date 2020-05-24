@@ -754,7 +754,7 @@ export default class KintoClientBase {
     params: PaginatedParams = {},
     options: { headers?: Record<string, string>; retry?: number } = {}
   ): Promise<PaginationResult<T>> {
-    return this.paginatedOperation(path, params, options);
+    return this.paginatedOperation<T>(path, params, options);
   }
 
   /**
@@ -805,7 +805,7 @@ export default class KintoClientBase {
       safe: safe ? safe : false,
       last_modified,
     });
-    return this.paginatedOperation(path, params, {
+    return this.paginatedOperation<T>(path, params, {
       ...options,
       headers: deleteRequest.headers as Record<string, string>,
       method: "DELETE",
