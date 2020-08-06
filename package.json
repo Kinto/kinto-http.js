@@ -80,7 +80,7 @@
     "nyc": "^15.0.0",
     "open-cli": "^6.0.1",
     "prettier": "^2.0.1",
-    "rollup": "^1.18.0",
+    "rollup": "^2.23.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-terser": "^5.0.0",
     "shelljs": "^0.8.3",
