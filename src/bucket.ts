@@ -255,7 +255,10 @@ export default class Bucket {
       throw new Error("A bucket object is required.");
     }
 
-    const bucket = { ...data, id: this.name };
+    const bucket: T & { last_modified?: number; id?: string } = {
+      ...data,
+      id: this.name,
+    };
 
     // For default bucket, we need to drop the id from the data object.
     // Bug in Kinto < 3.1.1
