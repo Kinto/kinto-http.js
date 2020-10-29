@@ -3,7 +3,7 @@ kinto-http.js
 
 [![Dependabot Status](https://api.dependabot.com/badges/status?host=github&repo=Kinto/kinto-http.js)](https://dependabot.com)
 
-[![Build Status](https://travis-ci.org/Kinto/kinto-http.js.svg?branch=master)](https://travis-ci.org/Kinto/kinto-http.js)
+[![Build Status](https://travis-ci.com/Kinto/kinto-http.js.svg?branch=master)](https://travis-ci.com/Kinto/kinto-http.js)
 
 A JavaScript HTTP Client for the [Kinto](http://kinto-storage.org/) API.
 
