@@ -1,5 +1,6 @@
 import path from "path";
 import builtins from "rollup-plugin-node-builtins";
+import nodePolyfills from "rollup-plugin-node-polyfills";
 import typescript from "@rollup/plugin-typescript";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
@@ -94,6 +95,8 @@ const browserTestBuild = {
   ],
   plugins: [
     multi(),
+    commonjs(),
+    nodePolyfills(),
     resolve({
       mainFields: ["browser", "module", "main"],
       preferBuiltins: true,
@@ -115,8 +118,6 @@ const browserTestBuild = {
       ),
       "http://0.0.0.0": "http://localhost",
     }),
-    builtins(),
-    commonjs(),
   ],
 };
 
