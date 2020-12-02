@@ -95,6 +95,7 @@ const browserTestBuild = {
   ],
   plugins: [
     multi(),
+    commonjs(),
     nodePolyfills(),
     resolve({
       mainFields: ["browser", "module", "main"],
@@ -117,7 +118,6 @@ const browserTestBuild = {
       ),
       "http://0.0.0.0": "http://localhost",
     }),
-    commonjs(),
   ],
 };
 
