@@ -32,7 +32,7 @@ jobs:
         run: npm ci
 
       - name: Install Python dependencies
-        run: pip install kinto
+        run: pip install kinto kinto-attachment
 
       - name: Run tests
         run: npm test
