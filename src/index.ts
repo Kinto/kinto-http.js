@@ -1,7 +1,7 @@
 import KintoClientBase, { KintoClientOptions, SUPPORTED_PROTOCOL_VERSION } from "./base";
 import { AggregateResponse } from "./batch";
 import Collection from "./collection";
-import { KintoObject, KintoIdObject, KintoResponse, Permission } from "./types";
+import { KintoObject, KintoIdObject, KintoResponse, Permission, PermissionData } from "./types";
 
 export default class KintoClient extends KintoClientBase {
   constructor(remote: string, options: Partial<KintoClientOptions> = {}) {
@@ -18,5 +18,6 @@ export {
   AggregateResponse,
   KintoResponse,
   Permission,
+  PermissionData,
   SUPPORTED_PROTOCOL_VERSION
 };
