@@ -76,7 +76,7 @@ export interface KintoResponse<T = unknown> {
 }
 
 export interface HistoryEntry<T> {
-  action: string;
+  action: "create" | "update" | "delete";
   collection_id: string;
   date: string;
   id: string;
