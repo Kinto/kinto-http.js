@@ -103,10 +103,10 @@ From npm:
 $ npm install kinto-http --save
 ```
 
-**Note:** If you're using `kinto-http` in Node (as opposed to the browser), you'll also need to install polyfills for `fetch`, `FormData`, and `atob`.
+**Note:** If you're using `kinto-http` in Node (as opposed to the browser), you'll also need to install polyfills for `fetch`, `FormData`, and `btoa`.
 
 ```
-$ npm install node-fetch form-data atob
+$ npm install node-fetch form-data btoa
 ```
 
 Then (ES6):
@@ -118,7 +118,7 @@ import KintoClient from "kinto-http";
 Or (ES5):
 
 ```js
-var KintoClient = require("kinto-http");
+var KintoClient = require("kinto-http").default;
 ```
 
 Note that this HTTP client can be transparently used server side or in a regular browser page. In the browser, creating an instance is achieved that way:
