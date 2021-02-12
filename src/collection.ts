@@ -768,7 +768,7 @@ export default class Collection {
   /**
    * @private
    */
-  async listChangesBackTo<T>(at: number): Promise<HistoryEntry<T>[]> {
+  async listChangesUntil<T>(at: number): Promise<HistoryEntry<T>[]> {
     // Ensure we have enough history data to retrieve the complete list of
     // changes.
     if (!(await this.isHistoryComplete())) {
@@ -780,13 +780,14 @@ export default class Collection {
     }
     const { data: changes } = await this.bucket.listHistory<T>({
       pages: Infinity, // all pages up to target timestamp are required
-      sort: "-target.data.last_modified",
+      sort: "target.data.last_modified",
       filters: {
         resource_name: "record",
         collection_id: this.name,
         "max_target.data.last_modified": String(at), // eq. to <=
       },
     });
+    console.log(`${changes.length} history entries found.`);
     return changes;
   }
 
@@ -801,30 +802,30 @@ export default class Collection {
       throw new Error("Invalid argument, expected a positive integer.");
     }
     // Retrieve history and check it covers the required time range.
-    const changes = await this.listChangesBackTo<T>(at);
+    const changes = await this.listChangesUntil<T>(at);
     // Replay changes to compute the requested snapshot.
-    const seenIds = new Set();
-    let snapshot: T[] = [];
+    const recordsById = new Map();
     for (const {
       action,
       target: { data: record },
     } of changes) {
       if (action == "delete") {
-        seenIds.add(record.id); // ensure not reprocessing deleted entries
-        snapshot = snapshot.filter((r) => r.id !== record.id);
-      } else if (!seenIds.has(record.id)) {
-        seenIds.add(record.id);
-        snapshot.push(record);
+        recordsById.delete(record.id);
+      } else {
+        recordsById.set(record.id, record);
       }
     }
+    console.debug(`Found ${recordsById.size} records in snapshot (at=${at}).`);
     return {
       last_modified: String(at),
-      data: snapshot.sort((a, b) => b.last_modified - a.last_modified),
+      data: Array.from(recordsById.values()).sort(
+        (a, b) => b.last_modified - a.last_modified
+      ),
       next: () => {
         throw new Error("Snapshots don't support pagination");
       },
       hasNextPage: false,
-      totalRecords: snapshot.length,
+      totalRecords: recordsById.size,
     } as PaginationResult<T>;
   }
 
