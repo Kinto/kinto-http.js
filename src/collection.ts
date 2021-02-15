@@ -814,7 +814,6 @@ export default class Collection {
         recordsById.set(record.id, record);
       }
     }
-    console.debug(`Found ${recordsById.size} records in snapshot (at=${at}).`);
     return {
       last_modified: String(at),
       data: Array.from(recordsById.values()).sort(
