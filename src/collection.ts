@@ -787,7 +787,6 @@ export default class Collection {
         "max_target.data.last_modified": String(at), // eq. to <=
       },
     });
-    console.log(`${changes.length} history entries found.`);
     return changes;
   }
 
