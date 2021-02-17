@@ -11,7 +11,6 @@ import {
   KintoIdObject,
   KintoObject,
   Attachment,
-  HistoryEntry,
   OperationResponse,
   MappableObject,
 } from "./types";
@@ -768,7 +767,14 @@ export default class Collection {
   /**
    * @private
    */
-  async listChangesUntil<T>(at: number): Promise<HistoryEntry<T>[]> {
+  @capable(["history"])
+  async getSnapshot<T extends KintoObject>(
+    at: number
+  ): Promise<PaginationResult<T>> {
+    if (!at || !Number.isInteger(at) || at <= 0) {
+      throw new Error("Invalid argument, expected a positive integer.");
+    }
+    // Retrieve history and check it covers the required time range.
     // Ensure we have enough history data to retrieve the complete list of
     // changes.
     if (!(await this.isHistoryComplete())) {
@@ -778,52 +784,72 @@ export default class Collection {
           "been enabled after the creation of the collection."
       );
     }
-    const { data: changes } = await this.bucket.listHistory<T>({
+
+    // Because of https://github.com/Kinto/kinto-http.js/issues/963
+    // we cannot simply rely on the history endpoint.
+    // Our strategy here is to clean-up the history entries from the
+    // records that were deleted via the plural endpoint.
+    // We will detect them by comparing the currant state of the collection
+    // and the full history of the collection since its genesis.
+
+    // List full history of collection.
+    const { data: fullHistory } = await this.bucket.listHistory<T>({
       pages: Infinity, // all pages up to target timestamp are required
-      sort: "target.data.last_modified",
+      sort: "last_modified", // chronological order
       filters: {
         resource_name: "record",
         collection_id: this.name,
-        "max_target.data.last_modified": String(at), // eq. to <=
       },
     });
-    return changes;
-  }
 
-  /**
-   * @private
-   */
-  @capable(["history"])
-  async getSnapshot<T extends KintoObject>(
-    at: number
-  ): Promise<PaginationResult<T>> {
-    if (!at || !Number.isInteger(at) || at <= 0) {
-      throw new Error("Invalid argument, expected a positive integer.");
+    // Keep latest entry ever, and latest within snapshot window.
+    // (history is sorted chronologically)
+    const latestEver = new Map();
+    const latestInSnapshot = new Map();
+    for (const entry of fullHistory) {
+      if (entry.target.data.last_modified <= at) {
+        // Snapshot includes changes right on timestamp.
+        latestInSnapshot.set(entry.record_id, entry);
+      }
+      latestEver.set(entry.record_id, entry);
     }
-    // Retrieve history and check it covers the required time range.
-    const changes = await this.listChangesUntil<T>(at);
-    // Replay changes to compute the requested snapshot.
-    const recordsById = new Map();
-    for (const {
-      action,
-      target: { data: record },
-    } of changes) {
-      if (action == "delete") {
-        recordsById.delete(record.id);
-      } else {
-        recordsById.set(record.id, record);
+
+    // Current records ids in the collection.
+    const { data: current } = await this.listRecords({
+      pages: Infinity,
+    });
+    const currentIds = new Set(current.map((record) => record.id));
+
+    // If a record is not in the current collection, and its
+    // latest history entry isn't a delete then this means that
+    // it was deleted via the plural endpoint (and that we lost track
+    // of this deletion because of bug #963)
+    const deletedViaPlural = new Set();
+    for (const entry of latestEver.values()) {
+      if (entry.action != "delete" && !currentIds.has(entry.record_id)) {
+        deletedViaPlural.add(entry.record_id);
       }
     }
+
+    // Now reconstruct the collection based on latest version in snapshot
+    // filtering all deleted records.
+    const reconstructed = [];
+    for (const entry of latestInSnapshot.values()) {
+      if (entry.action != "delete" && !deletedViaPlural.has(entry.record_id)) {
+        reconstructed.push(entry.target.data);
+      }
+    }
+
     return {
       last_modified: String(at),
-      data: Array.from(recordsById.values()).sort(
+      data: Array.from(reconstructed).sort(
         (a, b) => b.last_modified - a.last_modified
       ),
       next: () => {
         throw new Error("Snapshots don't support pagination");
       },
       hasNextPage: false,
-      totalRecords: recordsById.size,
+      totalRecords: reconstructed.length,
     } as PaginationResult<T>;
   }
 
