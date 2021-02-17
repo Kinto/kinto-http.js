@@ -789,7 +789,7 @@ export default class Collection {
     // we cannot simply rely on the history endpoint.
     // Our strategy here is to clean-up the history entries from the
     // records that were deleted via the plural endpoint.
-    // We will detect them by comparing the currant state of the collection
+    // We will detect them by comparing the current state of the collection
     // and the full history of the collection since its genesis.
 
     // List full history of collection.
