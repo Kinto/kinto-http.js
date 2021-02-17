@@ -817,6 +817,7 @@ export default class Collection {
     // Current records ids in the collection.
     const { data: current } = await this.listRecords({
       pages: Infinity,
+      fields: ["id"], // we don't need attributes.
     });
     const currentIds = new Set(current.map((record) => record.id));
 
