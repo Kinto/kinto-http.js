@@ -1839,6 +1839,43 @@ describe("Integration tests", function (__test) {
                 expect(data).eql([rec3, rec2]);
               });
 
+              it("should handle re-creations", async () => {
+                await coll.deleteRecord(rec1.id);
+                await coll.createRecord({ id: rec1.id, n: 1 });
+                const { data } = await coll.listRecords({
+                  at: rec3.last_modified,
+                });
+                expect(data).eql([rec3, rec2, rec1]);
+              });
+
+              it("should handle plural delete before timestamp", async () => {
+                await coll.createRecord({ n: 3 });
+                await coll.deleteRecords({
+                  filters: {
+                    eq_n: 3,
+                  },
+                });
+                const { data: rec4 } = await coll.createRecord({ n: 4 });
+                const { data } = await coll.listRecords({
+                  at: rec4.last_modified,
+                });
+                expect(data).eql([rec4, rec2, rec1]);
+              });
+
+              it("should handle plural delete after timestamp", async () => {
+                const { data: rec33 } = await coll.createRecord({ n: 3 });
+                await coll.createRecord({ n: 4 });
+                await coll.deleteRecords({
+                  filters: {
+                    eq_n: 3,
+                  },
+                });
+                const { data } = await coll.listRecords({
+                  at: rec33.last_modified,
+                });
+                expect(data).eql([rec33, rec3, rec2, rec1]);
+              });
+
               it("should handle long list of changes", async () => {
                 const res = await coll.batch((batch) => {
                   for (let n = 4; n <= 100; n++) {
