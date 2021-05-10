@@ -7,9 +7,8 @@ import { Stub, expectAsyncError, fakeHeaders } from "./test_utils";
 
 const { expect } = intern.getPlugin("chai");
 intern.getPlugin("chai").should();
-const { describe, it, beforeEach, afterEach } = intern.getPlugin(
-  "interface.bdd"
-);
+const { describe, it, beforeEach, afterEach } =
+  intern.getPlugin("interface.bdd");
 
 const FAKE_SERVER_URL = "http://fake-server/v1";
 
@@ -218,7 +217,7 @@ describe("Bucket", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as PaginationResult<{
+          {} as unknown as PaginationResult<{
             id: string;
           }>
         );
@@ -586,7 +585,7 @@ describe("Bucket", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as PaginationResult<{
+          {} as unknown as PaginationResult<{
             id: string;
           }>
         );

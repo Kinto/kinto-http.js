@@ -273,9 +273,7 @@ export function parseDataURL(dataURL: string): TypedDataURL {
  * @param  {String} dataURL The data url.
  * @return {Object}
  */
-export function extractFileInfo(
-  dataURL: string
-): {
+export function extractFileInfo(dataURL: string): {
   blob: Blob;
   name: string;
 } {
@@ -320,9 +318,7 @@ export function createFormData(
  * Clones an object with all its undefined keys removed.
  * @private
  */
-export function cleanUndefinedProperties(obj: {
-  [key: string]: any;
-}): {
+export function cleanUndefinedProperties(obj: { [key: string]: any }): {
   [key: string]: any;
 } {
   const result: { [key: string]: any } = {};
@@ -360,9 +356,7 @@ export function addEndpointOptions(
 /**
  * Replace authorization header with an obscured version
  */
-export function obscureAuthorizationHeader(
-  headers: HeadersInit
-): {
+export function obscureAuthorizationHeader(headers: HeadersInit): {
   [key: string]: string;
 } {
   const h = new Headers(headers);

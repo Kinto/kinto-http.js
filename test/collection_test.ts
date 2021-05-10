@@ -11,9 +11,8 @@ import {
 import { PaginationResult } from "../src/base";
 
 intern.getPlugin("chai").should();
-const { describe, it, beforeEach, afterEach } = intern.getPlugin(
-  "interface.bdd"
-);
+const { describe, it, beforeEach, afterEach } =
+  intern.getPlugin("interface.bdd");
 
 const FAKE_SERVER_URL = "http://fake-server/v1";
 
@@ -623,8 +622,7 @@ describe("Collection", () => {
 
       sinon.assert.calledWithMatch(executeStub, {
         method: "DELETE",
-        path:
-          "/buckets/blog/collections/posts/records?since=42&_sort=-last_modified",
+        path: "/buckets/blog/collections/posts/records?since=42&_sort=-last_modified",
         headers: {},
       });
     });
@@ -648,8 +646,7 @@ describe("Collection", () => {
 
       sinon.assert.calledWithMatch(executeStub, {
         method: "DELETE",
-        path:
-          "/buckets/blog/collections/posts/records?a=b&_sort=-last_modified&_fields=c,d",
+        path: "/buckets/blog/collections/posts/records?a=b&_sort=-last_modified&_fields=c,d",
         headers: {},
       });
     });
@@ -737,7 +734,7 @@ describe("Collection", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as PaginationResult<{
+          {} as unknown as PaginationResult<{
             id: string;
           }>
         );
