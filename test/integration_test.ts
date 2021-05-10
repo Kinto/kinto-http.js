@@ -23,9 +23,8 @@ interface TitleRecord extends KintoObject {
 
 const { expect } = intern.getPlugin("chai");
 intern.getPlugin("chai").should();
-const { describe, it, before, after, beforeEach, afterEach } = intern.getPlugin(
-  "interface.bdd"
-);
+const { describe, it, before, after, beforeEach, afterEach } =
+  intern.getPlugin("interface.bdd");
 
 const skipLocalServer = !!process.env.TEST_KINTO_SERVER;
 const TEST_KINTO_SERVER =
@@ -916,9 +915,9 @@ describe("Integration tests", function (__test) {
         });
 
         it("should work in a batch", async () => {
-          const res = ((await api.batch((batch: KintoClientBase) => {
+          const res = (await api.batch((batch: KintoClientBase) => {
             batch.bucket("custom").listCollections();
-          })) as unknown) as OperationResponse<KintoObject[]>[];
+          })) as unknown as OperationResponse<KintoObject[]>[];
           res[0].body.data
             .map((r) => r.id)
             .should.deep.equal(["c4", "c3", "c2", "c1"]);
@@ -1689,9 +1688,11 @@ describe("Integration tests", function (__test) {
 
             beforeEach(async () => {
               const res = await coll.addAttachment(dataURL);
-              return (recordId = (res as KintoResponse<{
-                attachment: Attachment;
-              }>).data.id);
+              return (recordId = (
+                res as KintoResponse<{
+                  attachment: Attachment;
+                }>
+              ).data.id);
             });
 
             it("should remove an attachment from a record", async () => {

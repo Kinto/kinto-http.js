@@ -12,9 +12,8 @@ import { KintoBatchResponse, AggregateResponse } from "../src/batch";
 
 const { expect } = intern.getPlugin("chai");
 intern.getPlugin("chai").should();
-const { describe, it, beforeEach, afterEach } = intern.getPlugin(
-  "interface.bdd"
-);
+const { describe, it, beforeEach, afterEach } =
+  intern.getPlugin("interface.bdd");
 
 const FAKE_SERVER_URL = "http://fake-server/v1";
 
@@ -952,7 +951,7 @@ describe("KintoClient", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as PaginationResult<{
+          {} as unknown as PaginationResult<{
             id: string;
           }>
         );
@@ -1037,7 +1036,7 @@ describe("KintoClient", () => {
       data: [{ id: "a" }, { id: "b" }],
       next: () => {
         return Promise.resolve(
-          ({} as unknown) as PaginationResult<{
+          {} as unknown as PaginationResult<{
             id: string;
           }>
         );

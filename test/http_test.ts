@@ -12,9 +12,8 @@ import { Emitter } from "../src/types";
 
 const { expect } = intern.getPlugin("chai");
 intern.getPlugin("chai").should();
-const { describe, it, beforeEach, afterEach } = intern.getPlugin(
-  "interface.bdd"
-);
+const { describe, it, beforeEach, afterEach } =
+  intern.getPlugin("interface.bdd");
 
 /** @test {HTTP} */
 describe("HTTP class", () => {
