@@ -75,7 +75,7 @@
     "http-server": "^0.12.0",
     "intern": "^4.8.0",
     "kinto-node-test-server": "2.0.0",
-    "mitt": "^2.1.0",
+    "mitt": "^3.0.0",
     "node-fetch": "^2.6.0",
     "nyc": "^15.0.0",
     "open-cli": "^7.0.0",
