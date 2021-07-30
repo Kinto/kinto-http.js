@@ -791,7 +791,7 @@ describe("Collection", () => {
 
       beforeEach(() => {
         sandbox.restore();
-        const fetchStub = sandbox.stub(globalThis as any, "fetch");
+        const fetchStub = sandbox.stub(client.http as any, "fetchFunc");
         fetchStub
           .onCall(0)
           .returns(fakeServerResponse(503, {}, { "Retry-After": "1" }));

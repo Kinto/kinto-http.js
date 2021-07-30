@@ -47,6 +47,7 @@ export interface KintoClientOptions {
   requestMode?: RequestMode;
   timeout?: number;
   batch?: boolean;
+  fetchFunc?: Function;
 }
 
 export interface PaginatedParams {
@@ -107,6 +108,7 @@ export default class KintoClientBase {
    * @param  {String}       [options.bucket="default"]    The default bucket to use.
    * @param  {String}       [options.requestMode="cors"]  The HTTP request mode (from ES6 fetch spec).
    * @param  {Number}       [options.timeout=null]        The request timeout in ms, if any.
+   * @param  {Function}     [options.fetchFunc=fetch]     The function to be used to execute HTTP requests.
    */
   constructor(remote: string, options: KintoClientOptions) {
     if (typeof remote !== "string" || !remote.length) {
@@ -145,13 +147,13 @@ export default class KintoClientBase {
 
     this.endpoints = endpoints;
 
-    const { requestMode, timeout } = options;
+    const { fetchFunc, requestMode, timeout } = options;
     /**
      * The HTTP instance.
      * @ignore
      * @type {HTTP}
      */
-    this.http = new HTTP(this.events, { requestMode, timeout });
+    this.http = new HTTP(this.events, { fetchFunc, requestMode, timeout });
     this._registerHTTPEvents();
   }
 

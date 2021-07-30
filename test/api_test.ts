@@ -119,6 +119,19 @@ describe("KintoClient", () => {
       const api = new KintoClient(sampleRemote, { safe: true });
       expect(api["_safe"]).eql(true);
     });
+
+    it("should use fetchFunc option", async () => {
+      let called = false;
+      async function fetchFunc() {
+        called = true;
+        return fakeServerResponse(200, {}, {});
+      }
+      const api = new KintoClient(sampleRemote, { fetchFunc });
+
+      await api.fetchServerInfo();
+
+      expect(called).eql(true);
+    });
   });
 
   /** @test {KintoClient#setHeaders} */
@@ -145,7 +158,7 @@ describe("KintoClient", () => {
       // Make Date#getTime always returning 1000000, for predictability
       sandbox.stub(Date.prototype, "getTime").returns(1000 * 1000);
       sandbox
-        .stub(globalThis as any, "fetch")
+        .stub(api.http as any, "fetchFunc")
         .returns(fakeServerResponse(200, {}, { Backoff: "1000" }));
 
       await api.listBuckets();
@@ -154,7 +167,7 @@ describe("KintoClient", () => {
 
     it("should provide no remaining backoff time when none is set", async () => {
       sandbox
-        .stub(globalThis as any, "fetch")
+        .stub(api.http as any, "fetchFunc")
         .returns(fakeServerResponse(200, {}, {}));
 
       await api.listBuckets();
@@ -197,7 +210,7 @@ describe("KintoClient", () => {
 
     it("should retrieve server settings on first request made", async () => {
       sandbox
-        .stub(globalThis as any, "fetch")
+        .stub(api.http as any, "fetchFunc")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       (await api.fetchServerInfo()).should.deep.equal(fakeServerInfo);
@@ -206,7 +219,7 @@ describe("KintoClient", () => {
     it("should store server settings into the serverSettings property", async () => {
       // api.serverSettings = { a: 1 };
       sandbox
-        .stub(globalThis as any, "fetch")
+        .stub(api.http as any, "fetchFunc")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       await api.fetchServerInfo();
@@ -215,7 +228,7 @@ describe("KintoClient", () => {
 
     it("should not fetch server settings if they're cached already", () => {
       api.serverInfo = fakeServerInfo;
-      const fetchStub = sandbox.stub(globalThis as any, "fetch");
+      const fetchStub = sandbox.stub(api.http as any, "fetchFunc");
 
       api.fetchServerInfo();
       sinon.assert.notCalled(fetchStub);
@@ -236,7 +249,7 @@ describe("KintoClient", () => {
 
     it("should retrieve server settings", async () => {
       sandbox
-        .stub(globalThis as any, "fetch")
+        .stub(api.http as any, "fetchFunc")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       (await api.fetchServerSettings()).should.have.property("fake").eql(true);
@@ -249,7 +262,7 @@ describe("KintoClient", () => {
 
     it("should retrieve server capabilities", async () => {
       sandbox
-        .stub(globalThis as any, "fetch")
+        .stub(api.http as any, "fetchFunc")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       (await api.fetchServerCapabilities()).should.have
@@ -264,7 +277,7 @@ describe("KintoClient", () => {
 
     it("should retrieve user information", async () => {
       sandbox
-        .stub(globalThis as any, "fetch")
+        .stub(api.http as any, "fetchFunc")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       (await api.fetchUser())!.should.have.property("fake").eql(true);
@@ -277,7 +290,7 @@ describe("KintoClient", () => {
 
     it("should retrieve current API version", async () => {
       sandbox
-        .stub(globalThis as any, "fetch")
+        .stub(api.http as any, "fetchFunc")
         .returns(fakeServerResponse(200, fakeServerInfo));
 
       (await api.fetchHTTPApiVersion()).should.have.property("fake").eql(true);
@@ -320,7 +333,7 @@ describe("KintoClient", () => {
       let requestBody: any, requestHeaders: any, fetch: sinon.SinonStub;
 
       beforeEach(() => {
-        fetch = sandbox.stub(globalThis as any, "fetch");
+        fetch = sandbox.stub(api.http as any, "fetchFunc");
         fetch.returns(fakeServerResponse(200, { responses: [] }));
       });
 
@@ -448,7 +461,7 @@ describe("KintoClient", () => {
       ];
 
       it("should reject on HTTP 400", async () => {
-        sandbox.stub(globalThis as any, "fetch").returns(
+        sandbox.stub(api.http as any, "fetchFunc").returns(
           fakeServerResponse(400, {
             error: true,
             errno: 117,
@@ -460,7 +473,7 @@ describe("KintoClient", () => {
       });
 
       it("should reject on HTTP error status code", async () => {
-        sandbox.stub(globalThis as any, "fetch").returns(
+        sandbox.stub(api.http as any, "fetchFunc").returns(
           fakeServerResponse(500, {
             error: true,
             message: "http 500",
@@ -484,7 +497,7 @@ describe("KintoClient", () => {
           },
         ];
         sandbox
-          .stub(globalThis as any, "fetch")
+          .stub(api.http as any, "fetchFunc")
           .returns(fakeServerResponse(200, { responses }));
 
         (await executeBatch(fixtures)).should.deep.equal(responses);
@@ -500,7 +513,7 @@ describe("KintoClient", () => {
           },
         ];
         sandbox
-          .stub(globalThis as any, "fetch")
+          .stub(api.http as any, "fetchFunc")
           .returns(fakeServerResponse(200, { responses }));
 
         (await executeBatch(fixtures)).should.deep.equal(responses);
@@ -515,7 +528,7 @@ describe("KintoClient", () => {
           },
         ];
         sandbox
-          .stub(globalThis as any, "fetch")
+          .stub(api.http as any, "fetchFunc")
           .returns(fakeServerResponse(200, { responses }));
 
         (await executeBatch(fixtures)).should.deep.equal(responses);
@@ -530,7 +543,7 @@ describe("KintoClient", () => {
           },
         ];
         sandbox
-          .stub(globalThis as any, "fetch")
+          .stub(api.http as any, "fetchFunc")
           .returns(fakeServerResponse(200, { responses }));
 
         (await executeBatch(fixtures)).should.deep.equal(responses);
@@ -548,7 +561,7 @@ describe("KintoClient", () => {
 
       it("should chunk batch requests", async () => {
         sandbox
-          .stub(globalThis as any, "fetch")
+          .stub(api.http as any, "fetchFunc")
           .onFirstCall()
           .returns(
             fakeServerResponse(200, {
@@ -578,7 +591,7 @@ describe("KintoClient", () => {
           })
         );
         sandbox.stub(api, "fetchServerSettings").get(() => fetchServerSettings);
-        const fetchStub = sandbox.stub(globalThis as any, "fetch").returns(
+        const fetchStub = sandbox.stub(api.http as any, "fetchFunc").returns(
           fakeServerResponse(200, {
             responses: [],
           })
@@ -589,7 +602,7 @@ describe("KintoClient", () => {
 
       it("should map initial records to conflict objects", async () => {
         sandbox
-          .stub(globalThis as any, "fetch")
+          .stub(api.http as any, "fetchFunc")
           .onFirstCall()
           .returns(
             fakeServerResponse(200, {
@@ -617,7 +630,7 @@ describe("KintoClient", () => {
 
       it("should chunk batch requests concurrently", async () => {
         sandbox
-          .stub(globalThis as any, "fetch")
+          .stub(api.http as any, "fetchFunc")
           .onFirstCall()
           .returns(
             new Promise((resolve) => {
@@ -679,7 +692,7 @@ describe("KintoClient", () => {
           },
         ];
         sandbox
-          .stub(globalThis as any, "fetch")
+          .stub(api.http as any, "fetchFunc")
           .returns(fakeServerResponse(200, { responses }));
 
         const aggregateResponse = (await executeBatch(fixtures, {

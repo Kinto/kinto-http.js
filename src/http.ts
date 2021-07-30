@@ -10,6 +10,7 @@ import { Emitter } from "./types";
 interface HttpOptions {
   timeout?: number | null;
   requestMode?: RequestMode;
+  fetchFunc?: Function;
 }
 
 interface RequestOptions {
@@ -51,6 +52,7 @@ export default class HTTP {
   public events?: Emitter;
   public requestMode: RequestMode;
   public timeout: number;
+  public fetchFunc: Function;
 
   /**
    * Constructor.
@@ -80,6 +82,12 @@ export default class HTTP {
      * @type {Number}
      */
     this.timeout = options.timeout || HTTP.defaultOptions.timeout!;
+
+    /**
+     * The fetch() function.
+     * @type {Function}
+     */
+    this.fetchFunc = options.fetchFunc || globalThis.fetch.bind(globalThis);
   }
 
   /**
@@ -112,7 +120,7 @@ export default class HTTP {
           }
         };
       }
-      fetch(url, options)
+      this.fetchFunc(url, options)
         .then(proceedWithHandler(resolve))
         .catch(proceedWithHandler(reject));
     });

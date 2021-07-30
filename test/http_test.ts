@@ -60,7 +60,7 @@ describe("HTTP class", () => {
           let fetchStub: sinon.SinonStub;
           beforeEach(() => {
             fetchStub = sandbox
-              .stub(globalThis as any, "fetch")
+              .stub(http as any, "fetchFunc")
               .returns(fakeServerResponse(200, {}, {}));
           });
 
@@ -91,20 +91,25 @@ describe("HTTP class", () => {
 
         describe("Request CORS mode", () => {
           let fetchStub: sinon.SinonStub;
-          beforeEach(() => {
-            fetchStub = sandbox
-              .stub(globalThis as any, "fetch")
-              .returns(fakeServerResponse(200, {}, {}));
-          });
 
           it("should use default CORS mode", () => {
-            new HTTP(events).request("/");
+            let http = new HTTP(events);
+            fetchStub = sandbox
+              .stub(http as any, "fetchFunc")
+              .returns(fakeServerResponse(200, {}, {}));
+
+            http.request("/");
 
             expect(fetchStub.firstCall.args[1].mode).eql("cors");
           });
 
           it("should use configured custom CORS mode", () => {
-            new HTTP(events, { requestMode: "no-cors" }).request("/");
+            let http = new HTTP(events, { requestMode: "no-cors" });
+            fetchStub = sandbox
+              .stub(http as any, "fetchFunc")
+              .returns(fakeServerResponse(200, {}, {}));
+
+            http.request("/");
 
             expect(fetchStub.firstCall.args[1].mode).eql("no-cors");
           });
@@ -113,7 +118,7 @@ describe("HTTP class", () => {
         describe("Succesful request", () => {
           beforeEach(() => {
             sandbox
-              .stub(globalThis as any, "fetch")
+              .stub(http as any, "fetchFunc")
               .returns(fakeServerResponse(200, { a: 1 }, { b: 2 }));
           });
 
@@ -135,7 +140,7 @@ describe("HTTP class", () => {
 
         describe("Request timeout", () => {
           beforeEach(() => {
-            sandbox.stub(globalThis as any, "fetch").returns(
+            sandbox.stub(http as any, "fetchFunc").returns(
               new Promise((resolve) => {
                 setTimeout(resolve, 20000);
               })
@@ -168,7 +173,7 @@ describe("HTTP class", () => {
         describe("No content response", () => {
           it("should resolve with null JSON if Content-Length header is missing", async () => {
             sandbox
-              .stub(globalThis as any, "fetch")
+              .stub(http as any, "fetchFunc")
               .returns(fakeServerResponse(200, null, {}));
 
             const { json } = await http.request("/");
@@ -178,7 +183,7 @@ describe("HTTP class", () => {
 
         describe("Malformed JSON response", () => {
           it("should reject with an appropriate message", async () => {
-            sandbox.stub(globalThis as any, "fetch").returns(
+            sandbox.stub(http as any, "fetchFunc").returns(
               Promise.resolve({
                 status: 200,
                 headers: {
@@ -204,7 +209,7 @@ describe("HTTP class", () => {
 
         describe("Business error responses", () => {
           it("should reject on status code > 400", async () => {
-            sandbox.stub(globalThis as any, "fetch").returns(
+            sandbox.stub(http as any, "fetchFunc").returns(
               fakeServerResponse(400, {
                 code: 400,
                 details: [
@@ -242,7 +247,7 @@ describe("HTTP class", () => {
               message: "data is missing",
             };
             sandbox
-              .stub(globalThis as any, "fetch")
+              .stub(http as any, "fetchFunc")
               .returns(fakeServerResponse(400, errorBody));
 
             const error = await expectAsyncError(
@@ -254,7 +259,7 @@ describe("HTTP class", () => {
           });
 
           it("should reject on status code > 400 even with empty body", async () => {
-            sandbox.stub(globalThis as any, "fetch").resolves({
+            sandbox.stub(http as any, "fetchFunc").resolves({
               status: 400,
               statusText: "Cake Is A Lie",
               headers: {
@@ -294,7 +299,7 @@ describe("HTTP class", () => {
 
           it("should handle deprecation header", async () => {
             sandbox
-              .stub(globalThis as any, "fetch")
+              .stub(http as any, "fetchFunc")
               .returns(
                 fakeServerResponse(
                   200,
@@ -314,7 +319,7 @@ describe("HTTP class", () => {
 
           it("should handle deprecation header parse error", async () => {
             sandbox
-              .stub(globalThis as any, "fetch")
+              .stub(http as any, "fetchFunc")
               .returns(fakeServerResponse(200, {}, { Alert: "dafuq" }));
 
             await http.request("/");
@@ -328,7 +333,7 @@ describe("HTTP class", () => {
 
           it("should emit a deprecated event on Alert header", async () => {
             sandbox
-              .stub(globalThis as any, "fetch")
+              .stub(http as any, "fetchFunc")
               .returns(
                 fakeServerResponse(
                   200,
@@ -355,7 +360,7 @@ describe("HTTP class", () => {
 
           it("should emit a backoff event on set Backoff header", async () => {
             sandbox
-              .stub(globalThis as any, "fetch")
+              .stub(http as any, "fetchFunc")
               .returns(fakeServerResponse(200, {}, { Backoff: "1000" }));
 
             await http.request("/");
@@ -367,7 +372,7 @@ describe("HTTP class", () => {
 
           it("should emit a backoff event even on error responses", async () => {
             sandbox
-              .stub(globalThis as any, "fetch")
+              .stub(http as any, "fetchFunc")
               .returns(fakeServerResponse(503, {}, { Backoff: "1000" }));
 
             try {
@@ -381,7 +386,7 @@ describe("HTTP class", () => {
 
           it("should emit a backoff event on missing Backoff header", async () => {
             sandbox
-              .stub(globalThis as any, "fetch")
+              .stub(http as any, "fetchFunc")
               .returns(fakeServerResponse(200, {}, {}));
 
             await http.request("/");
@@ -403,7 +408,7 @@ describe("HTTP class", () => {
 
             it("should emit a retry-after event when Retry-After is set", async () => {
               sandbox
-                .stub(globalThis as any, "fetch")
+                .stub(http as any, "fetchFunc")
                 .returns(
                   fakeServerResponse(200, {}, { "Retry-After": "1000" })
                 );
@@ -420,7 +425,7 @@ describe("HTTP class", () => {
             let fetch: sinon.SinonStub;
 
             beforeEach(() => {
-              fetch = sandbox.stub(globalThis as any, "fetch");
+              fetch = sandbox.stub(http as any, "fetchFunc");
             });
 
             it("should not retry the request by default", async () => {
