@@ -5,12 +5,12 @@ import {
   UnparseableResponseError,
   ServerResponseObject,
 } from "./errors";
-import { Emitter } from "./types";
+import { Emitter, FetchFunction, FetchHeaders, FetchResponse } from "./types";
 
 interface HttpOptions {
   timeout?: number | null;
   requestMode?: RequestMode;
-  fetchFunc?: Function;
+  fetchFunc?: FetchFunction;
 }
 
 interface RequestOptions {
@@ -20,7 +20,7 @@ interface RequestOptions {
 export interface HttpResponse<T> {
   status: number;
   json: T;
-  headers: Headers;
+  headers: FetchHeaders;
 }
 
 /**
@@ -52,7 +52,7 @@ export default class HTTP {
   public events?: Emitter;
   public requestMode: RequestMode;
   public timeout: number;
-  public fetchFunc: Function;
+  public fetchFunc: FetchFunction;
 
   /**
    * Constructor.
@@ -93,7 +93,7 @@ export default class HTTP {
   /**
    * @private
    */
-  timedFetch(url: string, options: RequestInit): Promise<Response> {
+  timedFetch(url: string, options: RequestInit): Promise<FetchResponse> {
     let hasTimedout = false;
     return new Promise((resolve, reject) => {
       // Detect if a request has timed out.
@@ -129,7 +129,7 @@ export default class HTTP {
   /**
    * @private
    */
-  async processResponse<T>(response: Response): Promise<HttpResponse<T>> {
+  async processResponse<T>(response: FetchResponse): Promise<HttpResponse<T>> {
     const { status, headers } = response;
     const text = await response.text();
     // Check if we have a body; if so parse it as JSON.
@@ -214,7 +214,7 @@ export default class HTTP {
     }
   }
 
-  _checkForDeprecationHeader(headers: Headers): void {
+  _checkForDeprecationHeader(headers: FetchHeaders): void {
     const alertHeader = headers.get("Alert");
     if (!alertHeader) {
       return;
@@ -232,7 +232,7 @@ export default class HTTP {
     }
   }
 
-  _checkForBackoffHeader(headers: Headers): void {
+  _checkForBackoffHeader(headers: FetchHeaders): void {
     let backoffMs;
     const backoffHeader = headers.get("Backoff");
     const backoffSeconds = backoffHeader ? parseInt(backoffHeader, 10) : 0;
@@ -246,7 +246,7 @@ export default class HTTP {
     }
   }
 
-  _checkForRetryAfterHeader(headers: Headers): number | undefined {
+  _checkForRetryAfterHeader(headers: FetchHeaders): number | undefined {
     const retryAfter = headers.get("Retry-After");
     if (!retryAfter) {
       return;

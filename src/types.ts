@@ -115,3 +115,22 @@ export interface Emitter {
   on(type: string, handler: (event?: any) => void): void;
   off(type: string, handler: (event?: any) => void): void;
 }
+
+export interface FetchHeaders {
+  keys(): IterableIterator<string> | string[];
+  entries(): IterableIterator<[string, string]> | [string, string][];
+  get(name: string): string | null;
+  has(name: string): boolean;
+}
+
+export interface FetchResponse {
+  status: number;
+  statusText: string;
+  text(): Promise<string>;
+  headers: FetchHeaders;
+}
+
+export type FetchFunction = (
+  input: RequestInfo,
+  init?: RequestInit | undefined
+) => Promise<FetchResponse>;
