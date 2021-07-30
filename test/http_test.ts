@@ -93,7 +93,7 @@ describe("HTTP class", () => {
           let fetchStub: sinon.SinonStub;
 
           it("should use default CORS mode", () => {
-            let http = new HTTP(events);
+            const http = new HTTP(events);
             fetchStub = sandbox
               .stub(http as any, "fetchFunc")
               .returns(fakeServerResponse(200, {}, {}));
@@ -104,7 +104,7 @@ describe("HTTP class", () => {
           });
 
           it("should use configured custom CORS mode", () => {
-            let http = new HTTP(events, { requestMode: "no-cors" });
+            const http = new HTTP(events, { requestMode: "no-cors" });
             fetchStub = sandbox
               .stub(http as any, "fetchFunc")
               .returns(fakeServerResponse(200, {}, {}));
