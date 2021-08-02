@@ -19,6 +19,7 @@
  */
 
 const global = this;
+const globalThis = this;
 
 var EXPORTED_SYMBOLS = ["KintoHttpClient"];
 
