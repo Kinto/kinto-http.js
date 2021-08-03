@@ -1,3 +1,5 @@
+import { FetchResponse } from "./types";
+
 /**
  * Kinto server error code descriptors.
  */
@@ -45,11 +47,11 @@ class NetworkTimeoutError extends Error {
 
 class UnparseableResponseError extends Error {
   public status: number;
-  public response: Response;
+  public response: FetchResponse;
   public stack?: string;
   public error: Error;
 
-  constructor(response: Response, body: string, error: Error) {
+  constructor(response: FetchResponse, body: string, error: Error) {
     const { status } = response;
 
     super(
@@ -90,10 +92,10 @@ export interface ServerResponseObject {
  * responses (which become UnparseableResponseErrors, above).
  */
 class ServerResponse extends Error {
-  public response: Response;
+  public response: FetchResponse;
   public data?: ServerResponseObject;
 
-  constructor(response: Response, json?: ServerResponseObject) {
+  constructor(response: FetchResponse, json?: ServerResponseObject) {
     const { status } = response;
     let { statusText } = response;
     let errnoMsg;

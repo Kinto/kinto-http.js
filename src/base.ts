@@ -29,6 +29,7 @@ import {
   User,
   Emitter,
   HttpMethod,
+  FetchFunction,
 } from "./types";
 import Collection from "./collection";
 
@@ -47,7 +48,7 @@ export interface KintoClientOptions {
   requestMode?: RequestMode;
   timeout?: number;
   batch?: boolean;
-  fetchFunc?: Function;
+  fetchFunc?: FetchFunction;
 }
 
 export interface PaginatedParams {
