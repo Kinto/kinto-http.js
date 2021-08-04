@@ -19,6 +19,7 @@ export function fakeServerResponse(
   }
   return Promise.resolve({
     status: status,
+    statusText: status === 200 ? "OK" : "Error",
     headers: respHeaders,
     text() {
       return Promise.resolve(JSON.stringify(json));
