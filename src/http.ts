@@ -138,7 +138,7 @@ export default class HTTP {
       try {
         json = JSON.parse(text);
       } catch (err) {
-        throw new UnparseableResponseError(response, text, err);
+        throw new UnparseableResponseError(response, text, err as Error);
       }
     }
     if (status >= 400) {
