@@ -53,7 +53,7 @@ export async function expectAsyncError<T>(
   try {
     await fn();
   } catch (err) {
-    error = err;
+    error = err as Error;
   }
 
   expect(error!).not.to.be.undefined;
