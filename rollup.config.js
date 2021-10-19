@@ -25,6 +25,8 @@ const geckoBuild = {
     }),
     typescript({
       include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"],
+      outDir: null,
+      declaration: false
     }),
     commonjs({ ignoreGlobal: true }),
   ],
@@ -48,6 +50,8 @@ const browserBuild = {
     typescript({
       include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"],
       target: "es5",
+      outDir: null,
+      declaration: false
     }),
     builtins(),
     commonjs(),
@@ -69,6 +73,8 @@ const nodeBuild = {
     typescript({
       include: ["*.ts+(|x)", "**/*.ts+(|x)", "*.js", "**/*.js"],
       target: "es2018",
+      outDir: null,
+      declaration: false
     }),
     inject({
       fetch: "node-fetch",
@@ -104,6 +110,8 @@ const browserTestBuild = {
     typescript({
       target: "es2019",
       types: ["intern"],
+      outDir: null,
+      declaration: false
     }),
     replace({
       __dirname: JSON.stringify(path.join(__dirname, "test")),
