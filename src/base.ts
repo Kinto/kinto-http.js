@@ -76,7 +76,7 @@ type CollectionBatch = (client: Collection) => void;
  * High level HTTP client for the Kinto API.
  *
  * @example
- * const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
+ * const client = new KintoClient("https://demo.kinto-storage.org/v1");
  * client.bucket("default")
  *    .collection("my-blog")
  *    .createRecord({title: "First article"})
