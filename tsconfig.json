@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "outDir": "./lib/",
     "module": "esnext",
     "target": "es2017",
     "allowJs": true,
@@ -16,8 +15,7 @@
     "resolveJsonModule": true,
     "experimentalDecorators": true,
     "downlevelIteration": true,
-    "typeRoots": ["./node_modules/@types", "./@types"],
-    "declaration": true
+    "typeRoots": ["./node_modules/@types", "./@types"]
   },
   "ts-node": {
     "compilerOptions": {

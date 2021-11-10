@@ -12,7 +12,7 @@
     "!/dist/test-suite.{js,js.map}"
   ],
   "scripts": {
-    "build": "tsc -p .",
+    "build": "tsc -p . --outDir ./lib/ --declaration true",
     "build:test-browser": "npx rollup --environment BROWSER_TESTING -c",
     "build:demo": "npm run dist && npx shx cp dist/kinto-http.min.js demo/kinto-http.min.js && npx shx cp dist/kinto-http.min.js.map demo/kinto-http.min.js.map",
     "build:readme": "npx toctoc -w -d 2 README.md",
