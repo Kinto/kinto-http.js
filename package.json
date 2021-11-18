@@ -12,7 +12,7 @@
     "!/dist/test-suite.{js,js.map}"
   ],
   "scripts": {
-    "build": "tsc -p . --outDir ./lib/ --declaration true",
+    "build": "npx rimraf dist && tsc -p .",
     "build:test-browser": "npx rollup --environment BROWSER_TESTING -c",
     "build:demo": "npm run dist && npx shx cp dist/kinto-http.min.js demo/kinto-http.min.js && npx shx cp dist/kinto-http.min.js.map demo/kinto-http.min.js.map",
     "build:readme": "npx toctoc -w -d 2 README.md",
@@ -80,6 +80,7 @@
     "nyc": "^15.1.0",
     "open-cli": "^7.0.1",
     "prettier": "^2.4.1",
+    "rimraf": "^3.0.2",
     "rollup": "^2.59.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-polyfills": "^0.2.1",

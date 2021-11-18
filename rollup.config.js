@@ -102,8 +102,7 @@ const browserTestBuild = {
       preferBuiltins: true,
     }),
     typescript({
-      target: "es2019",
-      types: ["intern"],
+      tsconfig: "./test/tsconfig.json",
     }),
     replace({
       __dirname: JSON.stringify(path.join(__dirname, "test")),
