@@ -95,7 +95,7 @@ const browserTestBuild = {
   ],
   plugins: [
     multi(),
-    commonjs(),
+    commonjs({ extensions: [".js", ".ts"] }),
     nodePolyfills(),
     resolve({
       mainFields: ["browser", "module", "main"],

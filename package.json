@@ -12,7 +12,7 @@
     "!/dist/test-suite.{js,js.map}"
   ],
   "scripts": {
-    "build": "npx rimraf dist && tsc -p .",
+    "build": "npx rimraf dist && tsc -p . --outDir ./lib/ --declaration true",
     "build:test-browser": "npx rollup --environment BROWSER_TESTING -c",
     "build:demo": "npm run dist && npx shx cp dist/kinto-http.min.js demo/kinto-http.min.js && npx shx cp dist/kinto-http.min.js.map demo/kinto-http.min.js.map",
     "build:readme": "npx toctoc -w -d 2 README.md",
@@ -36,7 +36,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Kinto/kinto-http.js.git"
+    "url": "https://github.com/Kinto/kinto-http.js.git"
   },
   "keywords": [
     "kinto",
@@ -111,6 +111,6 @@
     }
   },
   "engines": {
-    "node": ">=12.22"
+    "node": ">=16"
   }
 }

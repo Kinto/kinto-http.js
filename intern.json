@@ -31,7 +31,12 @@
         {
           "browserName": "chrome",
           "goog:chromeOptions": {
-            "args": ["disk-cache-dir=/dev/null", "headless", "disable-gpu"]
+            "args": [
+              "disk-cache-dir=/dev/null",
+              "disk-cache-size=0",
+              "headless",
+              "disable-gpu"
+            ]
           },
           "fixSessionCapabilities": "no-detect"
         }
