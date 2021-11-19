@@ -27,6 +27,14 @@ jobs:
           python --version
           pip --version
 
+      - name: Downgrade Selenium
+        run: |
+          SELENIUM_JAR_NAME="selenium-server-standalone.jar"
+          SELENIUM_DOWNLOAD_URL="https://github.com/SeleniumHQ/selenium/releases/download/selenium-3.141.59/selenium-server-standalone-3.141.59.jar"
+          SELENIUM_JAR_PATH="/usr/share/java"
+          rm $SELENIUM_JAR_PATH/selenium-server*
+          curl $SELENIUM_DOWNLOAD_URL -sL -o "$SELENIUM_JAR_PATH/$SELENIUM_JAR_NAME"
+
       - name: Install Node dependencies
         run: npm ci
 
