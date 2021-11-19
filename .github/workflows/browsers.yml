@@ -26,6 +26,8 @@ jobs:
           npm --version
           python --version
           pip --version
+          chromedriver --version
+          google-chrome --version
 
       - name: Downgrade Selenium
         run: |
