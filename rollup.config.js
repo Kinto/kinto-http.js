@@ -105,6 +105,7 @@ const browserTestBuild = {
       tsconfig: "./test/tsconfig.json",
     }),
     replace({
+      preventAssignment: true,
       __dirname: JSON.stringify(path.join(__dirname, "test")),
       "process.env.TEST_KINTO_SERVER": JSON.stringify(
         process.env.TEST_KINTO_SERVER ? process.env.TEST_KINTO_SERVER : ""
