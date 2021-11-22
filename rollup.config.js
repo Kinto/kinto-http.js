@@ -103,6 +103,7 @@ const browserTestBuild = {
     }),
     typescript({
       tsconfig: "./test/tsconfig.json",
+      module: "esnext",
     }),
     replace({
       preventAssignment: true,
