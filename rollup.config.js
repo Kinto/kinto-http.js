@@ -75,7 +75,6 @@ const nodeBuild = {
       Headers: ["node-fetch", "Headers"],
       FormData: "form-data",
       atob: "atob",
-      Blob: path.resolve("./blob.js"),
     }),
     commonjs(),
   ],
