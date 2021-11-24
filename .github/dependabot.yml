@@ -1,16 +1,7 @@
 version: 2
 updates:
-- package-ecosystem: npm
-  directory: "/"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 99
-  ignore:
-  - dependency-name: "@rollup/plugin-typescript"
-    versions:
-    - 8.1.0
-    - 8.1.1
-    - 8.2.0
-  - dependency-name: rollup
-    versions:
-    - 2.38.2
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 99

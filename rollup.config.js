@@ -75,7 +75,6 @@ const nodeBuild = {
       Headers: ["node-fetch", "Headers"],
       FormData: "form-data",
       atob: "atob",
-      Blob: path.resolve("./blob.js"),
     }),
     commonjs(),
   ],
@@ -95,17 +94,18 @@ const browserTestBuild = {
   ],
   plugins: [
     multi(),
-    commonjs(),
+    commonjs({ extensions: [".js", ".ts"] }),
     nodePolyfills(),
     resolve({
       mainFields: ["browser", "module", "main"],
       preferBuiltins: true,
     }),
     typescript({
-      target: "es2019",
-      types: ["intern"],
+      tsconfig: "./test/tsconfig.json",
+      module: "esnext",
     }),
     replace({
+      preventAssignment: true,
       __dirname: JSON.stringify(path.join(__dirname, "test")),
       "process.env.TEST_KINTO_SERVER": JSON.stringify(
         process.env.TEST_KINTO_SERVER ? process.env.TEST_KINTO_SERVER : ""
