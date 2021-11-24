@@ -137,7 +137,7 @@ See [upgrading docs](#upgrading) and the full [detailed changelog on Github](htt
 A client instance is created using the `KintoClient` constructor, passing it the remote Kinto server root URL, including the version:
 
 ```js
-const client = new KintoClient("https://kinto.dev.mozaws.net/v1");
+const client = new KintoClient("https://demo.kinto-storage.org/v1");
 ```
 
 #### Options
