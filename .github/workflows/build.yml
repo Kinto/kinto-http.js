@@ -17,10 +17,6 @@ jobs:
         with:
           node-version: "16.x"
 
-      - uses: actions/setup-python@v2
-        with:
-          python-version: "3.x"
-
       - name: Print environment
         run: |
           node --version
