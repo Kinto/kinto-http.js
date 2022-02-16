@@ -1,1 +1,0 @@
-<!-- Participating in Hacktoberfest 2021? Read our guidelines here: https://github.com/Kinto/kinto-http.js/discussions/1153 -->
