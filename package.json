@@ -90,7 +90,7 @@
     "rollup-plugin-terser": "^7.0.2",
     "shelljs": "^0.8.4",
     "shx": "^0.3.3",
-    "sinon": "^12.0.1",
+    "sinon": "^13.0.1",
     "toctoc": "^0.4.0",
     "ts-node": "^10.4.0",
     "tslib": "^2.3.1",
