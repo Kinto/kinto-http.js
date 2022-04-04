@@ -1,3 +1,7 @@
+> ⚠️ **Important Notice** ⚠️
+>
+> **This package has been merged into [`kinto.js`](https://github.com/kinto/kinto.js). This repository remains available for historical purposes and will no longer receive updates.**
+
 kinto-http.js
 =============
 
